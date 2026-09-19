@@ -30,6 +30,24 @@ class DaemonConfigurationRepository extends DaemonRepository
     }
 
     /**
+     * Returns every server on the node with its live resource usage, in a single request.
+     *
+     * @throws DaemonConnectionException
+     */
+    public function getServersUtilization(): array
+    {
+        try {
+            $response = $this->getHttpClient()->get('/api/servers');
+        } catch (TransferException $exception) {
+            throw new DaemonConnectionException($exception);
+        }
+
+        $data = json_decode($response->getBody()->__toString(), true);
+
+        return is_array($data) ? $data : [];
+    }
+
+    /**
      * Updates the configuration information for a daemon. Updates the information for
      * this instance using a passed-in model. This allows us to change plenty of information
      * in the model, and still use the old, pre-update model to actually make the HTTP request.

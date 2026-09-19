@@ -45,3 +45,6 @@ resources/views/admin/users/index.blade.php
 resources/views/admin/users/new.blade.php
 resources/views/admin/users/view.blade.php
 database/migrations/2026_09_19_120000_create_admin_roles_table.php
+app/Http/Controllers/Admin/Nodes/NodeUtilizationController.php
+app/Repositories/Wings/DaemonConfigurationRepository.php
+resources/views/admin/nodes/view/index.blade.php
