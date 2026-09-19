@@ -6,19 +6,7 @@
 Thème sombre bleu-nuit, accent indigo, cartes en verre dépoli, coins arrondis et animations douces —
 pour le dashboard client **et** l'administration.
 
-![Aperçu de la page de connexion](docs/screenshots/login.png)
-
 </div>
-
-## Aperçu
-
-| Administration — Vue d'ensemble | Administration — Utilisateurs |
-| :---: | :---: |
-| ![Admin overview](docs/screenshots/admin-overview.png) | ![Admin users](docs/screenshots/admin-users.png) |
-
-![Admin node](docs/screenshots/admin-node.png)
-
-> Les captures de l'administration utilisent des données d'exemple.
 
 ## Ce qui est inclus
 
