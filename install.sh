@@ -313,8 +313,13 @@ fetch_source() {
 # ---------------------------------------------------------------------------------------------
 # Node.js and Yarn (needed to compile the dashboard)
 # ---------------------------------------------------------------------------------------------
+# Debian and Ubuntu ship an unrelated program named "yarn" (package cmdtest), so the name alone proves nothing.
+yarn_ready() {
+    command -v yarn >/dev/null 2>&1 && [[ "$(yarn --version 2>/dev/null | head -n1)" =~ ^1\. ]]
+}
+
 node_ready() {
-    command -v node >/dev/null 2>&1 && command -v yarn >/dev/null 2>&1 \
+    command -v node >/dev/null 2>&1 && yarn_ready \
         && [[ "$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)" -ge 22 ]]
 }
 
@@ -332,8 +337,15 @@ ensure_node() {
             fi
             curl -fsSL https://deb.nodesource.com/setup_22.x | bash - || die "Could not add the Node.js repository."
             apt-get install -y nodejs || die "Could not install Node.js."
-            npm install -g yarn || die "Could not install Yarn."
-            node_ready || die "Node.js 22 and Yarn are still not available."
+            # Into /usr/local, so it never collides with the unrelated /usr/bin/yarn of the cmdtest package.
+            npm install -g yarn --prefix /usr/local || npm install -g yarn --force || die "Could not install Yarn."
+            hash -r
+            if ! node_ready; then
+                if dpkg -s cmdtest >/dev/null 2>&1; then
+                    die "The package cmdtest provides another program named yarn. Run: apt-get remove -y cmdtest, then run this command again."
+                fi
+                die "Node.js 22 and Yarn 1.x are still not available."
+            fi
             ok "Node.js $(node -v) and Yarn $(yarn -v) installed"
             return 0
         fi
