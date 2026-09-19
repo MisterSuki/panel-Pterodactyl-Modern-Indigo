@@ -13,6 +13,7 @@ import { ServerContext } from '@/state/server';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
 import UptimeDuration from '@/components/server/UptimeDuration';
 import StatBlock from '@/components/server/console/StatBlock';
+import HiddenAddress from '@/components/elements/HiddenAddress';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import classNames from 'classnames';
 import { capitalize } from '@/lib/strings';
@@ -56,11 +57,17 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
         [limits]
     );
 
-    const allocation = ServerContext.useStoreState((state) => {
+    const allocationHost = ServerContext.useStoreState((state) => {
         const match = state.server.data!.allocations.find((allocation) => allocation.isDefault);
 
-        return !match ? 'n/a' : `${match.alias || ip(match.ip)}:${match.port}`;
+        return !match ? null : match.alias || ip(match.ip);
     });
+    const allocationPort = ServerContext.useStoreState(
+        (state) => state.server.data!.allocations.find((allocation) => allocation.isDefault)?.port
+    );
+    // What gets copied is always the real address, even while it is hidden on screen.
+    const allocation =
+        allocationHost === null || allocationPort === undefined ? 'n/a' : `${allocationHost}:${allocationPort}`;
 
     useEffect(() => {
         if (!connected || !instance) {
@@ -91,7 +98,11 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
     return (
         <div className={classNames('grid grid-cols-6 gap-2 md:gap-4', className)}>
             <StatBlock icon={faWifi} title={'Address'} copyOnClick={allocation}>
-                {allocation}
+                {allocationHost === null || allocationPort === undefined ? (
+                    allocation
+                ) : (
+                    <HiddenAddress host={allocationHost} port={allocationPort} />
+                )}
             </StatBlock>
             <StatBlock
                 icon={faClock}

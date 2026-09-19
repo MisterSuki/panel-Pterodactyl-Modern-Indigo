@@ -10,6 +10,7 @@ import GreyRowBox from '@/components/elements/GreyRowBox';
 import Spinner from '@/components/elements/Spinner';
 import styled, { keyframes } from 'styled-components/macro';
 import StatusPill from '@/components/server/console/StatusPill';
+import HiddenAddress from '@/components/elements/HiddenAddress';
 import isEqual from 'react-fast-compare';
 
 // Determines if the current value is in an alarm threshold so we can show it in red rather
@@ -143,7 +144,10 @@ export default ({ server, className, style }: { server: Server; className?: stri
                             .filter((alloc) => alloc.isDefault)
                             .map((allocation) => (
                                 <React.Fragment key={allocation.ip + allocation.port.toString()}>
-                                    {allocation.alias || ip(allocation.ip)}:{allocation.port}
+                                    <HiddenAddress
+                                        host={allocation.alias || ip(allocation.ip)}
+                                        port={allocation.port}
+                                    />
                                 </React.Fragment>
                             ))}
                     </p>
