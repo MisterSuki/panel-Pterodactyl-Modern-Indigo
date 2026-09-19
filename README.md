@@ -16,6 +16,7 @@ pour le dashboard client **et** l'administration. Avec en plus l'**inscription**
 | **Design** | Administration (`/admin`) et dashboard client refaits : sidebar et en-tête bleu-nuit, cartes arrondies, boutons et formulaires modernes, page de connexion en verre dépoli, cartes serveurs avec statut lumineux |
 | **[Inscription et Discord](#inscription-et-connexion-discord)** | Page « Create an Account », bouton « Continue with Discord », liaison automatique des comptes existants, réglages dans *Admin → Settings* (le champ « Default Language » est retiré) |
 | **[Rôles de staff](#rôles-de-staff)** | Crée des rôles (modérateur, support…), choisis leurs permissions section par section et donne-les à des personnes, sans en faire des administrateurs complets |
+| **[phpMyAdmin](#phpmyadmin)** | Installé automatiquement avec le panel : un bouton sur la page *Databases* d'un serveur ouvre la base directement, déjà connecté |
 | **[Installation complète](#installation)** | Un seul script installe tout sur un serveur vierge (serveur web, PHP, base de données, Redis, le panel, SSL), installe Wings, ou met à jour un panel existant |
 
 ## Installation
@@ -34,6 +35,7 @@ Le script te demande ce que tu veux faire :
 4. **Mettre à jour** un panel déjà installé avec ce thème
 5. **Restaurer** les fichiers d'avant une mise à jour
 6. **Désinstaller le thème** et retrouver le panel Pterodactyl d'origine, sans rien perdre
+7. **Installer phpMyAdmin** pour ouvrir les bases de données depuis le panel
 
 S'il détecte déjà un panel dans `/var/www/pterodactyl`, il passe directement à la mise à jour.
 
@@ -55,7 +57,8 @@ Il pose quelques questions (domaine, email, compte administrateur) puis fait tou
 5. compile le dashboard (il ajoute un peu de swap temporaire si le serveur a peu de mémoire) ;
 6. obtient un **certificat SSL** gratuit Let's Encrypt ;
 7. installe la **file d'attente** (`pteroq`) et la **tâche planifiée** (cron) ;
-8. ouvre les ports 80 et 443 si le pare-feu `ufw` est actif.
+8. installe **[phpMyAdmin](#phpmyadmin)**, relié au panel (`--no-phpmyadmin` pour l'éviter) ;
+9. ouvre les ports 80 et 443 si le pare-feu `ufw` est actif.
 
 À la fin, il affiche l'adresse du panel et tes identifiants, et les enregistre dans
 `/root/pterodactyl-credentials.txt` (lisible par root seulement, à supprimer ensuite).
@@ -90,6 +93,36 @@ Pour tout faire d'un coup, donne-lui l'adresse du panel, un jeton d'API et le nu
 bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) \
   --wings --panel-url=https://panel.example.com --wings-token=ptla_xxx --node-id=1
 ```
+
+### phpMyAdmin
+
+Il est installé avec le panel. Sur un panel **déjà installé avec ce thème** (mets-le d'abord à jour avec `--update` si besoin) et qui tourne sous nginx :
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --phpmyadmin
+```
+
+Il télécharge la dernière version de phpMyAdmin dans `/var/www/phpmyadmin`, la sert à l'adresse
+`https://ton-panel/phpmyadmin/` (une ligne `include` est ajoutée au fichier nginx du panel, testée avec `nginx -t` et
+annulée si nginx la refuse) et renseigne `PHPMYADMIN_URL` et `PHPMYADMIN_SECRET` dans le `.env` du panel. Tu peux le
+relancer à tout moment : ça met phpMyAdmin à jour en gardant le même secret.
+
+Ensuite, sur la page **Databases** d'un serveur, chaque base a un bouton **phpMyAdmin** : un clic ouvre la base dans un
+nouvel onglet, **déjà connecté**, sans mot de passe à copier.
+
+Comment c'est protégé :
+
+- le bouton donne un lien à **usage unique, valable une minute**. Il ne contient ni le mot de passe ni le nom
+  d'utilisateur : le script de connexion de phpMyAdmin les demande au panel, avec un secret partagé qui reste sur le
+  serveur ;
+- il faut la permission **View Password** du serveur (la même que pour voir le mot de passe de la base), et l'ouverture
+  est notée dans l'activité du serveur ;
+- phpMyAdmin n'a **pas de formulaire de connexion** : on ne peut y entrer que par ce lien. Ouvrir `/phpmyadmin/`
+  directement renvoie vers le panel. Chaque personne n'accède qu'à sa propre base, avec l'utilisateur limité à celle-ci.
+
+Ce qu'il faut de ton côté : le serveur qui héberge les bases (*Admin → Database Hosts*) doit accepter les connexions
+venant de la machine du panel (adresse de MariaDB/MySQL ouverte, et utilisateur de base autorisé depuis `%`, comme pour
+Pterodactyl).
 
 ### Mettre à jour un panel existant
 
@@ -149,6 +182,7 @@ perdu** : serveurs, utilisateurs, nodes, allocations, sauvegardes, bases de donn
   le panel officiel ;
 - le dossier `resources/scripts` est remplacé par celui d'origine (une sauvegarde est faite au cas où tu y aurais
   ajouté tes propres fichiers) ;
+- phpMyAdmin reste installé mais le bouton disparaît, car le panel d'origine ne le connaît pas ;
 - pour **remettre le thème** tel qu'il était : `bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --restore`. Pour installer la dernière version du
   thème : `--update`.
 
@@ -158,7 +192,7 @@ Pour vérifier ce qui sera fait sans rien changer, ajoute `--dry-run`.
 
 | Option | Effet |
 | --- | --- |
-| `--panel`, `--wings`, `--update`, `--restore`, `--uninstall` | Ce qu'il faut faire (sinon, menu) |
+| `--panel`, `--wings`, `--update`, `--restore`, `--uninstall`, `--phpmyadmin` | Ce qu'il faut faire (sinon, menu) |
 | `-y`, `--yes` | Ne pose aucune question |
 | `--dry-run` | Vérifie tout et affiche le plan, sans rien changer |
 | `--fqdn=`, `--email=` | Domaine (ou IP) et email, pour un nouveau panel |
@@ -172,6 +206,8 @@ Pour vérifier ce qui sera fait sans rien changer, ajoute `--dry-run`.
 | `--skip-build`, `--skip-migrate` | Ne compile pas le dashboard, ne lance pas les migrations |
 | `--css-only` | Met à jour seulement le design de l'administration |
 | `--force` | Met à jour même si la version du panel est différente (déconseillé) |
+| `--no-phpmyadmin` | Avec `--panel` : n'installe pas phpMyAdmin |
+| `--pma-source=` | Dossier ou archive `.tar.gz` de phpMyAdmin à utiliser au lieu de télécharger la dernière version |
 | `--stock-version=`, `--stock-source=` | Avec `--uninstall` : version officielle à remettre (celle de ton panel par défaut), ou dossier / archive locale à la place du téléchargement |
 | `--branch=`, `--repo=`, `--source=` | Installe depuis une autre branche, un autre dépôt ou un dossier local |
 

@@ -4,6 +4,7 @@ namespace Pterodactyl\Http\ViewComposers;
 
 use Illuminate\View\View;
 use Pterodactyl\Services\Auth\AuthFeatures;
+use Pterodactyl\Services\Databases\PhpMyAdminSignOn;
 use Pterodactyl\Services\Helpers\AssetHashService;
 
 class AssetComposer
@@ -32,6 +33,7 @@ class AssetComposer
             'discord' => [
                 'enabled' => AuthFeatures::discordEnabled(),
             ],
+            'phpmyadmin' => PhpMyAdminSignOn::enabled(),
         ]);
     }
 }

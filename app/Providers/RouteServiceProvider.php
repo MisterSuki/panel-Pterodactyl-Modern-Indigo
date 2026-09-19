@@ -59,6 +59,11 @@ class RouteServiceProvider extends ServiceProvider
                     ->group(base_path('routes/api-client.php'));
             });
 
+            // Called by the phpMyAdmin sign-in script on this machine: no session, no user, only a shared secret.
+            Route::middleware('throttle:60,1')
+                ->prefix('/api/phpmyadmin')
+                ->group(base_path('routes/phpmyadmin.php'));
+
             Route::middleware('daemon')
                 ->prefix('/api/remote')
                 ->scopeBindings()

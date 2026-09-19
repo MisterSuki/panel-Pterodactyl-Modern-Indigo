@@ -8,6 +8,7 @@
 #   - a NEW SERVER: web server, PHP, database, Redis, the panel, its services and an SSL certificate,
 #   - WINGS, the daemon that runs the game servers,
 #   - an EXISTING PANEL: updates it with everything from this repository,
+#   - PHPMYADMIN, so a database can be opened from the panel in one click, already signed in,
 #   - and the way back: the official panel again, keeping servers, users and every setting.
 #
 #   bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh)
@@ -35,6 +36,8 @@ APT_SOURCES_DIR="${APT_SOURCES_DIR:-/etc/apt/sources.list.d}"
 COMPOSER_BIN="${COMPOSER_BIN:-/usr/local/bin/composer}"
 WINGS_BIN="${WINGS_BIN:-/usr/local/bin/wings}"
 WINGS_DIR="${WINGS_DIR:-/etc/pterodactyl}"
+PMA_PATH="${PMA_PATH:-/var/www/phpmyadmin}"
+PMA_DOWNLOAD_URL="${PMA_DOWNLOAD_URL:-https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.tar.gz}"
 DB_NAME="panel"
 DB_USER="pterodactyl"
 
@@ -44,6 +47,8 @@ DO_WINGS=false
 DO_UPDATE=false
 RESTORE=false
 UNINSTALL=false
+DO_PMA=false
+NO_PMA=false
 
 # answers, asked when missing
 FQDN=""
@@ -61,6 +66,7 @@ WINGS_NODE=""
 # behaviour
 SOURCE=""
 STOCK_SOURCE=""
+PMA_SOURCE=""
 STOCK_VERSION=""
 FROM=""
 ASSUME_YES=false
@@ -99,6 +105,7 @@ What to do (asked in a menu when you give nothing, and no panel is found):
   --wings               Install Wings, the game server daemon, on this server
   --update              Update an existing panel with everything from this repository
   --restore             Put back the files saved by the last update
+  --phpmyadmin          Install phpMyAdmin next to the panel: databases open from the panel, already signed in
   --uninstall           Go back to the official panel. Your servers, users and settings are kept
 
 New panel install:
@@ -110,6 +117,7 @@ New panel install:
   --admin-last-name=N   Last name of the administrator (default: User)
   --timezone=ZONE       Panel timezone (default: the server's)
   --ssl / --no-ssl      Get a free SSL certificate (default: yes when a domain name is used)
+  --no-phpmyadmin       Do not install phpMyAdmin with the panel (it is installed by default)
 
 Wings (optional, to configure it right away):
   --panel-url=URL       Address of your panel
@@ -129,6 +137,9 @@ Uninstall:
   --stock-version=X.Y.Z Official panel version to put back (default: the version of your panel)
   --stock-source=DIR|FILE  Use a local folder or panel.tar.gz of the official panel instead of downloading it
 
+phpMyAdmin:
+  --pma-source=DIR|FILE Use a local folder or .tar.gz of phpMyAdmin instead of downloading the latest one
+
 Everywhere:
   -y, --yes             Do not ask questions, use the given options and the defaults
   --dry-run             Check everything and show the plan, change nothing
@@ -143,6 +154,7 @@ Examples:
   bash <(curl -s ${INSTALL_URL}) --panel --fqdn=panel.example.com --email=you@example.com --yes
   bash <(curl -s ${INSTALL_URL}) --wings
   bash <(curl -s ${INSTALL_URL}) --update --yes --install-node
+  bash <(curl -s ${INSTALL_URL}) --phpmyadmin
   bash <(curl -s ${INSTALL_URL}) --uninstall
 EOF
 }
@@ -154,6 +166,9 @@ for arg in "$@"; do
         --update) DO_UPDATE=true ;;
         --restore) RESTORE=true ;;
         --uninstall) UNINSTALL=true ;;
+        --phpmyadmin) DO_PMA=true ;;
+        --no-phpmyadmin) NO_PMA=true ;;
+        --pma-source=*) PMA_SOURCE="${arg#*=}" ;;
         --stock-version=*) STOCK_VERSION="${arg#*=}" ;;
         --stock-source=*) STOCK_SOURCE="${arg#*=}" ;;
         --fqdn=*) FQDN="${arg#*=}" ;;
@@ -206,6 +221,7 @@ BACKUP_DIR=""
 TEMP_SWAP=false
 INSTALLING=false
 RESUMING=false
+INSTALLING_PANEL=false
 
 artisan() {
     (cd "$PANEL_PATH" && "$PHP_BIN" artisan "$@")
@@ -837,6 +853,224 @@ run_uninstall() {
 }
 
 # ---------------------------------------------------------------------------------------------
+# PHPMYADMIN: open a database from the panel, already signed in
+# ---------------------------------------------------------------------------------------------
+# env_get KEY FILE: the value of a line of an .env file, without quotes.
+env_get() {
+    sed -n "s/^$1=//p" "$2" | head -n1 | sed "s/^[\"']//; s/[\"']$//"
+}
+
+# env_set KEY VALUE FILE: replaces the line of an .env file, or adds it.
+env_set() {
+    local key="$1" value="$2" file="$3" tmp
+    if grep -q "^${key}=" "$file"; then
+        tmp="$(mktemp)"
+        awk -v k="$key" -v v="$value" 'index($0, k "=") == 1 { print k "=" v; next } { print }' "$file" >"$tmp"
+        cat "$tmp" >"$file"
+        rm -f "$tmp"
+    else
+        if [[ -s "$file" && -n "$(tail -c1 "$file")" ]]; then
+            echo >>"$file"
+        fi
+        printf '%s=%s\n' "$key" "$value" >>"$file"
+    fi
+}
+
+# The PHP-FPM socket nginx talks to. Prints nothing and fails when there is none.
+find_fpm_socket() {
+    if [[ -n "${PHP_FPM_SOCK:-}" ]]; then
+        echo "$PHP_FPM_SOCK"
+        return 0
+    fi
+    local socket
+    for socket in "/run/php/php${PHP_VERSION}-fpm.sock" /run/php/php*-fpm.sock; do
+        if [[ -S "$socket" ]]; then
+            echo "$socket"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# The nginx files that serve the panel (the ones with "root <panel>/public;").
+find_panel_vhosts() {
+    local file
+    for file in "${NGINX_DIR}"/sites-available/* "${NGINX_DIR}"/conf.d/*.conf; do
+        if [[ -f "$file" ]] && grep -qE "^[[:space:]]*root[[:space:]]+${PANEL_PATH}/?public;" "$file" 2>/dev/null; then
+            echo "$file"
+        fi
+    done
+}
+
+# Installs phpMyAdmin under the panel's address (/phpmyadmin) and links it to the panel: the
+# Databases page of a server then gets a button that opens the database already signed in.
+# Needs the panel installed with nginx. Safe to run again: it updates phpMyAdmin.
+install_phpmyadmin() {
+    step "Installing phpMyAdmin"
+    panel_exists || die "No Pterodactyl panel found in $PANEL_PATH."
+    [[ -f "$PANEL_PATH/.env" ]] || die "$PANEL_PATH/.env is missing: the panel is not configured yet."
+    command -v nginx >/dev/null 2>&1 || die "nginx was not found. phpMyAdmin is only set up with nginx."
+    [[ -n "${SRC:-}" && -d "$SRC/install-assets/phpmyadmin" ]] || die "install-assets/phpmyadmin is missing from the downloaded files."
+    local asset_dir="$SRC/install-assets/phpmyadmin" file
+    for file in signon.php config.inc.php nginx.conf; do
+        [[ -f "$asset_dir/$file" ]] || die "$file is missing from install-assets/phpmyadmin."
+    done
+    [[ -n "$TMP" && -d "$TMP" ]] || TMP="$(mktemp -d)"
+
+    local panel_url url_path socket secret blowfish
+    panel_url="${PANEL_URL:-$(env_get APP_URL "$PANEL_PATH/.env")}"
+    panel_url="${panel_url%/}"
+    [[ "$panel_url" =~ ^https?://[A-Za-z0-9._:-]+$ ]] || die "Could not read a valid APP_URL from $PANEL_PATH/.env (got \"$panel_url\")."
+    url_path="/$(basename "$PMA_PATH")"
+    [[ "$url_path" =~ ^/[A-Za-z0-9._-]+$ ]] || die "The phpMyAdmin folder name \"$(basename "$PMA_PATH")\" is not usable in an address."
+
+    if ! socket="$(find_fpm_socket)"; then
+        if [[ "$INSTALLING_PANEL" == true ]]; then
+            socket="/run/php/php${PHP_VERSION}-fpm.sock"
+        else
+            die "PHP-FPM was not found (no /run/php/php*-fpm.sock). Is PHP-FPM running?"
+        fi
+    fi
+    if [[ "$socket" =~ php([0-9]+\.[0-9]+)-fpm ]]; then
+        PHP_VERSION="${BASH_REMATCH[1]}"
+    fi
+
+    if command -v apt-get >/dev/null 2>&1; then
+        apt_install "php${PHP_VERSION}-mbstring" "php${PHP_VERSION}-xml" "php${PHP_VERSION}-curl" "php${PHP_VERSION}-zip" \
+            "php${PHP_VERSION}-gd" "php${PHP_VERSION}-mysql" >/dev/null 2>&1 \
+            || warn "Could not install the PHP extensions phpMyAdmin needs (not fatal if they are already there)."
+    fi
+
+    # --- the files ---
+    local staging="$TMP/pma"
+    rm -rf "$staging"
+    mkdir -p "$staging"
+    if [[ -n "$PMA_SOURCE" ]]; then
+        if [[ -d "$PMA_SOURCE" ]]; then
+            cp -a "$PMA_SOURCE/." "$staging/"
+        elif [[ -f "$PMA_SOURCE" ]]; then
+            tar -xzf "$PMA_SOURCE" -C "$staging" --strip-components=1 || die "Could not read $PMA_SOURCE."
+        else
+            die "$PMA_SOURCE does not exist."
+        fi
+    else
+        command -v curl >/dev/null 2>&1 || die "curl is required."
+        info "Downloading the latest phpMyAdmin"
+        curl -fsSL --retry 3 "$PMA_DOWNLOAD_URL" -o "$TMP/pma.tar.gz" || die "Could not download $PMA_DOWNLOAD_URL"
+        tar -xzf "$TMP/pma.tar.gz" -C "$staging" --strip-components=1 || die "The downloaded phpMyAdmin archive is not valid."
+    fi
+    [[ -f "$staging/index.php" && -d "$staging/libraries" ]] || die "The phpMyAdmin files are not valid (index.php or libraries is missing)."
+
+    if [[ -e "$PMA_PATH" && -n "$(ls -A "$PMA_PATH" 2>/dev/null)" ]]; then
+        if [[ -f "$PMA_PATH/index.php" ]] && grep -q "phpMyAdmin" "$PMA_PATH/index.php"; then
+            info "phpMyAdmin is already in $PMA_PATH: updating it"
+            rm -rf "${PMA_PATH:?}"
+        else
+            die "$PMA_PATH already exists and is not phpMyAdmin. Use PMA_PATH=/other/folder, or empty it first."
+        fi
+    fi
+    mkdir -p "$PMA_PATH"
+    cp -a "$staging/." "$PMA_PATH/"
+    mkdir -p "$PMA_PATH/tmp"
+
+    # --- the link with the panel ---
+    secret="$(env_get PHPMYADMIN_SECRET "$PANEL_PATH/.env")"
+    if [[ "${#secret}" -lt 16 ]]; then
+        secret="$(random_string 40)"
+    fi
+    blowfish="$(random_string 32)"
+
+    sed "s|__PANEL_URL__|${panel_url}|g; s|__SECRET__|${secret}|g; s|__URL_PATH__|${url_path}|g" "$asset_dir/signon.php" >"$PMA_PATH/signon.php"
+    sed "s|__PANEL_URL__|${panel_url}|g; s|__BLOWFISH__|${blowfish}|g; s|__URL_PATH__|${url_path}|g; s|__TMP_DIR__|${PMA_PATH}/tmp|g" \
+        "$asset_dir/config.inc.php" >"$PMA_PATH/config.inc.php"
+    chown -R "${WEB_USER}:${WEB_USER}" "$PMA_PATH" 2>/dev/null || warn "Could not give $PMA_PATH to ${WEB_USER} (check the web user with WEB_USER=)."
+    chmod 640 "$PMA_PATH/signon.php" "$PMA_PATH/config.inc.php"
+    chmod 750 "$PMA_PATH/tmp"
+    ok "phpMyAdmin files in $PMA_PATH"
+
+    # --- nginx ---
+    local snippet="${NGINX_DIR}/snippets/pterodactyl-phpmyadmin.conf" vhost added=() backups=() i
+    mkdir -p "${NGINX_DIR}/snippets"
+    sed "s|__URL_PATH__|${url_path}|g; s|__PMA_ROOT__|$(dirname "$PMA_PATH")|g; s|__FPM_SOCKET__|${socket}|g" "$asset_dir/nginx.conf" >"$snippet"
+
+    local vhosts=()
+    while IFS= read -r vhost; do
+        [[ -n "$vhost" ]] && vhosts+=("$vhost")
+    done < <(find_panel_vhosts)
+
+    if [[ "${#vhosts[@]}" -eq 0 ]]; then
+        warn "Could not find the nginx file of the panel (looked for \"root ${PANEL_PATH}/public;\" in ${NGINX_DIR})."
+        warn "Add this line inside its \"server { }\" block, then reload nginx:"
+        warn "    include ${snippet};"
+    else
+        for vhost in "${vhosts[@]}"; do
+            if grep -qF "include ${snippet};" "$vhost"; then
+                continue
+            fi
+            cp -p "$vhost" "$TMP/vhost.${#backups[@]}.bak"
+            backups+=("$TMP/vhost.${#backups[@]}.bak")
+            added+=("$vhost")
+            sed -i "/^[[:space:]]*root[[:space:]]\+${PANEL_PATH//\//\\/}\/\?public;/a\\    include ${snippet//\//\\/};" "$vhost"
+        done
+        if ! nginx -t >/dev/null 2>&1; then
+            err "nginx does not accept the new configuration (nginx -t):"
+            nginx -t 2>&1 | sed 's/^/    /' >&2 || true
+            for i in "${!added[@]}"; do
+                cp -p "${backups[$i]}" "${added[$i]}"
+            done
+            rm -f "$snippet"
+            die "The nginx configuration was put back as it was."
+        fi
+        systemctl reload nginx >/dev/null 2>&1 || systemctl restart nginx >/dev/null 2>&1 || true
+        ok "nginx serves ${url_path}/"
+    fi
+
+    # --- the panel ---
+    env_set PHPMYADMIN_URL "${panel_url}${url_path}" "$PANEL_PATH/.env"
+    env_set PHPMYADMIN_SECRET "$secret" "$PANEL_PATH/.env"
+    artisan config:clear >/dev/null 2>&1 || warn "php artisan config:clear did not run (not fatal)."
+    ok "The panel knows about phpMyAdmin"
+
+    echo ""
+    ok "${BOLD}phpMyAdmin is installed.${NC}"
+    info "Open a server, then Databases: each database has a phpMyAdmin button that signs you in."
+    info "Opening ${panel_url}${url_path}/ directly sends visitors back to the panel: nobody types a password."
+    warn "The database host must accept connections from this machine (Admin > Database Hosts, and MariaDB's bind-address)."
+}
+
+run_phpmyadmin_install() {
+    step "phpMyAdmin"
+    panel_exists || die "No Pterodactyl panel found in $PANEL_PATH. If it is somewhere else, add --path=/your/panel/folder"
+    command -v nginx >/dev/null 2>&1 || die "nginx was not found. phpMyAdmin is only set up with nginx."
+    [[ -f "$PANEL_PATH/routes/phpmyadmin.php" ]]         || die "This panel does not have the theme yet, so it cannot use phpMyAdmin. Run it with --update first."
+    OWNER="$(stat -c '%U:%G' "$PANEL_PATH/artisan" 2>/dev/null || echo root:root)"
+    # PHP is only used to clear the panel's configuration cache, so a missing "php" is not fatal.
+    if ! command -v "$PHP_BIN" >/dev/null 2>&1 && command -v "php${PHP_VERSION}" >/dev/null 2>&1; then
+        PHP_BIN="php${PHP_VERSION}"
+    fi
+
+    step "Getting the files"
+    fetch_source
+
+    step "What will happen"
+    info "Download phpMyAdmin and put it in $PMA_PATH (served at /$(basename "$PMA_PATH") on the panel's address)"
+    info "Add its sign-in script, and an include line in the panel's nginx file (checked with nginx -t, undone if refused)"
+    info "Tell the panel where it is (PHPMYADMIN_URL and PHPMYADMIN_SECRET in $PANEL_PATH/.env)"
+    ok "Nothing else changes: no database, no existing file of the panel"
+
+    if [[ "$DRY_RUN" == true ]]; then
+        ok "Dry run finished, nothing was changed."
+        return 0
+    fi
+
+    ask "Continue?" || {
+        info "Nothing was changed."
+        exit 0
+    }
+    install_phpmyadmin
+}
+
+# ---------------------------------------------------------------------------------------------
 # System checks for a new install
 # ---------------------------------------------------------------------------------------------
 OS_ID=""
@@ -964,7 +1198,7 @@ place_panel_files() {
     step "Installing the panel files"
     mkdir -p "$PANEL_PATH"
     # Everything from the repository, without folders that are only useful for development.
-    (cd "$SRC" && tar cf - --exclude=./node_modules --exclude=./vendor --exclude=./.git --exclude=./.env --exclude='./public/assets/*.js' .) \
+    (cd "$SRC" && tar cf - --exclude=./node_modules --exclude=./vendor --exclude=./.git --exclude=./.env --exclude=./install-assets --exclude='./public/assets/*.js' .) \
         | (cd "$PANEL_PATH" && tar xf -)
     mkdir -p "$PANEL_PATH/storage/app" "$PANEL_PATH/storage/framework/cache" "$PANEL_PATH/storage/framework/sessions" \
         "$PANEL_PATH/storage/framework/views" "$PANEL_PATH/storage/logs" "$PANEL_PATH/bootstrap/cache" "$PANEL_PATH/public/assets"
@@ -1130,6 +1364,10 @@ setup_ssl() {
 }
 
 save_credentials() {
+    local pma_line=""
+    if [[ -f "$PMA_PATH/signon.php" ]]; then
+        pma_line="phpMyAdmin:  ${PANEL_URL}/$(basename "$PMA_PATH")/  (open it from the Databases page of a server)"
+    fi
     (
         umask 077
         cat >"$CREDENTIALS_FILE" <<EOF
@@ -1141,6 +1379,7 @@ Password:    ${ADMIN_PASSWORD}
 
 Database:    ${DB_NAME} / user ${DB_USER} / password ${DB_PASSWORD}
 Panel files: ${PANEL_PATH}
+${pma_line}
 
 Delete this file once you have noted these details.
 EOF
@@ -1171,6 +1410,9 @@ run_panel_install() {
     info "Create the database ${DB_NAME}, and the panel in $PANEL_PATH"
     info "Compile the dashboard with Node.js 22 (installed if missing)"
     info "Create the first administrator: ${ADMIN_USER} (${ADMIN_EMAIL})"
+    if [[ "$NO_PMA" != true ]]; then
+        info "Install phpMyAdmin at /phpmyadmin, so databases open from the panel in one click"
+    fi
     if [[ "$SSL_MODE" == "no" ]]; then
         info "Serve http://${FQDN} (no SSL certificate)"
     else
@@ -1209,6 +1451,15 @@ run_panel_install() {
     write_nginx_config
     setup_ssl
     configure_panel
+    if [[ "$NO_PMA" != true ]]; then
+        # The panel works without phpMyAdmin, so a problem here must not stop the install.
+        INSTALLING_PANEL=true
+        if ! (install_phpmyadmin); then
+            warn "phpMyAdmin could not be installed (see above). The panel itself is fine."
+            warn "Try again later with: bash <(curl -s ${INSTALL_URL}) --phpmyadmin"
+        fi
+        INSTALLING_PANEL=false
+    fi
     if [[ "$SKIP_BUILD" != true ]]; then
         compile_dashboard
     fi
@@ -1339,7 +1590,8 @@ choose_mode() {
     echo "   4) Update an existing panel with this theme"
     echo "   5) Restore the files saved by a previous update"
     echo "   6) Remove the theme and go back to the official panel (nothing is lost)"
-    printf ' Choose [1-6]: '
+    echo "   7) Install phpMyAdmin, to open databases from the panel"
+    printf ' Choose [1-7]: '
     local choice=""
     read -r choice || true
     case "$choice" in
@@ -1352,6 +1604,7 @@ choose_mode() {
         4) DO_UPDATE=true ;;
         5) RESTORE=true ;;
         6) UNINSTALL=true ;;
+        7) DO_PMA=true ;;
         *) die "That is not one of the choices." ;;
     esac
 }
@@ -1365,7 +1618,7 @@ main() {
         exit 0
     fi
 
-    if [[ "$DO_PANEL" != true && "$DO_WINGS" != true && "$DO_UPDATE" != true && "$UNINSTALL" != true ]]; then
+    if [[ "$DO_PANEL" != true && "$DO_WINGS" != true && "$DO_UPDATE" != true && "$UNINSTALL" != true && "$DO_PMA" != true ]]; then
         if panel_exists; then
             info "A panel is installed in $PANEL_PATH: updating it."
             DO_UPDATE=true
@@ -1388,6 +1641,11 @@ main() {
 
     if [[ "$UNINSTALL" == true ]]; then
         run_uninstall
+        return 0
+    fi
+
+    if [[ "$DO_PMA" == true && "$DO_PANEL" != true ]]; then
+        run_phpmyadmin_install
         return 0
     fi
 

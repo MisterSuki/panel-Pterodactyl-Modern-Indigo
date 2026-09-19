@@ -67,6 +67,7 @@ return [
         'database' => [
             'create' => 'Created new database :name',
             'rotate-password' => 'Password rotated for database :name',
+            'phpmyadmin' => 'Opened database :name in phpMyAdmin',
             'delete' => 'Deleted database :name',
         ],
         'file' => [

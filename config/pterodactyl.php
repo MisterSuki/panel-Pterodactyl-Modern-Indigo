@@ -52,6 +52,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | phpMyAdmin
+    |--------------------------------------------------------------------------
+    |
+    | When both values are set, the Databases page of a server offers a button that opens the
+    | database in phpMyAdmin, already signed in. The installer sets them up (install.sh --phpmyadmin).
+    | The secret is shared with the sign-in script of phpMyAdmin.
+    */
+
+    'phpmyadmin' => [
+        'url' => env('PHPMYADMIN_URL'),
+        'secret' => env('PHPMYADMIN_SECRET'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Pagination
     |--------------------------------------------------------------------------
     |

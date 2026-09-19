@@ -11,6 +11,8 @@ export interface SiteSettings {
     discord: {
         enabled: boolean;
     };
+    // True when phpMyAdmin is set up, so databases can be opened in it from the panel.
+    phpmyadmin?: boolean;
 }
 
 export interface SettingsStore {

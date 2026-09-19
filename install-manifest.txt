@@ -48,3 +48,10 @@ database/migrations/2026_09_19_120000_create_admin_roles_table.php
 app/Http/Controllers/Admin/Nodes/NodeUtilizationController.php
 app/Repositories/Wings/DaemonConfigurationRepository.php
 resources/views/admin/nodes/view/index.blade.php
+app/Services/Databases/PhpMyAdminSignOn.php
+app/Http/Controllers/Api/PhpMyAdminRedeemController.php
+app/Http/Controllers/Api/Client/Servers/DatabasePhpMyAdminController.php
+app/Http/Requests/Api/Client/Servers/Databases/PhpMyAdminRequest.php
+app/Providers/RouteServiceProvider.php
+routes/phpmyadmin.php
+resources/lang/en/activity.php
