@@ -245,6 +245,56 @@
                     $('[data-toggle="tooltip"]').tooltip();
                 })
             </script>
+
+            <script>
+                // Memory and disk are kept in MiB by the panel, but people think in GB. A field marked data-gb is shown
+                // in GB (1 GB = 1024 MiB) and still sends MiB. The real value is only rewritten when the field is edited,
+                // so a server with 1500 MiB is not changed just by saving the page.
+                $(function () {
+                    $('input[data-gb]').each(function () {
+                        var $shown = $(this);
+                        var name = $shown.attr('name');
+                        var id = $shown.attr('id');
+                        var mib = $.trim($shown.val());
+                        var $hidden = $('<input type="hidden">').attr('name', name).val(mib);
+                        var $group = $shown.closest('.input-group');
+                        var $hint = $('<p class="text-muted small" style="margin: 4px 0 0;"></p>');
+
+                        $shown.removeAttr('name').removeAttr('data-gb');
+                        if (id) {
+                            $hidden.attr('id', id);
+                            $shown.attr('id', id + 'Gb');
+                            $('label[for="' + id + '"]').attr('for', id + 'Gb');
+                        }
+                        ($group.length ? $group : $shown).before($hidden);
+                        ($group.length ? $group : $shown).after($hint);
+                        $group.find('.input-group-addon').text('GB').attr('title', '1 GB = 1024 MiB');
+
+                        function show() {
+                            var value = $hidden.val();
+                            $hint.text(/^\d+$/.test(value) && parseInt(value, 10) > 0 ? '= ' + parseInt(value, 10).toLocaleString('en-US') + ' MiB' : (value === '0' ? 'Unlimited' : ''));
+                        }
+
+                        if (/^-?\d+(\.\d+)?$/.test(mib)) {
+                            $shown.val(String(parseFloat((parseFloat(mib) / 1024).toFixed(3))));
+                        }
+                        show();
+
+                        $shown.on('input change', function () {
+                            var raw = $.trim($shown.val()).replace(',', '.');
+                            if (raw === '') {
+                                $hidden.val('');
+                            } else if (/^\d+(\.\d+)?$/.test(raw)) {
+                                $hidden.val(String(Math.round(parseFloat(raw) * 1024)));
+                            } else {
+                                // Not a number: sent as typed, so the panel's own validation reports it.
+                                $hidden.val(raw);
+                            }
+                            show();
+                        });
+                    });
+                });
+            </script>
         @show
     </body>
 </html>

@@ -58,3 +58,5 @@ resources/lang/en/activity.php
 app/Services/Eggs/CommunityEggCatalog.php
 app/Http/Controllers/Admin/Nests/CommunityEggController.php
 resources/views/admin/nests/index.blade.php
+resources/views/admin/servers/new.blade.php
+resources/views/admin/servers/view/build.blade.php

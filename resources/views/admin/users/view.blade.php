@@ -47,6 +47,17 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label class="control-label">Discord</label>
+                        <div>
+                            @if($user->discord_id)
+                                <input type="text" class="form-control" readonly value="{{ $user->discord_username ?: 'Linked' }} ({{ $user->discord_id }})">
+                                <p class="text-muted"><small>This account signs in with Discord. The user can unlink it from their own account page.</small></p>
+                            @else
+                                <input type="text" class="form-control" readonly value="Not linked">
+                            @endif
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label class="control-label">Default Language</label>
                         <div>
                             <select name="language" class="form-control">
