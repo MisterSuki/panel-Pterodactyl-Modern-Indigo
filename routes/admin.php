@@ -210,6 +210,8 @@ Route::group(['prefix' => 'nests', 'middleware' => 'admin.can:nests'], function 
     Route::get('/egg/{egg:id}/export', [Admin\Nests\EggShareController::class, 'export'])->name('admin.nests.egg.export');
     Route::get('/egg/{egg:id}/variables', [Admin\Nests\EggVariableController::class, 'view'])->name('admin.nests.egg.variables');
     Route::get('/egg/{egg:id}/scripts', [Admin\Nests\EggScriptController::class, 'index'])->name('admin.nests.egg.scripts');
+    Route::get('/community-eggs', [Admin\Nests\CommunityEggController::class, 'search'])->name('admin.nests.community.search');
+    Route::post('/community-eggs/import', [Admin\Nests\CommunityEggController::class, 'import'])->name('admin.nests.community.import');
 
     Route::post('/new', [Admin\Nests\NestController::class, 'store']);
     Route::post('/import', [Admin\Nests\EggShareController::class, 'import'])->name('admin.nests.egg.import');

@@ -61,6 +61,7 @@ pour le dashboard client **et** l'administration. Avec en plus l'**inscription**
 | **Design** | Administration (`/admin`) et dashboard client refaits : sidebar et en-tête bleu-nuit, cartes arrondies, boutons et formulaires modernes, page de connexion en verre dépoli, cartes serveurs avec statut lumineux |
 | **[Inscription et Discord](#inscription-et-connexion-discord)** | Page « Create an Account », bouton « Continue with Discord », liaison automatique des comptes existants, réglages dans *Admin → Settings* (le champ « Default Language » est retiré) |
 | **[Rôles de staff](#rôles-de-staff)** | Crée des rôles (modérateur, support…), choisis leurs permissions section par section et donne-les à des personnes, sans en faire des administrateurs complets |
+| **[Eggs de la communauté](#eggs-de-la-communauté)** | Sur la page *Nests*, tape le nom d'un egg (Valheim, Palworld, Node.js…), choisis le nest et ajoute-le en un clic depuis eggs.pterodactyl.io |
 | **[phpMyAdmin](#phpmyadmin)** | Installé automatiquement avec le panel : un bouton sur la page *Databases* d'un serveur ouvre la base directement, déjà connecté |
 | **[Installation complète](#installation)** | Un seul script installe tout sur un serveur vierge (serveur web, PHP, base de données, Redis, le panel, SSL), installe Wings, ou met à jour un panel existant |
 
@@ -255,6 +256,26 @@ Pour vérifier ce qui sera fait sans rien changer, ajoute `--dry-run`.
 | `--pma-source=` | Dossier ou archive `.tar.gz` de phpMyAdmin à utiliser au lieu de télécharger la dernière version |
 | `--stock-version=`, `--stock-source=` | Avec `--uninstall` : version officielle à remettre (celle de ton panel par défaut), ou dossier / archive locale à la place du téléchargement |
 | `--branch=`, `--repo=`, `--source=` | Installe depuis une autre branche, un autre dépôt ou un dossier local |
+
+## Eggs de la communauté
+
+Dans *Admin → Nests*, la boîte **« Add an egg from the community »** te permet d'ajouter un egg sans télécharger ni
+envoyer de fichier :
+
+1. **tape le nom** de l'egg : la recherche se fait pendant que tu écris, sur les quelque 320 eggs publiés sur
+   [eggs.pterodactyl.io](https://eggs.pterodactyl.io/) (jeux, applications et eggs génériques). Les majuscules, les
+   espaces et les tirets ne comptent pas (`7days` trouve « 7 Days To Die ») ;
+2. **choisis le nest** dans la liste « Put it in this nest ». Il propose déjà le bon quand le nom du jeu correspond à un nest
+   (un egg Minecraft va vers le nest Minecraft), tu peux le changer ;
+3. clique sur **Add** : l'egg est téléchargé et importé, avec ses variables, son script d'installation et ses images Docker,
+   puis un bouton **Open** mène à sa page pour le modifier.
+
+Si le nest a déjà un egg du même nom, le panel te le dit et te demande si tu veux l'ajouter quand même.
+
+C'est le même import que le bouton « Import Egg », donc rien de plus dangereux : le panel ne va chercher que les eggs de la liste
+du site, et seulement leur fichier dans les dépôts officiels `pterodactyl/game-eggs`, `application-eggs` et
+`generic-eggs`. Il faut la permission **Nests → Manage** (un administrateur ou un rôle de staff qui l'a). La liste
+est gardée 6 heures pour aller vite ; le serveur du panel doit pouvoir joindre `eggs.pterodactyl.io` et `raw.githubusercontent.com`.
 
 ## Inscription et connexion Discord
 

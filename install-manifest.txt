@@ -55,3 +55,6 @@ app/Http/Requests/Api/Client/Servers/Databases/PhpMyAdminRequest.php
 app/Providers/RouteServiceProvider.php
 routes/phpmyadmin.php
 resources/lang/en/activity.php
+app/Services/Eggs/CommunityEggCatalog.php
+app/Http/Controllers/Admin/Nests/CommunityEggController.php
+resources/views/admin/nests/index.blade.php

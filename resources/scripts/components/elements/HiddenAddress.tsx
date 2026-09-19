@@ -10,7 +10,7 @@ interface Props {
     className?: string;
 }
 
-// The server address, with the IP hidden until the eye is clicked, so a screenshot or a screen share does not
+// The server address, with the IP blurred until the eye is clicked, so a screenshot or a screen share does not
 // give it away. The choice is remembered in this browser. Copying an address always copies the real one.
 export default ({ host, port, className }: Props) => {
     const [visible, setVisible] = usePersistedState<boolean>('show_server_address', false);
@@ -18,7 +18,14 @@ export default ({ host, port, className }: Props) => {
     return (
         <span className={classNames('inline-flex items-center gap-2 max-w-full', className)}>
             <span className={'truncate tabular-nums'}>
-                {visible ? host : '•••.•••.•••.•••'}:{port}
+                <span
+                    className={classNames('transition-[filter] duration-300', { 'select-none': !visible })}
+                    style={visible ? undefined : { filter: 'blur(6px)' }}
+                    aria-hidden={!visible}
+                >
+                    {host}
+                </span>
+                :{port}
             </span>
             <button
                 type={'button'}
