@@ -15,7 +15,7 @@ import { debounce } from 'debounce';
 import { usePersistedState } from '@/plugins/usePersistedState';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
 import classNames from 'classnames';
-import { ChevronDoubleRightIcon } from '@heroicons/react/solid';
+import { ChevronDoubleRightIcon, PauseIcon, PlayIcon, TrashIcon } from '@heroicons/react/solid';
 import StatusPill from '@/components/server/console/StatusPill';
 
 import 'xterm/css/xterm.css';
@@ -42,6 +42,9 @@ const theme = {
     brightWhite: '#ffffff',
     selection: '#FAF089',
 };
+
+// The most lines kept aside while the console is paused.
+const MAX_HELD_LINES = 5000;
 
 const terminalProps: ITerminalOptions = {
     disableStdin: true,
@@ -91,17 +94,75 @@ export default () => {
         }
     };
 
+    // While the console is paused, new lines are kept aside instead of being written, so the screen stays
+    // still and can be read or copied. They are all written when the console is resumed.
+    const [paused, setPaused] = useState(false);
+    const [heldCount, setHeldCount] = useState(0);
+    const pausedRef = useRef(false);
+    const held = useRef<string[]>([]);
+    const heldFrame = useRef<number | null>(null);
+
     const writeln = (line: string) => {
+        if (pausedRef.current) {
+            held.current.push(line + '\r\n');
+            // A console left paused for hours must not fill the memory of the browser.
+            if (held.current.length > MAX_HELD_LINES + 1000) {
+                held.current.splice(0, held.current.length - MAX_HELD_LINES);
+            }
+            if (heldFrame.current === null) {
+                heldFrame.current = window.requestAnimationFrame(() => {
+                    heldFrame.current = null;
+                    setHeldCount(held.current.length);
+                });
+            }
+
+            return;
+        }
+
         pending.current.push(line + '\r\n');
         if (frame.current === null) {
             frame.current = window.requestAnimationFrame(flush);
         }
     };
 
+    const togglePause = () => {
+        if (!pausedRef.current) {
+            pausedRef.current = true;
+            setPaused(true);
+
+            return;
+        }
+
+        pausedRef.current = false;
+        setPaused(false);
+        setHeldCount(0);
+
+        const lines = pending.current.concat(held.current);
+        pending.current = [];
+        held.current = [];
+        if (lines.length > 0) {
+            terminal.write(lines.join(''), () => terminal.scrollToBottom());
+        } else {
+            terminal.scrollToBottom();
+        }
+    };
+
+    // Empties the console: the screen, the history above it, and anything that was waiting to be written.
+    const clearConsole = () => {
+        pending.current = [];
+        held.current = [];
+        setHeldCount(0);
+        terminal.clear();
+        terminal.write('\u001b[2J\u001b[3J\u001b[H');
+    };
+
     useEffect(
         () => () => {
             if (frame.current !== null) {
                 window.cancelAnimationFrame(frame.current);
+            }
+            if (heldFrame.current !== null) {
+                window.cancelAnimationFrame(heldFrame.current);
             }
         },
         []
@@ -233,13 +294,51 @@ export default () => {
         <div className={classNames(styles.terminal, 'relative')}>
             <SpinnerOverlay visible={!connected} size={'large'} />
             <div className={classNames(styles.header, styles.overflows_container)}>
-                <span className={'flex items-center gap-1.5'} aria-hidden>
-                    <span className={'w-2.5 h-2.5 rounded-full bg-red-400/70'} />
-                    <span className={'w-2.5 h-2.5 rounded-full bg-yellow-300/70'} />
-                    <span className={'w-2.5 h-2.5 rounded-full bg-green-400/70'} />
+                <span className={'flex items-center gap-3'}>
+                    <span className={'flex items-center gap-1.5'} aria-hidden>
+                        <span className={'w-2.5 h-2.5 rounded-full bg-red-400/70'} />
+                        <span className={'w-2.5 h-2.5 rounded-full bg-yellow-300/70'} />
+                        <span className={'w-2.5 h-2.5 rounded-full bg-green-400/70'} />
+                    </span>
+                    <span className={'text-xs font-medium text-gray-400 select-none'}>Console</span>
                 </span>
-                <span className={'text-xs font-medium text-gray-400 select-none'}>Console</span>
-                <StatusPill status={status} />
+                <span className={'flex items-center gap-1.5'}>
+                    <button
+                        type={'button'}
+                        onClick={togglePause}
+                        title={
+                            paused
+                                ? 'Show the new lines and follow the console again'
+                                : 'Freeze the console so it can be read'
+                        }
+                        className={classNames(
+                            'inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-colors duration-150',
+                            paused
+                                ? 'bg-yellow-400/15 text-yellow-300 hover:bg-yellow-400/25'
+                                : 'text-gray-300 hover:text-white hover:bg-white/10'
+                        )}
+                    >
+                        {paused ? <PlayIcon className={'w-3.5 h-3.5'} /> : <PauseIcon className={'w-3.5 h-3.5'} />}
+                        <span className={'hidden sm:inline'}>{paused ? 'Resume' : 'Pause'}</span>
+                        {paused && heldCount > 0 && (
+                            <span className={'rounded-full bg-yellow-400/20 px-1.5 text-2xs tabular-nums'}>
+                                {heldCount >= MAX_HELD_LINES ? `${MAX_HELD_LINES}+` : heldCount} new
+                            </span>
+                        )}
+                    </button>
+                    <button
+                        type={'button'}
+                        onClick={clearConsole}
+                        title={'Empty the console'}
+                        className={
+                            'inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-gray-300 hover:text-white hover:bg-white/10 transition-colors duration-150'
+                        }
+                    >
+                        <TrashIcon className={'w-3.5 h-3.5'} />
+                        <span className={'hidden sm:inline'}>Clear</span>
+                    </button>
+                    <StatusPill status={status} className={'ml-1'} />
+                </span>
             </div>
             <div
                 className={classNames(styles.container, styles.overflows_container, { 'rounded-b': !canSendCommands })}
