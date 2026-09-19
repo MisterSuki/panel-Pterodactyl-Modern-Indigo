@@ -7,7 +7,8 @@
 #
 #   - a NEW SERVER: web server, PHP, database, Redis, the panel, its services and an SSL certificate,
 #   - WINGS, the daemon that runs the game servers,
-#   - an EXISTING PANEL: updates it with everything from this repository.
+#   - an EXISTING PANEL: updates it with everything from this repository,
+#   - and the way back: the official panel again, keeping servers, users and every setting.
 #
 #   bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh)
 #   bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --help
@@ -42,6 +43,7 @@ DO_PANEL=false
 DO_WINGS=false
 DO_UPDATE=false
 RESTORE=false
+UNINSTALL=false
 
 # answers, asked when missing
 FQDN=""
@@ -58,6 +60,8 @@ WINGS_NODE=""
 
 # behaviour
 SOURCE=""
+STOCK_SOURCE=""
+STOCK_VERSION=""
 FROM=""
 ASSUME_YES=false
 DRY_RUN=false
@@ -95,6 +99,7 @@ What to do (asked in a menu when you give nothing, and no panel is found):
   --wings               Install Wings, the game server daemon, on this server
   --update              Update an existing panel with everything from this repository
   --restore             Put back the files saved by the last update
+  --uninstall           Go back to the official panel. Your servers, users and settings are kept
 
 New panel install:
   --fqdn=NAME           Domain (or IP) the panel will be reached at, for example panel.example.com
@@ -120,6 +125,10 @@ Update:
   --force               Update even if the panel version differs from the one this theme was made for
   --from=DIR            With --restore, use this backup folder instead of the last one
 
+Uninstall:
+  --stock-version=X.Y.Z Official panel version to put back (default: the version of your panel)
+  --stock-source=DIR|FILE  Use a local folder or panel.tar.gz of the official panel instead of downloading it
+
 Everywhere:
   -y, --yes             Do not ask questions, use the given options and the defaults
   --dry-run             Check everything and show the plan, change nothing
@@ -134,6 +143,7 @@ Examples:
   bash <(curl -s ${INSTALL_URL}) --panel --fqdn=panel.example.com --email=you@example.com --yes
   bash <(curl -s ${INSTALL_URL}) --wings
   bash <(curl -s ${INSTALL_URL}) --update --yes --install-node
+  bash <(curl -s ${INSTALL_URL}) --uninstall
 EOF
 }
 
@@ -143,6 +153,9 @@ for arg in "$@"; do
         --wings) DO_WINGS=true ;;
         --update) DO_UPDATE=true ;;
         --restore) RESTORE=true ;;
+        --uninstall) UNINSTALL=true ;;
+        --stock-version=*) STOCK_VERSION="${arg#*=}" ;;
+        --stock-source=*) STOCK_SOURCE="${arg#*=}" ;;
         --fqdn=*) FQDN="${arg#*=}" ;;
         --email=*) ADMIN_EMAIL="${arg#*=}" ;;
         --admin-user=*) ADMIN_USER="${arg#*=}" ;;
@@ -647,6 +660,183 @@ run_update() {
 }
 
 # ---------------------------------------------------------------------------------------------
+# UNINSTALL: back to the official panel, keeping everything that was created
+# ---------------------------------------------------------------------------------------------
+# Gets the official panel files (the release archive: sources, views and the compiled dashboard).
+fetch_stock() {
+    STOCK="$TMP/stock"
+    mkdir -p "$STOCK"
+
+    if [[ -n "$STOCK_SOURCE" ]]; then
+        if [[ -d "$STOCK_SOURCE" ]]; then
+            STOCK="$(cd "$STOCK_SOURCE" && pwd)"
+            info "Using the local folder $STOCK for the official files"
+        elif [[ -f "$STOCK_SOURCE" ]]; then
+            tar -xzf "$STOCK_SOURCE" -C "$STOCK" || die "Could not read $STOCK_SOURCE."
+            info "Using the local archive $STOCK_SOURCE for the official files"
+        else
+            die "$STOCK_SOURCE does not exist."
+        fi
+    else
+        command -v curl >/dev/null 2>&1 || die "curl is required."
+        local url="https://github.com/pterodactyl/panel/releases/download/v${STOCK_VERSION}/panel.tar.gz"
+        info "Downloading the official panel ${STOCK_VERSION}"
+        if ! curl -fsSL --retry 3 "$url" -o "$TMP/stock.tar.gz"; then
+            err "Could not download $url"
+            die "Check the version number, or give the files yourself with --stock-source=."
+        fi
+        tar -xzf "$TMP/stock.tar.gz" -C "$STOCK" || die "The downloaded archive is not valid."
+    fi
+
+    if [[ ! -f "$STOCK/artisan" || ! -f "$STOCK/config/app.php" || ! -f "$STOCK/public/assets/manifest.json" || ! -d "$STOCK/resources/scripts" ]]; then
+        die "The official files are incomplete (artisan, config, compiled dashboard or resources are missing)."
+    fi
+}
+
+run_uninstall() {
+    step "Going back to the official panel"
+    panel_exists || die "No Pterodactyl panel found in $PANEL_PATH. If it is somewhere else, add --path=/your/panel/folder"
+    if ! command -v "$PHP_BIN" >/dev/null 2>&1; then
+        die "PHP was not found (looked for \"$PHP_BIN\"). Set PHP_BIN=/path/to/php if it is installed elsewhere."
+    fi
+    OWNER="$(stat -c '%U:%G' "$PANEL_PATH/artisan" 2>/dev/null || echo root:root)"
+
+    local current
+    current="$(panel_version "$PANEL_PATH/config/app.php" 2>/dev/null || true)"
+    [[ -n "$STOCK_VERSION" ]] || STOCK_VERSION="${current:-1.15.1}"
+    [[ "$STOCK_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "\"$STOCK_VERSION\" is not a version number like 1.15.1."
+
+    step "Getting the files"
+    fetch_source
+    [[ -f "$SRC/install-manifest.txt" ]] || die "install-manifest.txt is missing from the downloaded files."
+    mapfile -t ENTRIES < <(grep -vE '^[[:space:]]*(#|$)' "$SRC/install-manifest.txt" | sed 's/[[:space:]]*$//')
+    [[ "${#ENTRIES[@]}" -gt 0 ]] || die "The list of files is empty."
+    # The dashboard is compiled code that the theme replaced: it comes back from the official archive too.
+    ENTRIES+=("public/assets/")
+
+    local entry
+    for entry in "${ENTRIES[@]}"; do
+        case "$entry" in
+            /* | *..*) die "Refusing the unsafe path \"$entry\" in the file list." ;;
+        esac
+    done
+
+    fetch_stock
+
+    local stock_found
+    stock_found="$(panel_version "$STOCK/config/app.php" 2>/dev/null || true)"
+    if [[ -n "$current" && -n "$stock_found" && "$stock_found" != "$current" ]]; then
+        warn "The official files are version $stock_found but your panel is $current."
+        if [[ "$FORCE" != true ]]; then
+            die "Use --stock-version=$current to get the matching files, or --force if you accept the risk."
+        fi
+    fi
+
+    local replaced=0 removed=0
+    for entry in "${ENTRIES[@]}"; do
+        if [[ -e "$STOCK/${entry%/}" ]]; then
+            replaced=$((replaced + 1))
+        elif [[ -e "$PANEL_PATH/${entry%/}" ]]; then
+            removed=$((removed + 1))
+        fi
+    done
+    ok "Official panel ${stock_found:-$STOCK_VERSION} ready: $replaced entries to put back, $removed theme-only entries to remove"
+
+    step "What will happen"
+    info "Back up the theme files first (in $BACKUP_ROOT/uninstall-$TS), so the theme can be put back"
+    info "Put the panel in maintenance mode"
+    info "Put back the official files and dashboard, and remove the files only the theme has"
+    info "Clear the caches, restart the queue worker and bring the panel back"
+    ok "Kept as they are: servers, users, nodes, allocations, backups, databases, schedules, API keys, .env"
+    warn "The theme's registration, Discord login and staff roles stop working. People who only had a staff role"
+    warn "(and are not administrators) lose their admin access. Their accounts and servers are untouched."
+    info "The database is not changed: the extra columns and the admin_roles table stay, and do no harm."
+
+    if [[ "$DRY_RUN" == true ]]; then
+        ok "Dry run finished, nothing was changed."
+        return 0
+    fi
+
+    ask "Go back to the official panel?" || {
+        info "Nothing was changed."
+        exit 0
+    }
+
+    step "Backing up"
+    BACKUP_DIR="$BACKUP_ROOT/uninstall-$TS"
+    mkdir -p "$BACKUP_DIR"
+    : >"$BACKUP_DIR/existing.txt"
+    : >"$BACKUP_DIR/added.txt"
+    for entry in "${ENTRIES[@]}"; do
+        if [[ -e "$PANEL_PATH/${entry%/}" ]]; then
+            echo "$entry" >>"$BACKUP_DIR/existing.txt"
+        elif [[ -e "$STOCK/${entry%/}" ]]; then
+            echo "$entry" >>"$BACKUP_DIR/added.txt"
+        fi
+    done
+    if [[ -s "$BACKUP_DIR/existing.txt" ]]; then
+        tar -czf "$BACKUP_DIR/files.tar.gz" -C "$PANEL_PATH" -T "$BACKUP_DIR/existing.txt"
+    fi
+    echo "$BACKUP_DIR" >"$BACKUP_ROOT/latest"
+    ok "Saved in $BACKUP_DIR"
+
+    step "Putting the official files back"
+    INSTALLING=true
+    trap 'on_update_error $LINENO' ERR
+
+    if artisan down >/dev/null 2>&1; then
+        DOWN=true
+        ok "Panel in maintenance mode"
+    fi
+
+    local target
+    for entry in "${ENTRIES[@]}"; do
+        target="$PANEL_PATH/${entry%/}"
+        rm -rf "$target"
+        if [[ -e "$STOCK/${entry%/}" ]]; then
+            mkdir -p "$(dirname "$target")"
+            if [[ "$entry" == */ ]]; then
+                mkdir -p "$target"
+                cp -a "$STOCK/${entry}." "$target/"
+            else
+                cp -f "$STOCK/$entry" "$target"
+            fi
+            chown -R "$OWNER" "$target" 2>/dev/null || warn "Could not set the owner of $entry (not fatal)."
+        fi
+    done
+    INSTALLING=false
+    ok "Official files in place"
+
+    if command -v composer >/dev/null 2>&1; then
+        COMPOSER_ALLOW_SUPERUSER=1 composer dump-autoload -o -d "$PANEL_PATH" --no-interaction >/dev/null 2>&1 \
+            && ok "Autoloader refreshed" \
+            || warn "Could not refresh the Composer autoloader (not fatal)."
+    fi
+
+    local cmd
+    for cmd in optimize:clear view:clear config:clear route:clear cache:clear; do
+        artisan "$cmd" >/dev/null 2>&1 || true
+    done
+    artisan queue:restart >/dev/null 2>&1 || true
+    chown -R "$OWNER" "$PANEL_PATH/storage" "$PANEL_PATH/bootstrap/cache" 2>/dev/null || true
+    ok "Caches cleared"
+
+    if [[ "$DOWN" == true ]]; then
+        artisan up >/dev/null 2>&1 || true
+        DOWN=false
+        ok "Panel is back online"
+    fi
+
+    echo ""
+    ok "${BOLD}The official panel is back.${NC}"
+    echo ""
+    info "Do a hard refresh in your browser (Ctrl+Shift+R) to drop the cached design."
+    info "The theme files are saved in $BACKUP_DIR"
+    info "To put the theme back exactly as it was: bash <(curl -s ${INSTALL_URL}) --restore"
+    info "Or install the latest theme again:       bash <(curl -s ${INSTALL_URL}) --update"
+}
+
+# ---------------------------------------------------------------------------------------------
 # System checks for a new install
 # ---------------------------------------------------------------------------------------------
 OS_ID=""
@@ -1148,7 +1338,8 @@ choose_mode() {
     echo "   3) Install the panel and Wings on this server"
     echo "   4) Update an existing panel with this theme"
     echo "   5) Restore the files saved by a previous update"
-    printf ' Choose [1-5]: '
+    echo "   6) Remove the theme and go back to the official panel (nothing is lost)"
+    printf ' Choose [1-6]: '
     local choice=""
     read -r choice || true
     case "$choice" in
@@ -1160,6 +1351,7 @@ choose_mode() {
             ;;
         4) DO_UPDATE=true ;;
         5) RESTORE=true ;;
+        6) UNINSTALL=true ;;
         *) die "That is not one of the choices." ;;
     esac
 }
@@ -1173,7 +1365,7 @@ main() {
         exit 0
     fi
 
-    if [[ "$DO_PANEL" != true && "$DO_WINGS" != true && "$DO_UPDATE" != true ]]; then
+    if [[ "$DO_PANEL" != true && "$DO_WINGS" != true && "$DO_UPDATE" != true && "$UNINSTALL" != true ]]; then
         if panel_exists; then
             info "A panel is installed in $PANEL_PATH: updating it."
             DO_UPDATE=true
@@ -1192,6 +1384,11 @@ main() {
 
     if [[ "$DRY_RUN" != true ]]; then
         require_root
+    fi
+
+    if [[ "$UNINSTALL" == true ]]; then
+        run_uninstall
+        return 0
     fi
 
     if [[ "$DO_UPDATE" == true ]]; then

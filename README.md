@@ -33,6 +33,7 @@ Le script te demande ce que tu veux faire :
 3. **Les deux** sur la même machine
 4. **Mettre à jour** un panel déjà installé avec ce thème
 5. **Restaurer** les fichiers d'avant une mise à jour
+6. **Désinstaller le thème** et retrouver le panel Pterodactyl d'origine, sans rien perdre
 
 S'il détecte déjà un panel dans `/var/www/pterodactyl`, il passe directement à la mise à jour.
 
@@ -124,11 +125,40 @@ ensuite avec `yarn build:production`.
 > ton navigateur peut donc garder l'ancienne en cache. Fais un rechargement forcé (`Ctrl + Shift + R`)
 > ou ouvre le panel dans une fenêtre de navigation privée.
 
+### Désinstaller le thème (revenir au panel d'origine)
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --uninstall
+```
+
+Il remet le panel Pterodactyl officiel, avec son design et son dashboard d'origine. **Rien de ce que tu as créé n'est
+perdu** : serveurs, utilisateurs, nodes, allocations, sauvegardes, bases de données, plannings, clés d'API et fichier
+`.env` restent exactement comme ils sont. Il :
+
+1. télécharge les fichiers officiels de **ta version** de Pterodactyl (dashboard déjà compilé compris) ;
+2. **sauvegarde** les fichiers du thème dans `/var/backups/pterodactyl-theme/uninstall-…` ;
+3. met le panel en maintenance, remet les fichiers d'origine et supprime ceux que seul le thème ajoutait ;
+4. vide les caches, redémarre la file d'attente et remet le panel en ligne.
+
+À savoir :
+
+- l'inscription, la connexion Discord et les rôles de staff ne fonctionnent plus ; les personnes qui n'avaient
+  **qu'un rôle de staff** (et ne sont pas administrateurs) perdent leur accès à l'administration, mais leurs comptes
+  et leurs serveurs ne bougent pas ;
+- la base de données n'est pas modifiée : les colonnes Discord et la table `admin_roles` restent en place sans gêner
+  le panel officiel ;
+- le dossier `resources/scripts` est remplacé par celui d'origine (une sauvegarde est faite au cas où tu y aurais
+  ajouté tes propres fichiers) ;
+- pour **remettre le thème** tel qu'il était : `bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --restore`. Pour installer la dernière version du
+  thème : `--update`.
+
+Pour vérifier ce qui sera fait sans rien changer, ajoute `--dry-run`.
+
 ### Toutes les options
 
 | Option | Effet |
 | --- | --- |
-| `--panel`, `--wings`, `--update`, `--restore` | Ce qu'il faut faire (sinon, menu) |
+| `--panel`, `--wings`, `--update`, `--restore`, `--uninstall` | Ce qu'il faut faire (sinon, menu) |
 | `-y`, `--yes` | Ne pose aucune question |
 | `--dry-run` | Vérifie tout et affiche le plan, sans rien changer |
 | `--fqdn=`, `--email=` | Domaine (ou IP) et email, pour un nouveau panel |
@@ -142,6 +172,7 @@ ensuite avec `yarn build:production`.
 | `--skip-build`, `--skip-migrate` | Ne compile pas le dashboard, ne lance pas les migrations |
 | `--css-only` | Met à jour seulement le design de l'administration |
 | `--force` | Met à jour même si la version du panel est différente (déconseillé) |
+| `--stock-version=`, `--stock-source=` | Avec `--uninstall` : version officielle à remettre (celle de ton panel par défaut), ou dossier / archive locale à la place du téléchargement |
 | `--branch=`, `--repo=`, `--source=` | Installe depuis une autre branche, un autre dépôt ou un dossier local |
 
 ## Inscription et connexion Discord
