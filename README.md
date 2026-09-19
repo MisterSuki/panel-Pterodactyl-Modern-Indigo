@@ -455,6 +455,24 @@ configurer : il faut seulement que le port du serveur soit joignable depuis la m
 > Le lien devient jaune avec un avertissement si le port de txAdmin n'est pas l'une des allocations du serveur
 > (onglet *Network*) : il ne serait alors pas joignable de l'extérieur.
 
+### ⏳ Suspension des serveurs
+
+Dans *Admin → Servers → ton serveur → Manage*, la suspension a maintenant :
+
+- une **raison**, écrite par toi et **montrée au client** (« paiement en retard », « signalement d'abus »…) ;
+- une **durée** : jusqu'à ce que tu la lèves, ou 1 h, 6 h, 24 h, 3 j, 7 j, 30 j, ou une date précise. À l'échéance, le serveur retrouve son
+  accès **tout seul** (vérifié chaque minute par la tâche planifiée du panel) ;
+- un bouton **Save changes** pour changer la raison ou la durée d'une suspension en cours, sans toucher au serveur ;
+- le détail de qui l'a suspendu, depuis quand et jusqu'à quand.
+
+Ce que voit le client : sur son **dashboard**, la raison sous le nom du serveur et « Access back in 3 hours » ; sur la
+**page du serveur**, un écran « Server Suspended » avec la raison, la date de suspension et celle du retour de l'accès.
+Dans la liste des serveurs de l'administration, le badge *Suspended* affiche la raison et la date de fin au survol.
+
+L'API Application accepte aussi `reason` et `until` sur `POST /api/application/servers/{id}/suspend`. Une suspension sans
+raison ni durée fonctionne comme avant. Les détails sont dans la table `server_suspensions` (créée par la mise à jour) ;
+elle ne change rien à la façon dont Pterodactyl gère l'état suspendu.
+
 ### 🧩 Console et petits plus
 
 | | Ce que ça fait |
@@ -465,6 +483,7 @@ configurer : il faut seulement que le port du serveur soit joignable depuis la m
 | 📊 **Usage des nodes** | Sur la page d'un node : consommation en direct de ses serveurs (CPU, mémoire, disque, réseau) et des serveurs qui consomment le plus |
 | 📏 **Mémoire et disque en GB** | À la création d'un serveur et dans sa configuration, on saisit des **GB** ; le panel garde des MiB en interne |
 | 💬 **Discord dans les listes** | Le compte Discord lié apparaît dans la liste des utilisateurs et sur la page de chaque utilisateur |
+| ⏳ **Suspension améliorée** | Une raison visible par le client, une durée avec **levée automatique**, et le détail affiché sur le dashboard et la page du serveur (voir [Suspension](#-suspension-des-serveurs)) |
 | 👥 **Sous-utilisateur par ID Discord** | Dans l'onglet *Users* d'un serveur, invite quelqu'un avec son email **ou son ID Discord** (il doit déjà avoir un compte avec Discord lié) |
 
 > [!NOTE]

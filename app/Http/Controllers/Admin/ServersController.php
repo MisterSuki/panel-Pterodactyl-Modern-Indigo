@@ -15,6 +15,7 @@ use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Http\Controllers\Controller;
 use Illuminate\Validation\ValidationException;
 use Pterodactyl\Services\Servers\SuspensionService;
+use Pterodactyl\Services\Servers\SuspensionDuration;
 use Pterodactyl\Repositories\Eloquent\MountRepository;
 use Pterodactyl\Services\Servers\ServerDeletionService;
 use Pterodactyl\Services\Servers\ReinstallServerService;
@@ -125,10 +126,35 @@ class ServersController extends Controller
      */
     public function manageSuspension(Request $request, Server $server): RedirectResponse
     {
-        $this->suspensionService->toggle($server, $request->input('action'));
-        $this->alert->success(trans('admin/server.alerts.suspension_toggled', [
-            'status' => $request->input('action') . 'ed',
-        ]))->flash();
+        $data = $request->validate([
+            'action' => 'required|in:suspend,unsuspend,update',
+            'reason' => 'nullable|string|max:' . SuspensionService::MAX_REASON_LENGTH,
+            'duration' => 'nullable|in:' . implode(',', SuspensionDuration::CHOICES),
+            'until' => 'nullable|required_if:duration,custom|date|after:now',
+        ]);
+
+        if ($data['action'] === 'unsuspend') {
+            $this->suspensionService->toggle($server, SuspensionService::ACTION_UNSUSPEND);
+            $this->alert->success(trans('admin/server.alerts.suspension_toggled', ['status' => 'unsuspended']))->flash();
+
+            return redirect()->route('admin.servers.view.manage', $server->id);
+        }
+
+        $details = ['reason' => $data['reason'] ?? null, 'by' => $request->user()->id];
+        $until = SuspensionDuration::resolve($data['duration'] ?? null, $data['until'] ?? null);
+        if ($until !== SuspensionDuration::KEEP) {
+            $details['until'] = $until;
+        }
+
+        if ($data['action'] === 'update') {
+            $this->suspensionService->updateDetails($server, $details);
+            $this->alert->success('The suspension was updated.')->flash();
+        } else {
+            // A new suspension without a choice lasts until someone lifts it.
+            $details += ['until' => null];
+            $this->suspensionService->toggle($server, SuspensionService::ACTION_SUSPEND, $details);
+            $this->alert->success(trans('admin/server.alerts.suspension_toggled', ['status' => 'suspended']))->flash();
+        }
 
         return redirect()->route('admin.servers.view.manage', $server->id);
     }

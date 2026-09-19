@@ -58,6 +58,12 @@ export interface Server {
         backups: number;
     };
     isTransferring: boolean;
+    // Why the server is suspended and until when. Only present while it is suspended.
+    suspension?: {
+        reason: string | null;
+        since: Date | null;
+        until: Date | null;
+    } | null;
     skipScripts: boolean;
     variables: ServerEggVariable[];
     allocations: Allocation[];
@@ -84,6 +90,13 @@ export const rawDataToServerObject = ({ attributes: data }: FractalResponseData)
     eggFeatures: data.egg_features || [],
     featureLimits: { ...data.feature_limits },
     isTransferring: data.is_transferring,
+    suspension: data.suspension
+        ? {
+              reason: data.suspension.reason || null,
+              since: data.suspension.since ? new Date(data.suspension.since) : null,
+              until: data.suspension.until ? new Date(data.suspension.until) : null,
+          }
+        : null,
     skipScripts: data.skip_scripts,
     variables: ((data.relationships?.variables as FractalResponseList | undefined)?.data || []).map(
         rawDataToServerEggVariable

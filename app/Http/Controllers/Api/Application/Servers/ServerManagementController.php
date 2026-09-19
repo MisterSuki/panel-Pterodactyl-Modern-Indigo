@@ -28,7 +28,17 @@ class ServerManagementController extends ApplicationApiController
      */
     public function suspend(ServerWriteRequest $request, Server $server): Response
     {
-        $this->suspensionService->toggle($server);
+        // Optional: "reason" is shown to the owner, "until" (a date in the future) lifts the suspension by itself.
+        $data = $request->validate([
+            'reason' => 'nullable|string|max:' . SuspensionService::MAX_REASON_LENGTH,
+            'until' => 'nullable|date|after:now',
+        ]);
+
+        $this->suspensionService->toggle($server, SuspensionService::ACTION_SUSPEND, [
+            'reason' => $data['reason'] ?? null,
+            'until' => empty($data['until']) ? null : \Carbon\Carbon::parse($data['until']),
+            'by' => $request->user()?->id,
+        ]);
 
         return $this->returnNoContent();
     }

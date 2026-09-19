@@ -11,6 +11,7 @@ import Spinner from '@/components/elements/Spinner';
 import styled, { keyframes } from 'styled-components/macro';
 import StatusPill from '@/components/server/console/StatusPill';
 import HiddenAddress from '@/components/elements/HiddenAddress';
+import { formatDistanceToNow } from 'date-fns';
 import isEqual from 'react-fast-compare';
 
 // Determines if the current value is in an alarm threshold so we can show it in red rather
@@ -112,8 +113,12 @@ const ServerRow = ({ server, stats = null, className, style }: Props) => {
                         {server.name}
                         {stats && !isSuspended && <StatusPill status={stats.status} />}
                     </p>
-                    {!!server.description && (
-                        <p css={tw`text-sm text-neutral-400 break-words line-clamp-2`}>{server.description}</p>
+                    {isSuspended && !!server.suspension?.reason ? (
+                        <p css={tw`text-sm text-red-300/80 break-words line-clamp-2`}>{server.suspension.reason}</p>
+                    ) : (
+                        !!server.description && (
+                            <p css={tw`text-sm text-neutral-400 break-words line-clamp-2`}>{server.description}</p>
+                        )
                     )}
                 </div>
             </div>
@@ -143,6 +148,17 @@ const ServerRow = ({ server, stats = null, className, style }: Props) => {
                             >
                                 {server.status === 'suspended' ? 'Suspended' : 'Connection Error'}
                             </span>
+                            {server.status === 'suspended' && (
+                                <p css={tw`text-xs text-neutral-500 mt-1.5`}>
+                                    {!server.suspension?.until
+                                        ? 'Until an administrator lifts it'
+                                        : server.suspension.until.getTime() <= Date.now()
+                                        ? 'Access is about to come back'
+                                        : `Access back ${formatDistanceToNow(server.suspension.until, {
+                                              addSuffix: true,
+                                          })}`}
+                                </p>
+                            )}
                         </div>
                     ) : server.isNodeUnderMaintenance ? (
                         <div css={tw`flex-1 text-center`}>

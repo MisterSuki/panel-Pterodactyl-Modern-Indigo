@@ -53,7 +53,8 @@
                                 </td>
                                 <td class="text-center">
                                     @if($server->isSuspended())
-                                        <span class="label bg-maroon">Suspended</span>
+                                        @php($suspension = $suspensions[$server->id] ?? null)
+                                        <span class="label bg-maroon" data-toggle="tooltip" data-placement="top" data-html="true" title="{{ e($suspension?->reason ?: 'No reason given') }}@if($suspension?->suspended_until)<br>Until {{ $suspension->suspended_until->format('M j, H:i') }}@endif">Suspended @if($suspension?->suspended_until)<i class="fa fa-clock-o"></i>@endif</span>
                                     @elseif(! $server->isInstalled())
                                         <span class="label label-warning">Installing</span>
                                     @else

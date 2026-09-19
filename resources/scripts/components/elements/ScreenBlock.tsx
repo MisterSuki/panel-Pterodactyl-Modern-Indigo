@@ -12,6 +12,8 @@ interface BaseProps {
     title: string;
     image: string;
     message: string;
+    // Anything more to show under the message.
+    children?: React.ReactNode;
     onRetry?: () => void;
     onBack?: () => void;
 }
@@ -40,7 +42,7 @@ const ActionButton = styled(Button)`
     }
 `;
 
-const ScreenBlock = ({ title, image, message, onBack, onRetry }: ScreenBlockProps) => (
+const ScreenBlock = ({ title, image, message, children, onBack, onRetry }: ScreenBlockProps) => (
     <PageContentBlock>
         <div css={tw`flex justify-center`}>
             <div
@@ -59,6 +61,7 @@ const ScreenBlock = ({ title, image, message, onBack, onRetry }: ScreenBlockProp
                 <img src={image} css={tw`w-2/3 h-auto select-none mx-auto`} />
                 <h2 css={tw`mt-10 text-neutral-50 font-bold text-4xl`}>{title}</h2>
                 <p css={tw`text-sm text-neutral-400 mt-2`}>{message}</p>
+                {children}
             </div>
         </div>
     </PageContentBlock>

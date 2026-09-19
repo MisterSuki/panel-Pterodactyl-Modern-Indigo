@@ -5,6 +5,7 @@ namespace Pterodactyl\Http\Controllers\Admin\Servers;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Pterodactyl\Models\Server;
+use Pterodactyl\Models\ServerSuspension;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use Pterodactyl\Http\Controllers\Controller;
@@ -25,6 +26,11 @@ class ServerController extends Controller
             ])
             ->paginate(config()->get('pterodactyl.paginate.admin.servers'));
 
-        return view('admin.servers.index', ['servers' => $servers]);
+        // The reason and end date of the suspended servers of this page, for the tooltip of their badge.
+        $suspensions = ServerSuspension::forServers(
+            $servers->getCollection()->filter(fn (Server $server) => $server->isSuspended())->pluck('id')->all()
+        );
+
+        return view('admin.servers.index', ['servers' => $servers, 'suspensions' => $suspensions]);
     }
 }
