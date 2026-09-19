@@ -42,6 +42,11 @@ Sur ton serveur, **en root** :
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh)
 ```
+### 🧹 Désinstaller le thème
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --uninstall
+```
 
 Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 
@@ -316,11 +321,6 @@ ensuite avec `yarn build:production`.
 > ton navigateur peut donc garder l'ancienne en cache. Fais un rechargement forcé (`Ctrl + Shift + R`)
 > ou ouvre le panel dans une fenêtre de navigation privée.
 
-### 🧹 Désinstaller le thème
-
-```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --uninstall
-```
 
 Il remet le panel Pterodactyl officiel, avec son design et son dashboard d'origine. **Rien de ce que tu as créé n'est
 perdu** : serveurs, utilisateurs, nodes, allocations, sauvegardes, bases de données, plannings, clés d'API et fichier
