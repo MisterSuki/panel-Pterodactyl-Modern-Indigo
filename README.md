@@ -47,6 +47,11 @@ bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/ma
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --uninstall
 ```
+### 🔄 Mettre à jour un panel existant
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --update
+```
 
 Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 
@@ -282,11 +287,6 @@ bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/ma
 
 </details>
 
-### 🔄 Mettre à jour un panel existant
-
-```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --update
-```
 
 Il installe tout le contenu de ce dépôt sur ton panel **1.15.1** : le design, l'inscription, Discord, les rôles et
 toutes les fonctionnalités ci-dessus. Il :
