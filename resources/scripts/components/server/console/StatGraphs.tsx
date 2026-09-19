@@ -3,23 +3,29 @@ import { ServerContext } from '@/state/server';
 import { SocketEvent } from '@/components/server/events';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import { Line } from 'react-chartjs-2';
-import { gradientFill, useChart, useChartTickLabel } from '@/components/server/console/chart';
-import { bytesToString } from '@/lib/formatters';
-import { CloudDownloadIcon, CloudUploadIcon } from '@heroicons/react/solid';
+import { gradientFill, lineEffects, useChart, useChartTickLabel } from '@/components/server/console/chart';
+import { bytesToString, mbToBytes } from '@/lib/formatters';
 import { theme } from 'twin.macro';
 import ChartBlock from '@/components/server/console/ChartBlock';
-import Tooltip from '@/components/elements/tooltip/Tooltip';
 
-const formatValue = (value: number | null, unit: string, decimals = 1): string | null =>
-    value === null ? null : `${value.toFixed(decimals)}${unit}`;
+const plugins = [lineEffects];
+
+const formatValue = (value: number | null, format: (value: number) => string): string | null =>
+    value === null ? null : format(value);
 
 export default () => {
     const status = ServerContext.useStoreState((state) => state.status.value);
     const limits = ServerContext.useStoreState((state) => state.server.data!.limits);
     const previous = useRef<Record<'tx' | 'rx', number>>({ tx: -1, rx: -1 });
 
-    const cpu = useChartTickLabel('CPU', limits.cpu, '%', 2, theme('colors.primary.400'));
-    const memory = useChartTickLabel('Memory', limits.memory, 'MiB', undefined, theme('colors.cyan.400'));
+    const cpu = useChartTickLabel('CPU', limits.cpu, '%', 0, theme('colors.primary.400'));
+    const memory = useChartTickLabel(
+        'Memory',
+        limits.memory,
+        (value) => bytesToString(mbToBytes(value)),
+        undefined,
+        theme('colors.cyan.400')
+    );
     const network = useChart('Network', {
         sets: 2,
         options: {
@@ -27,7 +33,7 @@ export default () => {
                 y: {
                     ticks: {
                         callback(value) {
-                            return bytesToString(typeof value === 'string' ? parseInt(value, 10) : value);
+                            return bytesToString(typeof value === 'string' ? parseInt(value, 10) : value) + '/s';
                         },
                     },
                 },
@@ -36,7 +42,7 @@ export default () => {
         callback(opts, index) {
             return {
                 ...opts,
-                label: !index ? 'Network In' : 'Network Out',
+                label: !index ? 'Network Out' : 'Network In',
                 borderColor: !index ? theme('colors.cyan.400') : theme('colors.yellow.400'),
                 backgroundColor: gradientFill(!index ? theme('colors.cyan.400') : theme('colors.yellow.400'), 0.25),
             };
@@ -68,28 +74,43 @@ export default () => {
         previous.current = { tx: values.network.tx_bytes, rx: values.network.rx_bytes };
     });
 
+    const offline = status === 'offline';
+    const inbound = network.latest(1);
+    const outbound = network.latest(0);
+
     return (
         <>
-            <ChartBlock title={'CPU Load'} value={status === 'offline' ? null : formatValue(cpu.latest(), '%')}>
-                <Line {...cpu.props} />
+            <ChartBlock
+                title={'CPU Load'}
+                color={theme('colors.primary.400')}
+                value={offline ? null : formatValue(cpu.latest(), (value) => `${value.toFixed(1)}%`)}
+            >
+                <Line {...cpu.props} plugins={plugins} />
             </ChartBlock>
-            <ChartBlock title={'Memory'} value={status === 'offline' ? null : formatValue(memory.latest(), ' MiB', 0)}>
-                <Line {...memory.props} />
+            <ChartBlock
+                title={'Memory'}
+                color={theme('colors.cyan.400')}
+                value={offline ? null : formatValue(memory.latest(), (value) => bytesToString(mbToBytes(value)))}
+            >
+                <Line {...memory.props} plugins={plugins} />
             </ChartBlock>
             <ChartBlock
                 title={'Network'}
+                color={theme('colors.yellow.400')}
                 legend={
                     <>
-                        <Tooltip arrow content={'Inbound'}>
-                            <CloudDownloadIcon className={'mr-2 w-4 h-4 text-yellow-400'} />
-                        </Tooltip>
-                        <Tooltip arrow content={'Outbound'}>
-                            <CloudUploadIcon className={'w-4 h-4 text-cyan-400'} />
-                        </Tooltip>
+                        <span className={'flex items-center gap-1.5 mr-3 text-xs text-gray-300 tabular-nums'}>
+                            <span className={'w-2 h-2 rounded-full bg-yellow-400'} />
+                            {offline || inbound === null ? 'In' : `In ${bytesToString(inbound)}/s`}
+                        </span>
+                        <span className={'flex items-center gap-1.5 text-xs text-gray-300 tabular-nums'}>
+                            <span className={'w-2 h-2 rounded-full bg-cyan-400'} />
+                            {offline || outbound === null ? 'Out' : `Out ${bytesToString(outbound)}/s`}
+                        </span>
                     </>
                 }
             >
-                <Line {...network.props} />
+                <Line {...network.props} plugins={plugins} />
             </ChartBlock>
         </>
     );

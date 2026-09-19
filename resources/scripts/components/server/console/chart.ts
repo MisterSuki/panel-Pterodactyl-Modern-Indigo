@@ -7,6 +7,7 @@ import {
     LinearScale,
     LineElement,
     PointElement,
+    Plugin,
 } from 'chart.js';
 import { DeepPartial } from 'ts-essentials';
 import { useMemo, useState } from 'react';
@@ -25,7 +26,7 @@ const options: ChartOptions<'line'> = {
         tooltip: { enabled: false },
     },
     layout: {
-        padding: 0,
+        padding: { top: 6, right: 12, bottom: 0, left: 0 },
     },
     scales: {
         x: {
@@ -45,13 +46,15 @@ const options: ChartOptions<'line'> = {
             type: 'linear',
             grid: {
                 display: true,
-                color: 'rgba(148, 163, 184, 0.08)',
+                color: 'rgba(148, 163, 184, 0.10)',
                 drawBorder: false,
+                borderDash: [3, 5],
             },
             ticks: {
                 display: true,
                 count: 3,
-                color: theme('colors.gray.200'),
+                padding: 8,
+                color: theme('colors.gray.400'),
                 font: {
                     family: theme('fontFamily.sans'),
                     size: 11,
@@ -89,6 +92,41 @@ function gradientFill(color: string, top = 0.38): (context: { chart: ChartJS }) 
         return gradient;
     };
 }
+
+// Gives every line a soft glow and puts a dot with a halo on its latest value, so the eye lands on
+// "now". Nothing is drawn while the chart is still empty (those points are stored as -5).
+const lineEffects: Plugin<'line'> = {
+    id: 'lineEffects',
+    beforeDatasetDraw(chart, args) {
+        const dataset = chart.data.datasets[args.index];
+        chart.ctx.save();
+        chart.ctx.shadowColor = hexToRgba(String(dataset.borderColor), 0.55);
+        chart.ctx.shadowBlur = 10;
+    },
+    afterDatasetDraw(chart, args) {
+        chart.ctx.restore();
+
+        const dataset = chart.data.datasets[args.index];
+        const last = args.meta.data[args.meta.data.length - 1];
+        const value = dataset.data[dataset.data.length - 1];
+        if (!last || typeof value !== 'number' || value < 0) {
+            return;
+        }
+
+        const { ctx } = chart;
+        const color = String(dataset.borderColor);
+        ctx.save();
+        ctx.fillStyle = hexToRgba(color, 0.18);
+        ctx.beginPath();
+        ctx.arc(last.x, last.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(last.x, last.y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    },
+};
 
 function getOptions(opts?: DeepPartial<ChartOptions<'line'>> | undefined): ChartOptions<'line'> {
     return deepmerge(options, opts || {});
@@ -174,7 +212,13 @@ function useChart(label: string, opts?: UseChartOptions, deps: unknown[] = []) {
     return { props: { data, options }, push, clear, latest };
 }
 
-function useChartTickLabel(label: string, max: number, tickLabel: string, roundTo?: number, color?: string) {
+function useChartTickLabel(
+    label: string,
+    max: number,
+    tickLabel: string | ((value: number) => string),
+    roundTo?: number,
+    color?: string
+) {
     return useChart(
         label,
         {
@@ -188,7 +232,12 @@ function useChartTickLabel(label: string, max: number, tickLabel: string, roundT
                         suggestedMax: max,
                         ticks: {
                             callback(value) {
-                                return `${roundTo ? Number(value).toFixed(roundTo) : value}${tickLabel}`;
+                                const number = Number(value);
+                                if (typeof tickLabel === 'function') {
+                                    return tickLabel(number);
+                                }
+
+                                return `${roundTo !== undefined ? number.toFixed(roundTo) : number}${tickLabel}`;
                             },
                         },
                     },
@@ -199,4 +248,4 @@ function useChartTickLabel(label: string, max: number, tickLabel: string, roundT
     );
 }
 
-export { useChart, useChartTickLabel, getOptions, getEmptyData, gradientFill };
+export { useChart, useChartTickLabel, getOptions, getEmptyData, gradientFill, lineEffects };

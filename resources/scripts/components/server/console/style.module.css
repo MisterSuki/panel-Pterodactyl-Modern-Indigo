@@ -66,5 +66,6 @@
 }
 
 .chart_container {
-    @apply bg-gray-800 rounded-xl shadow-card border border-white/5 pt-2 relative;
+    @apply bg-gradient-surface rounded-xl shadow-card border border-white/5 relative overflow-hidden;
+    @apply transition-colors duration-200 hover:border-primary-500/30;
 }
