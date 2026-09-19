@@ -23,9 +23,12 @@ type Props = {
 };
 
 interface Values {
+    // An email address, or (when inviting someone) the Discord ID of an existing account.
     email: string;
     permissions: string[];
 }
+
+const DISCORD_ID = /^[0-9]{15,25}$/;
 
 const EditSubuserModal = ({ subuser }: Props) => {
     const ref = useRef<HTMLHeadingElement>(null);
@@ -62,7 +65,12 @@ const EditSubuserModal = ({ subuser }: Props) => {
         setPropOverrides({ showSpinnerOverlay: true });
         clearFlashes('user:edit');
 
-        createOrUpdateSubuser(uuid, values, subuser)
+        const who = values.email.trim();
+        const params = DISCORD_ID.test(who)
+            ? { discordId: who, permissions: values.permissions }
+            : { email: who, permissions: values.permissions };
+
+        createOrUpdateSubuser(uuid, params, subuser)
             .then((subuser) => {
                 appendSubuser(subuser);
                 dismiss();
@@ -96,9 +104,14 @@ const EditSubuserModal = ({ subuser }: Props) => {
             }
             validationSchema={object().shape({
                 email: string()
+                    .trim()
                     .max(191, 'Email addresses must not exceed 191 characters.')
-                    .email('A valid email address must be provided.')
-                    .required('A valid email address must be provided.'),
+                    .required('An email address or a Discord ID must be provided.')
+                    .test(
+                        'email-or-discord-id',
+                        'Enter a valid email address, or a Discord ID (only digits).',
+                        (value) => !!value && (DISCORD_ID.test(value) || string().email().isValidSync(value))
+                    ),
                 permissions: array().of(string()),
             })}
         >
@@ -128,9 +141,10 @@ const EditSubuserModal = ({ subuser }: Props) => {
                     <div css={tw`mt-6`}>
                         <Field
                             name={'email'}
-                            label={'User Email'}
+                            label={'User Email or Discord ID'}
+                            placeholder={'name@example.com or 123456789012345678'}
                             description={
-                                'Enter the email address of the user you wish to invite as a subuser for this server.'
+                                'Enter the email address of the person you wish to invite, or their Discord ID. With a Discord ID, they must already have an account on this panel with Discord linked. To find it: in Discord, turn on Developer Mode, then right-click the person and choose Copy User ID.'
                             }
                         />
                     </div>

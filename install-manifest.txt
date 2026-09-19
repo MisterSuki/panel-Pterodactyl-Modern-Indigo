@@ -60,3 +60,6 @@ app/Http/Controllers/Admin/Nests/CommunityEggController.php
 resources/views/admin/nests/index.blade.php
 resources/views/admin/servers/new.blade.php
 resources/views/admin/servers/view/build.blade.php
+app/Services/Subusers/SubuserInviteResolver.php
+app/Http/Requests/Api/Client/Servers/Subusers/StoreSubuserRequest.php
+app/Http/Controllers/Api/Client/Servers/SubuserController.php
