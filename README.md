@@ -455,6 +455,28 @@ configurer : il faut seulement que le port du serveur soit joignable depuis la m
 > Le lien devient jaune avec un avertissement si le port de txAdmin n'est pas l'une des allocations du serveur
 > (onglet *Network*) : il ne serait alors pas joignable de l'extérieur.
 
+### 🌍 Langues
+
+Le panel est disponible en **anglais** et en **français**.
+
+- **Par défaut : l'anglais.** Dans *Admin → Settings → Language*, tu choisis la langue des **visiteurs** (pages de connexion) et des
+  **nouveaux comptes**. Les comptes qui existent déjà gardent leur langue.
+- **Chacun choisit la sienne** sur sa page *Account* (carte *Language*) : elle est enregistrée sur le compte et suivie sur tous les appareils.
+  Sur les pages de connexion, de petits liens *English · Français* permettent de choisir sans compte.
+- Un administrateur peut aussi changer la langue d'un utilisateur depuis sa page (*Admin → Users*).
+- Le **dashboard** et les **pages de connexion** sont traduits, l'**administration** en grande partie (les textes techniques longs,
+  comme les explications de la configuration Wings, peuvent rester en anglais), ainsi que le journal d'activité et les messages d'erreur
+  et de validation. Les emails envoyés par le panel restent en anglais.
+
+Comment c'est fait : les pages sont écrites en anglais, et un petit script (`public/js/translator.js`) remplace chaque texte par sa
+traduction avec le dictionnaire `resources/lang/fr.json`. Il ne touche jamais à la console, à l'éditeur de fichiers, aux champs de
+formulaire ni aux noms saisis par les utilisateurs (un serveur appelé « Console » reste « Console »). Un texte qui n'est pas dans le
+dictionnaire reste en anglais : les phrases construites avec des nombres ou des noms, comme « 3 servers », ne sont pas toutes traduites.
+
+Pour **ajouter une langue** : crée `resources/lang/<code>/` (copie le dossier `en`) et `resources/lang/<code>.json` (copie `fr.json` et
+traduis les valeurs). Elle apparaît toute seule dans les listes de langues. Pour **corriger une traduction**, modifie le fichier `.json`
+ou `.php` correspondant, puis recharge la page.
+
 ### ⏳ Suspension des serveurs
 
 Dans *Admin → Servers → ton serveur → Manage*, la suspension a maintenant :
@@ -483,6 +505,7 @@ elle ne change rien à la façon dont Pterodactyl gère l'état suspendu.
 | 📊 **Usage des nodes** | Sur la page d'un node : consommation en direct de ses serveurs (CPU, mémoire, disque, réseau) et des serveurs qui consomment le plus |
 | 📏 **Mémoire et disque en GB** | À la création d'un serveur et dans sa configuration, on saisit des **GB** ; le panel garde des MiB en interne |
 | 💬 **Discord dans les listes** | Le compte Discord lié apparaît dans la liste des utilisateurs et sur la page de chaque utilisateur |
+| 🌍 **Anglais et français** | Le panel existe en **anglais** (par défaut) et en **français** : dashboard, pages de connexion et administration. Chacun choisit sa langue sur sa page *Account*, l'administrateur fixe celle des visiteurs et des nouveaux comptes dans *Admin → Settings* (voir [Langues](#-langues)) |
 | ⏳ **Suspension améliorée** | Une raison visible par le client, une durée avec **levée automatique**, et le détail affiché sur le dashboard et la page du serveur (voir [Suspension](#-suspension-des-serveurs)) |
 | 👥 **Sous-utilisateur par ID Discord** | Dans l'onglet *Users* d'un serveur, invite quelqu'un avec son email **ou son ID Discord** (il doit déjà avoir un compte avec Discord lié) |
 

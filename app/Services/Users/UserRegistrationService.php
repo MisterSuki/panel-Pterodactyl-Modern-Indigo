@@ -5,6 +5,7 @@ namespace Pterodactyl\Services\Users;
 use Ramsey\Uuid\Uuid;
 use Pterodactyl\Models\User;
 use Pterodactyl\Facades\Activity;
+use Pterodactyl\Services\Helpers\Locales;
 use Illuminate\Contracts\Hashing\Hasher;
 
 /**
@@ -33,6 +34,7 @@ class UserRegistrationService
             'name_first' => $data['name_first'],
             'name_last' => $data['name_last'],
             'password' => $this->hasher->make($data['password']),
+            'language' => Locales::default(),
             'discord_id' => $data['discord_id'] ?? null,
             'discord_username' => $data['discord_username'] ?? null,
         ]);

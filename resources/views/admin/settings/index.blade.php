@@ -69,6 +69,19 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="form-group col-md-4">
+                                <label class="control-label">Language</label>
+                                <div>
+                                    <select name="app:locale" class="form-control">
+                                        @foreach($languages as $code => $language)
+                                            <option value="{{ $code }}" @if(old('app:locale', \Pterodactyl\Services\Helpers\Locales::default()) === $code) selected @endif>{{ $language }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-muted"><small>The language of the panel for visitors and for new accounts. Everyone can pick their own from their account page; existing accounts keep the language they have.</small></p>
+                                </div>
+                            </div>
+                        </div>
                         <hr />
                         <div class="row">
                             <div class="form-group col-md-4">

@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import LanguageLinks from '@/components/auth/LanguageLinks';
 import { Form } from 'formik';
 import styled from 'styled-components/macro';
 import { breakpoint } from '@/theme';
@@ -28,9 +29,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                     style={{ filter: 'drop-shadow(0 0 24px rgba(99, 102, 241, 0.45))' }}
                 />
             </div>
-            {title && (
-                <h2 css={tw`text-2xl text-center text-neutral-50 font-semibold mb-6 tracking-tight`}>{title}</h2>
-            )}
+            {title && <h2 css={tw`text-2xl text-center text-neutral-50 font-semibold mb-6 tracking-tight`}>{title}</h2>}
             <FlashMessageRender css={tw`mb-4`} />
             <Form {...props} ref={ref}>
                 <div
@@ -50,6 +49,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                     Pterodactyl Software
                 </a>
             </p>
+            <LanguageLinks />
         </Container>
     </div>
 ));

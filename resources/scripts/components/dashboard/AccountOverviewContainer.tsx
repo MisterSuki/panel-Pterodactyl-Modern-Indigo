@@ -11,6 +11,7 @@ import MessageBox from '@/components/MessageBox';
 import { useLocation } from 'react-router-dom';
 import { useStoreState } from 'easy-peasy';
 import DiscordConnectionBox from '@/components/dashboard/DiscordConnectionBox';
+import LanguageBox from '@/components/dashboard/LanguageBox';
 
 const Container = styled.div`
     ${tw`flex flex-wrap`};
@@ -51,7 +52,10 @@ export default () => {
                     <ConfigureTwoFactorForm />
                 </ContentBox>
             </Container>
-            {discordEnabled && <DiscordConnectionBox css={tw`mb-10 lg:w-1/3`} />}
+            <div css={tw`lg:grid lg:grid-cols-3 lg:gap-8 mb-10`}>
+                <LanguageBox />
+                {discordEnabled && <DiscordConnectionBox css={tw`mt-8 lg:mt-0`} />}
+            </div>
         </PageContentBlock>
     );
 };

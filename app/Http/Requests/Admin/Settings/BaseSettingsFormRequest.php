@@ -2,7 +2,9 @@
 
 namespace Pterodactyl\Http\Requests\Admin\Settings;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use Pterodactyl\Services\Helpers\Locales;
 use Pterodactyl\Services\Auth\AuthFeatures;
 use Pterodactyl\Http\Requests\Admin\AdminFormRequest;
 
@@ -12,6 +14,7 @@ class BaseSettingsFormRequest extends AdminFormRequest
     {
         return [
             'app:name' => 'required|string|max:191',
+            'app:locale' => ['required', 'string', Rule::in(Locales::codes())],
             'pterodactyl:auth:2fa_required' => 'required|integer|in:0,1,2',
             'pterodactyl:auth:registration' => 'required|in:true,false',
             'pterodactyl:auth:discord:enabled' => 'required|in:true,false',
@@ -24,6 +27,7 @@ class BaseSettingsFormRequest extends AdminFormRequest
     {
         return [
             'app:name' => 'Company Name',
+            'app:locale' => 'Language',
             'pterodactyl:auth:2fa_required' => 'Require 2-Factor Authentication',
             'pterodactyl:auth:registration' => 'Allow Registration',
             'pterodactyl:auth:discord:enabled' => 'Discord Login',

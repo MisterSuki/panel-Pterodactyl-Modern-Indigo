@@ -79,3 +79,12 @@ app/Transformers/Api/Client/ServerTransformer.php
 resources/views/admin/servers/index.blade.php
 resources/views/admin/servers/view/index.blade.php
 resources/views/admin/servers/view/manage.blade.php
+public/js/translator.js
+resources/lang/fr/
+resources/lang/fr.json
+app/Services/Helpers/Locales.php
+app/Http/Controllers/Base/UiLocaleController.php
+app/Http/Requests/Api/Client/Account/UpdateLanguageRequest.php
+app/Traits/Helpers/AvailableLanguages.php
+routes/base.php
+resources/views/templates/wrapper.blade.php

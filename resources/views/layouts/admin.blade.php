@@ -18,6 +18,9 @@
 
         @include('layouts.scripts')
 
+        <script>window.PterodactylUiLocale = @json(Auth::user()->language ?? \Pterodactyl\Services\Helpers\Locales::default());</script>
+        <script src="/js/translator.js?v={{ @filemtime(public_path('js/translator.js')) }}"></script>
+
         @section('scripts')
             {!! Theme::css('vendor/select2/select2.min.css?t={cache-version}') !!}
             {!! Theme::css('vendor/bootstrap/bootstrap.min.css?t={cache-version}') !!}

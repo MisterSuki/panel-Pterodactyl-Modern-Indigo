@@ -1,0 +1,33 @@
+<?php
+
+return [
+    'permissions' => [
+        'websocket_*' => 'Autorise l\'accès au websocket de ce serveur.',
+        'control_console' => 'Autorise l\'utilisateur à envoyer des commandes à la console du serveur.',
+        'control_start' => 'Autorise l\'utilisateur à démarrer le serveur.',
+        'control_stop' => 'Autorise l\'utilisateur à arrêter le serveur.',
+        'control_restart' => 'Autorise l\'utilisateur à redémarrer le serveur.',
+        'control_kill' => 'Autorise l\'utilisateur à forcer l\'arrêt du serveur.',
+        'user_create' => 'Autorise l\'utilisateur à créer de nouveaux comptes pour ce serveur.',
+        'user_read' => 'Autorise l\'utilisateur à voir les utilisateurs associés à ce serveur.',
+        'user_update' => 'Autorise l\'utilisateur à modifier les autres utilisateurs associés à ce serveur.',
+        'user_delete' => 'Autorise l\'utilisateur à supprimer les autres utilisateurs associés à ce serveur.',
+        'file_create' => 'Autorise l\'utilisateur à créer de nouveaux fichiers et dossiers.',
+        'file_read' => 'Autorise l\'utilisateur à voir les fichiers et dossiers de ce serveur, ainsi que leur contenu.',
+        'file_update' => 'Autorise l\'utilisateur à modifier les fichiers et dossiers du serveur.',
+        'file_delete' => 'Autorise l\'utilisateur à supprimer des fichiers et des dossiers.',
+        'file_archive' => 'Autorise l\'utilisateur à créer des archives et à décompresser celles qui existent.',
+        'file_sftp' => 'Autorise l\'utilisateur à faire les actions ci-dessus avec un client SFTP.',
+        'allocation_read' => 'Autorise l\'accès aux pages de gestion des allocations du serveur.',
+        'allocation_update' => 'Autorise l\'utilisateur à modifier les allocations du serveur.',
+        'database_create' => 'Autorise l\'utilisateur à créer une nouvelle base de données pour le serveur.',
+        'database_read' => 'Autorise l\'utilisateur à voir les bases de données du serveur.',
+        'database_update' => 'Autorise l\'utilisateur à modifier une base de données. Sans la permission « Voir le mot de passe », il ne pourra pas modifier le mot de passe.',
+        'database_delete' => 'Autorise l\'utilisateur à supprimer une base de données.',
+        'database_view_password' => 'Autorise l\'utilisateur à voir le mot de passe d\'une base de données.',
+        'schedule_create' => 'Autorise l\'utilisateur à créer un nouveau planning pour le serveur.',
+        'schedule_read' => 'Autorise l\'utilisateur à voir les plannings d\'un serveur.',
+        'schedule_update' => 'Autorise l\'utilisateur à modifier un planning existant du serveur.',
+        'schedule_delete' => 'Autorise l\'utilisateur à supprimer un planning du serveur.',
+    ],
+];

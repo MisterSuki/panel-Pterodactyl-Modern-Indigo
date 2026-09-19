@@ -92,7 +92,9 @@ const RegisterContainer = () => {
                         /^[a-z0-9]([\w.-]+)[a-z0-9]$/i,
                         'Your username must start and end with a letter or number, and only contain letters, numbers, dashes, underscores and periods.'
                     ),
-                email: string().email('Please enter a valid email address.').required('Please enter your email address.'),
+                email: string()
+                    .email('Please enter a valid email address.')
+                    .required('Please enter your email address.'),
                 password: string()
                     .required('Please choose a password.')
                     .min(8, 'Your password must be at least 8 characters long.'),

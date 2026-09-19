@@ -32,7 +32,11 @@ const LoginContainer = ({ history, location }: RouteComponentProps) => {
 
         const notice = getDiscordMessage(new URLSearchParams(location.search).get('discord'));
         if (notice) {
-            addFlash({ type: notice.type, title: notice.type === 'success' ? 'Success' : 'Error', message: notice.message });
+            addFlash({
+                type: notice.type,
+                title: notice.type === 'success' ? 'Success' : 'Error',
+                message: notice.message,
+            });
         }
     }, []);
 

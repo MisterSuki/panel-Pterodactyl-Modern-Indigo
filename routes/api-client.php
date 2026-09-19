@@ -29,6 +29,8 @@ Route::prefix('/account')->middleware(AccountSubject::class)->group(function () 
         Route::post('/two-factor/disable', [Client\TwoFactorController::class, 'delete']);
     });
 
+    Route::put('/language', [Client\AccountController::class, 'updateLanguage'])->name('api:client.account.update-language');
+
     Route::put('/email', [Client\AccountController::class, 'updateEmail'])
         ->middleware('throttle')
         ->name('api:client.account.update-email');

@@ -9,12 +9,15 @@ use Illuminate\Contracts\Console\Kernel;
 use Pterodactyl\Providers\SettingsServiceProvider;
 use Illuminate\Contracts\Encryption\Encrypter;
 use Pterodactyl\Http\Controllers\Controller;
+use Pterodactyl\Traits\Helpers\AvailableLanguages;
 use Pterodactyl\Services\Helpers\SoftwareVersionService;
 use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
 use Pterodactyl\Http\Requests\Admin\Settings\BaseSettingsFormRequest;
 
 class IndexController extends Controller
 {
+    use AvailableLanguages;
+
     /**
      * IndexController constructor.
      */
@@ -34,6 +37,7 @@ class IndexController extends Controller
     {
         return view('admin.settings.index', [
             'version' => $this->versionService,
+            'languages' => $this->getAvailableLanguages(true),
         ]);
     }
 

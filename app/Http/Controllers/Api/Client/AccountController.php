@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Pterodactyl\Services\Users\UserUpdateService;
 use Pterodactyl\Transformers\Api\Client\AccountTransformer;
 use Pterodactyl\Http\Requests\Api\Client\Account\UpdateEmailRequest;
+use Pterodactyl\Http\Requests\Api\Client\Account\UpdateLanguageRequest;
 use Pterodactyl\Http\Requests\Api\Client\Account\UpdatePasswordRequest;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
@@ -87,6 +88,16 @@ class AccountController extends ClientApiController
         if (method_exists($guard, 'logoutOtherDevices')) { // @phpstan-ignore function.alreadyNarrowedType
             $guard->logoutOtherDevices($request->input('password'));
         }
+
+        return new JsonResponse([], Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Change the language the panel is shown in for the authenticated user.
+     */
+    public function updateLanguage(UpdateLanguageRequest $request): JsonResponse
+    {
+        User::query()->whereKey($request->user()->id)->update(['language' => $request->validated('language')]);
 
         return new JsonResponse([], Response::HTTP_NO_CONTENT);
     }
