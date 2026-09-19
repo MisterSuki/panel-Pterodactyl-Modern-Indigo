@@ -1,72 +1,112 @@
-[![Logo Image](https://cdn.pterodactyl.io/logos/new/pterodactyl_logo.png)](https://pterodactyl.io)
+<div align="center">
 
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/pterodactyl/panel/ci.yaml?label=Tests&style=for-the-badge&branch=1.0-develop)
-![Discord](https://img.shields.io/discord/122900397965705216?label=Discord&logo=Discord&logoColor=white&style=for-the-badge)
-![GitHub Releases](https://img.shields.io/github/downloads/pterodactyl/panel/latest/total?style=for-the-badge)
-![GitHub contributors](https://img.shields.io/github/contributors/pterodactyl/panel?style=for-the-badge)
+# Pterodactyl — Thème Modern Indigo
 
-# Pterodactyl Panel
+**Un panel de jeu qui a enfin l'air d'un vrai hébergeur.**
+Thème sombre bleu-nuit, accent indigo, cartes en verre dépoli, coins arrondis et animations douces —
+pour le dashboard client **et** l'administration.
 
-Pterodactyl® is a free, open-source game server management panel built with PHP, React, and Go. Designed with security
-in mind, Pterodactyl runs all game servers in isolated Docker containers while exposing a beautiful and intuitive
-UI to end users.
+![Aperçu de la page de connexion](docs/screenshots/login.png)
 
-Stop settling for less. Make game servers a first class citizen on your platform.
+</div>
 
-![Image](https://cdn.pterodactyl.io/site-assets/pterodactyl_v1_demo.gif)
+## Aperçu
 
-## Documentation
+| Administration — Vue d'ensemble | Administration — Utilisateurs |
+| :---: | :---: |
+| ![Admin overview](docs/screenshots/admin-overview.png) | ![Admin users](docs/screenshots/admin-users.png) |
 
-* [Panel Documentation](https://pterodactyl.io/panel/1.0/getting_started.html)
-* [Wings Documentation](https://pterodactyl.io/wings/1.0/installing.html)
-* [Community Guides](https://pterodactyl.io/community/about.html)
-* Or, get additional help [via Discord](https://discord.gg/pterodactyl)
+![Admin node](docs/screenshots/admin-node.png)
 
-## Sponsors
+> Les captures de l'administration utilisent des données d'exemple.
 
-I would like to extend my sincere thanks to the following sponsors for helping fund Pterodactyl's development.
-[Interested in becoming a sponsor?](https://github.com/sponsors/pterodactyl)
+## Ce qui est inclus
 
-| Company                                                                           | About                                                                                                                                                                                                                                           |
-|-----------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [**Infraly, LLC**](https://infraly.co/)                                           | Infraly is an infrastructure company powering the next generation of online services. Through their brands, Infraly delivers cutting-edge solutions across multiple markets. Their vertically integrated approach provides unmatched performance, scalability, and reliability, giving our customers full control.                                                                                     |
-| [**Hosturly**](https://hosturly.com/)                                             | Hosturly is an enterprise hosting provider. They provide cost-effective, high-performance, and reliable services, including VPS, Web, Dedicated, and Colocation.                                                                                |
-| [**Physgun**](https://physgun.com/)                                               | Physgun is a game server hosting provider. Most providers rent rack space and rebrand a panel. At Physgun, they engineer the performance, write the features, and staff the support. Physgun truly is game hosting perfected!                   |
-| [**WISP**](https://wisp.gg/)                                                      | WISP is an industry-leading SaaS platform for game server management, designed for hosting companies, gaming organizations, and enthusiasts. WISP combines modern, intuitive interfaces with powerful tools, making server deployment and administration seamless, scalable, and efficient.                                                                                                                 |
-| [**Buildurly**](https://buildurly.com/)                                           | Buildurly is a hardware procurement company. They deliver tailored, enterprise-grade hardware solutions designed around your unique needs. From sourcing to delivery, Buildurly's white-glove service ensures a seamless, worry-free, professional experience.                                                                                                                                          |
-| [**indifferent broccoli**](https://indifferentbroccoli.com/)                      | indifferent broccoli is a game server hosting and rental company. With them, you get top-notch computer power for your gaming sessions. They destroy lag, latency, and complexity--letting you focus on the fun stuff.                         |
+| Partie | Ce qui change | Comment l'installer |
+| --- | --- | --- |
+| **Administration** (`/admin`) | Sidebar et en-tête bleu-nuit, cartes arrondies, boutons et formulaires modernes, widgets de stats en dégradé, onglets, barres de progression, alertes lisibles | [Script d'installation](#installation-rapide-administration) — une seule commande |
+| **Dashboard client** (liste des serveurs, console, connexion…) | Fond dégradé, barre de navigation en verre dépoli, cartes serveurs avec statut lumineux, boutons en dégradé, modales et dialogues refaits | [Compilation depuis les sources](#installation-du-dashboard-client) |
 
-### Supported Games
+## Installation rapide (administration)
 
-Pterodactyl supports a wide variety of games by utilizing Docker containers to isolate each instance. This gives
-you the power to run game servers without bloating machines with a host of additional dependencies.
+Sur le serveur qui héberge ton panel, **en root** :
 
-Some of our core supported games include:
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install-theme.sh)
+```
 
-* Minecraft — including Paper, Sponge, Bungeecord, Waterfall, and more
-* Rust
-* Terraria
-* Teamspeak
-* Mumble
-* Team Fortress 2
-* Counter Strike: Global Offensive
-* Garry's Mod
-* ARK: Survival Evolved
+Le script :
 
-In addition to our standard nest of supported games, our community is constantly pushing the limits of this software
-and there are plenty more games available provided by the community. Some of these games include:
+- vérifie que le panel est bien là (par défaut `/var/www/pterodactyl`) ;
+- **sauvegarde** ton `pterodactyl.css` actuel avec un horodatage avant de le remplacer ;
+- installe le thème et remet les bons droits sur le fichier ;
+- vide le cache Laravel.
 
-* Factorio
-* San Andreas: MP
-* Pocketmine MP
-* Squad
-* Xonotic
-* Starmade
-* Discord ATLBot, and most other Node.js/Python discord bots
-* [and many more...](https://eggs.pterodactyl.io)
+### Options
 
-## License
+```bash
+# Panel installé ailleurs que dans /var/www/pterodactyl
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install-theme.sh) --path=/chemin/vers/pterodactyl
 
-Pterodactyl® Copyright © 2015 - 2022 Dane Everitt and contributors.
+# Sans demande de confirmation
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install-theme.sh) --yes
 
-Code released under the [MIT License](./LICENSE.md).
+# Revenir à la dernière sauvegarde
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install-theme.sh) --restore
+```
+
+> **Le thème n'apparaît pas ?** L'URL de la feuille de style de l'admin ne change jamais d'une version à l'autre,
+> ton navigateur peut donc garder l'ancienne en cache. Fais un rechargement forcé (`Ctrl + Shift + R`)
+> ou ouvre le panel dans une fenêtre de navigation privée.
+
+## Installation du dashboard client
+
+Le dashboard client est une application React : il faut recompiler les fichiers pour appliquer le nouveau design.
+
+**Prérequis :** Node.js 22 ou plus, Yarn 1.x et git sur le serveur.
+
+```bash
+cd /var/www/pterodactyl
+
+# 1. Sauvegarde
+cp -r resources/scripts resources/scripts.bak
+cp tailwind.config.js tailwind.config.js.bak
+
+# 2. Récupérer les sources du thème
+git clone --depth 1 https://github.com/MisterSuki/panel-ptero-terra.git /tmp/panel-theme
+cp -r /tmp/panel-theme/resources/scripts/. resources/scripts/
+cp /tmp/panel-theme/tailwind.config.js tailwind.config.js
+
+# 3. Compiler
+yarn install
+yarn build:production
+```
+
+Fais ensuite un rechargement forcé dans ton navigateur. Pour revenir en arrière, remets les dossiers `*.bak`
+en place et relance `yarn build:production`.
+
+## Compatibilité
+
+- Testé sur **Pterodactyl Panel 1.15.1**.
+- Le thème ne touche à aucun fichier PHP ni à la base de données : seuls le CSS de l'admin, les sources React du
+  dashboard client et la configuration Tailwind sont modifiés.
+- Si tu as déjà personnalisé ton panel, garde une sauvegarde (le script d'installation en fait une pour le CSS de l'admin).
+
+## Développement
+
+Pour travailler sur le thème en local (mêmes prérequis : Node.js 22+ et Yarn) :
+
+```bash
+yarn install
+yarn watch   # recompile à chaque modification
+```
+
+Les couleurs et les ombres sont définies dans [`tailwind.config.js`](tailwind.config.js) (dashboard client) et
+dans les variables CSS `--pd-*` de [`public/themes/pterodactyl/css/pterodactyl.css`](public/themes/pterodactyl/css/pterodactyl.css)
+(administration).
+
+## Crédits et licence
+
+Ce projet est un thème construit sur [Pterodactyl Panel](https://github.com/pterodactyl/panel), publié sous
+[licence MIT](LICENSE.md). Il n'est ni affilié ni approuvé par le projet Pterodactyl.
+Pterodactyl® est une marque de ses propriétaires.
