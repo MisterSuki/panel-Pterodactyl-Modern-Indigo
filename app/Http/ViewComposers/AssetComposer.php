@@ -3,6 +3,7 @@
 namespace Pterodactyl\Http\ViewComposers;
 
 use Illuminate\View\View;
+use Pterodactyl\Services\Auth\AuthFeatures;
 use Pterodactyl\Services\Helpers\AssetHashService;
 
 class AssetComposer
@@ -26,6 +27,10 @@ class AssetComposer
             'recaptcha' => [
                 'enabled' => config('recaptcha.enabled', false),
                 'siteKey' => config('recaptcha.website_key') ?? '',
+            ],
+            'registration' => AuthFeatures::registrationEnabled(),
+            'discord' => [
+                'enabled' => AuthFeatures::discordEnabled(),
             ],
         ]);
     }

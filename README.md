@@ -4,85 +4,231 @@
 
 **Un panel de jeu qui a enfin l'air d'un vrai hébergeur.**
 Thème sombre bleu-nuit, accent indigo, cartes en verre dépoli, coins arrondis et animations douces —
-pour le dashboard client **et** l'administration.
+pour le dashboard client **et** l'administration. Avec en plus l'**inscription** des visiteurs, la
+**connexion Discord** et des **rôles de staff** avec permissions.
 
 </div>
 
 ## Ce qui est inclus
 
-| Partie | Ce qui change | Comment l'installer |
-| --- | --- | --- |
-| **Administration** (`/admin`) | Sidebar et en-tête bleu-nuit, cartes arrondies, boutons et formulaires modernes, widgets de stats en dégradé, onglets, barres de progression, alertes lisibles | [Script d'installation](#installation-rapide-administration) — une seule commande |
-| **Dashboard client** (liste des serveurs, console, connexion…) | Fond dégradé, barre de navigation en verre dépoli, cartes serveurs avec statut lumineux, boutons en dégradé, modales et dialogues refaits | [Compilation depuis les sources](#installation-du-dashboard-client) |
+| Partie | Ce qui change |
+| --- | --- |
+| **Design** | Administration (`/admin`) et dashboard client refaits : sidebar et en-tête bleu-nuit, cartes arrondies, boutons et formulaires modernes, page de connexion en verre dépoli, cartes serveurs avec statut lumineux |
+| **[Inscription et Discord](#inscription-et-connexion-discord)** | Page « Create an Account », bouton « Continue with Discord », liaison automatique des comptes existants, réglages dans *Admin → Settings* (le champ « Default Language » est retiré) |
+| **[Rôles de staff](#rôles-de-staff)** | Crée des rôles (modérateur, support…), choisis leurs permissions section par section et donne-les à des personnes, sans en faire des administrateurs complets |
+| **[Installation complète](#installation)** | Un seul script installe tout sur un serveur vierge (serveur web, PHP, base de données, Redis, le panel, SSL), installe Wings, ou met à jour un panel existant |
 
-## Installation rapide (administration)
+## Installation
 
-Sur le serveur qui héberge ton panel, **en root** :
-
-```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install-theme.sh)
-```
-
-Le script :
-
-- vérifie que le panel est bien là (par défaut `/var/www/pterodactyl`) ;
-- **sauvegarde** ton `pterodactyl.css` actuel avec un horodatage avant de le remplacer ;
-- installe le thème et remet les bons droits sur le fichier ;
-- vide le cache Laravel.
-
-### Options
+Sur ton serveur, **en root** :
 
 ```bash
-# Panel installé ailleurs que dans /var/www/pterodactyl
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install-theme.sh) --path=/chemin/vers/pterodactyl
-
-# Sans demande de confirmation
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install-theme.sh) --yes
-
-# Revenir à la dernière sauvegarde
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install-theme.sh) --restore
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh)
 ```
 
-> **Le thème n'apparaît pas ?** L'URL de la feuille de style de l'admin ne change jamais d'une version à l'autre,
+Le script te demande ce que tu veux faire :
+
+1. **Installer le panel** sur ce serveur (nouvelle installation complète)
+2. **Installer Wings**, le programme qui fait tourner les serveurs de jeu
+3. **Les deux** sur la même machine
+4. **Mettre à jour** un panel déjà installé avec ce thème
+5. **Restaurer** les fichiers d'avant une mise à jour
+
+S'il détecte déjà un panel dans `/var/www/pterodactyl`, il passe directement à la mise à jour.
+
+### Nouveau serveur : le panel, de A à Z
+
+Sur un serveur **vierge** Ubuntu 22.04 / 24.04 ou Debian 11 / 12, avec un nom de domaine qui pointe déjà vers lui :
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --panel
+```
+
+Il pose quelques questions (domaine, email, compte administrateur) puis fait tout, comme
+[pterodactyl-installer](https://pterodactyl-installer.se) :
+
+1. installe **nginx, PHP 8.3, MariaDB et Redis** ;
+2. crée la **base de données** avec un mot de passe aléatoire ;
+3. installe le **panel** de ce dépôt (design, inscription, Discord, rôles) et ses dépendances ;
+4. configure le panel, crée les tables et ton **compte administrateur** ;
+5. compile le dashboard (il ajoute un peu de swap temporaire si le serveur a peu de mémoire) ;
+6. obtient un **certificat SSL** gratuit Let's Encrypt ;
+7. installe la **file d'attente** (`pteroq`) et la **tâche planifiée** (cron) ;
+8. ouvre les ports 80 et 443 si le pare-feu `ufw` est actif.
+
+À la fin, il affiche l'adresse du panel et tes identifiants, et les enregistre dans
+`/root/pterodactyl-credentials.txt` (lisible par root seulement, à supprimer ensuite).
+
+Sans interaction :
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) \
+  --panel --yes --fqdn=panel.example.com --email=toi@example.com --admin-user=toi
+```
+
+Sans mot de passe donné, il en génère un aléatoire. Sans domaine (adresse IP), il sert le panel en `http`, sans SSL.
+
+**Il ne touche jamais à l'existant** : il refuse de continuer si un panel est déjà installé, si le dossier n'est pas vide,
+ou si une base `panel` ou un utilisateur MySQL `pterodactyl` existent déjà. Si l'installation s'arrête en cours de route,
+relance la même commande : elle reprend proprement.
+
+### Wings
+
+Une fois le panel installé, crée une **Location** puis un **Node** dans *Admin*, puis sur la machine qui héberge les
+serveurs de jeu :
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --wings
+```
+
+Il installe Docker, télécharge Wings et crée le service `wings`. Il te reste à coller la configuration du node
+(*Admin → Nodes → ton node → Configuration*) dans `/etc/pterodactyl/config.yml`, puis `systemctl enable --now wings`.
+Pour tout faire d'un coup, donne-lui l'adresse du panel, un jeton d'API et le numéro du node :
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) \
+  --wings --panel-url=https://panel.example.com --wings-token=ptla_xxx --node-id=1
+```
+
+### Mettre à jour un panel existant
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --update
+```
+
+Il installe tout le contenu de ce dépôt sur ton panel **1.15.1** : le design, l'inscription, Discord et les rôles. Il :
+
+1. télécharge le dépôt et vérifie qu'il est complet, sans rien modifier tant que tout n'est pas en règle ;
+2. **sauvegarde** chaque fichier qu'il va remplacer (dans `/var/backups/pterodactyl-theme/`) ;
+3. met le panel en maintenance et copie les fichiers ;
+4. lance les migrations de la base de données ;
+5. installe les dépendances et compile le dashboard ;
+6. vide les caches, redémarre la file d'attente et remet le panel en ligne.
+
+Si la migration échoue, il remet les fichiers d'origine. Si la compilation échoue, il remet l'ancien dashboard
+compilé pour que le panel continue de fonctionner, et t'indique quoi faire. Dans les deux cas, il te dit pourquoi.
+Fais une **sauvegarde de ta base de données** avant : les migrations ajoutent des colonnes à la table `users` et une
+table `admin_roles`. Il refuse une version de panel différente de 1.15.1 (sauf avec `--force`).
+
+Pour revenir en arrière :
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --restore
+```
+
+Les fichiers remplacés sont remis et ceux que la mise à jour a ajoutés sont supprimés. La base de données n'est pas
+modifiée : les nouvelles tables et colonnes restent en place sans gêner. Si tu restaures le dashboard, recompile-le
+ensuite avec `yarn build:production`.
+
+> **Le design n'apparaît pas ?** L'URL de la feuille de style de l'admin ne change jamais d'une version à l'autre,
 > ton navigateur peut donc garder l'ancienne en cache. Fais un rechargement forcé (`Ctrl + Shift + R`)
 > ou ouvre le panel dans une fenêtre de navigation privée.
 
-## Installation du dashboard client
+### Toutes les options
 
-Le dashboard client est une application React : il faut recompiler les fichiers pour appliquer le nouveau design.
+| Option | Effet |
+| --- | --- |
+| `--panel`, `--wings`, `--update`, `--restore` | Ce qu'il faut faire (sinon, menu) |
+| `-y`, `--yes` | Ne pose aucune question |
+| `--dry-run` | Vérifie tout et affiche le plan, sans rien changer |
+| `--fqdn=`, `--email=` | Domaine (ou IP) et email, pour un nouveau panel |
+| `--admin-user=`, `--admin-password=`, `--admin-first-name=`, `--admin-last-name=` | Compte administrateur créé à l'installation |
+| `--timezone=` | Fuseau horaire du panel (celui du serveur par défaut) |
+| `--ssl`, `--no-ssl` | Force ou désactive le certificat SSL |
+| `--panel-url=`, `--wings-token=`, `--node-id=` | Configure Wings tout de suite |
+| `--path=/chemin` | Dossier du panel, si ce n'est pas `/var/www/pterodactyl` |
+| `--install-node` | Installe Node.js 22 et Yarn s'ils manquent (Debian/Ubuntu), pour une mise à jour |
+| `--enable-settings-ui` | Passe `APP_ENVIRONMENT_ONLY` à `false` dans `.env` (mise à jour) |
+| `--skip-build`, `--skip-migrate` | Ne compile pas le dashboard, ne lance pas les migrations |
+| `--css-only` | Met à jour seulement le design de l'administration |
+| `--force` | Met à jour même si la version du panel est différente (déconseillé) |
+| `--branch=`, `--repo=`, `--source=` | Installe depuis une autre branche, un autre dépôt ou un dossier local |
 
-**Prérequis :** Node.js 22 ou plus, Yarn 1.x et git sur le serveur.
+## Inscription et connexion Discord
 
-```bash
-cd /var/www/pterodactyl
+### Ce que ça fait
 
-# 1. Sauvegarde
-cp -r resources/scripts resources/scripts.bak
-cp tailwind.config.js tailwind.config.js.bak
+- **Inscription** : une case *Allow Registration* dans *Admin → Settings*. Activée, la page de connexion affiche
+  « Create one » et les visiteurs peuvent créer un compte (prénom, nom, pseudo, email, mot de passe). Désactivée,
+  le panel reste sur invitation. reCAPTCHA protège l'inscription comme la connexion.
+- **Connexion Discord** : un bouton « Continue with Discord » sur les pages de connexion et d'inscription.
+- **Synchronisation avec un compte existant** : si l'adresse email **vérifiée** du compte Discord correspond à un
+  compte du panel, les deux sont liés automatiquement. Un utilisateur peut aussi lier ou délier Discord depuis la
+  page *Account*.
+- **Nouveaux comptes** : si l'inscription est ouverte, un utilisateur Discord inconnu obtient un compte créé à partir
+  de son profil Discord.
 
-# 2. Récupérer les sources du thème
-git clone --depth 1 https://github.com/MisterSuki/panel-ptero-terra.git /tmp/panel-theme
-cp -r /tmp/panel-theme/resources/scripts/. resources/scripts/
-cp /tmp/panel-theme/tailwind.config.js tailwind.config.js
+### Garde-fous
 
-# 3. Compiler
-yarn install
-yarn build:production
-```
+- Un email **non vérifié** côté Discord ne lie jamais un compte et ne permet pas d'en créer un.
+- Les **administrateurs et le staff** ne sont pas liés automatiquement par email : ils lient Discord depuis leur
+  page *Account* une fois connectés avec leur mot de passe.
+- La **double authentification** n'est pas contournée : un compte protégé passe toujours par la page de code 2FA.
+- Le *Client Secret* est enregistré chiffré et n'est jamais réaffiché.
 
-Fais ensuite un rechargement forcé dans ton navigateur. Pour revenir en arrière, remets les dossiers `*.bak`
-en place et relance `yarn build:production`.
+### Mise en place
+
+1. Sur le [Discord Developer Portal](https://discord.com/developers/applications), crée une application puis, dans
+   *OAuth2*, copie le **Client ID** et le **Client Secret**.
+2. Dans le panel : *Admin → Settings*, active **Discord Login**, colle le Client ID et le Client Secret, puis copie
+   l'URL affichée dans **Discord Redirect URI** vers *OAuth2 → Redirects* sur le portail Discord (l'URL doit être
+   identique, y compris `https://`).
+3. Dans le fichier `.env`, `APP_ENVIRONMENT_ONLY` doit valoir `false` (une nouvelle installation le fait
+   toute seule, la mise à jour avec `--enable-settings-ui`). Avec `true`, le panel ignore les réglages enregistrés depuis l'interface : un bandeau
+   rouge le rappelle sur la page Settings.
+
+Les réglages peuvent aussi être fournis par `.env` : `APP_REGISTRATION`, `DISCORD_ENABLED`, `DISCORD_CLIENT_ID`,
+`DISCORD_CLIENT_SECRET`.
+
+## Rôles de staff
+
+Jusqu'ici, on était administrateur (accès à tout) ou simple utilisateur. Les rôles ajoutent un niveau intermédiaire.
+
+### Utilisation
+
+1. *Admin → Staff Roles → Create New* : donne un nom (par exemple « Modérateur ») et coche les permissions.
+2. Donne le rôle à des personnes : depuis la page du rôle (champ *Add someone*, par pseudo ou email) ou depuis la page
+   d'un utilisateur (liste *Staff Role*).
+3. Ces personnes voient alors, dans l'administration, uniquement les sections autorisées. Un lien **Admin** apparaît
+   aussi dans la barre de navigation du dashboard.
+
+Modifier un rôle s'applique tout de suite à toutes les personnes qui l'ont. Supprimer un rôle les remet simples
+utilisateurs, sans rien supprimer d'autre.
+
+### Permissions
+
+Chaque section propose **View** (ouvrir les pages) et **Manage** (modifier). *Manage* inclut toujours *View*.
+
+| Section | View | Manage |
+| --- | --- | --- |
+| Servers | Voir les serveurs | Créer, modifier, suspendre, réinstaller, transférer, supprimer, voir les accès aux bases |
+| Users | Voir les utilisateurs | Créer, modifier, supprimer des utilisateurs simples |
+| Nodes | Voir les nodes et allocations | Créer, modifier, supprimer, voir la configuration Wings |
+| Locations, Databases, Mounts, Nests & Eggs | Voir | Créer, modifier et supprimer ce que la section permet |
+| Panel Settings | — | Voir et modifier les réglages du panel |
+
+### Ce qu'un rôle ne peut jamais donner
+
+- La **clé d'API Application** et la **gestion des rôles** restent réservées aux administrateurs : les deux permettent
+  de s'accorder plus de droits.
+- Le staff ne peut **pas modifier ni supprimer un administrateur ou un autre membre du staff**, ni donner le statut
+  d'administrateur ou un rôle. Sinon, changer l'email ou le mot de passe de quelqu'un reviendrait à prendre son accès.
+- Les pages qui affichent des secrets (configuration Wings d'un node, accès aux bases d'un serveur) demandent
+  *Manage*, même pour les consulter.
+- Si l'authentification à deux facteurs est exigée pour les administrateurs, elle l'est aussi pour le staff.
 
 ## Compatibilité
 
-- Testé sur **Pterodactyl Panel 1.15.1**.
-- Le thème ne touche à aucun fichier PHP ni à la base de données : seuls le CSS de l'admin, les sources React du
-  dashboard client et la configuration Tailwind sont modifiés.
-- Si tu as déjà personnalisé ton panel, garde une sauvegarde (le script d'installation en fait une pour le CSS de l'admin).
+- Conçu et testé sur **Pterodactyl Panel 1.15.1**. La mise à jour refuse une autre version : elle remplace des fichiers
+  du cœur (routes, modèle utilisateur, middlewares).
+- Nouvelle installation : Ubuntu 22.04 / 24.04 et Debian 11 / 12. Utilise `bash <(curl ...)` et non `curl ... | bash`,
+  sinon le script ne peut pas te poser ses questions.
+- Si tu as déjà personnalisé ton panel, compare d'abord les fichiers listés dans
+  [`install-manifest.txt`](install-manifest.txt) avec les tiens : ce sont ceux que l'installation remplace.
 
 ## Développement
 
-Pour travailler sur le thème en local (mêmes prérequis : Node.js 22+ et Yarn) :
+Pour travailler sur le thème en local (Node.js 22+ et Yarn) :
 
 ```bash
 yarn install
@@ -92,6 +238,9 @@ yarn watch   # recompile à chaque modification
 Les couleurs et les ombres sont définies dans [`tailwind.config.js`](tailwind.config.js) (dashboard client) et
 dans les variables CSS `--pd-*` de [`public/themes/pterodactyl/css/pterodactyl.css`](public/themes/pterodactyl/css/pterodactyl.css)
 (administration).
+
+Quand tu ajoutes ou modifies un fichier, ajoute-le à [`install-manifest.txt`](install-manifest.txt) : l'installateur
+ne copie que ce qui est listé.
 
 ## Crédits et licence
 

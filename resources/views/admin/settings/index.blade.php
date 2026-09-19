@@ -52,14 +52,63 @@
                                 </div>
                             </div>
                             <div class="form-group col-md-4">
-                                <label class="control-label">Default Language</label>
+                                <label class="control-label">Allow Registration</label>
                                 <div>
-                                    <select name="app:locale" class="form-control">
-                                        @foreach($languages as $key => $value)
-                                            <option value="{{ $key }}" @if(config('app.locale') === $key) selected @endif>{{ $value }}</option>
-                                        @endforeach
-                                    </select>
-                                    <p class="text-muted"><small>The default language to use when rendering UI components.</small></p>
+                                    <div class="btn-group" data-toggle="buttons">
+                                        @php
+                                            $registration = filter_var(old('pterodactyl:auth:registration', config('pterodactyl.auth.registration')), FILTER_VALIDATE_BOOLEAN);
+                                        @endphp
+                                        <label class="btn btn-primary @if (!$registration) active @endif">
+                                            <input type="radio" name="pterodactyl:auth:registration" autocomplete="off" value="false" @if (!$registration) checked @endif> Disabled
+                                        </label>
+                                        <label class="btn btn-primary @if ($registration) active @endif">
+                                            <input type="radio" name="pterodactyl:auth:registration" autocomplete="off" value="true" @if ($registration) checked @endif> Enabled
+                                        </label>
+                                    </div>
+                                    <p class="text-muted"><small>If enabled, visitors can create their own account from the login page. Turn it off to keep the Panel invite-only.</small></p>
+                                </div>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row">
+                            <div class="form-group col-md-4">
+                                <label class="control-label">Discord Login</label>
+                                <div>
+                                    <div class="btn-group" data-toggle="buttons">
+                                        @php
+                                            $discord = filter_var(old('pterodactyl:auth:discord:enabled', config('pterodactyl.auth.discord.enabled')), FILTER_VALIDATE_BOOLEAN);
+                                        @endphp
+                                        <label class="btn btn-primary @if (!$discord) active @endif">
+                                            <input type="radio" name="pterodactyl:auth:discord:enabled" autocomplete="off" value="false" @if (!$discord) checked @endif> Disabled
+                                        </label>
+                                        <label class="btn btn-primary @if ($discord) active @endif">
+                                            <input type="radio" name="pterodactyl:auth:discord:enabled" autocomplete="off" value="true" @if ($discord) checked @endif> Enabled
+                                        </label>
+                                    </div>
+                                    <p class="text-muted"><small>Lets users sign in with Discord. A user who already has an account with the same verified email address is linked automatically.</small></p>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label class="control-label">Discord Client ID</label>
+                                <div>
+                                    <input type="text" class="form-control" name="pterodactyl:auth:discord:client_id" value="{{ old('pterodactyl:auth:discord:client_id', config('pterodactyl.auth.discord.client_id')) }}" autocomplete="off" />
+                                    <p class="text-muted"><small>The Application ID from the OAuth2 page of your app in the Discord Developer Portal.</small></p>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label class="control-label">Discord Client Secret</label>
+                                <div>
+                                    <input type="password" class="form-control" name="pterodactyl:auth:discord:client_secret" value="" autocomplete="new-password" placeholder="{{ \Pterodactyl\Services\Auth\AuthFeatures::discordClientSecret() ? 'Saved — leave empty to keep it' : '' }}" />
+                                    <p class="text-muted"><small>The Client Secret from the same page. It is stored encrypted and never displayed again.</small></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-md-12">
+                                <label class="control-label">Discord Redirect URI</label>
+                                <div>
+                                    <input type="text" class="form-control" value="{{ route('auth.discord.callback') }}" readonly onclick="this.select()" />
+                                    <p class="text-muted"><small>Add this exact URL in the Discord Developer Portal under OAuth2 &rarr; Redirects.</small></p>
                                 </div>
                             </div>
                         </div>

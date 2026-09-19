@@ -1570,3 +1570,32 @@ pre {
 .checkbox label, .radio label {
     color: var(--pd-text);
 }
+
+/* Toggle button groups (Disabled / Enabled, 2FA level...): make the selected option obvious */
+.btn-group[data-toggle="buttons"] > .btn.btn-primary {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-color: var(--pd-border-strong) !important;
+    color: var(--pd-text-muted) !important;
+    box-shadow: none;
+}
+
+.btn-group[data-toggle="buttons"] > .btn.btn-primary:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: #fff !important;
+}
+
+.btn-group[data-toggle="buttons"] > .btn.btn-primary.active {
+    background-color: var(--pd-accent) !important;
+    border-color: var(--pd-accent-dark) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px -4px rgba(99, 102, 241, 0.55);
+}
+
+hr {
+    border-top: 1px solid var(--pd-border-strong);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--pd-accent);
+}

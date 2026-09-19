@@ -27,6 +27,10 @@ class SettingsServiceProvider extends ServiceProvider
         'pterodactyl:console:count',
         'pterodactyl:console:frequency',
         'pterodactyl:auth:2fa_required',
+        'pterodactyl:auth:registration',
+        'pterodactyl:auth:discord:enabled',
+        'pterodactyl:auth:discord:client_id',
+        'pterodactyl:auth:discord:client_secret',
         'pterodactyl:client_features:allocations:enabled',
         'pterodactyl:client_features:allocations:range_start',
         'pterodactyl:client_features:allocations:range_end',
@@ -52,6 +56,7 @@ class SettingsServiceProvider extends ServiceProvider
      */
     protected static array $encrypted = [
         'mail:mailers:smtp:password',
+        'pterodactyl:auth:discord:client_secret',
     ];
 
     /**

@@ -1,0 +1,47 @@
+# Files copied onto the panel by install-theme.sh, relative to the panel folder.
+# One path per line. A path ending with "/" is a whole folder that is copied over the panel's one.
+# Lines starting with "#" and empty lines are ignored.
+#
+# Keep this list in sync when a file is added or changed: the installer only copies what is listed here.
+
+# --- Design: admin area and dashboard ------------------------------------------------------
+public/themes/pterodactyl/css/pterodactyl.css
+tailwind.config.js
+resources/scripts/
+resources/views/layouts/admin.blade.php
+
+# --- Registration and Discord login ----------------------------------------------------------
+app/Http/Controllers/Auth/DiscordController.php
+app/Http/Controllers/Auth/RegisterController.php
+app/Services/Auth/AuthFeatures.php
+app/Services/Users/UserRegistrationService.php
+app/Http/Controllers/Admin/Settings/IndexController.php
+app/Http/Controllers/Api/Client/AccountController.php
+app/Http/Requests/Admin/Settings/BaseSettingsFormRequest.php
+app/Http/ViewComposers/AssetComposer.php
+app/Providers/SettingsServiceProvider.php
+config/pterodactyl.php
+routes/auth.php
+routes/api-client.php
+resources/views/admin/settings/index.blade.php
+database/migrations/2026_09_19_000000_add_discord_columns_to_users_table.php
+
+# --- Staff roles and permissions -------------------------------------------------------------
+app/Models/AdminRole.php
+app/Models/User.php
+app/Http/Kernel.php
+app/Http/Middleware/AdminPermission.php
+app/Http/Middleware/AdminAuthenticate.php
+app/Http/Middleware/RequireTwoFactorAuthentication.php
+app/Http/Controllers/Admin/RoleController.php
+app/Http/Controllers/Admin/UserController.php
+app/Http/Requests/Admin/AdminFormRequest.php
+app/Http/Requests/Admin/RoleFormRequest.php
+app/Http/Requests/Admin/UserFormRequest.php
+app/Http/Requests/Admin/NewUserFormRequest.php
+routes/admin.php
+resources/views/admin/roles/
+resources/views/admin/users/index.blade.php
+resources/views/admin/users/new.blade.php
+resources/views/admin/users/view.blade.php
+database/migrations/2026_09_19_120000_create_admin_roles_table.php

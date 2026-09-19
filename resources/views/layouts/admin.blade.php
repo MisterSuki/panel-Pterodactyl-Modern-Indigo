@@ -69,59 +69,95 @@
             <aside class="main-sidebar">
                 <section class="sidebar">
                     <ul class="sidebar-menu">
+                        @php
+                            $adminUser = Auth::user();
+                            $can = fn (string $section): bool => $adminUser->canAccessAdminSection($section);
+                            $isRoot = (bool) $adminUser->root_admin;
+                            $showManagement = $isRoot || $can('databases') || $can('locations') || $can('nodes') || $can('servers') || $can('users');
+                            $showServices = $can('mounts') || $can('nests');
+                        @endphp
                         <li class="header">BASIC ADMINISTRATION</li>
                         <li class="{{ Route::currentRouteName() !== 'admin.index' ?: 'active' }}">
                             <a href="{{ route('admin.index') }}">
                                 <i class="fa fa-home"></i> <span>Overview</span>
                             </a>
                         </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.settings') ?: 'active' }}">
-                            <a href="{{ route('admin.settings')}}">
-                                <i class="fa fa-wrench"></i> <span>Settings</span>
-                            </a>
-                        </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.api') ?: 'active' }}">
-                            <a href="{{ route('admin.api.index')}}">
-                                <i class="fa fa-gamepad"></i> <span>Application API</span>
-                            </a>
-                        </li>
-                        <li class="header">MANAGEMENT</li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.databases') ?: 'active' }}">
-                            <a href="{{ route('admin.databases') }}">
-                                <i class="fa fa-database"></i> <span>Databases</span>
-                            </a>
-                        </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.locations') ?: 'active' }}">
-                            <a href="{{ route('admin.locations') }}">
-                                <i class="fa fa-globe"></i> <span>Locations</span>
-                            </a>
-                        </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.nodes') ?: 'active' }}">
-                            <a href="{{ route('admin.nodes') }}">
-                                <i class="fa fa-sitemap"></i> <span>Nodes</span>
-                            </a>
-                        </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.servers') ?: 'active' }}">
-                            <a href="{{ route('admin.servers') }}">
-                                <i class="fa fa-server"></i> <span>Servers</span>
-                            </a>
-                        </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.users') ?: 'active' }}">
-                            <a href="{{ route('admin.users') }}">
-                                <i class="fa fa-users"></i> <span>Users</span>
-                            </a>
-                        </li>
-                        <li class="header">SERVICE MANAGEMENT</li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.mounts') ?: 'active' }}">
-                            <a href="{{ route('admin.mounts') }}">
-                                <i class="fa fa-magic"></i> <span>Mounts</span>
-                            </a>
-                        </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.nests') ?: 'active' }}">
-                            <a href="{{ route('admin.nests') }}">
-                                <i class="fa fa-th-large"></i> <span>Nests</span>
-                            </a>
-                        </li>
+                        @if($can('settings'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.settings') ?: 'active' }}">
+                                <a href="{{ route('admin.settings')}}">
+                                    <i class="fa fa-wrench"></i> <span>Settings</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($isRoot)
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.api') ?: 'active' }}">
+                                <a href="{{ route('admin.api.index')}}">
+                                    <i class="fa fa-gamepad"></i> <span>Application API</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($showManagement)
+                            <li class="header">MANAGEMENT</li>
+                        @endif
+                        @if($can('databases'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.databases') ?: 'active' }}">
+                                <a href="{{ route('admin.databases') }}">
+                                    <i class="fa fa-database"></i> <span>Databases</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($can('locations'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.locations') ?: 'active' }}">
+                                <a href="{{ route('admin.locations') }}">
+                                    <i class="fa fa-globe"></i> <span>Locations</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($can('nodes'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.nodes') ?: 'active' }}">
+                                <a href="{{ route('admin.nodes') }}">
+                                    <i class="fa fa-sitemap"></i> <span>Nodes</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($can('servers'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.servers') ?: 'active' }}">
+                                <a href="{{ route('admin.servers') }}">
+                                    <i class="fa fa-server"></i> <span>Servers</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($can('users'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.users') ?: 'active' }}">
+                                <a href="{{ route('admin.users') }}">
+                                    <i class="fa fa-users"></i> <span>Users</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($isRoot)
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.roles') ?: 'active' }}">
+                                <a href="{{ route('admin.roles') }}">
+                                    <i class="fa fa-id-badge"></i> <span>Staff Roles</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($showServices)
+                            <li class="header">SERVICE MANAGEMENT</li>
+                        @endif
+                        @if($can('mounts'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.mounts') ?: 'active' }}">
+                                <a href="{{ route('admin.mounts') }}">
+                                    <i class="fa fa-magic"></i> <span>Mounts</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($can('nests'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.nests') ?: 'active' }}">
+                                <a href="{{ route('admin.nests') }}">
+                                    <i class="fa fa-th-large"></i> <span>Nests</span>
+                                </a>
+                            </li>
+                        @endif
                     </ul>
                 </section>
             </aside>
@@ -176,7 +212,7 @@
             {!! Theme::js('js/admin/functions.js?t={cache-version}') !!}
             <script src="/js/autocomplete.js" type="application/javascript"></script>
 
-            @if(Auth::user()->root_admin)
+            @if(Auth::user()->isStaff())
                 <script>
                     $('#logoutButton').on('click', function (event) {
                         event.preventDefault();

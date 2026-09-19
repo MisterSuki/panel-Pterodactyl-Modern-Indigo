@@ -15,6 +15,7 @@ use Pterodactyl\Http\Controllers\Auth;
 // These routes are defined so that we can continue to reference them programmatically.
 // They all route to the same controller function which passes off to React.
 Route::get('/login', [Auth\LoginController::class, 'index'])->name('auth.login');
+Route::get('/register', [Auth\LoginController::class, 'index'])->name('auth.register');
 Route::get('/password', [Auth\LoginController::class, 'index'])->name('auth.forgot-password');
 Route::get('/password/reset/{token}', [Auth\LoginController::class, 'index'])->name('auth.reset');
 
@@ -26,6 +27,20 @@ Route::middleware(['throttle:authentication'])->group(function () {
     // Login endpoints.
     Route::post('/login', [Auth\LoginController::class, 'login'])->middleware('recaptcha');
     Route::post('/login/checkpoint', Auth\LoginCheckpointController::class)->name('auth.login-checkpoint');
+
+    // Self-registration. The controller refuses the request when registration is disabled.
+    Route::post('/register', Auth\RegisterController::class)
+        ->name('auth.post.register')
+        ->middleware('recaptcha');
+
+    // Discord login. Signed-in users use these routes too, to link their account, so
+    // the guest-only restriction of this file is lifted for them.
+    Route::get('/discord/redirect', [Auth\DiscordController::class, 'redirect'])
+        ->withoutMiddleware('guest')
+        ->name('auth.discord.redirect');
+    Route::get('/discord/callback', [Auth\DiscordController::class, 'callback'])
+        ->withoutMiddleware('guest')
+        ->name('auth.discord.callback');
 
     // Forgot password route. A post to this endpoint will trigger an
     // email to be sent containing a reset token.

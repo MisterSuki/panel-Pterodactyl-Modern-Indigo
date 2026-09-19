@@ -37,6 +37,12 @@ return [
 
     'auth' => [
         '2fa_required' => env('APP_2FA_REQUIRED', 0),
+        'registration' => env('APP_REGISTRATION', false),
+        'discord' => [
+            'enabled' => env('DISCORD_ENABLED', false),
+            'client_id' => env('DISCORD_CLIENT_ID'),
+            'client_secret' => env('DISCORD_CLIENT_SECRET'),
+        ],
         '2fa' => [
             'bytes' => 32,
             'window' => env('APP_2FA_WINDOW', 4),

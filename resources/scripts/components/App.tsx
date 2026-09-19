@@ -27,7 +27,10 @@ interface ExtendedWindow extends Window {
         email: string;
         /* eslint-disable camelcase */
         root_admin: boolean;
+        admin_access: boolean;
         use_totp: boolean;
+        discord_linked: boolean;
+        discord_username: string | null;
         language: string;
         updated_at: string;
         created_at: string;
@@ -46,7 +49,10 @@ const App = () => {
             email: PterodactylUser.email,
             language: PterodactylUser.language,
             rootAdmin: PterodactylUser.root_admin,
+            adminAccess: PterodactylUser.admin_access,
             useTotp: PterodactylUser.use_totp,
+            discordLinked: PterodactylUser.discord_linked,
+            discordUsername: PterodactylUser.discord_username,
             createdAt: new Date(PterodactylUser.created_at),
             updatedAt: new Date(PterodactylUser.updated_at),
         });

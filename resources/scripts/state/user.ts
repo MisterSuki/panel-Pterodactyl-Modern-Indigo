@@ -7,7 +7,10 @@ export interface UserData {
     email: string;
     language: string;
     rootAdmin: boolean;
+    adminAccess: boolean;
     useTotp: boolean;
+    discordLinked: boolean;
+    discordUsername: string | null;
     createdAt: Date;
     updatedAt: Date;
 }

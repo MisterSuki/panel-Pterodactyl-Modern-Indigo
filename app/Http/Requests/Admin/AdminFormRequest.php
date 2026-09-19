@@ -21,7 +21,8 @@ abstract class AdminFormRequest extends FormRequest
             return false;
         }
 
-        return (bool) $this->user()->root_admin;
+        // Which sections a member of staff can reach is decided by the route middleware.
+        return $this->user()->isStaff();
     }
 
     /**

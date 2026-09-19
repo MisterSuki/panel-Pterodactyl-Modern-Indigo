@@ -14,6 +14,7 @@ use Pterodactyl\Models\Traits\HasAccessTokens;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Pterodactyl\Traits\Helpers\AvailableLanguages;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Pterodactyl\Models\Traits\HasRealtimeIdentifier;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,6 +29,8 @@ use Pterodactyl\Notifications\SendPasswordReset as ResetPasswordNotification;
  *
  * @property int $id
  * @property string|null $external_id
+ * @property string|null $discord_id
+ * @property string|null $discord_username
  * @property string $uuid
  * @property string $username
  * @property string $email
@@ -37,6 +40,7 @@ use Pterodactyl\Notifications\SendPasswordReset as ResetPasswordNotification;
  * @property string|null $remember_token
  * @property string $language
  * @property bool $root_admin
+ * @property int|null $admin_role_id
  * @property bool $use_totp
  * @property string|null $totp_secret
  * @property \Illuminate\Support\Carbon|null $totp_authenticated_at
@@ -56,6 +60,7 @@ use Pterodactyl\Notifications\SendPasswordReset as ResetPasswordNotification;
  * @property int|null $ssh_keys_count
  * @property \Illuminate\Database\Eloquent\Collection|\Pterodactyl\Models\ApiKey[] $tokens
  * @property int|null $tokens_count
+ * @property \Pterodactyl\Models\AdminRole|null $adminRole
  *
  * @method static \Database\Factories\UserFactory factory(...$parameters)
  * @method static Builder|User newModelQuery()
@@ -149,7 +154,7 @@ class User extends Model implements
     /**
      * The attributes excluded from the model's JSON form.
      */
-    protected $hidden = ['password', 'remember_token', 'totp_secret', 'totp_authenticated_at'];
+    protected $hidden = ['password', 'remember_token', 'totp_secret', 'totp_authenticated_at', 'discord_id', 'discord_username', 'admin_role_id'];
 
     /**
      * Default values for specific fields in the database.
@@ -199,7 +204,12 @@ class User extends Model implements
     public function toVueObject(): array
     {
         return Collection::make($this->toArray())->except(['id', 'external_id'])
-            ->merge(['identifier' => $this->identifier])
+            ->merge([
+                'identifier' => $this->identifier,
+                'discord_linked' => !is_null($this->discord_id),
+                'discord_username' => $this->discord_username,
+                'admin_access' => $this->isStaff(),
+            ])
             ->toArray();
     }
 
@@ -232,6 +242,45 @@ class User extends Model implements
     public function getNameAttribute(): string
     {
         return trim($this->name_first . ' ' . $this->name_last);
+    }
+
+    /**
+     * The staff role that limits what this user can do in the admin area, if any.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\Pterodactyl\Models\AdminRole, $this>
+     */
+    public function adminRole(): BelongsTo
+    {
+        return $this->belongsTo(AdminRole::class, 'admin_role_id');
+    }
+
+    /**
+     * Whether the user can enter the admin area at all, as a full administrator or as staff
+     * with a role.
+     */
+    public function isStaff(): bool
+    {
+        return $this->root_admin || !is_null($this->admin_role_id);
+    }
+
+    /**
+     * Full administrators can do everything. Staff can do what their role grants.
+     */
+    public function hasAdminPermission(string $permission): bool
+    {
+        if ($this->root_admin) {
+            return true;
+        }
+
+        return $this->adminRole?->grants($permission) ?? false;
+    }
+
+    /**
+     * Whether a section of the admin area should be shown to this user.
+     */
+    public function canAccessAdminSection(string $section): bool
+    {
+        return $this->hasAdminPermission($section . '.view') || $this->hasAdminPermission($section . '.manage');
     }
 
     /**

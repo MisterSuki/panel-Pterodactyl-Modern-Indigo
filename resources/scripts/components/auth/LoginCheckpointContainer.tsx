@@ -22,6 +22,11 @@ type Props = OwnProps & {
     clearAndAddHttpError: ActionCreator<FlashStore['clearAndAddHttpError']['payload']>;
 };
 
+// The token is passed along in the router state after a password login, and in the URL
+// when the visitor comes back from signing in with Discord.
+const getToken = (location: OwnProps['location']): string =>
+    location.state?.token || new URLSearchParams(location.search).get('token') || '';
+
 const LoginCheckpointContainer = () => {
     const { isSubmitting, setFieldValue } = useFormikContext<Values>();
     const [isMissingDevice, setIsMissingDevice] = useState(false);
@@ -73,7 +78,7 @@ const LoginCheckpointContainer = () => {
 
 const EnhancedForm = withFormik<Props, Values>({
     handleSubmit: ({ code, recoveryCode }, { setSubmitting, props: { clearAndAddHttpError, location } }) => {
-        loginCheckpoint(location.state?.token || '', code, recoveryCode)
+        loginCheckpoint(getToken(location), code, recoveryCode)
             .then((response) => {
                 if (response.complete) {
                     // @ts-expect-error this is valid
@@ -99,7 +104,7 @@ const EnhancedForm = withFormik<Props, Values>({
 export default ({ history, location, ...props }: OwnProps) => {
     const { clearAndAddHttpError } = useFlash();
 
-    if (!location.state?.token) {
+    if (!getToken(location)) {
         history.replace('/auth/login');
 
         return null;

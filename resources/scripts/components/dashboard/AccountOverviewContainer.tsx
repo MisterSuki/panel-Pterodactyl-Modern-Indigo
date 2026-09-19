@@ -9,6 +9,8 @@ import { breakpoint } from '@/theme';
 import styled from 'styled-components/macro';
 import MessageBox from '@/components/MessageBox';
 import { useLocation } from 'react-router-dom';
+import { useStoreState } from 'easy-peasy';
+import DiscordConnectionBox from '@/components/dashboard/DiscordConnectionBox';
 
 const Container = styled.div`
     ${tw`flex flex-wrap`};
@@ -28,6 +30,7 @@ const Container = styled.div`
 
 export default () => {
     const { state } = useLocation<undefined | { twoFactorRedirect?: boolean }>();
+    const discordEnabled = useStoreState((state) => state.settings.data!.discord.enabled);
 
     return (
         <PageContentBlock title={'Account Overview'}>
@@ -48,6 +51,7 @@ export default () => {
                     <ConfigureTwoFactorForm />
                 </ContentBox>
             </Container>
+            {discordEnabled && <DiscordConnectionBox css={tw`mb-10 lg:w-1/3`} />}
         </PageContentBlock>
     );
 };

@@ -7,6 +7,10 @@ export interface SiteSettings {
         enabled: boolean;
         siteKey: string;
     };
+    registration: boolean;
+    discord: {
+        enabled: boolean;
+    };
 }
 
 export interface SettingsStore {

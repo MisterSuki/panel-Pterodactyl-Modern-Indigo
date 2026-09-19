@@ -3,6 +3,7 @@
 namespace Pterodactyl\Http\Controllers\Api\Client;
 
 use Illuminate\Http\Request;
+use Pterodactyl\Models\User;
 use Illuminate\Http\Response;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Http\JsonResponse;
@@ -85,6 +86,22 @@ class AccountController extends ClientApiController
         // This method doesn't exist in the stateless Sanctum world.
         if (method_exists($guard, 'logoutOtherDevices')) { // @phpstan-ignore function.alreadyNarrowedType
             $guard->logoutOtherDevices($request->input('password'));
+        }
+
+        return new JsonResponse([], Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Remove the link between the authenticated user's account and their Discord account.
+     */
+    public function unlinkDiscord(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!is_null($user->discord_id)) {
+            User::query()->whereKey($user->id)->update(['discord_id' => null, 'discord_username' => null]);
+
+            Activity::event('user:account.discord-unlinked')->log();
         }
 
         return new JsonResponse([], Response::HTTP_NO_CONTENT);
