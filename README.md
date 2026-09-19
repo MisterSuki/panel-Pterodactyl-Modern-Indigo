@@ -445,7 +445,7 @@ Sur la page *Console* d'un serveur FiveM (ou RedM), le panel ajoute :
 - 👥 un bloc **Players** avec le nombre de joueurs connectés et la limite (`12 / 64`), qui passe au jaune puis au
   rouge quand le serveur se remplit. Il se met à jour toutes les 3 secondes environ, même pendant que le serveur démarre ;
 - 🔗 un lien **txAdmin** à côté du nom du serveur, qui ouvre txAdmin (`http://adresse:port`) dans un nouvel onglet.
-  Le port est celui de la variable `TXADMIN_PORT` de l'egg (40120 par défaut) ; le lien est caché si `TXADMIN_ENABLE`
+  Le port est celui de la variable `TXHOST_TXA_PORT` de l'egg (`TXADMIN_PORT` sur les anciens eggs, 40120 par défaut) ; le lien est caché si `TXADMIN_ENABLE`
   est à 0.
 
 Le panel interroge lui-même le serveur (`/players.json` et `/info.json` sur son port de jeu), donc rien à installer ni à

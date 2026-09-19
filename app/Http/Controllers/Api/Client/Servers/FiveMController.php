@@ -21,7 +21,7 @@ class FiveMController extends ClientApiController
      */
     public function __invoke(GetServerRequest $request, Server $server): JsonResponse
     {
-        $server->loadMissing(['egg', 'allocation', 'allocations', 'variables']);
+        $this->status->prepare($server);
 
         return new JsonResponse(['object' => 'fivem_status', 'attributes' => $this->status->status($server)]);
     }

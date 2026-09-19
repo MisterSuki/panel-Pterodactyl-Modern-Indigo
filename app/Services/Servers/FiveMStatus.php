@@ -27,6 +27,21 @@ class FiveMStatus
     }
 
     /**
+     * Loads what the status needs from the server.
+     *
+     * The variables are read with their own query on purpose, and not with loadMissing(): eager loading builds
+     * the relation on an empty model, so the join that picks up the values set for THIS server does not know the
+     * server id, and every variable would silently show the egg's default (TXADMIN_ENABLE would always read 0).
+     */
+    public function prepare(Server $server): Server
+    {
+        $server->loadMissing(['egg', 'allocation', 'allocations']);
+        $server->setRelation('variables', $server->variables()->get());
+
+        return $server;
+    }
+
+    /**
      * Whether this is a FiveM (Cfx.re) server, judged from its egg and its startup command.
      */
     public function isFiveM(Server $server): bool
@@ -134,8 +149,10 @@ class FiveMStatus
     public function txadmin(Server $server): array
     {
         $flag = $this->variable($server, 'TXADMIN_ENABLE');
-        $portValue = $this->variable($server, 'TXADMIN_PORT');
-        $enabled = $flag !== null ? in_array(strtolower($flag), ['1', 'true', 'yes', 'on'], true) : $portValue !== null;
+        $legacyPort = $this->variable($server, 'TXADMIN_PORT');
+        // Current eggs name the port TXHOST_TXA_PORT, older ones TXADMIN_PORT.
+        $portValue = $this->variable($server, 'TXHOST_TXA_PORT') ?? $legacyPort;
+        $enabled = $flag !== null ? in_array(strtolower($flag), ['1', 'true', 'yes', 'on'], true) : $legacyPort !== null;
         $port = is_numeric($portValue) && (int) $portValue > 0 && (int) $portValue < 65536 ? (int) $portValue : self::DEFAULT_TXADMIN_PORT;
 
         $allocation = $server->allocation;
