@@ -11,6 +11,7 @@ import PowerButtons from '@/components/server/console/PowerButtons';
 import ServerDetailsBlock from '@/components/server/console/ServerDetailsBlock';
 import { Alert } from '@/components/elements/alert';
 import StatusPill from '@/components/server/console/StatusPill';
+import TxAdminLink from '@/components/server/console/TxAdminLink';
 
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
@@ -41,10 +42,14 @@ const ServerConsoleContainer = () => {
                             {name}
                         </h1>
                         <StatusPill status={status} className={'flex-shrink-0'} />
+                        <TxAdminLink className={'flex-shrink-0'} />
                     </div>
                     <p className={'text-sm text-gray-400 line-clamp-2'}>{description}</p>
                 </div>
                 <div className={'col-span-4 sm:col-span-2 lg:col-span-1 self-end'}>
+                    <div className={'sm:hidden mb-2'}>
+                        <TxAdminLink />
+                    </div>
                     <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
                         <PowerButtons className={'flex sm:justify-end space-x-2'} />
                     </Can>

@@ -277,6 +277,20 @@ du site, et seulement leur fichier dans les dépôts officiels `pterodactyl/game
 `generic-eggs`. Il faut la permission **Nests → Manage** (un administrateur ou un rôle de staff qui l'a). La liste
 est gardée 6 heures pour aller vite ; le serveur du panel doit pouvoir joindre `eggs.pterodactyl.io` et `raw.githubusercontent.com`.
 
+## Serveurs FiveM
+
+Sur la page *Console* d'un serveur FiveM (ou RedM), le panel ajoute :
+
+- un bloc **Players** avec le nombre de joueurs connectés et la limite (`12 / 64`), qui passe au jaune puis au rouge quand
+  le serveur se remplit. Il se met à jour toutes les 15 secondes ;
+- un lien **txAdmin** à côté du nom du serveur, qui ouvre txAdmin (`http://adresse:port`) dans un nouvel onglet. Le port est
+  celui de la variable `TXADMIN_PORT` de l'egg (40120 par défaut) ; le lien est caché si `TXADMIN_ENABLE` est à 0.
+
+Le panel interroge lui-même le serveur (`/players.json` et `/info.json` sur son port de jeu), donc rien à installer ni à
+configurer : il faut seulement que le port du serveur soit joignable depuis la machine du panel. Le lien devient jaune
+avec un avertissement si le port de txAdmin n'est pas l'une des allocations du serveur (onglet *Network*) : il ne serait
+alors pas joignable de l'extérieur.
+
 ## Inscription et connexion Discord
 
 ### Ce que ça fait

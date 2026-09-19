@@ -63,3 +63,5 @@ resources/views/admin/servers/view/build.blade.php
 app/Services/Subusers/SubuserInviteResolver.php
 app/Http/Requests/Api/Client/Servers/Subusers/StoreSubuserRequest.php
 app/Http/Controllers/Api/Client/Servers/SubuserController.php
+app/Services/Servers/FiveMStatus.php
+app/Http/Controllers/Api/Client/Servers/FiveMController.php
