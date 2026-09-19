@@ -9,6 +9,51 @@ pour le dashboard client **et** l'administration. Avec en plus l'**inscription**
 
 </div>
 
+## Aperçu
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/images/panel1.jpg"><img src="docs/images/panel1.jpg" alt="Dashboard"></a><br>
+      <sub><b>Dashboard</b> — Liste des serveurs : état, jauges CPU, mémoire et disque</sub>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/images/panel2.jpg"><img src="docs/images/panel2.jpg" alt="Console d'un serveur"></a><br>
+      <sub><b>Console d'un serveur</b> — Console, statistiques et graphiques en direct</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/images/panel3.jpg"><img src="docs/images/panel3.jpg" alt="Bases de données"></a><br>
+      <sub><b>Bases de données</b> — Bouton phpMyAdmin : ouvre la base déjà connecté</sub>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/images/panel4.jpg"><img src="docs/images/panel4.jpg" alt="Administration"></a><br>
+      <sub><b>Administration</b> — Vue d'ensemble de l'administration</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/images/panel5.jpg"><img src="docs/images/panel5.jpg" alt="Réglages du panel"></a><br>
+      <sub><b>Réglages du panel</b> — Inscription et connexion Discord</sub>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/images/panel6.jpg"><img src="docs/images/panel6.jpg" alt="Node"></a><br>
+      <sub><b>Node</b> — Consommation en direct des serveurs du node</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/images/panel7.jpg"><img src="docs/images/panel7.jpg" alt="Rôles de staff"></a><br>
+      <sub><b>Rôles de staff</b> — Liste des rôles</sub>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/images/panel8.jpg"><img src="docs/images/panel8.jpg" alt="Nouveau rôle"></a><br>
+      <sub><b>Nouveau rôle</b> — Permissions section par section</sub>
+    </td>
+  </tr>
+</table>
+
 ## Ce qui est inclus
 
 | Partie | Ce qui change |

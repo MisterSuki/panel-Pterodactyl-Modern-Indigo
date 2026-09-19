@@ -1198,7 +1198,7 @@ place_panel_files() {
     step "Installing the panel files"
     mkdir -p "$PANEL_PATH"
     # Everything from the repository, without folders that are only useful for development.
-    (cd "$SRC" && tar cf - --exclude=./node_modules --exclude=./vendor --exclude=./.git --exclude=./.env --exclude=./install-assets --exclude='./public/assets/*.js' .) \
+    (cd "$SRC" && tar cf - --exclude=./node_modules --exclude=./vendor --exclude=./.git --exclude=./.env --exclude=./install-assets --exclude=./docs --exclude='./public/assets/*.js' .) \
         | (cd "$PANEL_PATH" && tar xf -)
     mkdir -p "$PANEL_PATH/storage/app" "$PANEL_PATH/storage/framework/cache" "$PANEL_PATH/storage/framework/sessions" \
         "$PANEL_PATH/storage/framework/views" "$PANEL_PATH/storage/logs" "$PANEL_PATH/bootstrap/cache" "$PANEL_PATH/public/assets"
