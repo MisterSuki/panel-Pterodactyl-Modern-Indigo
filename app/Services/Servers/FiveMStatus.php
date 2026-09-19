@@ -16,7 +16,9 @@ use Illuminate\Contracts\Cache\Repository as CacheRepository;
  */
 class FiveMStatus
 {
-    private const CACHE_SECONDS = 5;
+    private const PLAYERS_CACHE_SECONDS = 2;
+
+    private const MAX_CACHE_SECONDS = 60;
 
     private const DEFAULT_TXADMIN_PORT = 40120;
 
@@ -44,46 +46,83 @@ class FiveMStatus
             return ['is_fivem' => false, 'online' => false, 'players' => null, 'max_players' => null, 'txadmin' => $this->txadmin($server)];
         }
 
-        return $this->cache->remember('fivem-status:' . $server->uuid, self::CACHE_SECONDS, function () use ($server) {
-            $allocation = $server->allocation;
-            $players = null;
-            $max = null;
+        $allocation = $server->allocation;
+        $base = null;
+        if ($allocation && $allocation->ip && !in_array($allocation->ip, ['0.0.0.0', '::'], true)) {
+            $base = 'http://' . $allocation->ip . ':' . (int) $allocation->port;
+        }
 
-            if ($allocation && $allocation->ip && !in_array($allocation->ip, ['0.0.0.0', '::'], true)) {
-                $base = 'http://' . $allocation->ip . ':' . (int) $allocation->port;
+        // The count is kept for two seconds only, so the page can ask every few seconds and still see who joins
+        // almost as it happens, while ten people looking at the same server cost one request. The maximum
+        // never changes while the server runs, so it is kept much longer.
+        $playersKey = 'fivem-players:' . $server->uuid;
+        $maxKey = 'fivem-max:' . $server->uuid;
+        $players = $this->cache->get($playersKey);
+        $max = $this->cache->get($maxKey);
 
-                try {
-                    $responses = Http::pool(fn (Pool $pool) => [
-                        $pool->as('players')->connectTimeout(2)->timeout(3)->get($base . '/players.json'),
-                        $pool->as('info')->connectTimeout(2)->timeout(3)->get($base . '/info.json'),
-                    ]);
-                } catch (\Throwable) {
-                    $responses = [];
-                }
+        if ($base !== null && ($players === null || $max === null)) {
+            [$freshPlayers, $freshMax] = $this->ask($base, $players === null, $max === null);
 
-                $list = $this->json($responses['players'] ?? null);
-                if (is_array($list) && array_is_list($list)) {
-                    $players = count($list);
-                }
-
-                $info = $this->json($responses['info'] ?? null);
-                $limit = is_array($info) ? ($info['vars']['sv_maxClients'] ?? null) : null;
-                $max = is_numeric($limit) && (int) $limit > 0 ? (int) $limit : null;
+            if ($players === null) {
+                $players = ['count' => $freshPlayers];
+                $this->cache->put($playersKey, $players, self::PLAYERS_CACHE_SECONDS);
             }
-
             if ($max === null) {
-                $fallback = $this->variable($server, 'MAX_PLAYERS');
-                $max = is_numeric($fallback) && (int) $fallback > 0 ? (int) $fallback : null;
+                // A maximum that could not be read is tried again soon: the server may just be starting.
+                $max = ['value' => $freshMax];
+                $this->cache->put($maxKey, $max, $freshMax !== null ? self::MAX_CACHE_SECONDS : self::PLAYERS_CACHE_SECONDS);
             }
+        }
 
-            return [
-                'is_fivem' => true,
-                'online' => $players !== null,
-                'players' => $players,
-                'max_players' => $max,
-                'txadmin' => $this->txadmin($server),
-            ];
-        });
+        $count = is_array($players) ? $players['count'] : null;
+        $limit = is_array($max) ? $max['value'] : null;
+        if ($limit === null) {
+            $fallback = $this->variable($server, 'MAX_PLAYERS');
+            $limit = is_numeric($fallback) && (int) $fallback > 0 ? (int) $fallback : null;
+        }
+
+        return [
+            'is_fivem' => true,
+            'online' => $count !== null,
+            'players' => $count,
+            'max_players' => $limit,
+            'txadmin' => $this->txadmin($server),
+        ];
+    }
+
+    /**
+     * Asks the server itself, both questions at once when both are needed.
+     *
+     * @return array{0: int|null, 1: int|null} the number of players, and the maximum
+     */
+    private function ask(string $base, bool $wantPlayers, bool $wantMax): array
+    {
+        try {
+            $responses = Http::pool(function (Pool $pool) use ($base, $wantPlayers, $wantMax) {
+                $requests = [];
+                if ($wantPlayers) {
+                    $requests[] = $pool->as('players')->connectTimeout(2)->timeout(3)->get($base . '/players.json');
+                }
+                if ($wantMax) {
+                    $requests[] = $pool->as('info')->connectTimeout(2)->timeout(3)->get($base . '/info.json');
+                }
+
+                return $requests;
+            });
+        } catch (\Throwable) {
+            return [null, null];
+        }
+
+        $count = null;
+        $list = $this->json($responses['players'] ?? null);
+        if (is_array($list) && array_is_list($list)) {
+            $count = count($list);
+        }
+
+        $info = $this->json($responses['info'] ?? null);
+        $limit = is_array($info) ? ($info['vars']['sv_maxClients'] ?? null) : null;
+
+        return [$count, is_numeric($limit) && (int) $limit > 0 ? (int) $limit : null];
     }
 
     /**
