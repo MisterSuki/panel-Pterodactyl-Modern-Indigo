@@ -52,7 +52,7 @@ export default () => {
     return (
         <div
             className={
-                'sticky top-0 z-40 w-full bg-neutral-900/80 backdrop-blur-md border-b border-white/5 shadow-nav overflow-x-auto'
+                'sticky top-0 z-40 w-full bg-neutral-900/95 border-b border-white/5 shadow-nav overflow-x-auto'
             }
         >
             <SpinnerOverlay visible={isLoggingOut} />

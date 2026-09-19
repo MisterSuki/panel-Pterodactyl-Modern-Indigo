@@ -3,21 +3,23 @@ import { ServerContext } from '@/state/server';
 import { SocketEvent } from '@/components/server/events';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import { Line } from 'react-chartjs-2';
-import { useChart, useChartTickLabel } from '@/components/server/console/chart';
-import { hexToRgba } from '@/lib/helpers';
+import { gradientFill, useChart, useChartTickLabel } from '@/components/server/console/chart';
 import { bytesToString } from '@/lib/formatters';
 import { CloudDownloadIcon, CloudUploadIcon } from '@heroicons/react/solid';
 import { theme } from 'twin.macro';
 import ChartBlock from '@/components/server/console/ChartBlock';
 import Tooltip from '@/components/elements/tooltip/Tooltip';
 
+const formatValue = (value: number | null, unit: string, decimals = 1): string | null =>
+    value === null ? null : `${value.toFixed(decimals)}${unit}`;
+
 export default () => {
     const status = ServerContext.useStoreState((state) => state.status.value);
     const limits = ServerContext.useStoreState((state) => state.server.data!.limits);
     const previous = useRef<Record<'tx' | 'rx', number>>({ tx: -1, rx: -1 });
 
-    const cpu = useChartTickLabel('CPU', limits.cpu, '%', 2);
-    const memory = useChartTickLabel('Memory', limits.memory, 'MiB');
+    const cpu = useChartTickLabel('CPU', limits.cpu, '%', 2, theme('colors.primary.400'));
+    const memory = useChartTickLabel('Memory', limits.memory, 'MiB', undefined, theme('colors.cyan.400'));
     const network = useChart('Network', {
         sets: 2,
         options: {
@@ -36,7 +38,7 @@ export default () => {
                 ...opts,
                 label: !index ? 'Network In' : 'Network Out',
                 borderColor: !index ? theme('colors.cyan.400') : theme('colors.yellow.400'),
-                backgroundColor: hexToRgba(!index ? theme('colors.cyan.700') : theme('colors.yellow.700'), 0.5),
+                backgroundColor: gradientFill(!index ? theme('colors.cyan.400') : theme('colors.yellow.400'), 0.25),
             };
         },
     });
@@ -68,10 +70,10 @@ export default () => {
 
     return (
         <>
-            <ChartBlock title={'CPU Load'}>
+            <ChartBlock title={'CPU Load'} value={status === 'offline' ? null : formatValue(cpu.latest(), '%')}>
                 <Line {...cpu.props} />
             </ChartBlock>
-            <ChartBlock title={'Memory'}>
+            <ChartBlock title={'Memory'} value={status === 'offline' ? null : formatValue(memory.latest(), ' MiB', 0)}>
                 <Line {...memory.props} />
             </ChartBlock>
             <ChartBlock

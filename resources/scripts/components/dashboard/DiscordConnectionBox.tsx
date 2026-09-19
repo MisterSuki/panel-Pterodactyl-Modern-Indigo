@@ -68,8 +68,8 @@ export default ({ className }: { className?: string }) => {
                         </Button>
                     </div>
                     <p css={tw`mt-3 text-xs text-neutral-400`}>
-                        If you created your account with Discord and never set a password, use &quot;Forgot password?&quot;
-                        on the login page to set one before unlinking.
+                        If you created your account with Discord and never set a password, use &quot;Forgot
+                        password?&quot; on the login page to set one before unlinking.
                     </p>
                 </React.Fragment>
             ) : (

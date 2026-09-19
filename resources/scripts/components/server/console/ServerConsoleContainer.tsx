@@ -10,6 +10,7 @@ import StatGraphs from '@/components/server/console/StatGraphs';
 import PowerButtons from '@/components/server/console/PowerButtons';
 import ServerDetailsBlock from '@/components/server/console/ServerDetailsBlock';
 import { Alert } from '@/components/elements/alert';
+import StatusPill from '@/components/server/console/StatusPill';
 
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
@@ -20,6 +21,7 @@ const ServerConsoleContainer = () => {
     const isTransferring = ServerContext.useStoreState((state) => state.server.data!.isTransferring);
     const eggFeatures = ServerContext.useStoreState((state) => state.server.data!.eggFeatures, isEqual);
     const isNodeUnderMaintenance = ServerContext.useStoreState((state) => state.server.data!.isNodeUnderMaintenance);
+    const status = ServerContext.useStoreState((state) => state.status.value);
 
     return (
         <ServerContentBlock title={'Console'}>
@@ -34,10 +36,13 @@ const ServerConsoleContainer = () => {
             )}
             <div className={'grid grid-cols-4 gap-4 mb-4'}>
                 <div className={'hidden sm:block sm:col-span-2 lg:col-span-3 pr-4'}>
-                    <h1 className={'font-header font-medium text-2xl text-gray-50 leading-relaxed line-clamp-1'}>
-                        {name}
-                    </h1>
-                    <p className={'text-sm line-clamp-2'}>{description}</p>
+                    <div className={'flex items-center gap-3'}>
+                        <h1 className={'font-header font-semibold text-2xl text-gray-50 leading-relaxed line-clamp-1'}>
+                            {name}
+                        </h1>
+                        <StatusPill status={status} className={'flex-shrink-0'} />
+                    </div>
+                    <p className={'text-sm text-gray-400 line-clamp-2'}>{description}</p>
                 </div>
                 <div className={'col-span-4 sm:col-span-2 lg:col-span-1 self-end'}>
                     <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>

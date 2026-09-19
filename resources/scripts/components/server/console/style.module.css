@@ -32,8 +32,13 @@
         }
     }
 
+    & .header {
+        @apply flex items-center justify-between gap-3 px-4 py-2.5 rounded-t-xl bg-black/70;
+        @apply border border-white/5 border-b-white/[0.03];
+    }
+
     & > .container {
-        @apply rounded-t-xl p-1 sm:p-2 bg-black/60 border border-white/5 border-b-0 min-h-[16rem] flex-1 font-mono text-sm;
+        @apply p-1 sm:p-2 bg-black/60 border border-white/5 border-b-0 min-h-[16rem] flex-1 font-mono text-sm;
 
         & #terminal {
             @apply h-full;

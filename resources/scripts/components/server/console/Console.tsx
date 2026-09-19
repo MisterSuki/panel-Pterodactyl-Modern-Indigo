@@ -16,6 +16,7 @@ import { usePersistedState } from '@/plugins/usePersistedState';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
 import classNames from 'classnames';
 import { ChevronDoubleRightIcon } from '@heroicons/react/solid';
+import StatusPill from '@/components/server/console/StatusPill';
 
 import 'xterm/css/xterm.css';
 import styles from './style.module.css';
@@ -47,6 +48,7 @@ const terminalProps: ITerminalOptions = {
     cursorStyle: 'underline',
     allowTransparency: true,
     fontSize: 12,
+    scrollback: 1000,
     fontFamily: th('fontFamily.mono'),
     rows: 30,
     theme: theme,
@@ -74,25 +76,54 @@ export default () => {
         z-index: 10;
     }`;
 
+    const status = ServerContext.useStoreState((state) => state.status.value);
+
+    // A busy server can print dozens of lines a second, and writing them one by one makes the browser
+    // lay the terminal out again for each line. They are collected and written once per screen refresh.
+    const pending = useRef<string[]>([]);
+    const frame = useRef<number | null>(null);
+
+    const flush = () => {
+        frame.current = null;
+        if (pending.current.length > 0) {
+            terminal.write(pending.current.join(''));
+            pending.current = [];
+        }
+    };
+
+    const writeln = (line: string) => {
+        pending.current.push(line + '\r\n');
+        if (frame.current === null) {
+            frame.current = window.requestAnimationFrame(flush);
+        }
+    };
+
+    useEffect(
+        () => () => {
+            if (frame.current !== null) {
+                window.cancelAnimationFrame(frame.current);
+            }
+        },
+        []
+    );
+
     const handleConsoleOutput = (line: string, prelude = false) =>
-        terminal.writeln((prelude ? TERMINAL_PRELUDE : '') + line.replace(/(?:\r\n|\r|\n)$/im, '') + '\u001b[0m');
+        writeln((prelude ? TERMINAL_PRELUDE : '') + line.replace(/(?:\r\n|\r|\n)$/im, '') + '\u001b[0m');
 
     const handleTransferStatus = (status: string) => {
         switch (status) {
             // Sent by either the source or target node if a failure occurs.
             case 'failure':
-                terminal.writeln(TERMINAL_PRELUDE + 'Transfer has failed.\u001b[0m');
+                writeln(TERMINAL_PRELUDE + 'Transfer has failed.\u001b[0m');
                 return;
         }
     };
 
     const handleDaemonErrorOutput = (line: string) =>
-        terminal.writeln(
-            TERMINAL_PRELUDE + '\u001b[1m\u001b[41m' + line.replace(/(?:\r\n|\r|\n)$/im, '') + '\u001b[0m'
-        );
+        writeln(TERMINAL_PRELUDE + '\u001b[1m\u001b[41m' + line.replace(/(?:\r\n|\r|\n)$/im, '') + '\u001b[0m');
 
     const handlePowerChangeEvent = (state: string) =>
-        terminal.writeln(TERMINAL_PRELUDE + 'Server marked as ' + state + '...\u001b[0m');
+        writeln(TERMINAL_PRELUDE + 'Server marked as ' + state + '...\u001b[0m');
 
     const handleCommandKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'ArrowUp') {
@@ -201,6 +232,15 @@ export default () => {
     return (
         <div className={classNames(styles.terminal, 'relative')}>
             <SpinnerOverlay visible={!connected} size={'large'} />
+            <div className={classNames(styles.header, styles.overflows_container)}>
+                <span className={'flex items-center gap-1.5'} aria-hidden>
+                    <span className={'w-2.5 h-2.5 rounded-full bg-red-400/70'} />
+                    <span className={'w-2.5 h-2.5 rounded-full bg-yellow-300/70'} />
+                    <span className={'w-2.5 h-2.5 rounded-full bg-green-400/70'} />
+                </span>
+                <span className={'text-xs font-medium text-gray-400 select-none'}>Console</span>
+                <StatusPill status={status} />
+            </div>
             <div
                 className={classNames(styles.container, styles.overflows_container, { 'rounded-b': !canSendCommands })}
             >

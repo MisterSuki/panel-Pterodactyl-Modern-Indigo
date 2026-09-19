@@ -2,7 +2,7 @@ import styled from 'styled-components/macro';
 import tw from 'twin.macro';
 
 const SubNavigation = styled.div`
-    ${tw`w-full bg-neutral-900/60 backdrop-blur-md border-b border-white/5 overflow-x-auto`};
+    ${tw`w-full bg-neutral-900/90 border-b border-white/5 overflow-x-auto`};
 
     & > div {
         ${tw`flex items-center gap-1 text-sm mx-auto px-2 py-2`};
