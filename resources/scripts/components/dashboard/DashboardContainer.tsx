@@ -12,6 +12,8 @@ import useSWR from 'swr';
 import { PaginatedResult } from '@/api/http';
 import Pagination from '@/components/elements/Pagination';
 import { useLocation } from 'react-router-dom';
+import getServersResourceUsage from '@/api/getServersResourceUsage';
+import { ServerStats } from '@/api/server/getServerResourceUsage';
 
 export default () => {
     const { search } = useLocation();
@@ -26,6 +28,17 @@ export default () => {
     const { data: servers, error } = useSWR<PaginatedResult<Server>>(
         ['/api/client/servers', showOnlyAdmin && rootAdmin, page],
         () => getServers({ page, type: showOnlyAdmin && rootAdmin ? 'admin' : undefined })
+    );
+
+    // The usage of every server of the page, in one request every 3 seconds (paused while the tab is hidden).
+    // Suspended servers and servers on a node under maintenance have nothing to show.
+    const liveUuids = servers?.items
+        .filter((server) => server.status !== 'suspended' && !server.isNodeUnderMaintenance)
+        .map((server) => server.uuid);
+    const { data: usage } = useSWR<Record<string, ServerStats>>(
+        liveUuids && liveUuids.length > 0 ? ['dashboard-usage', ...liveUuids] : null,
+        () => getServersResourceUsage(liveUuids!),
+        { refreshInterval: 3000, dedupingInterval: 1500, revalidateOnFocus: false, shouldRetryOnError: false }
     );
 
     useEffect(() => {
@@ -100,6 +113,7 @@ export default () => {
                                 <ServerRow
                                     key={server.uuid}
                                     server={server}
+                                    stats={usage?.[server.uuid] ?? null}
                                     css={index > 0 ? tw`mt-2` : undefined}
                                     style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
                                 />

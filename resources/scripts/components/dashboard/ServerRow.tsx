@@ -1,9 +1,9 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEthernet, faHdd, faMemory, faMicrochip, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
-import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
+import { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
 import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
 import tw from 'twin.macro';
 import GreyRowBox from '@/components/elements/GreyRowBox';
@@ -71,35 +71,16 @@ const Meter = ({ ratio, alarm }: { ratio: number | null; alarm: boolean }) => (
     </div>
 );
 
-type Timer = ReturnType<typeof setInterval>;
+interface Props {
+    server: Server;
+    // The live usage of this server. The dashboard asks for all of its servers at once, every few seconds.
+    stats?: ServerStats | null;
+    className?: string;
+    style?: React.CSSProperties;
+}
 
-export default ({ server, className, style }: { server: Server; className?: string; style?: React.CSSProperties }) => {
-    const interval = useRef<Timer>(null) as React.MutableRefObject<Timer>;
-    const [isSuspended, setIsSuspended] = useState(server.status === 'suspended');
-    const [stats, setStats] = useState<ServerStats | null>(null);
-
-    const getStats = () =>
-        getServerResourceUsage(server.uuid)
-            .then((data) => setStats(data))
-            .catch((error) => console.error(error));
-
-    useEffect(() => {
-        setIsSuspended(stats?.isSuspended || server.status === 'suspended');
-    }, [stats?.isSuspended, server.status]);
-
-    useEffect(() => {
-        // Don't waste a HTTP request if there is nothing important to show to the user because
-        // the server is suspended.
-        if (isSuspended || server.isNodeUnderMaintenance) return;
-
-        getStats().then(() => {
-            interval.current = setInterval(() => getStats(), 30000);
-        });
-
-        return () => {
-            interval.current && clearInterval(interval.current);
-        };
-    }, [isSuspended, server.isNodeUnderMaintenance]);
+const ServerRow = ({ server, stats = null, className, style }: Props) => {
+    const isSuspended = !!stats?.isSuspended || server.status === 'suspended';
 
     const alarms = { cpu: false, memory: false, disk: false };
     if (stats) {
@@ -243,3 +224,5 @@ export default ({ server, className, style }: { server: Server; className?: stri
         </StatusIndicatorBox>
     );
 };
+
+export default memo(ServerRow, isEqual);
