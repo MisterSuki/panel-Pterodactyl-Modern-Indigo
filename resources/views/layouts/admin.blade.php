@@ -19,6 +19,7 @@
         @include('layouts.scripts')
 
         <script>window.PterodactylUiLocale = @json(Auth::user()->language ?? \Pterodactyl\Services\Helpers\Locales::default());</script>
+        <script>window.PterodactylDictionaryVersion = @json(\Pterodactyl\Services\Helpers\Locales::dictionaryVersion());</script>
         <script src="/js/translator.js?v={{ @filemtime(public_path('js/translator.js')) }}"></script>
 
         @section('scripts')

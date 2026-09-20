@@ -26,6 +26,20 @@ class Locales
     }
 
     /**
+     * Changes whenever a translation file does. The browser puts it in the address of the dictionary, so a new
+     * translation is never held back by a copy it kept.
+     */
+    public static function dictionaryVersion(): string
+    {
+        $parts = [];
+        foreach (glob(resource_path('lang') . '/*.json') ?: [] as $file) {
+            $parts[] = basename($file) . ':' . @filemtime($file) . ':' . @filesize($file);
+        }
+
+        return substr(md5(implode('|', $parts)), 0, 12);
+    }
+
+    /**
      * The language the panel uses for visitors and new accounts. English unless another one was chosen.
      */
     public static function default(): string

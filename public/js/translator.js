@@ -232,7 +232,8 @@
         }
 
         var request = new XMLHttpRequest();
-        request.open('GET', '/locales/ui.json?locale=' + encodeURIComponent(language));
+        var version = window.PterodactylDictionaryVersion ? '&v=' + encodeURIComponent(window.PterodactylDictionaryVersion) : '';
+        request.open('GET', '/locales/ui.json?locale=' + encodeURIComponent(language) + version);
         request.onload = function () {
             if (request.status !== 200) {
                 return;
