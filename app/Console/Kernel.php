@@ -9,6 +9,7 @@ use Illuminate\Database\Console\PruneCommand;
 use Pterodactyl\Repositories\Eloquent\SettingsRepository;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Pterodactyl\Services\Telemetry\TelemetryCollectionService;
+use Pterodactyl\Console\Commands\Server\RunAutoBackupsCommand;
 use Pterodactyl\Console\Commands\Server\UnsuspendExpiredCommand;
 use Pterodactyl\Console\Commands\Schedule\ProcessRunnableCommand;
 use Pterodactyl\Console\Commands\Maintenance\PruneOrphanedBackupsCommand;
@@ -38,6 +39,9 @@ class Kernel extends ConsoleKernel
 
         // Servers suspended "until" a date get their access back on their own.
         $schedule->command(UnsuspendExpiredCommand::class)->everyMinute()->withoutOverlapping();
+
+        // Automatic backups: makes the ones that are due and removes the old ones.
+        $schedule->command(RunAutoBackupsCommand::class)->everyMinute()->withoutOverlapping();
 
         if (config('backups.prune_age')) {
             // Every 30 minutes, run the backup pruning command so that any abandoned backups can be deleted.

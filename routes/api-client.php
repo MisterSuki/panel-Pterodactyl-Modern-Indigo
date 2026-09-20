@@ -139,6 +139,10 @@ Route::group([
     Route::group(['prefix' => '/backups'], function () {
         Route::get('/', [Client\Servers\BackupController::class, 'index']);
         Route::post('/', [Client\Servers\BackupController::class, 'store']);
+        // The automatic backups of the server. These paths come before "/{backup}", which would take "auto" for a backup.
+        Route::get('/auto', [Client\Servers\BackupPlanController::class, 'show']);
+        Route::put('/auto', [Client\Servers\BackupPlanController::class, 'update']);
+        Route::delete('/auto', [Client\Servers\BackupPlanController::class, 'destroy']);
         Route::get('/{backup}', [Client\Servers\BackupController::class, 'view']);
         Route::get('/{backup}/download', [Client\Servers\BackupController::class, 'download']);
         Route::post('/{backup}/lock', [Client\Servers\BackupController::class, 'toggleLock']);

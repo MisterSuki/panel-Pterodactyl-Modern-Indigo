@@ -42,16 +42,6 @@ Sur ton serveur, **en root** :
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh)
 ```
-### 🧹 Désinstaller le thème
-
-```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --uninstall
-```
-### 🔄 Mettre à jour un panel existant
-
-```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --update
-```
 
 Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 
@@ -287,6 +277,11 @@ bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/ma
 
 </details>
 
+### 🔄 Mettre à jour un panel existant
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --update
+```
 
 Il installe tout le contenu de ce dépôt sur ton panel **1.15.1** : le design, l'inscription, Discord, les rôles et
 toutes les fonctionnalités ci-dessus. Il :
@@ -321,6 +316,11 @@ ensuite avec `yarn build:production`.
 > ton navigateur peut donc garder l'ancienne en cache. Fais un rechargement forcé (`Ctrl + Shift + R`)
 > ou ouvre le panel dans une fenêtre de navigation privée.
 
+### 🧹 Désinstaller le thème
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --uninstall
+```
 
 Il remet le panel Pterodactyl officiel, avec son design et son dashboard d'origine. **Rien de ce que tu as créé n'est
 perdu** : serveurs, utilisateurs, nodes, allocations, sauvegardes, bases de données, plannings, clés d'API et fichier
@@ -495,6 +495,25 @@ L'API Application accepte aussi `reason` et `until` sur `POST /api/application/s
 raison ni durée fonctionne comme avant. Les détails sont dans la table `server_suspensions` (créée par la mise à jour) ;
 elle ne change rien à la façon dont Pterodactyl gère l'état suspendu.
 
+### 💾 Sauvegardes automatiques
+
+Sur la page *Backups* d'un serveur, une carte **Sauvegardes automatiques** (bouton *Configure*) permet de choisir :
+
+- la **fréquence** : toutes les 6 h, 12 h, tous les jours ou toutes les semaines (à l'**heure** de ton choix pour le jour et la semaine) ;
+- le **nombre à conserver** : au-delà, les plus anciennes sauvegardes automatiques sont supprimées ;
+- les **fichiers à ignorer**, un chemin par ligne (sinon, le fichier `.pteroignore` du serveur s'applique).
+
+La page affiche aussi une **barre d'usage** (sauvegardes stockées sur la limite du serveur), la **prochaine sauvegarde**, et le dernier
+problème s'il y en a eu un. Les sauvegardes automatiques portent une pastille **Auto**, les verrouillées une pastille **Locked**.
+
+> [!IMPORTANT]
+> Le panel ne supprime **jamais** une sauvegarde faite à la main ni une sauvegarde **verrouillée**. Si la limite du serveur est atteinte,
+> il supprime la plus ancienne sauvegarde *automatique* pour faire de la place ; s'il n'y en a pas, il n'en crée pas et te le dit.
+
+Tout repose sur la tâche planifiée du panel (le `cron` de `schedule:run`, déjà installé), qui vérifie chaque minute. Un serveur
+injoignable ou occupé est réessayé 15 minutes plus tard sans gêner les autres. Les réglages sont dans la table
+`server_backup_plans`, créée par la mise à jour.
+
 ### 🧩 Console et petits plus
 
 | | Ce que ça fait |
@@ -507,6 +526,7 @@ elle ne change rien à la façon dont Pterodactyl gère l'état suspendu.
 | 💬 **Discord dans les listes** | Le compte Discord lié apparaît dans la liste des utilisateurs et sur la page de chaque utilisateur |
 | 🌍 **Anglais et français** | Le panel existe en **anglais** (par défaut) et en **français** : dashboard, pages de connexion et administration. Chacun choisit sa langue sur sa page *Account*, l'administrateur fixe celle des visiteurs et des nouveaux comptes dans *Admin → Settings* (voir [Langues](#-langues)) |
 | ⏳ **Suspension améliorée** | Une raison visible par le client, une durée avec **levée automatique**, et le détail affiché sur le dashboard et la page du serveur (voir [Suspension](#-suspension-des-serveurs)) |
+| 💾 **Sauvegardes automatiques** | Fréquence, nombre à conserver et fichiers ignorés par serveur, avec suppression des plus anciennes (voir [Sauvegardes automatiques](#-sauvegardes-automatiques)) |
 | 👥 **Sous-utilisateur par ID Discord** | Dans l'onglet *Users* d'un serveur, invite quelqu'un avec son email **ou son ID Discord** (il doit déjà avoir un compte avec Discord lié) |
 
 > [!NOTE]

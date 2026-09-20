@@ -63,6 +63,8 @@ return [
             'fail' => 'Marked the :name backup as failed',
             'lock' => 'Locked the :name backup',
             'unlock' => 'Unlocked the :name backup',
+            'auto-update' => 'Changed the automatic backups',
+            'auto-delete' => 'Turned off the automatic backups',
         ],
         'database' => [
             'create' => 'Created new database :name',

@@ -63,6 +63,8 @@ return [
             'fail' => 'Sauvegarde :name marquée comme échouée',
             'lock' => 'Sauvegarde :name verrouillée',
             'unlock' => 'Sauvegarde :name déverrouillée',
+            'auto-update' => 'Sauvegardes automatiques modifiées',
+            'auto-delete' => 'Sauvegardes automatiques désactivées',
         ],
         'database' => [
             'create' => 'Nouvelle base de données créée : :name',

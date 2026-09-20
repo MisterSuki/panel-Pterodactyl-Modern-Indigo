@@ -3,6 +3,7 @@ import Spinner from '@/components/elements/Spinner';
 import useFlash from '@/plugins/useFlash';
 import Can from '@/components/elements/Can';
 import CreateBackupButton from '@/components/server/backups/CreateBackupButton';
+import AutoBackupCard from '@/components/server/backups/AutoBackupCard';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import BackupRow from '@/components/server/backups/BackupRow';
 import tw from 'twin.macro';
@@ -35,6 +36,28 @@ const BackupContainer = () => {
     return (
         <ServerContentBlock title={'Backups'}>
             <FlashMessageRender byKey={'backups'} css={tw`mb-4`} />
+            {backupLimit > 0 && (
+                <div css={tw`mb-6`}>
+                    <div css={tw`flex items-baseline justify-between mb-2`}>
+                        <p css={tw`text-xs uppercase tracking-wider text-neutral-400`}>Backups stored</p>
+                        <p css={tw`text-sm text-neutral-200`}>
+                            <span>{backups.backupCount}</span>
+                            <span css={tw`text-neutral-500`}> / </span>
+                            <span>{backupLimit}</span>
+                        </p>
+                    </div>
+                    <div css={tw`h-2 rounded-full bg-neutral-700 overflow-hidden`}>
+                        <div
+                            css={[
+                                tw`h-full rounded-full bg-gradient-brand transition-all duration-300`,
+                                backups.backupCount >= backupLimit && tw`bg-red-500`,
+                            ]}
+                            style={{ width: `${Math.min(100, (backups.backupCount / backupLimit) * 100)}%` }}
+                        />
+                    </div>
+                </div>
+            )}
+            <AutoBackupCard backupLimit={backupLimit} />
             <Pagination data={backups} onPageSelect={setPage}>
                 {({ items }) =>
                     !items.length ? (
@@ -61,11 +84,6 @@ const BackupContainer = () => {
             )}
             <Can action={'backup.create'}>
                 <div css={tw`mt-6 sm:flex items-center justify-end`}>
-                    {backupLimit > 0 && backups.backupCount > 0 && (
-                        <p css={tw`text-sm text-neutral-300 mb-4 sm:mr-6 sm:mb-0`}>
-                            {backups.backupCount} of {backupLimit} backups have been created for this server.
-                        </p>
-                    )}
                     {backupLimit > 0 && backupLimit > backups.backupCount && (
                         <CreateBackupButton css={tw`w-full sm:w-auto`} />
                     )}
