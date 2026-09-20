@@ -25,10 +25,14 @@ class UiLocaleController extends Controller
             $data = is_array($decoded) ? $decoded : [];
         }
 
-        return new JsonResponse($data, 200, [
-            // Kept an hour in the browser, and a stale copy may be used for a day while it is refreshed.
-            'Cache-Control' => 'public, max-age=3600, stale-while-revalidate=86400',
-            'ETag' => md5((string) json_encode($data)),
+        $response = new JsonResponse($data, 200, [
+            // The browser asks each time whether the file changed and gets a short "not modified" answer when it did
+            // not, so a new translation shows up at the next page load and not an hour later.
+            'Cache-Control' => 'public, no-cache',
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $response->setEtag(md5((string) json_encode($data)));
+        $response->isNotModified($request);
+
+        return $response;
     }
 }

@@ -495,6 +495,12 @@ L'API Application accepte aussi `reason` et `until` sur `POST /api/application/s
 raison ni durée fonctionne comme avant. Les détails sont dans la table `server_suspensions` (créée par la mise à jour) ;
 elle ne change rien à la façon dont Pterodactyl gère l'état suspendu.
 
+### ©️ Copyright personnalisé
+
+Dans *Admin → Settings*, les champs **Copyright** et **Copyright Link** remplacent la ligne « Pterodactyl® © 2015 - 2026 » en bas de
+toutes les pages : dashboard, connexion et administration. `{year}` est remplacé par l'année en cours (ex. `© {year} TeraTech Heberg`).
+Le lien est facultatif (seules les adresses `http://` et `https://` sont acceptées). Vide, c'est la ligne d'origine qui s'affiche.
+
 ### 💾 Sauvegardes automatiques
 
 Sur la page *Backups* d'un serveur, une carte **Sauvegardes automatiques** (bouton *Configure*) permet de choisir :
@@ -526,6 +532,7 @@ injoignable ou occupé est réessayé 15 minutes plus tard sans gêner les autre
 | 💬 **Discord dans les listes** | Le compte Discord lié apparaît dans la liste des utilisateurs et sur la page de chaque utilisateur |
 | 🌍 **Anglais et français** | Le panel existe en **anglais** (par défaut) et en **français** : dashboard, pages de connexion et administration. Chacun choisit sa langue sur sa page *Account*, l'administrateur fixe celle des visiteurs et des nouveaux comptes dans *Admin → Settings* (voir [Langues](#-langues)) |
 | ⏳ **Suspension améliorée** | Une raison visible par le client, une durée avec **levée automatique**, et le détail affiché sur le dashboard et la page du serveur (voir [Suspension](#-suspension-des-serveurs)) |
+| ©️ **Copyright modifiable** | La ligne du bas de page se change dans *Admin → Settings* (voir [Copyright personnalisé](#️-copyright-personnalisé)) |
 | 💾 **Sauvegardes automatiques** | Fréquence, nombre à conserver et fichiers ignorés par serveur, avec suppression des plus anciennes (voir [Sauvegardes automatiques](#-sauvegardes-automatiques)) |
 | 👥 **Sous-utilisateur par ID Discord** | Dans l'onglet *Users* d'un serveur, invite quelqu'un avec son email **ou son ID Discord** (il doit déjà avoir un compte avec Discord lié) |
 

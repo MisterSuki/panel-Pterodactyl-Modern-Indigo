@@ -198,7 +198,12 @@
                     <strong><i class="fa fa-fw {{ $appIsGit ? 'fa-git-square' : 'fa-code-fork' }}"></i></strong> {{ $appVersion }}<br />
                     <strong><i class="fa fa-fw fa-clock-o"></i></strong> {{ round(microtime(true) - LARAVEL_START, 3) }}s
                 </div>
-                Copyright &copy; 2015 - {{ date('Y') }} <a href="https://pterodactyl.io/">Pterodactyl Software</a>.
+                @php($copyright = \Pterodactyl\Services\Helpers\Copyright::custom())
+                @if ($copyright)
+                    @if ($copyright['url'])<a href="{{ $copyright['url'] }}" rel="noopener nofollow noreferrer" target="_blank">{{ $copyright['text'] }}</a>@else{{ $copyright['text'] }}@endif
+                @else
+                    Copyright &copy; 2015 - {{ date('Y') }} <a href="https://pterodactyl.io/">Pterodactyl Software</a>.
+                @endif
             </footer>
         </div>
         @section('footer-scripts')

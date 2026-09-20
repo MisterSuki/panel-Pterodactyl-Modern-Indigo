@@ -82,6 +82,22 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="form-group col-md-4">
+                                <label class="control-label">Copyright</label>
+                                <div>
+                                    <input type="text" class="form-control" name="pterodactyl:copyright:text" value="{{ old('pterodactyl:copyright:text', config('pterodactyl.copyright.text')) }}" maxlength="191" placeholder="&copy; {year} TeraTech Heberg" />
+                                    <p class="text-muted"><small>The line shown at the bottom of every page. {year} is replaced by the current year. Leave empty to keep the default one.</small></p>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label class="control-label">Copyright Link</label>
+                                <div>
+                                    <input type="text" class="form-control" name="pterodactyl:copyright:url" value="{{ old('pterodactyl:copyright:url', config('pterodactyl.copyright.url')) }}" maxlength="191" placeholder="https://example.com" />
+                                    <p class="text-muted"><small>Optional. If set, the copyright line links to this address.</small></p>
+                                </div>
+                            </div>
+                        </div>
                         <hr />
                         <div class="row">
                             <div class="form-group col-md-4">

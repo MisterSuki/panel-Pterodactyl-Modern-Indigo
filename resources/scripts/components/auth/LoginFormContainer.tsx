@@ -5,6 +5,7 @@ import styled from 'styled-components/macro';
 import { breakpoint } from '@/theme';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import tw from 'twin.macro';
+import CopyrightLine from '@/components/elements/CopyrightLine';
 
 type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, HTMLFormElement> & {
     title?: string;
@@ -39,15 +40,21 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                 </div>
             </Form>
             <p css={tw`text-center text-neutral-500 text-xs mt-6`}>
-                &copy; 2015 - {new Date().getFullYear()}&nbsp;
-                <a
-                    rel={'noopener nofollow noreferrer'}
-                    href={'https://pterodactyl.io'}
-                    target={'_blank'}
-                    css={tw`no-underline text-neutral-500 hover:text-neutral-300`}
-                >
-                    Pterodactyl Software
-                </a>
+                <CopyrightLine
+                    fallback={
+                        <>
+                            &copy; 2015 - {new Date().getFullYear()}&nbsp;
+                            <a
+                                rel={'noopener nofollow noreferrer'}
+                                href={'https://pterodactyl.io'}
+                                target={'_blank'}
+                                css={tw`no-underline text-neutral-500 hover:text-neutral-300`}
+                            >
+                                Pterodactyl Software
+                            </a>
+                        </>
+                    }
+                />
             </p>
             <LanguageLinks />
         </Container>

@@ -19,6 +19,8 @@ class SettingsServiceProvider extends ServiceProvider
     protected array $keys = [
         'app:name',
         'app:locale',
+        'pterodactyl:copyright:text',
+        'pterodactyl:copyright:url',
         'recaptcha:enabled',
         'recaptcha:secret_key',
         'recaptcha:website_key',

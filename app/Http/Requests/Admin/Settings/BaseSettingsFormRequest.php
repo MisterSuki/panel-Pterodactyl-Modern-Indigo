@@ -15,6 +15,8 @@ class BaseSettingsFormRequest extends AdminFormRequest
         return [
             'app:name' => 'required|string|max:191',
             'app:locale' => ['required', 'string', Rule::in(Locales::codes())],
+            'pterodactyl:copyright:text' => 'nullable|string|max:191',
+            'pterodactyl:copyright:url' => 'nullable|url|max:191',
             'pterodactyl:auth:2fa_required' => 'required|integer|in:0,1,2',
             'pterodactyl:auth:registration' => 'required|in:true,false',
             'pterodactyl:auth:discord:enabled' => 'required|in:true,false',
@@ -28,6 +30,8 @@ class BaseSettingsFormRequest extends AdminFormRequest
         return [
             'app:name' => 'Company Name',
             'app:locale' => 'Language',
+            'pterodactyl:copyright:text' => 'Copyright',
+            'pterodactyl:copyright:url' => 'Copyright Link',
             'pterodactyl:auth:2fa_required' => 'Require 2-Factor Authentication',
             'pterodactyl:auth:registration' => 'Allow Registration',
             'pterodactyl:auth:discord:enabled' => 'Discord Login',
