@@ -21,24 +21,16 @@
 }
 
 .terminal {
-    @apply flex flex-col w-full;
-
-    & .overflows_container {
-        @apply -ml-4 sm:ml-0;
-        width: calc(100% + 2rem);
-
-        @screen sm {
-            @apply w-full;
-        }
-    }
+    @apply relative flex flex-col w-full overflow-hidden rounded-2xl border border-white/10 shadow-card;
+    background: radial-gradient(900px circle at 0% 0%, rgba(99, 102, 241, 0.07), transparent 55%),
+        linear-gradient(180deg, #080b14 0%, #05070d 100%);
 
     & .header {
-        @apply flex items-center justify-between gap-3 px-4 py-2.5 rounded-t-xl bg-black/70;
-        @apply border border-white/5 border-b-white/[0.03];
+        @apply flex items-center justify-between gap-3 px-4 py-2.5 bg-white/[0.03] border-b border-white/5;
     }
 
     & > .container {
-        @apply p-1 sm:p-2 bg-black/60 border border-white/5 border-b-0 min-h-[16rem] flex-1 font-mono text-sm;
+        @apply p-2 sm:p-3 min-h-[16rem] flex-1 font-mono text-sm;
 
         & #terminal {
             @apply h-full;
@@ -61,6 +53,10 @@
             width: 8px;
         }
 
+        & :global(.xterm-viewport)::-webkit-scrollbar-button {
+            display: none;
+        }
+
         & :global(.xterm-viewport)::-webkit-scrollbar-track {
             background: transparent;
         }
@@ -75,8 +71,12 @@
         }
     }
 
+    & .prompt {
+        @apply relative border-t border-white/5 bg-black/30;
+    }
+
     & .command_icon {
-        @apply flex items-center top-0 left-0 absolute z-10 select-none h-full px-3 transition-colors duration-100;
+        @apply flex items-center top-0 left-0 absolute z-10 select-none h-full px-4 text-primary-400 transition-colors duration-100;
     }
 
     & .command_send {
@@ -86,10 +86,9 @@
     }
 
     & .command_input {
-        @apply relative bg-black/60 px-2 text-gray-100 pl-10 pr-12 py-2.5 w-full font-mono text-sm sm:rounded-b-xl;
-        @apply focus:ring-0 outline-none focus-visible:outline-none;
-        @apply border-0 border-x border-b-2 border-x-white/5 border-b-transparent transition-colors duration-100;
-        @apply active:border-b-primary-500 focus:border-b-primary-500;
+        @apply relative bg-transparent px-2 text-gray-100 pl-11 pr-14 py-3.5 w-full font-mono text-sm;
+        @apply focus:ring-0 outline-none focus-visible:outline-none border-0 transition-colors duration-150;
+        @apply focus:bg-primary-500/5 placeholder-gray-500;
     }
 }
 

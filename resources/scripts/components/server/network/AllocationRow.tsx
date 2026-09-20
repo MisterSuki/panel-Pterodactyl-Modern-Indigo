@@ -2,7 +2,7 @@ import React, { memo, useCallback, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import tw from 'twin.macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faNetworkWired } from '@fortawesome/free-solid-svg-icons';
+import { faNetworkWired, faStar } from '@fortawesome/free-solid-svg-icons';
 import InputSpinner from '@/components/elements/InputSpinner';
 import { Textarea } from '@/components/elements/Input';
 import Can from '@/components/elements/Can';
@@ -60,7 +60,7 @@ const AllocationRow = ({ allocation }: Props) => {
     };
 
     return (
-        <GreyRowBox $hoverable={false} className={'flex-wrap md:flex-nowrap mt-2'}>
+        <GreyRowBox $hoverable={false} className={'flex-wrap md:flex-nowrap mt-2 md:items-center'}>
             <div className={'flex items-center w-full md:w-auto'}>
                 <div className={'pl-4 pr-6 text-neutral-400'}>
                     <FontAwesomeIcon icon={faNetworkWired} />
@@ -94,11 +94,18 @@ const AllocationRow = ({ allocation }: Props) => {
                     />
                 </InputSpinner>
             </div>
-            <div className={'flex justify-end space-x-4 mt-4 w-full md:mt-0 md:w-48'}>
+            <div
+                className={'flex items-center justify-end gap-3 mt-4 w-full md:mt-0 md:w-auto md:flex-shrink-0 md:pl-2'}
+            >
                 {allocation.isDefault ? (
-                    <Button size={Button.Sizes.Small} className={'!text-gray-50 !bg-blue-600'} disabled>
+                    <span
+                        className={
+                            'inline-flex items-center gap-1.5 h-8 rounded-lg border border-primary-500/30 bg-primary-500/10 px-3 text-sm font-medium text-primary-200 select-none'
+                        }
+                    >
+                        <FontAwesomeIcon icon={faStar} className={'text-xs text-primary-300'} />
                         Primary
-                    </Button>
+                    </span>
                 ) : (
                     <>
                         <Can action={'allocation.delete'}>

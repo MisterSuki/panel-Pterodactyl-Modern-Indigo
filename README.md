@@ -525,7 +525,7 @@ injoignable ou occupé est réessayé 15 minutes plus tard sans gêner les autre
 | | Ce que ça fait |
 | --- | --- |
 | 🗂️ **Dashboard repensé** | Résumé en haut (serveurs, en ligne, CPU et mémoire cumulés), cartes éclairées selon l'état du serveur, **jauges circulaires** CPU / mémoire / disque qui passent au jaune puis au rouge, adresse floutée dans une pastille, et recherche + filtre En ligne / Hors ligne dès 4 serveurs |
-| 🖥️ **Console améliorée** | Barre d'outils **Rechercher / Copier / Pause / Clear**, erreurs en rouge, avertissements en jaune et traces d'exception en gris, bouton d'envoi de commande, défilement plus fin |
+| 🖥️ **Console améliorée** | Console dans un cadre arrondi, barre d'outils **Rechercher / Copier / Pause / Clear**, `[étiquettes]` en bleu, heures en gris, erreurs en rouge, avertissements en jaune, succès en vert et traces d'exception en gris, ligne de commande avec bouton d'envoi, bouton « retour en bas » rond |
 | 🔘 **Boutons d'alimentation** | *Start / Restart / Stop* avec icônes, couleurs, état d'attente pendant que le serveur répond, et *Kill* quand l'arrêt traîne |
 | 📈 **Graphiques fluides** | Les courbes CPU, mémoire et réseau glissent en continu (60 images/s) au lieu de sauter une fois par seconde |
 | ⏸️ **Pause / Clear** | Dans la console, **Pause** gèle l'écran pour lire ou copier (les nouvelles lignes attendent, jusqu'à 5000, et s'affichent au **Resume**). **Clear** vide la console |

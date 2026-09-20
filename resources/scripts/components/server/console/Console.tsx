@@ -31,7 +31,8 @@ import 'xterm/css/xterm.css';
 import styles from './style.module.css';
 
 const theme = {
-    background: th`colors.black`.toString(),
+    // Transparent, so the gradient of the console box shows through.
+    background: 'rgba(0, 0, 0, 0)',
     cursor: 'transparent',
     black: th`colors.black`.toString(),
     red: '#E54B4B',
@@ -55,24 +56,40 @@ const theme = {
 // Lines that carry no colour of their own are tinted by what they say, so a problem stands out in a long log.
 // Lines that already have colours (the ones the game server or the panel colour themselves) are left as they are.
 const STACK_FRAME = /^\s+at\s/;
-const ERROR_LINE = /(error|exception|fatal|failed|crash|panic)/i;
-const WARNING_LINE = /\bwarn(ing)?\b/i;
+const ERROR_LINE =
+    /(error|erreur|exception|fatal|fail|échec|échou|non réussi|injoignable|unreachable|refused|denied|forbidden|not found|not allowed|no such|timed out|timeout|crash|panic)/i;
+const WARNING_LINE = /\bwarn(ing)?\b|avertissement|deprecated|obsolète/i;
+const SUCCESS_LINE = /\b(started|ready|success(ful(ly)?)?|connected|listening|loaded|démarré|prêt|réussi|connecté)\b/i;
+// "[12:30:05]" in front of a line is a time, and "[Olympus]" or "[INFO]" is who or what is speaking.
+const LEADING_TAG = /^(\[[^\]\r\n]{1,40}\])(.*)$/;
+const TIME_TAG = /^\[\d{1,2}:\d{2}/;
+
+const DIM = '\u001b[38;5;244m';
+const TAG = '\u001b[38;5;110m';
+const RESET = '\u001b[0m';
 
 const tint = (line: string): string => {
     if (line.includes('\u001b')) {
         return line;
     }
     if (STACK_FRAME.test(line)) {
-        return '\u001b[38;5;244m' + line;
-    }
-    if (ERROR_LINE.test(line)) {
-        return '\u001b[38;5;203m' + line;
-    }
-    if (WARNING_LINE.test(line)) {
-        return '\u001b[38;5;221m' + line;
+        return DIM + line;
     }
 
-    return line;
+    const color = ERROR_LINE.test(line)
+        ? '\u001b[38;5;203m'
+        : WARNING_LINE.test(line)
+        ? '\u001b[38;5;221m'
+        : SUCCESS_LINE.test(line)
+        ? '\u001b[38;5;114m'
+        : '';
+
+    const tag = LEADING_TAG.exec(line);
+    if (tag) {
+        return (TIME_TAG.test(tag[1]) ? DIM : TAG) + tag[1] + RESET + color + tag[2];
+    }
+
+    return color + line;
 };
 
 const ToolButton = ({
@@ -396,9 +413,9 @@ export default () => {
     }, [connected, instance]);
 
     return (
-        <div className={classNames(styles.terminal, 'relative')}>
+        <div className={styles.terminal}>
             <SpinnerOverlay visible={!connected} size={'large'} />
-            <div className={classNames(styles.header, styles.overflows_container)}>
+            <div className={styles.header}>
                 <span className={'flex items-center gap-3'}>
                     <span className={'flex items-center gap-1.5'} aria-hidden>
                         <span className={'w-2.5 h-2.5 rounded-full bg-red-400/70'} />
@@ -447,15 +464,13 @@ export default () => {
                     <StatusPill status={status} />
                 </span>
             </div>
-            <div
-                className={classNames(styles.container, styles.overflows_container, { 'rounded-b': !canSendCommands })}
-            >
+            <div className={styles.container}>
                 <div className={'h-full'}>
                     <div id={styles.terminal} ref={ref} />
                 </div>
             </div>
             {canSendCommands && (
-                <div className={classNames('relative', styles.overflows_container)}>
+                <div className={styles.prompt}>
                     <input
                         ref={commandInput}
                         className={classNames('peer', styles.command_input)}
