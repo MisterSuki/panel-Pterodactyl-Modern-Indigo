@@ -6,6 +6,7 @@ import { breakpoint } from '@/theme';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import tw from 'twin.macro';
 import CopyrightLine from '@/components/elements/CopyrightLine';
+import BrandTitle from '@/components/elements/BrandTitle';
 
 type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, HTMLFormElement> & {
     title?: string;
@@ -23,12 +24,8 @@ const Container = styled.div`
 export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => (
     <div css={tw`min-h-screen w-full flex items-center justify-center py-12`}>
         <Container>
-            <div css={tw`flex justify-center mb-6 select-none`}>
-                <img
-                    src={'/assets/svgs/pterodactyl.svg'}
-                    css={tw`block w-16 h-16`}
-                    style={{ filter: 'drop-shadow(0 0 24px rgba(99, 102, 241, 0.45))' }}
-                />
+            <div css={tw`flex flex-col items-center mb-8 select-none`}>
+                <BrandTitle size={'hero'} />
             </div>
             {title && <h2 css={tw`text-2xl text-center text-neutral-50 font-semibold mb-6 tracking-tight`}>{title}</h2>}
             <FlashMessageRender css={tw`mb-4`} />

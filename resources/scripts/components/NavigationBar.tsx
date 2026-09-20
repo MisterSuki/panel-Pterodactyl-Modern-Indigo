@@ -12,6 +12,7 @@ import http from '@/api/http';
 import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
 import Tooltip from '@/components/elements/tooltip/Tooltip';
 import Avatar from '@/components/Avatar';
+import BrandTitle from '@/components/elements/BrandTitle';
 
 const RightNavigation = styled.div`
     & > a,
@@ -37,7 +38,6 @@ const RightNavigation = styled.div`
 `;
 
 export default () => {
-    const name = useStoreState((state: ApplicationStore) => state.settings.data!.name);
     const adminAccess = useStoreState((state: ApplicationStore) => state.user.data!.adminAccess);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -51,9 +51,7 @@ export default () => {
 
     return (
         <div
-            className={
-                'sticky top-0 z-40 w-full bg-neutral-900/95 border-b border-white/5 shadow-nav overflow-x-auto'
-            }
+            className={'sticky top-0 z-40 w-full bg-neutral-900/95 border-b border-white/5 shadow-nav overflow-x-auto'}
         >
             <SpinnerOverlay visible={isLoggingOut} />
             <div className={'mx-auto w-full flex items-center h-14 max-w-[1200px] px-2 sm:px-4'}>
@@ -61,10 +59,10 @@ export default () => {
                     <Link
                         to={'/'}
                         className={
-                            'inline-flex items-center gap-2 text-xl font-header font-semibold px-2 no-underline text-transparent bg-clip-text bg-gradient-brand hover:opacity-80 transition-opacity duration-150'
+                            'inline-flex items-center px-2 no-underline hover:brightness-110 transition-[filter] duration-150'
                         }
                     >
-                        {name}
+                        <BrandTitle />
                     </Link>
                 </div>
                 <RightNavigation className={'flex h-full items-center justify-center'}>
