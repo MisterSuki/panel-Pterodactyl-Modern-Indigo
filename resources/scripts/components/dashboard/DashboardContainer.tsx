@@ -14,6 +14,12 @@ import Pagination from '@/components/elements/Pagination';
 import { useLocation } from 'react-router-dom';
 import getServersResourceUsage from '@/api/getServersResourceUsage';
 import { ServerStats } from '@/api/server/getServerResourceUsage';
+import DashboardSummary from '@/components/dashboard/DashboardSummary';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import classNames from 'classnames';
+
+type StatusFilter = 'all' | 'online' | 'offline';
 
 export default () => {
     const { search } = useLocation();
@@ -24,6 +30,8 @@ export default () => {
     const uuid = useStoreState((state) => state.user.data!.uuid);
     const rootAdmin = useStoreState((state) => state.user.data!.rootAdmin);
     const [showOnlyAdmin, setShowOnlyAdmin] = usePersistedState(`${uuid}:show_all_servers`, false);
+    const [query, setQuery] = useState('');
+    const [filter, setFilter] = useState<StatusFilter>('all');
 
     const { data: servers, error } = useSWR<PaginatedResult<Server>>(
         ['/api/client/servers', showOnlyAdmin && rootAdmin, page],
@@ -95,6 +103,42 @@ export default () => {
                     </div>
                 )}
             </div>
+            {servers && <DashboardSummary total={servers.pagination.total} servers={servers.items} usage={usage} />}
+            {servers && servers.items.length > 3 && (
+                <div css={tw`flex flex-wrap items-center gap-3 mb-4`}>
+                    <div css={tw`relative flex-1 min-w-[12rem]`}>
+                        <FontAwesomeIcon
+                            icon={faSearch}
+                            css={tw`absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm`}
+                        />
+                        <input
+                            type={'search'}
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder={'Search a server...'}
+                            aria-label={'Search a server...'}
+                            css={tw`w-full rounded-xl border border-white/10 bg-neutral-900/60 py-2.5 pl-9 pr-3 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/40`}
+                        />
+                    </div>
+                    <div css={tw`flex items-center gap-1 rounded-xl border border-white/10 bg-neutral-900/60 p-1`}>
+                        {(['all', 'online', 'offline'] as StatusFilter[]).map((value) => (
+                            <button
+                                key={value}
+                                type={'button'}
+                                onClick={() => setFilter(value)}
+                                className={classNames(
+                                    'rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-150',
+                                    filter === value
+                                        ? 'bg-primary-500/20 text-primary-200'
+                                        : 'text-neutral-400 hover:text-neutral-100'
+                                )}
+                            >
+                                {value === 'all' ? 'All' : value === 'online' ? 'Online' : 'Offline'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
             {!servers ? (
                 <div aria-busy={'true'} aria-label={'Loading servers'}>
                     {[0, 1, 2].map((i) => (
@@ -107,8 +151,23 @@ export default () => {
                 </div>
             ) : (
                 <Pagination data={servers} onPageSelect={setPage}>
-                    {({ items }) =>
-                        items.length > 0 ? (
+                    {({ items: all }) => {
+                        const needle = query.trim().toLowerCase();
+                        const items = all.filter((server) => {
+                            const running = usage?.[server.uuid]?.status === 'running';
+                            const offline = usage?.[server.uuid]?.status === 'offline';
+
+                            return (
+                                (filter === 'all' || (filter === 'online' ? running : offline)) &&
+                                (needle === '' ||
+                                    server.name.toLowerCase().includes(needle) ||
+                                    server.description.toLowerCase().includes(needle))
+                            );
+                        });
+
+                        return all.length > 0 && items.length === 0 ? (
+                            <p css={tw`text-center text-sm text-neutral-400`}>No server matches your search.</p>
+                        ) : items.length > 0 ? (
                             items.map((server, index) => (
                                 <ServerRow
                                     key={server.uuid}
@@ -124,8 +183,8 @@ export default () => {
                                     ? 'There are no other servers to display.'
                                     : 'There are no servers associated with your account.'}
                             </p>
-                        )
-                    }
+                        );
+                    }}
                 </Pagination>
             )}
         </PageContentBlock>

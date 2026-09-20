@@ -24,13 +24,21 @@ const ALARM = 0.9;
 // A ring that fills up with the usage of a resource, with the figure beside it.
 export default ({ icon, label, value, limit, ratio, color }: Props) => {
     const shown = ratio === null ? 0 : Math.max(0, Math.min(1, ratio));
-    const stroke = ratio !== null && ratio >= ALARM ? '#f87171' : ratio !== null && ratio >= WARNING ? '#fbbf24' : color;
+    const stroke =
+        ratio !== null && ratio >= ALARM ? '#f87171' : ratio !== null && ratio >= WARNING ? '#fbbf24' : color;
 
     return (
         <div css={tw`flex items-center gap-3 min-w-0`}>
             <div css={tw`relative flex-shrink-0 w-14 h-14`}>
                 <svg viewBox={'0 0 60 60'} css={[tw`w-full h-full`, { transform: 'rotate(-90deg)' }]} aria-hidden>
-                    <circle cx={30} cy={30} r={RADIUS} fill={'none'} stroke={'rgba(255,255,255,0.07)'} strokeWidth={5} />
+                    <circle
+                        cx={30}
+                        cy={30}
+                        r={RADIUS}
+                        fill={'none'}
+                        stroke={'rgba(255,255,255,0.07)'}
+                        strokeWidth={5}
+                    />
                     {ratio !== null && (
                         <circle
                             cx={30}

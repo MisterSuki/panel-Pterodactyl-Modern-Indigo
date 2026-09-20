@@ -1,13 +1,6 @@
 import React, { memo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faChevronRight,
-    faEthernet,
-    faHdd,
-    faMemory,
-    faMicrochip,
-    faServer,
-} from '@fortawesome/free-solid-svg-icons';
+import { faChevronRight, faEthernet, faHdd, faMemory, faMicrochip, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
 import { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
@@ -206,7 +199,9 @@ const ServerRow = ({ server, stats = null, className, style }: Props) => {
                                 value={bytesToString(stats.diskUsageInBytes)}
                                 limit={diskLimit}
                                 ratio={
-                                    server.limits.disk > 0 ? stats.diskUsageInBytes / mbToBytes(server.limits.disk) : null
+                                    server.limits.disk > 0
+                                        ? stats.diskUsageInBytes / mbToBytes(server.limits.disk)
+                                        : null
                                 }
                             />
                         </div>
