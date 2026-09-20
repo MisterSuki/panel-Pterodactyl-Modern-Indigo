@@ -1,9 +1,11 @@
 import React, { forwardRef } from 'react';
+import LanguageLinks from '@/components/auth/LanguageLinks';
 import { Form } from 'formik';
 import styled from 'styled-components/macro';
 import { breakpoint } from '@/theme';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import tw from 'twin.macro';
+import CopyrightLine from '@/components/elements/CopyrightLine';
 
 type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, HTMLFormElement> & {
     title?: string;
@@ -28,9 +30,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                     style={{ filter: 'drop-shadow(0 0 24px rgba(99, 102, 241, 0.45))' }}
                 />
             </div>
-            {title && (
-                <h2 css={tw`text-2xl text-center text-neutral-50 font-semibold mb-6 tracking-tight`}>{title}</h2>
-            )}
+            {title && <h2 css={tw`text-2xl text-center text-neutral-50 font-semibold mb-6 tracking-tight`}>{title}</h2>}
             <FlashMessageRender css={tw`mb-4`} />
             <Form {...props} ref={ref}>
                 <div
@@ -40,16 +40,23 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                 </div>
             </Form>
             <p css={tw`text-center text-neutral-500 text-xs mt-6`}>
-                &copy; 2015 - {new Date().getFullYear()}&nbsp;
-                <a
-                    rel={'noopener nofollow noreferrer'}
-                    href={'https://pterodactyl.io'}
-                    target={'_blank'}
-                    css={tw`no-underline text-neutral-500 hover:text-neutral-300`}
-                >
-                    Pterodactyl Software
-                </a>
+                <CopyrightLine
+                    fallback={
+                        <>
+                            &copy; 2015 - {new Date().getFullYear()}&nbsp;
+                            <a
+                                rel={'noopener nofollow noreferrer'}
+                                href={'https://pterodactyl.io'}
+                                target={'_blank'}
+                                css={tw`no-underline text-neutral-500 hover:text-neutral-300`}
+                            >
+                                Pterodactyl Software
+                            </a>
+                        </>
+                    }
+                />
             </p>
+            <LanguageLinks />
         </Container>
     </div>
 ));

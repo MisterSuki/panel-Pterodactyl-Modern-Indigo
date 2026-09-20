@@ -3,7 +3,6 @@ import Icon from '@/components/elements/Icon';
 import { IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames';
 import styles from './style.module.css';
-import useFitText from 'use-fit-text';
 import CopyOnClick from '@/components/elements/CopyOnClick';
 
 interface StatBlockProps {
@@ -16,8 +15,6 @@ interface StatBlockProps {
 }
 
 export default ({ title, copyOnClick, icon, color, className, children }: StatBlockProps) => {
-    const { fontSize, ref } = useFitText({ minFontSize: 8, maxFontSize: 500 });
-
     return (
         <CopyOnClick text={copyOnClick}>
             <div className={classNames(styles.stat_block, 'bg-gray-600', className)}>
@@ -33,10 +30,11 @@ export default ({ title, copyOnClick, icon, color, className, children }: StatBl
                 </div>
                 <div className={'flex flex-col justify-center overflow-hidden w-full'}>
                     <p className={'font-header font-medium leading-tight text-xs md:text-sm text-gray-200'}>{title}</p>
+                    {/* Plain CSS sizing: the old fit-to-width script measured the page again on every stats update. */}
                     <div
-                        ref={ref}
-                        className={'h-[1.75rem] w-full font-semibold text-gray-50 truncate'}
-                        style={{ fontSize }}
+                        className={
+                            'w-full text-base sm:text-lg leading-7 font-semibold text-gray-50 truncate tabular-nums'
+                        }
                     >
                         {children}
                     </div>

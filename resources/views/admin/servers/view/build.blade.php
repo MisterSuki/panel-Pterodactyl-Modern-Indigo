@@ -42,7 +42,7 @@
                     <div class="form-group">
                         <label for="memory" class="control-label">Allocated Memory</label>
                         <div class="input-group">
-                            <input type="text" name="memory" data-multiplicator="true" class="form-control" value="{{ old('memory', $server->memory) }}"/>
+                            <input type="text" name="memory" data-gb="true" class="form-control" value="{{ old('memory', $server->memory) }}"/>
                             <span class="input-group-addon">MiB</span>
                         </div>
                         <p class="text-muted small">The maximum amount of memory allowed for this container. Setting this to <code>0</code> will allow unlimited memory in a container.</p>
@@ -58,7 +58,7 @@
                     <div class="form-group">
                         <label for="cpu" class="control-label">Disk Space Limit</label>
                         <div class="input-group">
-                            <input type="text" name="disk" class="form-control" value="{{ old('disk', $server->disk) }}"/>
+                            <input type="text" name="disk" data-gb="true" class="form-control" value="{{ old('disk', $server->disk) }}"/>
                             <span class="input-group-addon">MiB</span>
                         </div>
                         <p class="text-muted small">This server will not be allowed to boot if it is using more than this amount of space. If a server goes over this limit while running it will be safely stopped and locked until enough space is available. Set to <code>0</code> to allow unlimited disk usage.</p>

@@ -32,6 +32,11 @@
             @endif
         @show
 
+        <script>window.PterodactylSiteLocale = @json(\Pterodactyl\Services\Helpers\Locales::default());</script>
+        <script>window.PterodactylDictionaryVersion = @json(\Pterodactyl\Services\Helpers\Locales::dictionaryVersion());</script>
+        <script>window.PterodactylCopyright = @json(\Pterodactyl\Services\Helpers\Copyright::custom());</script>
+        <script src="/js/translator.js?v={{ @filemtime(public_path('js/translator.js')) }}"></script>
+
         @yield('assets')
 
         @include('layouts.scripts')

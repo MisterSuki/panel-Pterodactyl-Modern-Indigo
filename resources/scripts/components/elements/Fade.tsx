@@ -11,17 +11,19 @@ const Container = styled.div<{ timeout: number }>`
     .fade-enter,
     .fade-exit,
     .fade-appear {
-        will-change: opacity;
+        will-change: opacity, transform;
     }
 
     .fade-enter,
     .fade-appear {
         ${tw`opacity-0`};
+        transform: translate3d(0, 6px, 0);
 
         &.fade-enter-active,
         &.fade-appear-active {
-            ${tw`opacity-100 transition-opacity ease-in`};
-            transition-duration: ${(props) => props.timeout}ms;
+            ${tw`opacity-100`};
+            transform: translate3d(0, 0, 0);
+            transition: opacity ${(props) => props.timeout}ms ease-out, transform ${(props) => props.timeout}ms ease-out;
         }
     }
 

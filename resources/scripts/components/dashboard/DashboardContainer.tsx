@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Server } from '@/api/server/getServer';
 import getServers from '@/api/getServers';
 import ServerRow from '@/components/dashboard/ServerRow';
-import Spinner from '@/components/elements/Spinner';
 import PageContentBlock from '@/components/elements/PageContentBlock';
 import useFlash from '@/plugins/useFlash';
 import { useStoreState } from 'easy-peasy';
@@ -13,6 +12,8 @@ import useSWR from 'swr';
 import { PaginatedResult } from '@/api/http';
 import Pagination from '@/components/elements/Pagination';
 import { useLocation } from 'react-router-dom';
+import getServersResourceUsage from '@/api/getServersResourceUsage';
+import { ServerStats } from '@/api/server/getServerResourceUsage';
 
 export default () => {
     const { search } = useLocation();
@@ -27,6 +28,17 @@ export default () => {
     const { data: servers, error } = useSWR<PaginatedResult<Server>>(
         ['/api/client/servers', showOnlyAdmin && rootAdmin, page],
         () => getServers({ page, type: showOnlyAdmin && rootAdmin ? 'admin' : undefined })
+    );
+
+    // The usage of every server of the page, in one request every 3 seconds (paused while the tab is hidden).
+    // Suspended servers and servers on a node under maintenance have nothing to show.
+    const liveUuids = servers?.items
+        .filter((server) => server.status !== 'suspended' && !server.isNodeUnderMaintenance)
+        .map((server) => server.uuid);
+    const { data: usage } = useSWR<Record<string, ServerStats>>(
+        liveUuids && liveUuids.length > 0 ? ['dashboard-usage', ...liveUuids] : null,
+        () => getServersResourceUsage(liveUuids!),
+        { refreshInterval: 3000, dedupingInterval: 1500, revalidateOnFocus: false, shouldRetryOnError: false }
     );
 
     useEffect(() => {
@@ -54,26 +66,57 @@ export default () => {
 
     return (
         <PageContentBlock title={'Dashboard'} showFlashKey={'dashboard'}>
-            {rootAdmin && (
-                <div css={tw`mb-2 flex justify-end items-center`}>
-                    <p css={tw`uppercase text-xs text-neutral-400 mr-2`}>
-                        {showOnlyAdmin ? "Showing others' servers" : 'Showing your servers'}
+            <div css={tw`mb-5 flex flex-wrap items-end justify-between gap-3`}>
+                <div>
+                    <h1 css={tw`text-2xl font-semibold text-neutral-50 flex items-center gap-3`}>
+                        {showOnlyAdmin ? 'All servers' : 'Your servers'}
+                        {servers && (
+                            <span
+                                css={tw`rounded-full bg-primary-500/20 border border-primary-500/30 px-2.5 py-0.5 text-xs font-medium text-primary-300`}
+                            >
+                                {servers.pagination.total}
+                            </span>
+                        )}
+                    </h1>
+                    <p css={tw`text-sm text-neutral-400 mt-1`}>
+                        Open a server to manage its console, files and settings.
                     </p>
-                    <Switch
-                        name={'show_all_servers'}
-                        defaultChecked={showOnlyAdmin}
-                        onChange={() => setShowOnlyAdmin((s) => !s)}
-                    />
                 </div>
-            )}
+                {rootAdmin && (
+                    <div css={tw`flex items-center`}>
+                        <p css={tw`uppercase text-xs text-neutral-400 mr-2`}>
+                            {showOnlyAdmin ? "Showing others' servers" : 'Showing your servers'}
+                        </p>
+                        <Switch
+                            name={'show_all_servers'}
+                            defaultChecked={showOnlyAdmin}
+                            onChange={() => setShowOnlyAdmin((s) => !s)}
+                        />
+                    </div>
+                )}
+            </div>
             {!servers ? (
-                <Spinner centered size={'large'} />
+                <div aria-busy={'true'} aria-label={'Loading servers'}>
+                    {[0, 1, 2].map((i) => (
+                        <div
+                            key={i}
+                            css={tw`h-[5.5rem] mb-2 rounded-xl border border-white/5 bg-neutral-800/60 animate-pulse`}
+                            style={{ animationDelay: `${i * 120}ms` }}
+                        />
+                    ))}
+                </div>
             ) : (
                 <Pagination data={servers} onPageSelect={setPage}>
                     {({ items }) =>
                         items.length > 0 ? (
                             items.map((server, index) => (
-                                <ServerRow key={server.uuid} server={server} css={index > 0 ? tw`mt-2` : undefined} />
+                                <ServerRow
+                                    key={server.uuid}
+                                    server={server}
+                                    stats={usage?.[server.uuid] ?? null}
+                                    css={index > 0 ? tw`mt-2` : undefined}
+                                    style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
+                                />
                             ))
                         ) : (
                             <p css={tw`text-center text-sm text-neutral-400`}>

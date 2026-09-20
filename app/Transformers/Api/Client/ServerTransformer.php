@@ -4,6 +4,7 @@ namespace Pterodactyl\Transformers\Api\Client;
 
 use Pterodactyl\Models\Egg;
 use Pterodactyl\Models\Server;
+use Pterodactyl\Models\ServerSuspension;
 use Pterodactyl\Models\Subuser;
 use League\Fractal\Resource\Item;
 use Pterodactyl\Models\Allocation;
@@ -74,12 +75,33 @@ class ServerTransformer extends BaseClientTransformer
                 'backups' => $server->backup_limit,
             ],
             'status' => $server->status,
+            'suspension' => $this->suspension($server),
             // This field is deprecated, please use "status".
             'is_suspended' => $server->isSuspended(),
             // This field is deprecated, please use "status".
             'is_installing' => !$server->isInstalled(),
             'is_transferring' => !is_null($server->transfer),
             'skip_scripts' => $server->skip_scripts,
+        ];
+    }
+
+    /**
+     * Why the server is suspended and until when. Nothing for a server that is not suspended.
+     *
+     * @return array{reason: string|null, since: string|null, until: string|null}|null
+     */
+    private function suspension(Server $server): ?array
+    {
+        if (!$server->isSuspended()) {
+            return null;
+        }
+
+        $suspension = ServerSuspension::forServer($server);
+
+        return [
+            'reason' => $suspension?->reason,
+            'since' => $suspension?->created_at?->toIso8601String(),
+            'until' => $suspension?->suspended_until?->toIso8601String(),
         ];
     }
 

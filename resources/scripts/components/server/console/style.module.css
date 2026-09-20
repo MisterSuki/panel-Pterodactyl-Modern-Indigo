@@ -32,8 +32,13 @@
         }
     }
 
+    & .header {
+        @apply flex items-center justify-between gap-3 px-4 py-2.5 rounded-t-xl bg-black/70;
+        @apply border border-white/5 border-b-white/[0.03];
+    }
+
     & > .container {
-        @apply rounded-t-xl p-1 sm:p-2 bg-black/60 border border-white/5 border-b-0 min-h-[16rem] flex-1 font-mono text-sm;
+        @apply p-1 sm:p-2 bg-black/60 border border-white/5 border-b-0 min-h-[16rem] flex-1 font-mono text-sm;
 
         & #terminal {
             @apply h-full;
@@ -46,14 +51,42 @@
                 @apply bg-gray-900;
             }
         }
+
+        & :global(.xterm-viewport) {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+        }
+
+        & :global(.xterm-viewport)::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        & :global(.xterm-viewport)::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        & :global(.xterm-viewport)::-webkit-scrollbar-thumb {
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        & :global(.xterm-viewport)::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
     }
 
     & .command_icon {
         @apply flex items-center top-0 left-0 absolute z-10 select-none h-full px-3 transition-colors duration-100;
     }
 
+    & .command_send {
+        @apply absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-8 h-8 rounded-lg;
+        @apply text-primary-300 bg-primary-500/10 border border-primary-500/20 transition-colors duration-150;
+        @apply hover:bg-primary-500/25 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed;
+    }
+
     & .command_input {
-        @apply relative bg-black/60 px-2 text-gray-100 pl-10 pr-4 py-2 w-full font-mono text-sm sm:rounded-b-xl;
+        @apply relative bg-black/60 px-2 text-gray-100 pl-10 pr-12 py-2.5 w-full font-mono text-sm sm:rounded-b-xl;
         @apply focus:ring-0 outline-none focus-visible:outline-none;
         @apply border-0 border-x border-b-2 border-x-white/5 border-b-transparent transition-colors duration-100;
         @apply active:border-b-primary-500 focus:border-b-primary-500;
@@ -61,5 +94,6 @@
 }
 
 .chart_container {
-    @apply bg-gray-800 rounded-xl shadow-card border border-white/5 pt-2 relative;
+    @apply bg-gradient-surface rounded-xl shadow-card border border-white/5 relative overflow-hidden;
+    @apply transition-colors duration-200 hover:border-primary-500/30;
 }

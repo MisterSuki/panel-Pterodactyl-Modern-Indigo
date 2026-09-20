@@ -21,7 +21,8 @@ trait AvailableLanguages
             $code = basename($path);
             $value = $localize ? $this->getIsoInstance()->nativeByCode1($code) : $this->getIsoInstance()->languageByCode1($code);
 
-            return [$code => title_case($value)];
+            // The library lists several names for some languages ("Français, Langue Française"): the first one is enough.
+            return [$code => title_case(trim(explode(',', $value)[0]))];
         })->toArray();
     }
 

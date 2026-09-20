@@ -70,6 +70,7 @@
                     <h3 class="box-title">Permissions</h3>
                 </div>
                 <div class="box-body">
+                    @if(Auth::user()->root_admin)
                     <div class="form-group col-md-12">
                         <label for="root_admin" class="control-label">Administrator</label>
                         <div>
@@ -80,6 +81,21 @@
                             <p class="text-muted"><small>Setting this to 'Yes' gives a user full administrative access.</small></p>
                         </div>
                     </div>
+                    <div class="form-group col-md-12">
+                        <label for="admin_role_id" class="control-label">Staff Role</label>
+                        <div>
+                            <select name="admin_role_id" class="form-control">
+                                <option value="">No role</option>
+                                @foreach($roles as $role)
+                                    <option value="{{ $role->id }}" {{ (string) old('admin_role_id', null) === (string) $role->id ? 'selected="selected"' : '' }}>{{ $role->name }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-muted"><small>Lets this person into the admin area with only the permissions of the role. It changes nothing for administrators. <a href="{{ route('admin.roles') }}">Manage roles</a></small></p>
+                        </div>
+                    </div>
+                    @else
+                        <p class="text-muted no-margin col-md-12">Only administrators can give administrator access or a staff role.</p>
+                    @endif
                 </div>
             </div>
         </div>

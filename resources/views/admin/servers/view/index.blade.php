@@ -129,10 +129,21 @@
             <div class="box-body" style="padding-bottom: 0px;">
                 <div class="row">
                     @if($server->isSuspended())
+                        @php($suspension = \Pterodactyl\Models\ServerSuspension::forServer($server))
                         <div class="col-sm-12">
                             <div class="small-box bg-yellow">
                                 <div class="inner">
                                     <h3 class="no-margin">Suspended</h3>
+                                    @if($suspension?->reason)
+                                        <p style="margin: 6px 0 0;">{{ $suspension->reason }}</p>
+                                    @endif
+                                    <p style="margin: 6px 0 0; font-size: 12px;">
+                                        @if($suspension?->suspended_until)
+                                            Until {{ $suspension->suspended_until->format('M j, Y H:i') }} ({{ $suspension->suspended_until->diffForHumans() }})
+                                        @else
+                                            Until an administrator lifts it
+                                        @endif
+                                    </p>
                                 </div>
                             </div>
                         </div>

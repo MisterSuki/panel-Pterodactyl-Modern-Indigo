@@ -63,34 +63,99 @@
                     <div class="box-header with-border">
                         <h3 class="box-title">Suspend Server</h3>
                     </div>
-                    <div class="box-body">
-                        <p>This will suspend the server, stop any running processes, and immediately block the user from being able to access their files or otherwise manage the server through the panel or API.</p>
-                    </div>
-                    <div class="box-footer">
-                        <form action="{{ route('admin.servers.view.manage.suspension', $server->id) }}" method="POST">
+                    <form action="{{ route('admin.servers.view.manage.suspension', $server->id) }}" method="POST">
+                        <div class="box-body">
+                            <p>This will suspend the server, stop any running processes, and immediately block the user from being able to access their files or otherwise manage the server through the panel or API.</p>
+                            <div class="form-group">
+                                <label class="control-label" for="suspendReason">Reason <span class="text-muted small">shown to the user, optional</span></label>
+                                <textarea id="suspendReason" name="reason" class="form-control" rows="3" maxlength="500" placeholder="For example: payment overdue, abuse report, maintenance...">{{ old('reason') }}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label" for="suspendDuration">For how long</label>
+                                <select id="suspendDuration" name="duration" class="form-control" data-suspension-duration>
+                                    <option value="forever">Until I lift it</option>
+                                    <option value="1h">1 hour from now</option>
+                                    <option value="6h">6 hours from now</option>
+                                    <option value="24h">24 hours from now</option>
+                                    <option value="3d">3 days from now</option>
+                                    <option value="7d">7 days from now</option>
+                                    <option value="30d">30 days from now</option>
+                                    <option value="custom">Until a date I choose...</option>
+                                </select>
+                            </div>
+                            <div class="form-group" data-suspension-custom style="display: none;">
+                                <label class="control-label" for="suspendUntil">End date and time</label>
+                                <input type="datetime-local" id="suspendUntil" name="until" class="form-control" value="{{ old('until') }}" />
+                                <p class="text-muted small">In the panel's timezone ({{ config('app.timezone') }}). The server gets its access back by itself, checked every minute.</p>
+                            </div>
+                        </div>
+                        <div class="box-footer">
                             {!! csrf_field() !!}
                             <input type="hidden" name="action" value="suspend" />
                             <button type="submit" class="btn btn-warning @if(! is_null($server->transfer)) disabled @endif">Suspend Server</button>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         @else
+            @php($suspension = \Pterodactyl\Models\ServerSuspension::forServer($server))
             <div class="col-sm-4">
                 <div class="box box-success">
                     <div class="box-header with-border">
-                        <h3 class="box-title">Unsuspend Server</h3>
+                        <h3 class="box-title">Suspension</h3>
                     </div>
-                    <div class="box-body">
-                        <p>This will unsuspend the server and restore normal user access.</p>
-                    </div>
-                    <div class="box-footer">
-                        <form action="{{ route('admin.servers.view.manage.suspension', $server->id) }}" method="POST">
+                    <form action="{{ route('admin.servers.view.manage.suspension', $server->id) }}" method="POST">
+                        <div class="box-body">
+                            <table class="table table-condensed" style="margin-bottom: 10px;">
+                                <tr>
+                                    <td class="text-muted" style="width: 30%;">Since</td>
+                                    <td>{{ $suspension?->created_at ? $suspension->created_at->format('M j, Y H:i') : 'Unknown' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">By</td>
+                                    <td>{{ $suspension?->admin?->username ?? 'Unknown' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Until</td>
+                                    <td>
+                                        @if($suspension?->suspended_until)
+                                            {{ $suspension->suspended_until->format('M j, Y H:i') }} <span class="text-muted">({{ $suspension->suspended_until->diffForHumans() }})</span>
+                                        @else
+                                            Until an administrator lifts it
+                                        @endif
+                                    </td>
+                                </tr>
+                            </table>
+                            <div class="form-group">
+                                <label class="control-label" for="suspendReason">Reason <span class="text-muted small">shown to the user</span></label>
+                                <textarea id="suspendReason" name="reason" class="form-control" rows="3" maxlength="500" placeholder="No reason given">{{ old('reason', $suspension?->reason) }}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label" for="suspendDuration">End of the suspension</label>
+                                <select id="suspendDuration" name="duration" class="form-control" data-suspension-duration>
+                                    <option value="keep">Keep the end date as it is</option>
+                                    <option value="forever">Until I lift it</option>
+                                    <option value="1h">1 hour from now</option>
+                                    <option value="6h">6 hours from now</option>
+                                    <option value="24h">24 hours from now</option>
+                                    <option value="3d">3 days from now</option>
+                                    <option value="7d">7 days from now</option>
+                                    <option value="30d">30 days from now</option>
+                                    <option value="custom">Until a date I choose...</option>
+                                </select>
+                            </div>
+                            <div class="form-group" data-suspension-custom style="display: none;">
+                                <label class="control-label" for="suspendUntil">End date and time</label>
+                                <input type="datetime-local" id="suspendUntil" name="until" class="form-control" value="{{ old('until') }}" />
+                                <p class="text-muted small">In the panel's timezone ({{ config('app.timezone') }}).</p>
+                            </div>
+                        </div>
+                        <div class="box-footer">
                             {!! csrf_field() !!}
-                            <input type="hidden" name="action" value="unsuspend" />
-                            <button type="submit" class="btn btn-success">Unsuspend Server</button>
-                        </form>
-                    </div>
+                            <button type="submit" name="action" value="update" class="btn btn-default">Save changes</button>
+                            <button type="submit" name="action" value="unsuspend" class="btn btn-success pull-right">Unsuspend Server</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         @endif
@@ -202,4 +267,11 @@
     @if($canTransfer)
         {!! Theme::js('js/admin/server/transfer.js') !!}
     @endif
+
+    <script>
+        // The date field only shows when "Until a date I choose" is picked.
+        $('[data-suspension-duration]').on('change', function () {
+            $('[data-suspension-custom]').toggle($(this).val() === 'custom');
+        }).trigger('change');
+    </script>
 @endsection

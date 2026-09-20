@@ -22,12 +22,40 @@ export default createGlobalStyle`
         letter-spacing: 0.015em;
         min-height: 100vh;
         background-color: #05070d;
+    }
+
+    /*
+     * The glow behind the page lives on its own fixed layer. With "background-attachment: fixed"
+     * the browser repaints the whole gradient on every scroll frame, which is what made the
+     * console page feel heavy.
+     */
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
         background-image:
             radial-gradient(1100px circle at 8% -10%, rgba(99, 102, 241, 0.16), transparent 55%),
             radial-gradient(900px circle at 100% 0%, rgba(6, 182, 212, 0.10), transparent 50%),
             radial-gradient(1200px circle at 50% 120%, rgba(139, 92, 246, 0.08), transparent 55%);
-        background-attachment: fixed;
-        background-repeat: no-repeat;
+        transform: translateZ(0);
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
     }
 
     ::selection {

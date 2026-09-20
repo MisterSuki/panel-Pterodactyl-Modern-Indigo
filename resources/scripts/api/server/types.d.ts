@@ -27,3 +27,16 @@ export interface ServerEggVariable {
     isEditable: boolean;
     rules: string[];
 }
+
+export type BackupFrequency = '6h' | '12h' | '24h' | '7d';
+
+export interface ServerBackupPlan {
+    enabled: boolean;
+    frequency: BackupFrequency;
+    hour: number | null;
+    keep: number;
+    ignored: string | null;
+    nextRunAt: Date | null;
+    lastRunAt: Date | null;
+    lastError: string | null;
+}

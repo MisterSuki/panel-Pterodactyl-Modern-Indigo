@@ -14,7 +14,7 @@ Route::get('/', [Admin\BaseController::class, 'index'])->name('admin.index');
 | Endpoint: /admin/api
 |
 */
-Route::group(['prefix' => 'api'], function () {
+Route::group(['prefix' => 'api', 'middleware' => 'admin.can:root'], function () {
     Route::get('/', [Admin\ApiController::class, 'index'])->name('admin.api.index');
     Route::get('/new', [Admin\ApiController::class, 'create'])->name('admin.api.new');
 
@@ -31,7 +31,7 @@ Route::group(['prefix' => 'api'], function () {
 | Endpoint: /admin/locations
 |
 */
-Route::group(['prefix' => 'locations'], function () {
+Route::group(['prefix' => 'locations', 'middleware' => 'admin.can:locations'], function () {
     Route::get('/', [Admin\LocationController::class, 'index'])->name('admin.locations');
     Route::get('/view/{location:id}', [Admin\LocationController::class, 'view'])->name('admin.locations.view');
 
@@ -47,7 +47,7 @@ Route::group(['prefix' => 'locations'], function () {
 | Endpoint: /admin/databases
 |
 */
-Route::group(['prefix' => 'databases'], function () {
+Route::group(['prefix' => 'databases', 'middleware' => 'admin.can:databases'], function () {
     Route::get('/', [Admin\DatabaseController::class, 'index'])->name('admin.databases');
     Route::get('/view/{host:id}', [Admin\DatabaseController::class, 'view'])->name('admin.databases.view');
 
@@ -64,7 +64,7 @@ Route::group(['prefix' => 'databases'], function () {
 | Endpoint: /admin/settings
 |
 */
-Route::group(['prefix' => 'settings'], function () {
+Route::group(['prefix' => 'settings', 'middleware' => 'admin.can:settings,manage'], function () {
     Route::get('/', [Admin\Settings\IndexController::class, 'index'])->name('admin.settings');
     Route::get('/mail', [Admin\Settings\MailController::class, 'index'])->name('admin.settings.mail');
     Route::get('/advanced', [Admin\Settings\AdvancedController::class, 'index'])->name('admin.settings.advanced');
@@ -84,7 +84,7 @@ Route::group(['prefix' => 'settings'], function () {
 | Endpoint: /admin/users
 |
 */
-Route::group(['prefix' => 'users'], function () {
+Route::group(['prefix' => 'users', 'middleware' => 'admin.can:users'], function () {
     Route::get('/', [Admin\UserController::class, 'index'])->name('admin.users');
     Route::get('/accounts.json', [Admin\UserController::class, 'json'])->name('admin.users.json');
     Route::get('/new', [Admin\UserController::class, 'create'])->name('admin.users.new');
@@ -104,7 +104,7 @@ Route::group(['prefix' => 'users'], function () {
 | Endpoint: /admin/servers
 |
 */
-Route::group(['prefix' => 'servers'], function () {
+Route::group(['prefix' => 'servers', 'middleware' => 'admin.can:servers'], function () {
     Route::get('/', [Admin\Servers\ServerController::class, 'index'])->name('admin.servers');
     Route::get('/new', [Admin\Servers\CreateServerController::class, 'index'])->name('admin.servers.new');
     Route::get('/view/{server:id}', [Admin\Servers\ServerViewController::class, 'index'])->name('admin.servers.view');
@@ -113,7 +113,7 @@ Route::group(['prefix' => 'servers'], function () {
         Route::get('/view/{server:id}/details', [Admin\Servers\ServerViewController::class, 'details'])->name('admin.servers.view.details');
         Route::get('/view/{server:id}/build', [Admin\Servers\ServerViewController::class, 'build'])->name('admin.servers.view.build');
         Route::get('/view/{server:id}/startup', [Admin\Servers\ServerViewController::class, 'startup'])->name('admin.servers.view.startup');
-        Route::get('/view/{server:id}/database', [Admin\Servers\ServerViewController::class, 'database'])->name('admin.servers.view.database');
+        Route::get('/view/{server:id}/database', [Admin\Servers\ServerViewController::class, 'database'])->name('admin.servers.view.database')->middleware('admin.can:servers,manage');
         Route::get('/view/{server:id}/mounts', [Admin\Servers\ServerViewController::class, 'mounts'])->name('admin.servers.view.mounts');
     });
 
@@ -147,15 +147,16 @@ Route::group(['prefix' => 'servers'], function () {
 | Endpoint: /admin/nodes
 |
 */
-Route::group(['prefix' => 'nodes'], function () {
+Route::group(['prefix' => 'nodes', 'middleware' => 'admin.can:nodes'], function () {
     Route::get('/', [Admin\Nodes\NodeController::class, 'index'])->name('admin.nodes');
     Route::get('/new', [Admin\NodesController::class, 'create'])->name('admin.nodes.new');
     Route::get('/view/{node:id}', [Admin\Nodes\NodeViewController::class, 'index'])->name('admin.nodes.view');
     Route::get('/view/{node:id}/settings', [Admin\Nodes\NodeViewController::class, 'settings'])->name('admin.nodes.view.settings');
-    Route::get('/view/{node:id}/configuration', [Admin\Nodes\NodeViewController::class, 'configuration'])->name('admin.nodes.view.configuration');
+    Route::get('/view/{node:id}/configuration', [Admin\Nodes\NodeViewController::class, 'configuration'])->name('admin.nodes.view.configuration')->middleware('admin.can:nodes,manage');
     Route::get('/view/{node:id}/allocation', [Admin\Nodes\NodeViewController::class, 'allocations'])->name('admin.nodes.view.allocation');
     Route::get('/view/{node:id}/servers', [Admin\Nodes\NodeViewController::class, 'servers'])->name('admin.nodes.view.servers');
     Route::get('/view/{node:id}/system-information', Admin\Nodes\SystemInformationController::class);
+    Route::get('/view/{node:id}/utilization', Admin\Nodes\NodeUtilizationController::class)->name('admin.nodes.view.utilization');
 
     Route::post('/new', [Admin\NodesController::class, 'store']);
     Route::post('/view/{node:id}/allocation', [Admin\NodesController::class, 'createAllocation']);
@@ -178,7 +179,7 @@ Route::group(['prefix' => 'nodes'], function () {
 | Endpoint: /admin/mounts
 |
 */
-Route::group(['prefix' => 'mounts'], function () {
+Route::group(['prefix' => 'mounts', 'middleware' => 'admin.can:mounts'], function () {
     Route::get('/', [Admin\MountController::class, 'index'])->name('admin.mounts');
     Route::get('/view/{mount:id}', [Admin\MountController::class, 'view'])->name('admin.mounts.view');
 
@@ -200,7 +201,7 @@ Route::group(['prefix' => 'mounts'], function () {
 | Endpoint: /admin/nests
 |
 */
-Route::group(['prefix' => 'nests'], function () {
+Route::group(['prefix' => 'nests', 'middleware' => 'admin.can:nests'], function () {
     Route::get('/', [Admin\Nests\NestController::class, 'index'])->name('admin.nests');
     Route::get('/new', [Admin\Nests\NestController::class, 'create'])->name('admin.nests.new');
     Route::get('/view/{nest:id}', [Admin\Nests\NestController::class, 'view'])->name('admin.nests.view');
@@ -209,6 +210,8 @@ Route::group(['prefix' => 'nests'], function () {
     Route::get('/egg/{egg:id}/export', [Admin\Nests\EggShareController::class, 'export'])->name('admin.nests.egg.export');
     Route::get('/egg/{egg:id}/variables', [Admin\Nests\EggVariableController::class, 'view'])->name('admin.nests.egg.variables');
     Route::get('/egg/{egg:id}/scripts', [Admin\Nests\EggScriptController::class, 'index'])->name('admin.nests.egg.scripts');
+    Route::get('/community-eggs', [Admin\Nests\CommunityEggController::class, 'search'])->name('admin.nests.community.search');
+    Route::post('/community-eggs/import', [Admin\Nests\CommunityEggController::class, 'import'])->name('admin.nests.community.import');
 
     Route::post('/new', [Admin\Nests\NestController::class, 'store']);
     Route::post('/import', [Admin\Nests\EggShareController::class, 'import'])->name('admin.nests.egg.import');
@@ -225,4 +228,28 @@ Route::group(['prefix' => 'nests'], function () {
     Route::delete('/view/{nest:id}', [Admin\Nests\NestController::class, 'destroy']);
     Route::delete('/egg/{egg:id}', [Admin\Nests\EggController::class, 'destroy']);
     Route::delete('/egg/{egg:id}/variables/{variable:id}', [Admin\Nests\EggVariableController::class, 'destroy']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Staff Role Controller Routes
+|--------------------------------------------------------------------------
+|
+| Endpoint: /admin/roles
+|
+| Roles decide what members of staff can do, so they are reserved for full administrators.
+|
+*/
+Route::group(['prefix' => 'roles', 'middleware' => 'admin.can:root'], function () {
+    Route::get('/', [Admin\RoleController::class, 'index'])->name('admin.roles');
+    Route::get('/new', [Admin\RoleController::class, 'create'])->name('admin.roles.new');
+    Route::get('/view/{role:id}', [Admin\RoleController::class, 'view'])->name('admin.roles.view');
+
+    Route::post('/new', [Admin\RoleController::class, 'store']);
+    Route::post('/view/{role:id}/members', [Admin\RoleController::class, 'addMember'])->name('admin.roles.members.add');
+
+    Route::patch('/view/{role:id}', [Admin\RoleController::class, 'update']);
+
+    Route::delete('/view/{role:id}', [Admin\RoleController::class, 'delete'])->name('admin.roles.delete');
+    Route::delete('/view/{role:id}/members/{user:id}', [Admin\RoleController::class, 'removeMember'])->name('admin.roles.members.remove');
 });

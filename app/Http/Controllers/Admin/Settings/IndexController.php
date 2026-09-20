@@ -6,6 +6,8 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Prologue\Alerts\AlertsMessageBag;
 use Illuminate\Contracts\Console\Kernel;
+use Pterodactyl\Providers\SettingsServiceProvider;
+use Illuminate\Contracts\Encryption\Encrypter;
 use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\Traits\Helpers\AvailableLanguages;
 use Pterodactyl\Services\Helpers\SoftwareVersionService;
@@ -21,6 +23,7 @@ class IndexController extends Controller
      */
     public function __construct(
         private AlertsMessageBag $alert,
+        private Encrypter $encrypter,
         private Kernel $kernel,
         private SettingsRepositoryInterface $settings,
         private SoftwareVersionService $versionService,
@@ -47,7 +50,16 @@ class IndexController extends Controller
     public function update(BaseSettingsFormRequest $request): RedirectResponse
     {
         foreach ($request->normalize() as $key => $value) {
-            $this->settings->set('settings::' . $key, $value);
+            if (in_array($key, SettingsServiceProvider::getEncryptedKeys())) {
+                // Secrets are write-only: an empty field means "keep the current value".
+                if (empty($value)) {
+                    continue;
+                }
+
+                $value = $this->encrypter->encrypt($value);
+            }
+
+            $this->settings->set('settings::' . $key, $value ?? '');
         }
 
         $this->kernel->call('queue:restart');

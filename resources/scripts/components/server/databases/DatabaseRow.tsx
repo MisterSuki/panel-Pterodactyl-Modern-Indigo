@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDatabase, faEye, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faDatabase, faExternalLinkAlt, faEye, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import Modal from '@/components/elements/Modal';
 import { Form, Formik, FormikHelpers } from 'formik';
 import Field from '@/components/elements/Field';
@@ -8,6 +8,9 @@ import { object, string } from 'yup';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import { ServerContext } from '@/state/server';
 import deleteServerDatabase from '@/api/server/databases/deleteServerDatabase';
+import getPhpMyAdminLink from '@/api/server/databases/getPhpMyAdminLink';
+import { useStoreState } from 'easy-peasy';
+import { ApplicationStore } from '@/state';
 import { httpErrorToHuman } from '@/api/http';
 import RotatePasswordButton from '@/components/server/databases/RotatePasswordButton';
 import Can from '@/components/elements/Can';
@@ -30,6 +33,8 @@ export default ({ database, className }: Props) => {
     const { addError, clearFlashes } = useFlash();
     const [visible, setVisible] = useState(false);
     const [connectionVisible, setConnectionVisible] = useState(false);
+    const [openingPhpMyAdmin, setOpeningPhpMyAdmin] = useState(false);
+    const phpMyAdminEnabled = useStoreState((state: ApplicationStore) => !!state.settings.data?.phpmyadmin);
 
     const appendDatabase = ServerContext.useStoreActions((actions) => actions.databases.appendDatabase);
     const removeDatabase = ServerContext.useStoreActions((actions) => actions.databases.removeDatabase);
@@ -56,6 +61,31 @@ export default ({ database, className }: Props) => {
                 setSubmitting(false);
                 addError({ key: 'database:delete', message: httpErrorToHuman(error) });
             });
+    };
+
+    const openPhpMyAdmin = () => {
+        clearFlashes('databases');
+        // The tab is opened right away, because browsers block a window that is opened after a request finishes.
+        const tab = window.open('', '_blank');
+        if (tab) {
+            tab.opener = null;
+        }
+
+        setOpeningPhpMyAdmin(true);
+        getPhpMyAdminLink(uuid, database.id)
+            .then((url) => {
+                if (tab) {
+                    tab.location.href = url;
+                } else {
+                    window.location.href = url;
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+                tab?.close();
+                addError({ key: 'databases', message: httpErrorToHuman(error) });
+            })
+            .then(() => setOpeningPhpMyAdmin(false));
     };
 
     return (
@@ -164,7 +194,21 @@ export default ({ database, className }: Props) => {
                     </CopyOnClick>
                     <p css={tw`mt-1 text-2xs text-neutral-500 uppercase select-none`}>Username</p>
                 </div>
-                <div css={tw`ml-8`}>
+                <div css={tw`ml-8 flex items-center`}>
+                    {phpMyAdminEnabled && (
+                        <Can action={'database.view_password'}>
+                            <Button
+                                isSecondary
+                                css={tw`mr-2`}
+                                disabled={openingPhpMyAdmin}
+                                title={'Open this database in phpMyAdmin, already signed in'}
+                                onClick={openPhpMyAdmin}
+                            >
+                                <FontAwesomeIcon icon={faExternalLinkAlt} fixedWidth />
+                                <span css={tw`ml-2 hidden lg:inline`}>phpMyAdmin</span>
+                            </Button>
+                        </Can>
+                    )}
                     <Button isSecondary css={tw`mr-2`} onClick={() => setConnectionVisible(true)}>
                         <FontAwesomeIcon icon={faEye} fixedWidth />
                     </Button>

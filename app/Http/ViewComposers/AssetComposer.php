@@ -3,6 +3,10 @@
 namespace Pterodactyl\Http\ViewComposers;
 
 use Illuminate\View\View;
+use Pterodactyl\Services\Auth\AuthFeatures;
+use Pterodactyl\Services\Helpers\Locales;
+use Pterodactyl\Traits\Helpers\AvailableLanguages;
+use Pterodactyl\Services\Databases\PhpMyAdminSignOn;
 use Pterodactyl\Services\Helpers\AssetHashService;
 
 class AssetComposer
@@ -22,11 +26,19 @@ class AssetComposer
         $view->with('asset', $this->assetHashService);
         $view->with('siteConfiguration', [
             'name' => config('app.name') ?? 'Pterodactyl',
-            'locale' => config('app.locale') ?? 'en',
+            'locale' => Locales::default(),
+            'locales' => (object) (new class() {
+                use AvailableLanguages;
+            })->getAvailableLanguages(true),
             'recaptcha' => [
                 'enabled' => config('recaptcha.enabled', false),
                 'siteKey' => config('recaptcha.website_key') ?? '',
             ],
+            'registration' => AuthFeatures::registrationEnabled(),
+            'discord' => [
+                'enabled' => AuthFeatures::discordEnabled(),
+            ],
+            'phpmyadmin' => PhpMyAdminSignOn::enabled(),
         ]);
     }
 }

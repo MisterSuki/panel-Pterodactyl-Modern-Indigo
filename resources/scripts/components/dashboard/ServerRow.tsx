@@ -1,14 +1,17 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEthernet, faHdd, faMemory, faMicrochip, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
-import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
+import { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
 import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
 import tw from 'twin.macro';
 import GreyRowBox from '@/components/elements/GreyRowBox';
 import Spinner from '@/components/elements/Spinner';
-import styled, { css } from 'styled-components/macro';
+import styled, { keyframes } from 'styled-components/macro';
+import StatusPill from '@/components/server/console/StatusPill';
+import HiddenAddress from '@/components/elements/HiddenAddress';
+import { formatDistanceToNow } from 'date-fns';
 import isEqual from 'react-fast-compare';
 
 // Determines if the current value is in an alarm threshold so we can show it in red rather
@@ -27,56 +30,58 @@ const IconDescription = styled.p<{ $alarm: boolean }>`
     ${(props) => (props.$alarm ? tw`text-white` : tw`text-neutral-400`)};
 `;
 
+const slideIn = keyframes`
+    from {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0);
+    }
+`;
+
+// A thin accent on the left edge shows the power state at a glance. The cards slide in one after the
+// other (the delay comes from the list), and "backwards" keeps the hover lift working afterwards.
 const StatusIndicatorBox = styled(GreyRowBox)<{ $status: ServerPowerState | undefined }>`
     ${tw`grid grid-cols-12 gap-4 relative`};
+    animation: ${slideIn} 360ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 
-    & .status-dot {
-        ${tw`w-2.5 h-2.5 rounded-full inline-block flex-shrink-0`};
-
+    &::before {
+        content: '';
+        ${tw`absolute left-0 top-3 bottom-3 w-1 rounded-r-full transition-colors duration-300`};
         ${({ $status }) =>
-            !$status || $status === 'offline'
+            !$status
+                ? tw`bg-neutral-600`
+                : $status === 'offline'
                 ? tw`bg-red-500`
                 : $status === 'running'
                 ? tw`bg-green-400`
                 : tw`bg-yellow-400`};
-
-        ${({ $status }) =>
-            $status === 'running' &&
-            css`
-                box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.25);
-            `};
     }
 `;
 
-type Timer = ReturnType<typeof setInterval>;
+// Thin usage bar under a figure. Servers without a limit get an empty track so the columns line up.
+const Meter = ({ ratio, alarm }: { ratio: number | null; alarm: boolean }) => (
+    <div css={tw`h-1 mt-1.5 mx-auto w-full max-w-[7rem] rounded-full bg-white/5 overflow-hidden`}>
+        {ratio !== null && (
+            <div
+                css={[
+                    tw`h-full rounded-full transition-all duration-700 ease-out`,
+                    alarm ? tw`bg-red-400` : tw`bg-gradient-brand`,
+                ]}
+                style={{ width: `${Math.max(2, Math.min(100, ratio * 100))}%` }}
+            />
+        )}
+    </div>
+);
 
-export default ({ server, className }: { server: Server; className?: string }) => {
-    const interval = useRef<Timer>(null) as React.MutableRefObject<Timer>;
-    const [isSuspended, setIsSuspended] = useState(server.status === 'suspended');
-    const [stats, setStats] = useState<ServerStats | null>(null);
+interface Props {
+    server: Server;
+    // The live usage of this server. The dashboard asks for all of its servers at once, every few seconds.
+    stats?: ServerStats | null;
+    className?: string;
+    style?: React.CSSProperties;
+}
 
-    const getStats = () =>
-        getServerResourceUsage(server.uuid)
-            .then((data) => setStats(data))
-            .catch((error) => console.error(error));
-
-    useEffect(() => {
-        setIsSuspended(stats?.isSuspended || server.status === 'suspended');
-    }, [stats?.isSuspended, server.status]);
-
-    useEffect(() => {
-        // Don't waste a HTTP request if there is nothing important to show to the user because
-        // the server is suspended.
-        if (isSuspended || server.isNodeUnderMaintenance) return;
-
-        getStats().then(() => {
-            interval.current = setInterval(() => getStats(), 30000);
-        });
-
-        return () => {
-            interval.current && clearInterval(interval.current);
-        };
-    }, [isSuspended, server.isNodeUnderMaintenance]);
+const ServerRow = ({ server, stats = null, className, style }: Props) => {
+    const isSuspended = !!stats?.isSuspended || server.status === 'suspended';
 
     const alarms = { cpu: false, memory: false, disk: false };
     if (stats) {
@@ -90,18 +95,30 @@ export default ({ server, className }: { server: Server; className?: string }) =
     const cpuLimit = server.limits.cpu !== 0 ? server.limits.cpu + ' %' : 'Unlimited';
 
     return (
-        <StatusIndicatorBox as={Link} to={`/server/${server.id}`} className={className} $status={stats?.status}>
+        <StatusIndicatorBox
+            as={Link}
+            to={`/server/${server.id}`}
+            className={className}
+            style={style}
+            $status={isSuspended ? undefined : stats?.status}
+        >
             <div css={tw`flex items-center col-span-12 sm:col-span-5 lg:col-span-6`}>
                 <div className={'icon mr-4'}>
                     <FontAwesomeIcon icon={faServer} />
                 </div>
                 <div>
-                    <p css={tw`flex items-center gap-2 text-lg font-medium text-neutral-50 break-words`}>
-                        <span className={'status-dot'} />
+                    <p
+                        css={tw`flex items-center flex-wrap gap-x-3 gap-y-1 text-lg font-semibold text-neutral-50 break-words`}
+                    >
                         {server.name}
+                        {stats && !isSuspended && <StatusPill status={stats.status} />}
                     </p>
-                    {!!server.description && (
-                        <p css={tw`text-sm text-neutral-400 break-words line-clamp-2`}>{server.description}</p>
+                    {isSuspended && !!server.suspension?.reason ? (
+                        <p css={tw`text-sm text-red-300/80 break-words line-clamp-2`}>{server.suspension.reason}</p>
+                    ) : (
+                        !!server.description && (
+                            <p css={tw`text-sm text-neutral-400 break-words line-clamp-2`}>{server.description}</p>
+                        )
                     )}
                 </div>
             </div>
@@ -113,7 +130,10 @@ export default ({ server, className }: { server: Server; className?: string }) =
                             .filter((alloc) => alloc.isDefault)
                             .map((allocation) => (
                                 <React.Fragment key={allocation.ip + allocation.port.toString()}>
-                                    {allocation.alias || ip(allocation.ip)}:{allocation.port}
+                                    <HiddenAddress
+                                        host={allocation.alias || ip(allocation.ip)}
+                                        port={allocation.port}
+                                    />
                                 </React.Fragment>
                             ))}
                     </p>
@@ -128,6 +148,17 @@ export default ({ server, className }: { server: Server; className?: string }) =
                             >
                                 {server.status === 'suspended' ? 'Suspended' : 'Connection Error'}
                             </span>
+                            {server.status === 'suspended' && (
+                                <p css={tw`text-xs text-neutral-500 mt-1.5`}>
+                                    {!server.suspension?.until
+                                        ? 'Until an administrator lifts it'
+                                        : server.suspension.until.getTime() <= Date.now()
+                                        ? 'Access is about to come back'
+                                        : `Access back ${formatDistanceToNow(server.suspension.until, {
+                                              addSuffix: true,
+                                          })}`}
+                                </p>
+                            )}
                         </div>
                     ) : server.isNodeUnderMaintenance ? (
                         <div css={tw`flex-1 text-center`}>
@@ -163,7 +194,11 @@ export default ({ server, className }: { server: Server; className?: string }) =
                                     {stats.cpuUsagePercent.toFixed(2)} %
                                 </IconDescription>
                             </div>
-                            <p css={tw`text-xs text-neutral-600 text-center mt-1`}>of {cpuLimit}</p>
+                            <Meter
+                                ratio={server.limits.cpu > 0 ? stats.cpuUsagePercent / server.limits.cpu : null}
+                                alarm={alarms.cpu}
+                            />
+                            <p css={tw`text-xs text-neutral-500 text-center mt-1`}>of {cpuLimit}</p>
                         </div>
                         <div css={tw`flex-1 ml-4 sm:block hidden`}>
                             <div css={tw`flex justify-center`}>
@@ -172,7 +207,15 @@ export default ({ server, className }: { server: Server; className?: string }) =
                                     {bytesToString(stats.memoryUsageInBytes)}
                                 </IconDescription>
                             </div>
-                            <p css={tw`text-xs text-neutral-600 text-center mt-1`}>of {memoryLimit}</p>
+                            <Meter
+                                ratio={
+                                    server.limits.memory > 0
+                                        ? stats.memoryUsageInBytes / mbToBytes(server.limits.memory)
+                                        : null
+                                }
+                                alarm={alarms.memory}
+                            />
+                            <p css={tw`text-xs text-neutral-500 text-center mt-1`}>of {memoryLimit}</p>
                         </div>
                         <div css={tw`flex-1 ml-4 sm:block hidden`}>
                             <div css={tw`flex justify-center`}>
@@ -181,7 +224,15 @@ export default ({ server, className }: { server: Server; className?: string }) =
                                     {bytesToString(stats.diskUsageInBytes)}
                                 </IconDescription>
                             </div>
-                            <p css={tw`text-xs text-neutral-600 text-center mt-1`}>of {diskLimit}</p>
+                            <Meter
+                                ratio={
+                                    server.limits.disk > 0
+                                        ? stats.diskUsageInBytes / mbToBytes(server.limits.disk)
+                                        : null
+                                }
+                                alarm={alarms.disk}
+                            />
+                            <p css={tw`text-xs text-neutral-500 text-center mt-1`}>of {diskLimit}</p>
                         </div>
                     </React.Fragment>
                 )}
@@ -189,3 +240,5 @@ export default ({ server, className }: { server: Server; className?: string }) =
         </StatusIndicatorBox>
     );
 };
+
+export default memo(ServerRow, isEqual);

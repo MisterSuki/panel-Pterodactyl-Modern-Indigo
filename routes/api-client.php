@@ -19,6 +19,7 @@ use Pterodactyl\Http\Middleware\Api\Client\Server\AuthenticateServerAccess;
 */
 Route::get('/', [Client\ClientController::class, 'index'])->name('api:client.index');
 Route::get('/permissions', [Client\ClientController::class, 'permissions']);
+Route::get('/resources', Client\ServerResourcesController::class)->name('api:client.resources');
 
 Route::prefix('/account')->middleware(AccountSubject::class)->group(function () {
     Route::prefix('/')->withoutMiddleware(RequireTwoFactorAuthentication::class)->group(function () {
@@ -28,12 +29,16 @@ Route::prefix('/account')->middleware(AccountSubject::class)->group(function () 
         Route::post('/two-factor/disable', [Client\TwoFactorController::class, 'delete']);
     });
 
+    Route::put('/language', [Client\AccountController::class, 'updateLanguage'])->name('api:client.account.update-language');
+
     Route::put('/email', [Client\AccountController::class, 'updateEmail'])
         ->middleware('throttle')
         ->name('api:client.account.update-email');
     Route::put('/password', [Client\AccountController::class, 'updatePassword'])->name('api:client.account.update-password');
 
     Route::get('/activity', Client\ActivityLogController::class)->name('api:client.account.activity');
+
+    Route::delete('/discord', [Client\AccountController::class, 'unlinkDiscord'])->name('api:client.account.unlink-discord');
 
     Route::get('/api-keys', [Client\ApiKeyController::class, 'index']);
     Route::post('/api-keys', [Client\ApiKeyController::class, 'store']);
@@ -68,6 +73,7 @@ Route::group([
         ->name('api:client:server.ws');
     Route::get('/resources', Client\Servers\ResourceUtilizationController::class)->name('api:client:server.resources');
     Route::get('/activity', Client\Servers\ActivityLogController::class)->name('api:client:server.activity');
+    Route::get('/fivem', Client\Servers\FiveMController::class)->name('api:client:server.fivem');
 
     Route::post('/command', [Client\Servers\CommandController::class, 'index']);
     Route::post('/power', [Client\Servers\PowerController::class, 'index']);
@@ -77,6 +83,7 @@ Route::group([
         Route::middleware([ResourceLimit::Database->middleware()])
             ->post('/', [Client\Servers\DatabaseController::class, 'store']);
         Route::post('/{database}/rotate-password', [Client\Servers\DatabaseController::class, 'rotatePassword']);
+        Route::post('/{database}/phpmyadmin', Client\Servers\DatabasePhpMyAdminController::class);
         Route::delete('/{database}', [Client\Servers\DatabaseController::class, 'delete']);
     });
 
@@ -132,6 +139,10 @@ Route::group([
     Route::group(['prefix' => '/backups'], function () {
         Route::get('/', [Client\Servers\BackupController::class, 'index']);
         Route::post('/', [Client\Servers\BackupController::class, 'store']);
+        // The automatic backups of the server. These paths come before "/{backup}", which would take "auto" for a backup.
+        Route::get('/auto', [Client\Servers\BackupPlanController::class, 'show']);
+        Route::put('/auto', [Client\Servers\BackupPlanController::class, 'update']);
+        Route::delete('/auto', [Client\Servers\BackupPlanController::class, 'destroy']);
         Route::get('/{backup}', [Client\Servers\BackupController::class, 'view']);
         Route::get('/{backup}/download', [Client\Servers\BackupController::class, 'download']);
         Route::post('/{backup}/lock', [Client\Servers\BackupController::class, 'toggleLock']);

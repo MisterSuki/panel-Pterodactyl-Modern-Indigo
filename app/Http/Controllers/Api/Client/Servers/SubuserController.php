@@ -9,6 +9,7 @@ use Pterodactyl\Facades\Activity;
 use Pterodactyl\Models\Permission;
 use Pterodactyl\Jobs\RevokeSftpAccessJob;
 use Pterodactyl\Repositories\Eloquent\SubuserRepository;
+use Pterodactyl\Services\Subusers\SubuserInviteResolver;
 use Pterodactyl\Services\Subusers\SubuserCreationService;
 use Pterodactyl\Transformers\Api\Client\SubuserTransformer;
 use Pterodactyl\Repositories\Wings\DaemonRevocationRepository;
@@ -27,6 +28,7 @@ class SubuserController extends ClientApiController
         private SubuserRepository $repository,
         private SubuserCreationService $creationService,
         private DaemonRevocationRepository $revocationRepository,
+        private SubuserInviteResolver $inviteResolver,
     ) {
         parent::__construct();
     }
@@ -63,15 +65,18 @@ class SubuserController extends ClientApiController
      */
     public function store(StoreSubuserRequest $request, Server $server): array
     {
+        // Given a Discord ID, the account that has linked it is the one invited (it has to exist already).
+        $email = $this->inviteResolver->emailFor($request->input('email'), $request->input('discord_id'));
+
         $response = $this->creationService->handle(
             $server,
-            $request->input('email'),
+            $email,
             $this->getDefaultPermissions($request)
         );
 
         Activity::event('server:subuser.create')
             ->subject($response->user)
-            ->property(['email' => $request->input('email'), 'permissions' => $this->getDefaultPermissions($request)])
+            ->property(['email' => $email, 'permissions' => $this->getDefaultPermissions($request)])
             ->log();
 
         return $this->fractal->item($response)

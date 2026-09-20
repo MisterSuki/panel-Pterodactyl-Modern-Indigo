@@ -6,6 +6,7 @@ import {
     faHdd,
     faMemory,
     faMicrochip,
+    faUsers,
     faWifi,
 } from '@fortawesome/free-solid-svg-icons';
 import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
@@ -13,6 +14,8 @@ import { ServerContext } from '@/state/server';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
 import UptimeDuration from '@/components/server/UptimeDuration';
 import StatBlock from '@/components/server/console/StatBlock';
+import HiddenAddress from '@/components/elements/HiddenAddress';
+import useFiveM from '@/components/server/console/useFiveM';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import classNames from 'classnames';
 import { capitalize } from '@/lib/strings';
@@ -43,6 +46,7 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
     const [stats, setStats] = useState<Stats>({ memory: 0, cpu: 0, disk: 0, uptime: 0, tx: 0, rx: 0 });
 
     const status = ServerContext.useStoreState((state) => state.status.value);
+    const fivem = useFiveM();
     const connected = ServerContext.useStoreState((state) => state.socket.connected);
     const instance = ServerContext.useStoreState((state) => state.socket.instance);
     const limits = ServerContext.useStoreState((state) => state.server.data!.limits);
@@ -56,11 +60,17 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
         [limits]
     );
 
-    const allocation = ServerContext.useStoreState((state) => {
+    const allocationHost = ServerContext.useStoreState((state) => {
         const match = state.server.data!.allocations.find((allocation) => allocation.isDefault);
 
-        return !match ? 'n/a' : `${match.alias || ip(match.ip)}:${match.port}`;
+        return !match ? null : match.alias || ip(match.ip);
     });
+    const allocationPort = ServerContext.useStoreState(
+        (state) => state.server.data!.allocations.find((allocation) => allocation.isDefault)?.port
+    );
+    // What gets copied is always the real address, even while it is hidden on screen.
+    const allocation =
+        allocationHost === null || allocationPort === undefined ? 'n/a' : `${allocationHost}:${allocationPort}`;
 
     useEffect(() => {
         if (!connected || !instance) {
@@ -91,8 +101,36 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
     return (
         <div className={classNames('grid grid-cols-6 gap-2 md:gap-4', className)}>
             <StatBlock icon={faWifi} title={'Address'} copyOnClick={allocation}>
-                {allocation}
+                {allocationHost === null || allocationPort === undefined ? (
+                    allocation
+                ) : (
+                    <HiddenAddress host={allocationHost} port={allocationPort} />
+                )}
             </StatBlock>
+            {fivem.isFiveM && (
+                <StatBlock
+                    icon={faUsers}
+                    title={'Players'}
+                    color={
+                        fivem.data?.online && fivem.data.players !== null && fivem.data.maxPlayers
+                            ? getBackgroundColor(fivem.data.players, fivem.data.maxPlayers)
+                            : undefined
+                    }
+                >
+                    {fivem.data?.online && fivem.data.players !== null ? (
+                        <>
+                            {fivem.data.players}
+                            {fivem.data.maxPlayers ? (
+                                <span className={'ml-1 text-gray-300 text-[70%] select-none'}>
+                                    / {fivem.data.maxPlayers}
+                                </span>
+                            ) : null}
+                        </>
+                    ) : (
+                        <span className={'text-gray-400'}>{status === 'offline' ? 'Offline' : 'Waiting...'}</span>
+                    )}
+                </StatBlock>
+            )}
             <StatBlock
                 icon={faClock}
                 title={'Uptime'}

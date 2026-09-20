@@ -18,6 +18,10 @@
 
         @include('layouts.scripts')
 
+        <script>window.PterodactylUiLocale = @json(Auth::user()->language ?? \Pterodactyl\Services\Helpers\Locales::default());</script>
+        <script>window.PterodactylDictionaryVersion = @json(\Pterodactyl\Services\Helpers\Locales::dictionaryVersion());</script>
+        <script src="/js/translator.js?v={{ @filemtime(public_path('js/translator.js')) }}"></script>
+
         @section('scripts')
             {!! Theme::css('vendor/select2/select2.min.css?t={cache-version}') !!}
             {!! Theme::css('vendor/bootstrap/bootstrap.min.css?t={cache-version}') !!}
@@ -69,59 +73,95 @@
             <aside class="main-sidebar">
                 <section class="sidebar">
                     <ul class="sidebar-menu">
+                        @php
+                            $adminUser = Auth::user();
+                            $can = fn (string $section): bool => $adminUser->canAccessAdminSection($section);
+                            $isRoot = (bool) $adminUser->root_admin;
+                            $showManagement = $isRoot || $can('databases') || $can('locations') || $can('nodes') || $can('servers') || $can('users');
+                            $showServices = $can('mounts') || $can('nests');
+                        @endphp
                         <li class="header">BASIC ADMINISTRATION</li>
                         <li class="{{ Route::currentRouteName() !== 'admin.index' ?: 'active' }}">
                             <a href="{{ route('admin.index') }}">
                                 <i class="fa fa-home"></i> <span>Overview</span>
                             </a>
                         </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.settings') ?: 'active' }}">
-                            <a href="{{ route('admin.settings')}}">
-                                <i class="fa fa-wrench"></i> <span>Settings</span>
-                            </a>
-                        </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.api') ?: 'active' }}">
-                            <a href="{{ route('admin.api.index')}}">
-                                <i class="fa fa-gamepad"></i> <span>Application API</span>
-                            </a>
-                        </li>
-                        <li class="header">MANAGEMENT</li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.databases') ?: 'active' }}">
-                            <a href="{{ route('admin.databases') }}">
-                                <i class="fa fa-database"></i> <span>Databases</span>
-                            </a>
-                        </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.locations') ?: 'active' }}">
-                            <a href="{{ route('admin.locations') }}">
-                                <i class="fa fa-globe"></i> <span>Locations</span>
-                            </a>
-                        </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.nodes') ?: 'active' }}">
-                            <a href="{{ route('admin.nodes') }}">
-                                <i class="fa fa-sitemap"></i> <span>Nodes</span>
-                            </a>
-                        </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.servers') ?: 'active' }}">
-                            <a href="{{ route('admin.servers') }}">
-                                <i class="fa fa-server"></i> <span>Servers</span>
-                            </a>
-                        </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.users') ?: 'active' }}">
-                            <a href="{{ route('admin.users') }}">
-                                <i class="fa fa-users"></i> <span>Users</span>
-                            </a>
-                        </li>
-                        <li class="header">SERVICE MANAGEMENT</li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.mounts') ?: 'active' }}">
-                            <a href="{{ route('admin.mounts') }}">
-                                <i class="fa fa-magic"></i> <span>Mounts</span>
-                            </a>
-                        </li>
-                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.nests') ?: 'active' }}">
-                            <a href="{{ route('admin.nests') }}">
-                                <i class="fa fa-th-large"></i> <span>Nests</span>
-                            </a>
-                        </li>
+                        @if($can('settings'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.settings') ?: 'active' }}">
+                                <a href="{{ route('admin.settings')}}">
+                                    <i class="fa fa-wrench"></i> <span>Settings</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($isRoot)
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.api') ?: 'active' }}">
+                                <a href="{{ route('admin.api.index')}}">
+                                    <i class="fa fa-gamepad"></i> <span>Application API</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($showManagement)
+                            <li class="header">MANAGEMENT</li>
+                        @endif
+                        @if($can('databases'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.databases') ?: 'active' }}">
+                                <a href="{{ route('admin.databases') }}">
+                                    <i class="fa fa-database"></i> <span>Databases</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($can('locations'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.locations') ?: 'active' }}">
+                                <a href="{{ route('admin.locations') }}">
+                                    <i class="fa fa-globe"></i> <span>Locations</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($can('nodes'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.nodes') ?: 'active' }}">
+                                <a href="{{ route('admin.nodes') }}">
+                                    <i class="fa fa-sitemap"></i> <span>Nodes</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($can('servers'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.servers') ?: 'active' }}">
+                                <a href="{{ route('admin.servers') }}">
+                                    <i class="fa fa-server"></i> <span>Servers</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($can('users'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.users') ?: 'active' }}">
+                                <a href="{{ route('admin.users') }}">
+                                    <i class="fa fa-users"></i> <span>Users</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($isRoot)
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.roles') ?: 'active' }}">
+                                <a href="{{ route('admin.roles') }}">
+                                    <i class="fa fa-id-badge"></i> <span>Staff Roles</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($showServices)
+                            <li class="header">SERVICE MANAGEMENT</li>
+                        @endif
+                        @if($can('mounts'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.mounts') ?: 'active' }}">
+                                <a href="{{ route('admin.mounts') }}">
+                                    <i class="fa fa-magic"></i> <span>Mounts</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if($can('nests'))
+                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.nests') ?: 'active' }}">
+                                <a href="{{ route('admin.nests') }}">
+                                    <i class="fa fa-th-large"></i> <span>Nests</span>
+                                </a>
+                            </li>
+                        @endif
                     </ul>
                 </section>
             </aside>
@@ -159,7 +199,12 @@
                     <strong><i class="fa fa-fw {{ $appIsGit ? 'fa-git-square' : 'fa-code-fork' }}"></i></strong> {{ $appVersion }}<br />
                     <strong><i class="fa fa-fw fa-clock-o"></i></strong> {{ round(microtime(true) - LARAVEL_START, 3) }}s
                 </div>
-                Copyright &copy; 2015 - {{ date('Y') }} <a href="https://pterodactyl.io/">Pterodactyl Software</a>.
+                @php($copyright = \Pterodactyl\Services\Helpers\Copyright::custom())
+                @if ($copyright)
+                    @if ($copyright['url'])<a href="{{ $copyright['url'] }}" rel="noopener nofollow noreferrer" target="_blank">{{ $copyright['text'] }}</a>@else{{ $copyright['text'] }}@endif
+                @else
+                    Copyright &copy; 2015 - {{ date('Y') }} <a href="https://pterodactyl.io/">Pterodactyl Software</a>.
+                @endif
             </footer>
         </div>
         @section('footer-scripts')
@@ -176,7 +221,7 @@
             {!! Theme::js('js/admin/functions.js?t={cache-version}') !!}
             <script src="/js/autocomplete.js" type="application/javascript"></script>
 
-            @if(Auth::user()->root_admin)
+            @if(Auth::user()->isStaff())
                 <script>
                     $('#logoutButton').on('click', function (event) {
                         event.preventDefault();
@@ -208,6 +253,56 @@
                 $(function () {
                     $('[data-toggle="tooltip"]').tooltip();
                 })
+            </script>
+
+            <script>
+                // Memory and disk are kept in MiB by the panel, but people think in GB. A field marked data-gb is shown
+                // in GB (1 GB = 1024 MiB) and still sends MiB. The real value is only rewritten when the field is edited,
+                // so a server with 1500 MiB is not changed just by saving the page.
+                $(function () {
+                    $('input[data-gb]').each(function () {
+                        var $shown = $(this);
+                        var name = $shown.attr('name');
+                        var id = $shown.attr('id');
+                        var mib = $.trim($shown.val());
+                        var $hidden = $('<input type="hidden">').attr('name', name).val(mib);
+                        var $group = $shown.closest('.input-group');
+                        var $hint = $('<p class="text-muted small" style="margin: 4px 0 0;"></p>');
+
+                        $shown.removeAttr('name').removeAttr('data-gb');
+                        if (id) {
+                            $hidden.attr('id', id);
+                            $shown.attr('id', id + 'Gb');
+                            $('label[for="' + id + '"]').attr('for', id + 'Gb');
+                        }
+                        ($group.length ? $group : $shown).before($hidden);
+                        ($group.length ? $group : $shown).after($hint);
+                        $group.find('.input-group-addon').text('GB').attr('title', '1 GB = 1024 MiB');
+
+                        function show() {
+                            var value = $hidden.val();
+                            $hint.text(/^\d+$/.test(value) && parseInt(value, 10) > 0 ? '= ' + parseInt(value, 10).toLocaleString('en-US') + ' MiB' : (value === '0' ? 'Unlimited' : ''));
+                        }
+
+                        if (/^-?\d+(\.\d+)?$/.test(mib)) {
+                            $shown.val(String(parseFloat((parseFloat(mib) / 1024).toFixed(3))));
+                        }
+                        show();
+
+                        $shown.on('input change', function () {
+                            var raw = $.trim($shown.val()).replace(',', '.');
+                            if (raw === '') {
+                                $hidden.val('');
+                            } else if (/^\d+(\.\d+)?$/.test(raw)) {
+                                $hidden.val(String(Math.round(parseFloat(raw) * 1024)));
+                            } else {
+                                // Not a number: sent as typed, so the panel's own validation reports it.
+                                $hidden.val(raw);
+                            }
+                            show();
+                        });
+                    });
+                });
             </script>
         @show
     </body>

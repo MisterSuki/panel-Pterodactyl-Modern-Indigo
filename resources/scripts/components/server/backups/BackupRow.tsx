@@ -71,6 +71,20 @@ export default ({ backup, className }: Props) => {
                             </span>
                         )}
                         <p css={tw`break-words truncate`}>{backup.name}</p>
+                        {backup.name.startsWith('Automatic backup') && (
+                            <span
+                                css={tw`ml-2 flex-none bg-primary-500/20 py-px px-2 rounded-full text-primary-200 text-2xs uppercase tracking-wider border border-primary-500/30`}
+                            >
+                                Auto
+                            </span>
+                        )}
+                        {backup.isLocked && backup.completedAt !== null && (
+                            <span
+                                css={tw`ml-2 flex-none bg-yellow-500/20 py-px px-2 rounded-full text-yellow-300 text-2xs uppercase tracking-wider border border-yellow-500/30`}
+                            >
+                                Locked
+                            </span>
+                        )}
                         {backup.completedAt !== null && backup.isSuccessful && (
                             <span css={tw`ml-3 text-neutral-300 text-xs font-extralight hidden sm:inline`}>
                                 {bytesToString(backup.bytes)}

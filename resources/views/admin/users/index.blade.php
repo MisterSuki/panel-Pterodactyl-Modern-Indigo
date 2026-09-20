@@ -38,6 +38,7 @@
                             <th>Email</th>
                             <th>Client Name</th>
                             <th>Username</th>
+                            <th>Discord</th>
                             <th class="text-center">2FA</th>
                             <th class="text-center"><span data-toggle="tooltip" data-placement="top" title="Servers that this user is marked as the owner of.">Servers Owned</span></th>
                             <th class="text-center"><span data-toggle="tooltip" data-placement="top" title="Servers that this user can access because they are marked as a subuser.">Can Access</span></th>
@@ -48,9 +49,16 @@
                         @foreach ($users as $user)
                             <tr class="align-middle">
                                 <td><code>{{ $user->id }}</code></td>
-                                <td><a href="{{ route('admin.users.view', $user->id) }}">{{ $user->email }}</a> @if($user->root_admin)<i class="fa fa-star text-yellow"></i>@endif</td>
+                                <td><a href="{{ route('admin.users.view', $user->id) }}">{{ $user->email }}</a> @if($user->root_admin)<i class="fa fa-star text-yellow"></i>@elseif($user->adminRole)<span class="label label-primary" data-toggle="tooltip" title="Staff role">{{ $user->adminRole->name }}</span>@endif</td>
                                 <td>{{ $user->name_last }}, {{ $user->name_first }}</td>
                                 <td>{{ $user->username }}</td>
+                                <td>
+                                    @if($user->discord_id)
+                                        <span class="discord-tag" data-toggle="tooltip" data-placement="top" title="Discord ID {{ $user->discord_id }}">{{ $user->discord_username ?: $user->discord_id }}</span>
+                                    @else
+                                        <span class="text-muted" data-toggle="tooltip" data-placement="top" title="Not linked to a Discord account">&mdash;</span>
+                                    @endif
+                                </td>
                                 <td class="text-center">
                                     @if($user->use_totp)
                                         <i class="fa fa-lock text-green"></i>
@@ -76,4 +84,11 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('footer-scripts')
+    @parent
+    <style>
+        .discord-tag { display: inline-block; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #c7d2fe; background: rgba(88, 101, 242, 0.22); border: 1px solid rgba(88, 101, 242, 0.45); }
+    </style>
 @endsection

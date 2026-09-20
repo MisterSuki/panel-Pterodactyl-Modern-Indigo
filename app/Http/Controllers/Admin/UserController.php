@@ -12,6 +12,7 @@ use Prologue\Alerts\AlertsMessageBag;
 use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\View\Factory as ViewFactory;
 use Pterodactyl\Exceptions\DisplayException;
+use Pterodactyl\Models\AdminRole;
 use Pterodactyl\Http\Controllers\Controller;
 use Illuminate\Contracts\Translation\Translator;
 use Pterodactyl\Services\Users\UserUpdateService;
@@ -21,6 +22,7 @@ use Pterodactyl\Services\Users\UserDeletionService;
 use Pterodactyl\Http\Requests\Admin\UserFormRequest;
 use Pterodactyl\Http\Requests\Admin\NewUserFormRequest;
 use Pterodactyl\Contracts\Repository\UserRepositoryInterface;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class UserController extends Controller
 {
@@ -46,7 +48,7 @@ class UserController extends Controller
     public function index(Request $request): View
     {
         $users = QueryBuilder::for(
-            User::query()->select('users.*')
+            User::query()->with('adminRole')->select('users.*')
                 ->selectRaw('COUNT(DISTINCT(subusers.id)) as subuser_of_count')
                 ->selectRaw('COUNT(DISTINCT(servers.id)) as servers_count')
                 ->leftJoin('subusers', 'subusers.user_id', '=', 'users.id')
@@ -68,6 +70,7 @@ class UserController extends Controller
     {
         return view('admin.users.new', [
             'languages' => $this->getAvailableLanguages(true),
+            'roles' => AdminRole::query()->orderBy('name')->get(),
         ]);
     }
 
@@ -79,6 +82,7 @@ class UserController extends Controller
         return view('admin.users.view', [
             'user' => $user,
             'languages' => $this->getAvailableLanguages(true),
+            'roles' => AdminRole::query()->orderBy('name')->get(),
         ]);
     }
 
@@ -90,6 +94,8 @@ class UserController extends Controller
      */
     public function delete(Request $request, User $user): RedirectResponse
     {
+        $this->assertCanChange($request, $user);
+
         if ($request->user()->is($user)) {
             throw new DisplayException(__('admin/user.exceptions.delete_self'));
         }
@@ -107,7 +113,10 @@ class UserController extends Controller
      */
     public function store(NewUserFormRequest $request): RedirectResponse
     {
-        $user = $this->creationService->handle($request->normalize());
+        $data = $request->normalize();
+        $this->assertCannotGrantAccess($request, $data);
+
+        $user = $this->creationService->handle($data);
         $this->alert->success($this->translator->get('admin/user.notices.account_created'))->flash();
 
         return redirect()->route('admin.users.view', $user->id);
@@ -121,9 +130,17 @@ class UserController extends Controller
      */
     public function update(UserFormRequest $request, User $user): RedirectResponse
     {
+        $this->assertCanChange($request, $user);
+
+        $data = $request->normalize();
+        $this->assertCannotGrantAccess($request, $data);
+        if (!$request->user()->root_admin) {
+            unset($data['root_admin'], $data['admin_role_id']);
+        }
+
         $this->updateService
             ->setUserLevel(User::USER_LEVEL_ADMIN)
-            ->handle($user, $request->normalize());
+            ->handle($user, $data);
 
         $this->alert->success(trans('admin/user.notices.account_updated'))->flash();
 
@@ -152,5 +169,34 @@ class UserController extends Controller
 
             return $item;
         });
+    }
+
+    /**
+     * Staff can only change regular users. Administrators and other staff are off limits,
+     * otherwise changing someone's email or password would be a way to take over their access.
+     *
+     * @throws AccessDeniedHttpException
+     */
+    private function assertCanChange(Request $request, User $target): void
+    {
+        if (!$request->user()->root_admin && $target->isStaff()) {
+            throw new AccessDeniedHttpException('Only administrators can change administrators or other staff.');
+        }
+    }
+
+    /**
+     * Only administrators can make someone an administrator or give them a staff role.
+     *
+     * @throws AccessDeniedHttpException
+     */
+    private function assertCannotGrantAccess(Request $request, array $data): void
+    {
+        if ($request->user()->root_admin) {
+            return;
+        }
+
+        if (!empty($data['root_admin']) || !empty($data['admin_role_id'])) {
+            throw new AccessDeniedHttpException('Only administrators can grant administrator access or a staff role.');
+        }
     }
 }

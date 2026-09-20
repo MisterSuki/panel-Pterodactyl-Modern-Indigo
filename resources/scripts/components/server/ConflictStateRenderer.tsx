@@ -4,10 +4,12 @@ import ScreenBlock from '@/components/elements/ScreenBlock';
 import ServerInstallSvg from '@/assets/images/server_installing.svg';
 import ServerErrorSvg from '@/assets/images/server_error.svg';
 import ServerRestoreSvg from '@/assets/images/server_restore.svg';
+import SuspensionDetails from '@/components/server/SuspensionDetails';
 
 export default () => {
     const status = ServerContext.useStoreState((state) => state.server.data?.status || null);
     const isTransferring = ServerContext.useStoreState((state) => state.server.data?.isTransferring || false);
+    const suspension = ServerContext.useStoreState((state) => state.server.data?.suspension || null);
     const isNodeUnderMaintenance = ServerContext.useStoreState(
         (state) => state.server.data?.isNodeUnderMaintenance || false
     );
@@ -22,8 +24,10 @@ export default () => {
         <ScreenBlock
             title={'Server Suspended'}
             image={ServerErrorSvg}
-            message={'This server is suspended and cannot be accessed.'}
-        />
+            message={'This server is suspended and cannot be accessed for now.'}
+        >
+            <SuspensionDetails suspension={suspension} />
+        </ScreenBlock>
     ) : isNodeUnderMaintenance ? (
         <ScreenBlock
             title={'Node under Maintenance'}
