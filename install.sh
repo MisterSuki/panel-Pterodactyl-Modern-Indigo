@@ -11,14 +11,14 @@
 #   - PHPMYADMIN, so a database can be opened from the panel in one click, already signed in,
 #   - and the way back: the official panel again, keeping servers, users and every setting.
 #
-#   bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh)
-#   bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --help
+#   bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh)
+#   bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --help
 #
 # Supported systems for a new install: Ubuntu 22.04 / 24.04 and Debian 11 / 12.
 #
 set -Eeuo pipefail
 
-REPO="${THEME_REPO:-MisterSuki/panel-ptero-terra}"
+REPO="${THEME_REPO:-MisterSuki/panel-Pterodactyl-Modern-Indigo}"
 BRANCH="${THEME_BRANCH:-main}"
 PANEL_PATH="${PANEL_PATH:-/var/www/pterodactyl}"
 BACKUP_ROOT="${BACKUP_ROOT:-/var/backups/pterodactyl-theme}"

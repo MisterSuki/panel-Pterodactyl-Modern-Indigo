@@ -40,7 +40,7 @@ et **un seul script** qui installe tout.
 Sur ton serveur, **en root** :
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh)
 ```
 
 Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
@@ -211,7 +211,7 @@ Panel de A à Z, Wings, mise à jour avec **sauvegarde et retour en arrière**, 
 Sur un serveur **vierge** Ubuntu 22.04 / 24.04 ou Debian 11 / 12, avec un nom de domaine qui pointe déjà vers lui :
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --panel
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --panel
 ```
 
 Il pose quelques questions (domaine, email, compte administrateur) puis fait tout, comme
@@ -238,7 +238,7 @@ Il pose quelques questions (domaine, email, compte administrateur) puis fait tou
 <br>
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) \
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) \
   --panel --yes --fqdn=panel.example.com --email=toi@example.com --admin-user=toi
 ```
 
@@ -257,7 +257,7 @@ Une fois le panel installé, crée une **Location** puis un **Node** dans *Admin
 serveurs de jeu :
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --wings
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --wings
 ```
 
 Il installe Docker, télécharge Wings et crée le service `wings`. Il te reste à coller la configuration du node
@@ -271,7 +271,7 @@ Il installe Docker, télécharge Wings et crée le service `wings`. Il te reste 
 Donne-lui l'adresse du panel, un jeton d'API et le numéro du node :
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) \
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) \
   --wings --panel-url=https://panel.example.com --wings-token=ptla_xxx --node-id=1
 ```
 
@@ -280,7 +280,7 @@ bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/ma
 ### 🔄 Mettre à jour un panel existant
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --update
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --update
 ```
 
 Il installe tout le contenu de ce dépôt sur ton panel **1.15.1** : le design, l'inscription, Discord, les rôles et
@@ -304,7 +304,7 @@ Il refuse une version de panel différente de 1.15.1 (sauf avec `--force`).
 **Pour revenir en arrière :**
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --restore
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --restore
 ```
 
 Les fichiers remplacés sont remis et ceux que la mise à jour a ajoutés sont supprimés. La base de données n'est pas
@@ -319,7 +319,7 @@ ensuite avec `yarn build:production`.
 ### 🧹 Désinstaller le thème
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --uninstall
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --uninstall
 ```
 
 Il remet le panel Pterodactyl officiel, avec son design et son dashboard d'origine. **Rien de ce que tu as créé n'est
@@ -344,7 +344,7 @@ perdu** : serveurs, utilisateurs, nodes, allocations, sauvegardes, bases de donn
 - le dossier `resources/scripts` est remplacé par celui d'origine (une sauvegarde est faite au cas où tu y aurais
   ajouté tes propres fichiers) ;
 - phpMyAdmin reste installé mais le bouton disparaît, car le panel d'origine ne le connaît pas ;
-- pour **remettre le thème** tel qu'il était : `bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --restore`.
+- pour **remettre le thème** tel qu'il était : `bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --restore`.
   Pour installer la dernière version du thème : `--update`.
 
 </details>
@@ -389,7 +389,7 @@ Il est installé avec le panel. Sur un panel **déjà installé avec ce thème**
 besoin) et qui tourne sous nginx :
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-ptero-terra/main/install.sh) --phpmyadmin
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --phpmyadmin
 ```
 
 Il télécharge la dernière version de phpMyAdmin dans `/var/www/phpmyadmin`, la sert à l'adresse
