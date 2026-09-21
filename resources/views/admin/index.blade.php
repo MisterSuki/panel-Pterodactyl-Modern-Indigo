@@ -147,6 +147,16 @@
     </div>
     @endisset
     <div class="{{ isset($counts['nodes']) ? 'col-md-4' : 'col-md-12' }}">
+        @isset($counts['users'])
+        <div class="pd-card" id="pd-online" data-url="{{ route('admin.presence', [], false) }}" data-user-url="{{ route('admin.users.view', ['user' => '__ID__'], false) }}" data-me="{{ $adminUser->id }}">
+            <div class="pd-card-head">
+                <h3><i class="fa fa-circle pd-live"></i> <span>Active now</span></h3>
+                <span class="pd-pill pd-pill--live" id="pd-online-count">{{ count($overview['online']) }}</span>
+            </div>
+            <div id="pd-online-list"></div>
+            <p class="pd-empty" id="pd-online-empty" style="display:none"><span>Nobody is on the panel right now.</span></p>
+        </div>
+        @endisset
         @if (!empty($actions))
         <div class="pd-card">
             <div class="pd-card-head"><h3><i class="fa fa-bolt"></i> <span>Quick actions</span></h3></div>
@@ -222,3 +232,113 @@
 </div>
 @endif
 @endsection
+
+@isset($overview['counts']['users'])
+@section('footer-scripts')
+    @parent
+    <script>
+        (function () {
+            var card = document.getElementById('pd-online');
+            if (!card) { return; }
+            var list = document.getElementById('pd-online-list');
+            var empty = document.getElementById('pd-online-empty');
+            var count = document.getElementById('pd-online-count');
+            var me = String(card.getAttribute('data-me'));
+            var userUrl = card.getAttribute('data-user-url');
+            var people = @json($overview['online']);
+            var fetchedAt = Date.now();
+
+            function el(tag, className, text) {
+                var node = document.createElement(tag);
+                if (className) { node.className = className; }
+                if (text !== undefined) { node.textContent = text; }
+                return node;
+            }
+
+            // "Just now", "42 s" or "3 min": the number and the unit are apart, so the unit can be translated.
+            function age(seconds) {
+                var time = el('time', 'pd-age');
+                if (seconds < 10) {
+                    time.appendChild(el('span', null, 'Just now'));
+                } else if (seconds < 60) {
+                    time.appendChild(document.createTextNode(seconds + ' '));
+                    time.appendChild(el('span', null, 's'));
+                } else {
+                    time.appendChild(document.createTextNode(Math.floor(seconds / 60) + ' '));
+                    time.appendChild(el('span', null, 'min'));
+                }
+                return time;
+            }
+
+            function row(person) {
+                var link = el('a', 'pd-row');
+                link.href = userUrl.replace('__ID__', encodeURIComponent(person.id));
+                var img = el('img', 'pd-avatar');
+                img.src = person.avatar;
+                img.alt = '';
+                link.appendChild(img);
+
+                var main = el('span', 'pd-row-main');
+                var name = el('strong', null, person.username);
+                main.appendChild(name);
+                var where = el('small');
+                if (person.server) {
+                    where.appendChild(el('span', null, 'On server'));
+                    where.appendChild(document.createTextNode(' ' + person.server));
+                } else {
+                    where.appendChild(el('span', null, 'On the panel'));
+                }
+                main.appendChild(where);
+                link.appendChild(main);
+
+                if (String(person.id) === me) {
+                    link.appendChild(el('span', 'pd-pill pd-pill--info')).appendChild(el('span', null, 'You'));
+                } else if (person.admin) {
+                    link.appendChild(el('span', 'pd-pill pd-pill--info')).appendChild(el('span', null, 'Administrator'));
+                }
+                link.appendChild(age(person.seconds + Math.round((Date.now() - fetchedAt) / 1000)));
+                link.setAttribute('data-seconds', person.seconds);
+
+                return link;
+            }
+
+            function render() {
+                list.textContent = '';
+                people.forEach(function (person) { list.appendChild(row(person)); });
+                count.textContent = people.length;
+                empty.style.display = people.length === 0 ? '' : 'none';
+            }
+
+            // Between two answers of the server the ages go on counting.
+            function tick() {
+                var elapsed = Math.round((Date.now() - fetchedAt) / 1000);
+                Array.prototype.forEach.call(list.children, function (link, index) {
+                    var seconds = people[index].seconds + elapsed;
+                    var current = link.querySelector('.pd-age');
+                    var fresh = age(seconds);
+                    if (current && current.textContent !== fresh.textContent) { link.replaceChild(fresh, current); }
+                });
+            }
+
+            function refresh() {
+                if (document.hidden) { return; }
+                fetch(card.getAttribute('data-url'), { credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (response) { return response.ok ? response.json() : null; })
+                    .then(function (body) {
+                        if (body && Array.isArray(body.data)) {
+                            people = body.data;
+                            fetchedAt = Date.now();
+                            render();
+                        }
+                    })
+                    .catch(function () { /* the list keeps its last state until the next try */ });
+            }
+
+            render();
+            window.setInterval(refresh, 5000);
+            window.setInterval(tick, 1000);
+            document.addEventListener('visibilitychange', refresh);
+        })();
+    </script>
+@endsection
+@endisset

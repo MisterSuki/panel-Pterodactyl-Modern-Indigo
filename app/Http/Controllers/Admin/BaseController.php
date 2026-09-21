@@ -4,6 +4,7 @@ namespace Pterodactyl\Http\Controllers\Admin;
 
 use Illuminate\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Pterodactyl\Services\Admin\OverviewService;
 use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\Services\Helpers\SoftwareVersionService;
@@ -15,6 +16,16 @@ class BaseController extends Controller
      */
     public function __construct(private SoftwareVersionService $version, private OverviewService $overview)
     {
+    }
+
+    /**
+     * The people who are on the panel right now. The home page asks for it every few seconds.
+     */
+    public function presence(Request $request): JsonResponse
+    {
+        abort_unless($request->user()->canAccessAdminSection('users'), 403);
+
+        return new JsonResponse(['object' => 'presence', 'data' => $this->overview->online()]);
     }
 
     /**

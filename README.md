@@ -447,6 +447,10 @@ gardée 6 heures pour aller vite ; le serveur du panel doit pouvoir joindre `egg
 
 ### 🎮 Joueurs connectés des jeux Steam
 
+Si le jeu ne répond pas à la requête Steam mais écrit le nombre de connexions dans sa console (par exemple
+`Incoming connection: … - 3 connections.`), le panel le lit dans la console : le compteur est mis à jour tant que la page
+Console est ouverte, et repart de zéro quand le serveur s'arrête ou démarre.
+
 Pour un serveur créé à partir d'un egg **Steam** (image SteamCMD ou variable `SRCDS_APPID` : Source, Rust, ARK, Valheim, Nova-Life…), la
 page Console affiche un bloc **Joueurs** (`6 / 25`), rafraîchi toutes les 3 secondes. Le panel interroge le jeu avec la **requête
 Steam (A2S)**, en UDP, sur chacune des **allocations** du serveur (la première qui répond est mémorisée). Les bots ne sont pas comptés.
@@ -543,6 +547,7 @@ injoignable ou occupé est réessayé 15 minutes plus tard sans gêner les autre
 | --- | --- |
 | 🔠 **Titre en 3D** | Le nom du panel (*Admin → Settings → Company Name*) s'affiche en relief dans la barre du haut et en grand sur les pages de connexion et d'inscription |
 | 🎛️ **Administration relookée** | Menu latéral avec icônes en tuiles, compteurs (serveurs, utilisateurs, nodes), carte du compte connecté et retour au dashboard ; menu réduit propre ; listes déroulantes, fenêtres de confirmation, infobulles, encadrés et pagination aux couleurs du thème ; barres de défilement fines |
+| 🟢 **Actifs en temps réel** | Sur l'accueil de l'administration, la carte *Actifs en ce moment* liste les personnes qui utilisent le panel (avatar, serveur sur lequel elles sont, il y a combien de temps), mise à jour toutes les 5 secondes. Actif = une action dans les 2 dernières minutes ; seules les sessions sont suivies (pas les clés d'API), et la liste est réservée à ceux qui peuvent voir les utilisateurs |
 | 🧭 **Accueil de l'administration** | Un vrai tableau de bord : nombre de serveurs, utilisateurs, nodes et emplacements, **capacité de chaque node** (mémoire et disque promis aux serveurs, en vert, jaune puis rouge), derniers serveurs et derniers utilisateurs, actions rapides. Un membre du staff ne voit que les sections qui lui sont ouvertes |
 | 🗂️ **Dashboard repensé** | Résumé en haut (serveurs, en ligne, CPU et mémoire cumulés), cartes éclairées selon l'état du serveur, **jauges circulaires** CPU / mémoire / disque qui passent au jaune puis au rouge, adresse floutée dans une pastille, et recherche + filtre En ligne / Hors ligne dès 4 serveurs |
 | 🖥️ **Console améliorée** | Console dans un cadre arrondi, barre d'outils **Rechercher / Copier / Pause / Clear**, `[étiquettes]` en bleu, heures en gris, erreurs en rouge, avertissements en jaune, succès en vert et traces d'exception en gris, ligne de commande avec bouton d'envoi, bouton « retour en bas » rond |

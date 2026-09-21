@@ -19,6 +19,7 @@ use Pterodactyl\Http\Middleware\SetSecurityHeaders;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Pterodactyl\Http\Middleware\Activity\TrackAPIKey;
+use Pterodactyl\Http\Middleware\TrackPresence;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Pterodactyl\Http\Middleware\MaintenanceMiddleware;
@@ -67,6 +68,7 @@ class Kernel extends HttpKernel
             VerifyCsrfToken::class,
             SubstituteBindings::class,
             LanguageMiddleware::class,
+            TrackPresence::class,
         ],
         'api' => [
             EnsureStatefulRequests::class,
@@ -75,6 +77,7 @@ class Kernel extends HttpKernel
             TrackAPIKey::class,
             RequireTwoFactorAuthentication::class,
             AuthenticateIPAccess::class,
+            TrackPresence::class,
         ],
         'application-api' => [
             SubstituteBindings::class,

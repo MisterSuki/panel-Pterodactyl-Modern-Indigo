@@ -21,14 +21,19 @@ class OverviewService
     private const NODES = 8;
 
     /**
+     * Someone who did nothing on the panel for this long is no longer "active now".
+     */
+    public const ACTIVE_SECONDS = 120;
+
+    /**
      * @param callable(string): bool $can whether the person can open a section of the administration
      *
-     * @return array{counts: array<string, array<string, int>>, nodes: array<int, array<string, mixed>>, recent_servers: array<int, array<string, mixed>>, recent_users: array<int, array<string, mixed>>}
+     * @return array{counts: array<string, array<string, int>>, nodes: array<int, array<string, mixed>>, recent_servers: array<int, array<string, mixed>>, recent_users: array<int, array<string, mixed>>, online: array<int, array<string, mixed>>}
      */
     public function build(callable $can): array
     {
         $counts = [];
-        $nodes = $recentServers = $recentUsers = [];
+        $nodes = $recentServers = $recentUsers = $online = [];
 
         if ($can('servers')) {
             // Plain rows: a count has no use for whole servers, which would also each load their allocation.
@@ -49,6 +54,7 @@ class OverviewService
                 ->first();
             $counts['users'] = ['total' => (int) $row->total, 'admins' => (int) $row->admins];
             $recentUsers = $this->recentUsers();
+            $online = $this->online();
         }
 
         if ($can('nodes')) {
@@ -63,7 +69,37 @@ class OverviewService
             $counts['locations'] = ['total' => Location::query()->count()];
         }
 
-        return ['counts' => $counts, 'nodes' => $nodes, 'recent_servers' => $recentServers, 'recent_users' => $recentUsers];
+        return ['counts' => $counts, 'nodes' => $nodes, 'recent_servers' => $recentServers, 'recent_users' => $recentUsers, 'online' => $online];
+    }
+
+    /**
+     * The people who did something on the panel in the last two minutes, the most recent first, with the server they
+     * are on if they are on one.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function online(): array
+    {
+        $now = now();
+        $users = User::query()
+            ->where('last_seen_at', '>=', $now->copy()->subSeconds(self::ACTIVE_SECONDS))
+            ->orderByDesc('last_seen_at')
+            ->limit(30)
+            ->get();
+
+        $names = Server::query()->without('allocation')
+            ->whereIn('id', $users->pluck('last_seen_server_id')->filter()->unique()->all())
+            ->pluck('name', 'id');
+
+        return $users->map(fn (User $user) => [
+            'id' => $user->id,
+            'username' => $user->username,
+            'admin' => (bool) $user->root_admin,
+            'discord' => !is_null($user->discord_id),
+            'avatar' => 'https://www.gravatar.com/avatar/' . md5(strtolower((string) $user->email)) . '?s=64&d=mp',
+            'server' => $user->last_seen_server_id ? ($names[$user->last_seen_server_id] ?? null) : null,
+            'seconds' => max(0, $now->timestamp - $user->last_seen_at->timestamp),
+        ])->all();
     }
 
     /**

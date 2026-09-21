@@ -17,6 +17,7 @@ import StatBlock from '@/components/server/console/StatBlock';
 import HiddenAddress from '@/components/elements/HiddenAddress';
 import useFiveM from '@/components/server/console/useFiveM';
 import useGameStatus from '@/components/server/console/useGameStatus';
+import useConnectionCount from '@/components/server/console/useConnectionCount';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import classNames from 'classnames';
 import { capitalize } from '@/lib/strings';
@@ -49,6 +50,14 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
     const status = ServerContext.useStoreState((state) => state.status.value);
     const fivem = useFiveM();
     const game = useGameStatus(fivem.isFiveM);
+    const variables = ServerContext.useStoreState((state) => state.server.data!.variables);
+    // The number of people the game says are connected, when it does not answer the Steam query.
+    const connections = useConnectionCount(game.isSteam, stats.uptime);
+    const answered = !!game.data?.online && game.data.players !== null;
+    const gamePlayers = answered ? game.data!.players : connections;
+    const slotVariable = variables.find((v) => /^(SERVER_SLOTS|MAX_PLAYERS|MAXPLAYERS|SLOTS)$/i.test(v.envVariable));
+    const slots = Number(slotVariable?.serverValue ?? slotVariable?.defaultValue);
+    const gameSlots = (answered ? game.data!.maxPlayers : null) ?? (slots > 0 ? slots : null);
     const connected = ServerContext.useStoreState((state) => state.socket.connected);
     const instance = ServerContext.useStoreState((state) => state.socket.instance);
     const limits = ServerContext.useStoreState((state) => state.server.data!.limits);
@@ -137,19 +146,13 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                 <StatBlock
                     icon={faUsers}
                     title={'Players'}
-                    color={
-                        game.data?.online && game.data.players !== null && game.data.maxPlayers
-                            ? getBackgroundColor(game.data.players, game.data.maxPlayers)
-                            : undefined
-                    }
+                    color={gamePlayers !== null && gameSlots ? getBackgroundColor(gamePlayers, gameSlots) : undefined}
                 >
-                    {game.data?.online && game.data.players !== null ? (
+                    {gamePlayers !== null ? (
                         <>
-                            {game.data.players}
-                            {game.data.maxPlayers ? (
-                                <span className={'ml-1 text-gray-300 text-[70%] select-none'}>
-                                    / {game.data.maxPlayers}
-                                </span>
+                            {gamePlayers}
+                            {gameSlots ? (
+                                <span className={'ml-1 text-gray-300 text-[70%] select-none'}>/ {gameSlots}</span>
                             ) : null}
                         </>
                     ) : (
