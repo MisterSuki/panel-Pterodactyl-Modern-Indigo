@@ -2753,3 +2753,7 @@ blockquote {
     gap: 8px;
     margin-top: 14px;
 }
+
+#pd-online .pd-row-main small {
+    white-space: normal;
+}

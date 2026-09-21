@@ -283,6 +283,8 @@
                 var img = el('img', 'pd-avatar');
                 img.src = person.avatar;
                 img.alt = '';
+                img.width = 32;
+                img.height = 32;
                 link.appendChild(img);
 
                 var main = el('span', 'pd-row-main');
