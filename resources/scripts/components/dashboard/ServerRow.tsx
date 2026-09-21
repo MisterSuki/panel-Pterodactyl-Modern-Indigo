@@ -64,11 +64,13 @@ interface Props {
     server: Server;
     // The live usage of this server. The dashboard asks for all of its servers at once, every few seconds.
     stats?: ServerStats | null;
+    // True once the usage was asked for and this server did not answer, so the card says so instead of waiting.
+    unreachable?: boolean;
     className?: string;
     style?: React.CSSProperties;
 }
 
-const ServerRow = ({ server, stats = null, className, style }: Props) => {
+const ServerRow = ({ server, stats = null, unreachable = false, className, style }: Props) => {
     const isSuspended = !!stats?.isSuspended || server.status === 'suspended';
     const state: ServerPowerState | 'unknown' = isSuspended || !stats ? 'unknown' : stats.status;
     const tint = isSuspended ? TINTS.offline : TINTS[state];
@@ -164,6 +166,17 @@ const ServerRow = ({ server, stats = null, className, style }: Props) => {
                                         ? 'Restoring Backup'
                                         : 'Unavailable'}
                                 </span>
+                            </div>
+                        ) : unreachable ? (
+                            <div css={tw`text-center`}>
+                                <span
+                                    css={tw`bg-neutral-500/10 border border-neutral-500/30 rounded-full px-3 py-1 text-neutral-300 text-xs font-medium`}
+                                >
+                                    Unreachable
+                                </span>
+                                <p css={tw`text-xs text-neutral-500 mt-1.5`}>
+                                    The node does not answer, it is tried again every few seconds.
+                                </p>
                             </div>
                         ) : (
                             <div css={tw`flex justify-center`}>

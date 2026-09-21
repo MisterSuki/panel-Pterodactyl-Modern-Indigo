@@ -227,6 +227,28 @@ artisan() {
     (cd "$PANEL_PATH" && "$PHP_BIN" artisan "$@")
 }
 
+# PHP keeps the compiled files in memory (OPcache) and Laravel keeps its routes in a cache file. After the files are
+# replaced, the caches are emptied and PHP-FPM is reloaded, so no page keeps running on the old code: without that, the
+# new dashboard can meet an old server that does not know its new routes.
+refresh_php() {
+    local cmd unit reloaded=false
+    for cmd in optimize:clear route:clear view:clear config:clear cache:clear; do
+        artisan "$cmd" >/dev/null 2>&1 || true
+    done
+    if command -v systemctl >/dev/null 2>&1; then
+        for unit in $(systemctl list-units --type=service --no-legend 'php*-fpm*' 2>/dev/null | awk '{print $1}'); do
+            if systemctl reload "$unit" >/dev/null 2>&1 || systemctl restart "$unit" >/dev/null 2>&1; then
+                reloaded=true
+            fi
+        done
+    fi
+    if [[ "$reloaded" == true ]]; then
+        ok "PHP-FPM reloaded"
+    else
+        warn "Could not reload PHP-FPM. If the panel looks half updated, run: systemctl restart php*-fpm"
+    fi
+}
+
 cleanup() {
     local code=$?
     if [[ "$DOWN" == true ]]; then
@@ -431,8 +453,7 @@ restore_from() {
         [[ -n "$entry" && -e "$PANEL_PATH/${entry%/}" ]] && chown -R "$OWNER" "$PANEL_PATH/${entry%/}" || true
     done < <(cat "$dir/added.txt" "$dir/existing.txt")
 
-    artisan view:clear >/dev/null 2>&1 || true
-    artisan config:clear >/dev/null 2>&1 || true
+    refresh_php
     ok "Files restored from $dir"
     warn "The database was not changed. The new tables and columns stay in place and are harmless."
     warn "Compile the dashboard again if you restored it: cd $PANEL_PATH && yarn build:production"
@@ -624,10 +645,7 @@ run_update() {
         fi
     fi
 
-    local cmd
-    for cmd in view:clear config:clear cache:clear; do
-        artisan "$cmd" >/dev/null 2>&1 || warn "php artisan $cmd did not run (not fatal)."
-    done
+    refresh_php
     artisan queue:restart >/dev/null 2>&1 || true
     chown -R "$OWNER" "$PANEL_PATH/storage" "$PANEL_PATH/bootstrap/cache" 2>/dev/null || true
     ok "Caches cleared"
@@ -829,10 +847,7 @@ run_uninstall() {
             || warn "Could not refresh the Composer autoloader (not fatal)."
     fi
 
-    local cmd
-    for cmd in optimize:clear view:clear config:clear route:clear cache:clear; do
-        artisan "$cmd" >/dev/null 2>&1 || true
-    done
+    refresh_php
     artisan queue:restart >/dev/null 2>&1 || true
     chown -R "$OWNER" "$PANEL_PATH/storage" "$PANEL_PATH/bootstrap/cache" 2>/dev/null || true
     ok "Caches cleared"

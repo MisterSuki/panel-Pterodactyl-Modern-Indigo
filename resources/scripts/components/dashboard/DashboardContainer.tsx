@@ -43,11 +43,14 @@ export default () => {
     const liveUuids = servers?.items
         .filter((server) => server.status !== 'suspended' && !server.isNodeUnderMaintenance)
         .map((server) => server.uuid);
-    const { data: usage } = useSWR<Record<string, ServerStats>>(
+    const { data: usage, error: usageError } = useSWR<Record<string, ServerStats>>(
         liveUuids && liveUuids.length > 0 ? ['dashboard-usage', ...liveUuids] : null,
         () => getServersResourceUsage(liveUuids!),
         { refreshInterval: 3000, dedupingInterval: 1500, revalidateOnFocus: false, shouldRetryOnError: false }
     );
+
+    // Once the first answer is in (or has failed), a server that is missing from it could not be reached.
+    const usageSettled = usage !== undefined || !!usageError;
 
     useEffect(() => {
         setPage(1);
@@ -173,6 +176,7 @@ export default () => {
                                     key={server.uuid}
                                     server={server}
                                     stats={usage?.[server.uuid] ?? null}
+                                    unreachable={usageSettled && !usage?.[server.uuid]}
                                     css={index > 0 ? tw`mt-2` : undefined}
                                     style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
                                 />
