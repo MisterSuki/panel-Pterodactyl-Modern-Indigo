@@ -14,6 +14,7 @@ import Tooltip from '@/components/elements/tooltip/Tooltip';
 import Avatar from '@/components/Avatar';
 import BrandTitle from '@/components/elements/BrandTitle';
 import SupportBubble from '@/components/tickets/SupportBubble';
+import ScreenShare from '@/components/screen/ScreenShare';
 
 const RightNavigation = styled.div`
     & > a,
@@ -72,6 +73,7 @@ export default () => {
     return (
         <>
             <SupportBubble />
+            <ScreenShare />
             <div
                 className={
                     'sticky top-0 z-40 w-full bg-neutral-900/95 border-b border-white/5 shadow-nav overflow-x-auto'

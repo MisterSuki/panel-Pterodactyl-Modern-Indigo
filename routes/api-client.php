@@ -37,6 +37,14 @@ Route::prefix('/tickets')->group(function () {
     Route::get('/{id}/transcript', [Client\TicketController::class, 'transcript'])->whereNumber('id');
 });
 
+// Somebody of the staff asks to see the screen: the person answers here, and only about their own session.
+Route::prefix('/screen')->group(function () {
+    Route::get('/', [Client\ScreenShareController::class, 'show'])->middleware('throttle:120,1')->name('api:client.screen');
+    Route::post('/offer', [Client\ScreenShareController::class, 'offer'])->middleware('throttle:10,1');
+    Route::post('/decline', [Client\ScreenShareController::class, 'decline'])->middleware('throttle:10,1');
+    Route::delete('/', [Client\ScreenShareController::class, 'stop']);
+});
+
 Route::prefix('/account')->middleware(AccountSubject::class)->group(function () {
     Route::prefix('/')->withoutMiddleware(RequireTwoFactorAuthentication::class)->group(function () {
         Route::get('/', [Client\AccountController::class, 'index'])->name('api:client.account');

@@ -3,17 +3,30 @@
     they did. Needs $liveUser (the person) and $live (the first state, see UserLiveService). It looks again every few
     seconds by itself.
 --}}
+@php $canWatch = auth()->user()->hasAdminPermission('users.manage') && auth()->id() !== $liveUser->id; @endphp
 <div class="pd-card" id="pd-live" data-url="{{ route('admin.presence.person', $liveUser->id, false) }}">
     <div class="pd-card-head">
         <h3><i class="fa fa-eye"></i> <span>What they are doing</span></h3>
-        <span class="pd-live-note"><i class="fa fa-circle pd-live"></i> <span>Live</span></span>
+        <span class="pd-card-tools">
+            @if ($canWatch)
+                <button type="button" class="pd-eye" id="pd-live-watch" data-id="{{ $liveUser->id }}" data-name="{{ $liveUser->username }}" title="Ask to see their screen"><i class="fa fa-eye"></i> <span>See their screen</span></button>
+            @endif
+            <span class="pd-live-note"><i class="fa fa-circle pd-live"></i> <span>Live</span></span>
+        </span>
     </div>
     <div class="pd-live-who" id="pd-live-who"></div>
     <ul class="pd-live-actions" id="pd-live-actions"></ul>
     <p class="pd-hint" id="pd-live-empty" style="display:none"><span>Nothing done yet.</span></p>
 </div>
+@if ($canWatch)
+    @include('admin.partials.screen-viewer')
+@endif
 <script>
     (function () {
+        var watch = document.getElementById('pd-live-watch');
+        if (watch) {
+            watch.addEventListener('click', function () { window.pdScreen.open(parseInt(watch.getAttribute('data-id'), 10), watch.getAttribute('data-name')); });
+        }
         var card = document.getElementById('pd-live');
         var who = document.getElementById('pd-live-who');
         var list = document.getElementById('pd-live-actions');

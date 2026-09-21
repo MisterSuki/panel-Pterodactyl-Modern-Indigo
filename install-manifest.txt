@@ -132,3 +132,9 @@ app/Transformers/Api/Client/UserTransformer.php
 resources/views/admin/partials/user-live.blade.php
 resources/views/admin/servers/view/details.blade.php
 resources/lang/fr/activity.php
+
+# --- Screen sharing, with the agreement of the person -----------------------------------------
+app/Services/Support/ScreenShareService.php
+app/Http/Controllers/Api/Client/ScreenShareController.php
+app/Http/Controllers/Admin/ScreenShareController.php
+resources/views/admin/partials/screen-viewer.blade.php

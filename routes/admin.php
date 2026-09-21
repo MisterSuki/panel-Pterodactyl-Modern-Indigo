@@ -8,6 +8,14 @@ Route::get('/', [Admin\BaseController::class, 'index'])->name('admin.index');
 Route::get('/presence', [Admin\BaseController::class, 'presence'])->name('admin.presence');
 Route::get('/presence/{id}', [Admin\BaseController::class, 'person'])->whereNumber('id')->name('admin.presence.person');
 
+// Watching the screen of a person who agreed to share it (the right to manage users is checked by the controller).
+Route::group(['prefix' => 'screen'], function () {
+    Route::post('/{id}', [Admin\ScreenShareController::class, 'request'])->whereNumber('id')->middleware('throttle:20,1')->name('admin.screen.request');
+    Route::get('/{id}', [Admin\ScreenShareController::class, 'show'])->whereNumber('id')->middleware('throttle:120,1')->name('admin.screen.show');
+    Route::post('/{id}/answer', [Admin\ScreenShareController::class, 'answer'])->whereNumber('id')->middleware('throttle:20,1')->name('admin.screen.answer');
+    Route::delete('/{id}', [Admin\ScreenShareController::class, 'stop'])->whereNumber('id')->name('admin.screen.stop');
+});
+
 /*
 |--------------------------------------------------------------------------
 | Support tickets

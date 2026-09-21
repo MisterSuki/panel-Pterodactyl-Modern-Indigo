@@ -459,6 +459,13 @@ Un système de tickets intégré, avec **discussion en temps réel** et **transc
 - **Côté administration** : le menu *Support → Tickets* (avec le nombre de tickets en attente). Liste filtrable (à traiter, en attente,
   répondu, fermé), recherche, « les miens » ; dans un ticket, la conversation en direct, les **notes internes** (invisibles pour
   l'utilisateur), la priorité, la prise en charge (« le prendre » ou un autre membre du staff) et la fermeture.
+- **L'œil : voir l'écran, avec l'accord de la personne** : sur l'accueil de l'administration (« Actifs en ce moment ») et dans la carte
+  *Ce qu'il fait*, un œil demande à voir l'écran de la personne. Elle reçoit une question sur sa page (**Refuser** / **Partager mon
+  écran**) ; si elle accepte, **son navigateur lui fait choisir** ce qu'elle partage (un onglet, une fenêtre ou tout l'écran), un bandeau
+  rouge lui rappelle que c'est partagé, et elle arrête quand elle veut. L'image passe **directement d'un navigateur à l'autre** (WebRTC) :
+  elle ne transite pas par le panel et n'est **pas enregistrée**. Réservé aux administrateurs et au staff qui peuvent gérer les
+  utilisateurs ; chaque demande est écrite dans le journal d'activité. Sans l'accord de la personne, rien ne s'affiche.
+  *Limite : sans serveur TURN, quelques réseaux très fermés empêchent la connexion (le panel le dit).*
 - **Transcription** : à tout moment, en **texte** ou en **page à imprimer** (à enregistrer en PDF depuis le navigateur), dans la langue
   de la personne. L'utilisateur reçoit ce qu'il a vu ; le staff peut avoir la version complète (notes internes et email) ou celle de
   l'utilisateur.

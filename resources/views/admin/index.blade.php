@@ -148,7 +148,7 @@
     @endisset
     <div class="{{ isset($counts['nodes']) ? 'col-md-4' : 'col-md-12' }}">
         @isset($counts['users'])
-        <div class="pd-card" id="pd-online" data-url="{{ route('admin.presence', [], false) }}" data-user-url="{{ route('admin.users.view', ['user' => '__ID__'], false) }}" data-me="{{ $adminUser->id }}">
+        <div class="pd-card" id="pd-online" data-url="{{ route('admin.presence', [], false) }}" data-user-url="{{ route('admin.users.view', ['user' => '__ID__'], false) }}" data-me="{{ $adminUser->id }}" data-can-watch="{{ $adminUser->hasAdminPermission('users.manage') ? '1' : '0' }}">
             <div class="pd-card-head">
                 <h3><i class="fa fa-circle pd-live"></i> <span>Active now</span></h3>
                 <span class="pd-pill pd-pill--live" id="pd-online-count">{{ count($overview['online']) }}</span>
@@ -236,6 +236,9 @@
 @isset($overview['counts']['users'])
 @section('footer-scripts')
     @parent
+    @if ($adminUser->hasAdminPermission('users.manage'))
+        @include('admin.partials.screen-viewer')
+    @endif
     <script>
         (function () {
             var card = document.getElementById('pd-online');
@@ -245,6 +248,7 @@
             var count = document.getElementById('pd-online-count');
             var me = String(card.getAttribute('data-me'));
             var userUrl = card.getAttribute('data-user-url');
+            var canWatch = card.getAttribute('data-can-watch') === '1';
             var people = @json($overview['online']);
             // The pages the dashboard can tell about, by code. The texts are translated with the rest of the page.
             var pages = {
@@ -306,6 +310,20 @@
                 }
                 link.appendChild(age(person.seconds + Math.round((Date.now() - fetchedAt) / 1000)));
                 link.setAttribute('data-seconds', person.seconds);
+
+                // The eye: asks the person to share their screen (they have to accept).
+                if (canWatch && String(person.id) !== me) {
+                    var eye = el('button', 'pd-eye pd-eye--icon');
+                    eye.type = 'button';
+                    eye.title = 'Ask to see their screen';
+                    eye.appendChild(el('i', 'fa fa-eye'));
+                    eye.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        window.pdScreen.open(person.id, person.username);
+                    });
+                    link.appendChild(eye);
+                }
 
                 return link;
             }

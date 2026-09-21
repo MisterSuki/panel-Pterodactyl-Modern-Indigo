@@ -38,9 +38,19 @@ return [
             'create' => 'Added SSH key :fingerprint to account',
             'delete' => 'Removed SSH key :fingerprint from account',
         ],
+        'screen' => [
+            'share' => 'Shared their screen with the support',
+            'decline' => 'Refused to share their screen',
+            'stop' => 'Stopped sharing their screen',
+        ],
         'two-factor' => [
             'create' => 'Enabled two-factor auth',
             'delete' => 'Disabled two-factor auth',
+        ],
+    ],
+    'admin' => [
+        'screen' => [
+            'request' => 'Asked to see the screen of :username',
         ],
     ],
     'server' => [
