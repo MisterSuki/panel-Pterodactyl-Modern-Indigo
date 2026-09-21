@@ -37,6 +37,14 @@ Route::prefix('/tickets')->group(function () {
     Route::get('/{id}/transcript', [Client\TicketController::class, 'transcript'])->whereNumber('id');
 });
 
+// The shop: what is for sale, the credit of the person, what they bought, and paying.
+Route::prefix('/shop')->group(function () {
+    Route::get('/', [Client\ShopController::class, 'index'])->middleware('throttle:60,1');
+    Route::post('/buy', [Client\ShopController::class, 'buy'])->middleware('throttle:10,1');
+    Route::post('/renew', [Client\ShopController::class, 'renew'])->middleware('throttle:10,1');
+    Route::post('/topup', [Client\ShopController::class, 'topup'])->middleware('throttle:10,1');
+});
+
 // Somebody of the staff asks to see the screen: the person answers here, and only about their own session.
 Route::prefix('/screen')->group(function () {
     Route::get('/', [Client\ScreenShareController::class, 'show'])->middleware('throttle:120,1')->name('api:client.screen');

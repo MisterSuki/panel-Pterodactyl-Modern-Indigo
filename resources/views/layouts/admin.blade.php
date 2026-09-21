@@ -92,6 +92,9 @@
                             'SUPPORT' => [
                                 ['Tickets', 'admin.tickets', 'fa-life-ring', 'admin.tickets', $can('tickets'), 'tickets'],
                             ],
+                            'SHOP' => [
+                                ['Shop', 'admin.shop.offers', 'fa-shopping-cart', 'admin.shop', $can('shop'), null],
+                            ],
                             'SERVICE MANAGEMENT' => [
                                 ['Mounts', 'admin.mounts', 'fa-magic', 'admin.mounts', $can('mounts'), null],
                                 ['Nests', 'admin.nests', 'fa-th-large', 'admin.nests', $can('nests'), null],

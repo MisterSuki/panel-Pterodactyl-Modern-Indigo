@@ -138,3 +138,18 @@ app/Services/Support/ScreenShareService.php
 app/Http/Controllers/Api/Client/ScreenShareController.php
 app/Http/Controllers/Admin/ScreenShareController.php
 resources/views/admin/partials/screen-viewer.blade.php
+
+# --- The shop (offers, credit, Stripe / PayPal / SumUp) ----------------------------------------------
+database/migrations/2026_09_26_000000_create_shop_tables.php
+app/Models/ShopOffer.php
+app/Models/ShopOrder.php
+app/Models/ShopPayment.php
+app/Models/ShopTransaction.php
+app/Services/Shop/
+app/Console/Commands/Shop/
+app/Http/Controllers/Admin/ShopController.php
+app/Http/Controllers/Api/Client/ShopController.php
+app/Http/Controllers/Base/ShopReturnController.php
+app/Http/Controllers/Base/PaymentWebhookController.php
+routes/payments.php
+resources/views/admin/shop/

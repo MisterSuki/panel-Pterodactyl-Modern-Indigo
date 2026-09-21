@@ -84,6 +84,13 @@ class AdminRole extends Model
                 'manage' => 'Answer, assign and close support tickets, and write internal notes.',
             ],
         ],
+        'shop' => [
+            'label' => 'Shop',
+            'abilities' => [
+                'view' => 'See the offers, the orders, the payments and the credit of the people.',
+                'manage' => 'Create and change offers, and correct the credit of a person. The keys of the payment providers stay reserved for full administrators.',
+            ],
+        ],
         'settings' => [
             'label' => 'Panel Settings',
             'abilities' => [

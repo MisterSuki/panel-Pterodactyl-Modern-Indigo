@@ -4,6 +4,7 @@ import NavigationBar from '@/components/NavigationBar';
 import DashboardContainer from '@/components/dashboard/DashboardContainer';
 import TicketsContainer from '@/components/tickets/TicketsContainer';
 import TicketView from '@/components/tickets/TicketView';
+import ShopContainer from '@/components/shop/ShopContainer';
 import { NotFound } from '@/components/elements/ScreenBlock';
 import TransitionRouter from '@/TransitionRouter';
 import SubNavigation from '@/components/elements/SubNavigation';
@@ -35,6 +36,9 @@ export default () => {
                     <Switch location={location}>
                         <Route path={'/'} exact>
                             <DashboardContainer />
+                        </Route>
+                        <Route path={'/shop'} exact>
+                            <ShopContainer />
                         </Route>
                         <Route path={'/tickets'} exact>
                             <TicketsContainer />

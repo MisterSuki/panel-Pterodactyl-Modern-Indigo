@@ -13,6 +13,10 @@ export interface SiteSettings {
     };
     // True when phpMyAdmin is set up, so databases can be opened in it from the panel.
     phpmyadmin?: boolean;
+    // True when the shop is open.
+    shop?: {
+        enabled: boolean;
+    };
 }
 
 export interface SettingsStore {

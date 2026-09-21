@@ -39,6 +39,9 @@ class AssetComposer
                 'enabled' => AuthFeatures::discordEnabled(),
             ],
             'phpmyadmin' => PhpMyAdminSignOn::enabled(),
+            'shop' => [
+                'enabled' => app(\Pterodactyl\Services\Shop\ShopSettings::class)->enabled(),
+            ],
         ]);
     }
 }

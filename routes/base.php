@@ -24,5 +24,10 @@ Route::get('/avatars/{uuid}', [Base\AvatarController::class, 'show'])
     ->where('uuid', '[0-9a-fA-F-]{36}')
     ->name('avatar');
 
+// Where a person lands after paying (or giving up) at a payment provider.
+Route::get('/shop/return/{provider}', [Base\ShopReturnController::class, 'return'])
+    ->where('provider', 'stripe|paypal|sumup')
+    ->name('shop.return');
+
 Route::get('/{react}', [Base\IndexController::class, 'index'])
     ->where('react', '^(?!(\/)?(api|auth|admin|daemon)).+');

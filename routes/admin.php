@@ -8,6 +8,34 @@ Route::get('/', [Admin\BaseController::class, 'index'])->name('admin.index');
 Route::get('/presence', [Admin\BaseController::class, 'presence'])->name('admin.presence');
 Route::get('/presence/{id}', [Admin\BaseController::class, 'person'])->whereNumber('id')->name('admin.presence.person');
 
+/*
+|--------------------------------------------------------------------------
+| The shop
+|--------------------------------------------------------------------------
+|
+| Endpoint: /admin/shop. Seeing is for staff who can see the shop, anything that changes something needs the right to
+| manage it (the middleware asks for it on every request that is not a read), and the settings, which hold the keys of
+| the payment providers, are for full administrators.
+|
+*/
+Route::group(['prefix' => 'shop', 'middleware' => 'admin.can:shop'], function () {
+    Route::get('/', fn () => redirect()->route('admin.shop.offers'))->name('admin.shop');
+    Route::get('/offers', [Admin\ShopController::class, 'offers'])->name('admin.shop.offers');
+    Route::get('/offers/new', [Admin\ShopController::class, 'offerForm'])->name('admin.shop.offers.new');
+    Route::post('/offers/new', [Admin\ShopController::class, 'saveOffer']);
+    Route::get('/offers/{id}', [Admin\ShopController::class, 'offerForm'])->whereNumber('id')->name('admin.shop.offers.edit');
+    Route::post('/offers/{id}', [Admin\ShopController::class, 'saveOffer'])->whereNumber('id');
+    Route::delete('/offers/{id}', [Admin\ShopController::class, 'deleteOffer'])->whereNumber('id')->name('admin.shop.offers.delete');
+    Route::get('/orders', [Admin\ShopController::class, 'orders'])->name('admin.shop.orders');
+    Route::get('/credit', [Admin\ShopController::class, 'credit'])->name('admin.shop.credit');
+    Route::post('/credit/adjust', [Admin\ShopController::class, 'adjust'])->name('admin.shop.credit.adjust');
+
+    Route::group(['middleware' => 'admin.can:root'], function () {
+        Route::get('/settings', [Admin\ShopController::class, 'settings'])->name('admin.shop.settings');
+        Route::post('/settings', [Admin\ShopController::class, 'saveSettings']);
+    });
+});
+
 // Watching the screen of a person who agreed to share it (the right to manage users is checked by the controller).
 Route::group(['prefix' => 'screen'], function () {
     Route::post('/{id}', [Admin\ScreenShareController::class, 'request'])->whereNumber('id')->middleware('throttle:20,1')->name('admin.screen.request');

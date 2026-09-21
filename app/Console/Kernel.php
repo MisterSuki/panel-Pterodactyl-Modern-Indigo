@@ -11,6 +11,7 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Pterodactyl\Services\Telemetry\TelemetryCollectionService;
 use Pterodactyl\Console\Commands\Server\RunAutoBackupsCommand;
 use Pterodactyl\Console\Commands\Server\UnsuspendExpiredCommand;
+use Pterodactyl\Console\Commands\Shop\ExpireShopOrdersCommand;
 use Pterodactyl\Console\Commands\Schedule\ProcessRunnableCommand;
 use Pterodactyl\Console\Commands\Maintenance\PruneOrphanedBackupsCommand;
 use Pterodactyl\Console\Commands\Maintenance\CleanServiceBackupFilesCommand;
@@ -39,6 +40,9 @@ class Kernel extends ConsoleKernel
 
         // Servers suspended "until" a date get their access back on their own.
         $schedule->command(UnsuspendExpiredCommand::class)->everyMinute()->withoutOverlapping();
+
+        // Servers bought in the shop whose paid time has ended are suspended (never deleted).
+        $schedule->command(ExpireShopOrdersCommand::class)->everyFiveMinutes()->withoutOverlapping();
 
         // Automatic backups: makes the ones that are due and removes the old ones.
         $schedule->command(RunAutoBackupsCommand::class)->everyMinute()->withoutOverlapping();

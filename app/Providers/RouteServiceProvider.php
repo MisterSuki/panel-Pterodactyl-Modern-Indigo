@@ -59,6 +59,11 @@ class RouteServiceProvider extends ServiceProvider
                     ->group(base_path('routes/api-client.php'));
             });
 
+            // Called by the payment providers (Stripe, SumUp): no session, no user, and every call is checked with the provider.
+            Route::middleware('throttle:120,1')
+                ->prefix('/api/payments')
+                ->group(base_path('routes/payments.php'));
+
             // Called by the phpMyAdmin sign-in script on this machine: no session, no user, only a shared secret.
             Route::middleware('throttle:60,1')
                 ->prefix('/api/phpmyadmin')

@@ -474,6 +474,29 @@ Un système de tickets intégré, avec **discussion en temps réel** et **transc
 
 Les messages sont toujours affichés comme du texte : rien de ce qui est écrit ne peut s'exécuter dans la page.
 
+### 🛒 Boutique (Stripe, PayPal, SumUp)
+
+Une boutique intégrée que l'on **active ou désactive** d'un clic (*Administration → Boutique → Réglages*, réservé aux administrateurs).
+Fermée, elle disparaît du tableau de bord et rien ne peut être acheté.
+
+- **Ce qui est vendu** : des **offres de serveur** (œuf, emplacement, mémoire, disque, CPU, limites, durée payée, prix, stock). Après
+  paiement, le serveur est **créé automatiquement** pour le client, sur un node de l'emplacement qui a encore de la place.
+- **Crédit** : chaque client a un solde qu'il recharge par **Stripe, PayPal ou SumUp** (montants min/max réglables) et qui sert à payer
+  les offres et les renouvellements. S'il lui manque de l'argent, seul le **manque** lui est demandé, et l'achat se fait tout seul dès
+  que le paiement est confirmé.
+- **Durée fixe, renouvelable à la main** : à l'échéance le serveur est **suspendu** (jamais supprimé, les fichiers restent), et il
+  revient dès que le client renouvelle. Une tâche planifiée (`p:shop:expire`, toutes les 5 minutes) s'en occupe.
+- **Sûr** : tous les montants sont en centimes ; le solde ne peut jamais devenir négatif ; un paiement n'est crédité **qu'une fois**
+  (retour du client, webhook, rechargement de page…) et seulement si le prestataire confirme lui-même le montant et la devise ; si le
+  serveur ne peut pas être créé, le client est **remboursé** automatiquement. Les clés API sont **chiffrées** et jamais réaffichées.
+- **Côté administration** : offres, commandes, mouvements de crédit et derniers paiements, correction du crédit d'un client (avec le nom
+  du membre du staff), et une section *Boutique* dans les rôles de staff (voir / gérer ; les clés restent aux administrateurs).
+
+**Mise en route** : ouvrez *Boutique → Réglages*, renseignez les clés d'au moins un prestataire, ajoutez une offre, puis cochez
+« La boutique est ouverte ». Pour Stripe, ajoutez aussi un webhook vers `https://votre-panel/api/payments/stripe` (événements
+`checkout.session.completed` et `checkout.session.async_payment_succeeded`) et collez son secret de signature. Utilisez d'abord les
+modes de test (clés de test Stripe, PayPal *sandbox*) avant de passer en réel.
+
 ### 🖼️ Photo de profil
 
 Chaque utilisateur peut choisir sa photo dans *Mon compte → Photo de profil* (png, jpeg ou webp, 2 Mo au maximum). Sans photo, c'est le
