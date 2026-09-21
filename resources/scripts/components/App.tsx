@@ -59,7 +59,19 @@ const App = () => {
     }
 
     if (!store.getState().settings.data) {
-        store.getActions().settings.setSettings(SiteConfiguration!);
+        // The page comes from the server and the dashboard from the compiled files: after an update that is only half
+        // done, or a page kept by a cache, they can disagree. Whatever the server did not send is taken as switched off,
+        // so an old page can never stop the panel from opening.
+        const site: Partial<SiteSettings> = SiteConfiguration || {};
+        store.getActions().settings.setSettings({
+            name: 'Pterodactyl',
+            locale: 'en',
+            registration: false,
+            phpmyadmin: false,
+            ...site,
+            recaptcha: { enabled: false, siteKey: '', ...(site.recaptcha || {}) },
+            discord: { enabled: false, ...(site.discord || {}) },
+        });
     }
 
     return (
