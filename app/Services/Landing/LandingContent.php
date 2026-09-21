@@ -23,16 +23,14 @@ class LandingContent
      * The longest each text can be.
      */
     private const LIMITS = [
-        'title' => 120, 'subtitle' => 300, 'cta_primary_text' => 40, 'cta_secondary_text' => 40,
+        'title' => 120, 'subtitle' => 300,
         'features_title' => 80, 'about_title' => 80, 'about_text' => 2000, 'offers_title' => 80, 'footer_text' => 200,
     ];
 
     /**
      * The fields that are texts, in the order of the page.
      */
-    public const TEXTS = ['title', 'subtitle', 'cta_primary_text', 'cta_secondary_text', 'features_title', 'about_title', 'about_text', 'offers_title', 'footer_text'];
-
-    public const LINKS = ['cta_primary_link', 'cta_secondary_link'];
+    public const TEXTS = ['title', 'subtitle', 'features_title', 'about_title', 'about_text', 'offers_title', 'footer_text'];
 
     public function __construct(private SettingsRepositoryInterface $settings)
     {
@@ -70,11 +68,13 @@ class LandingContent
         foreach (self::TEXTS as $key) {
             $content[$key] = array_key_exists($key, $saved) ? (string) $saved[$key] : $defaults[$key];
         }
-        foreach (self::LINKS as $key) {
-            $content[$key] = array_key_exists($key, $saved) ? (string) $saved[$key] : $defaults[$key];
+        // The sign-in and registration buttons are always the same: they cannot be changed, so the way in never breaks.
+        foreach (['cta_primary_text', 'cta_primary_link', 'cta_secondary_text', 'cta_secondary_link'] as $key) {
+            $content[$key] = $defaults[$key];
         }
         $content['features'] = array_key_exists('features', $saved) ? $saved['features'] : $defaults['features'];
         $content['show_offers'] = (bool) ($saved['show_offers'] ?? true);
+        $content['show_stats'] = (bool) ($saved['show_stats'] ?? true);
 
         return $content;
     }
@@ -90,9 +90,6 @@ class LandingContent
         $saved = [];
         foreach (self::TEXTS as $key) {
             $saved[$key] = mb_substr(trim(str_replace("\r\n", "\n", (string) ($input[$key] ?? ''))), 0, self::LIMITS[$key]);
-        }
-        foreach (self::LINKS as $key) {
-            $saved[$key] = $this->link((string) ($input[$key] ?? ''));
         }
 
         $features = [];
@@ -110,6 +107,7 @@ class LandingContent
         }
         $saved['features'] = $features;
         $saved['show_offers'] = (bool) ($input['show_offers'] ?? false);
+        $saved['show_stats'] = (bool) ($input['show_stats'] ?? false);
 
         $this->settings->set('home:content', json_encode($saved, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
     }
@@ -120,23 +118,6 @@ class LandingContent
     public function reset(): void
     {
         $this->settings->forget('home:content');
-    }
-
-    /**
-     * A link that can be trusted: empty (no button), a path of the panel, or an address with http or https. Anything
-     * else (javascript:, data:, //other-site...) is dropped.
-     */
-    public function link(string $link): string
-    {
-        $link = trim($link);
-        if ($link === '') {
-            return '';
-        }
-        if (preg_match('#^/(?!/)[^\s\\\\]*$#', $link) === 1 || preg_match('#^https?://[^\s<>"\'\\\\]+$#i', $link) === 1) {
-            return mb_substr($link, 0, 300);
-        }
-
-        return '';
     }
 
     /**

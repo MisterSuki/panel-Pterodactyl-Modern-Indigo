@@ -33,27 +33,9 @@
                         <label for="subtitle">Subtitle</label>
                         <textarea id="subtitle" name="subtitle" class="form-control" rows="3" maxlength="300">{{ $v('subtitle') }}</textarea>
                     </div>
-                    <div class="row">
-                        <div class="form-group col-xs-6">
-                            <label for="cta_primary_text">Main button</label>
-                            <input type="text" id="cta_primary_text" name="cta_primary_text" class="form-control" maxlength="40" value="{{ $v('cta_primary_text') }}">
-                        </div>
-                        <div class="form-group col-xs-6">
-                            <label for="cta_primary_link">Its link</label>
-                            <input type="text" id="cta_primary_link" name="cta_primary_link" class="form-control" value="{{ $v('cta_primary_link') }}" placeholder="/auth/login">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group col-xs-6">
-                            <label for="cta_secondary_text">Second button</label>
-                            <input type="text" id="cta_secondary_text" name="cta_secondary_text" class="form-control" maxlength="40" value="{{ $v('cta_secondary_text') }}">
-                        </div>
-                        <div class="form-group col-xs-6">
-                            <label for="cta_secondary_link">Its link</label>
-                            <input type="text" id="cta_secondary_link" name="cta_secondary_link" class="form-control" value="{{ $v('cta_secondary_link') }}" placeholder="/auth/register">
-                        </div>
-                    </div>
-                    <p class="text-muted small"><span>A link is a path of the panel (like /auth/login) or an address that starts with https://. Leave a button or its link empty to hide it. The registration link is hidden while registration is closed.</span></p>
+                    <p class="text-muted small"><i class="fa fa-lock"></i> <span>The buttons to log in and to create an account are fixed: they cannot be changed, so the way in never breaks. The registration button is hidden while registration is closed.</span></p>
+                    <label class="pd-switch"><input type="checkbox" name="show_stats" value="1" @checked(old('show_stats', $content['show_stats']))><i class="pd-switch-track"></i><span>Show the number of servers and websites hosted</span></label>
+                    <p class="text-muted small"><span>Only the numbers are shown. The websites are counted while the web hosting is on.</span></p>
                 </div>
             </div>
             <div class="box box-primary">

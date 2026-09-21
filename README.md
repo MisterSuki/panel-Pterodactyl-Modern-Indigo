@@ -503,10 +503,11 @@ Ces trois derniers demandent des choix d'infrastructure (serveur DNS, serveur ma
 ### 🏠 Page d'accueil pour les visiteurs
 
 Quand on ouvre l'adresse du panel sans être connecté, on arrive sur une **page d'accueil** au lieu d'être renvoyé directement à la connexion.
-Elle se modifie dans *Administration → Page d'accueil* : titre, sous-titre, deux boutons (texte et lien), points forts (jusqu'à 6, avec
-icône), présentation, texte de bas de page, et l'affichage des **offres de la boutique**. On peut la désactiver (retour à l'ancien
+Elle se modifie dans *Administration → Page d'accueil* : titre, sous-titre, points forts (jusqu'à 6, avec icône), présentation, texte de bas de
+page, l'affichage des **offres de la boutique** et celui du **nombre de serveurs et de sites web hébergés**. Les boutons *Se connecter* et
+*Créer un compte* sont **fixes** (non modifiables) pour que la porte d'entrée ne casse jamais. On peut la désactiver (retour à l'ancien
 comportement), revenir aux textes d'origine, et la voir à tout moment sur `/welcome`. Les personnes connectées gardent leur tableau de bord.
-Tout ce qui est écrit s'affiche comme du texte (rien ne peut s'exécuter) et un lien ne peut être qu'un chemin du panel ou une adresse `https://`.
+Tout ce qui est écrit s'affiche comme du texte : rien ne peut s'exécuter.
 
 ### 🛒 Boutique (Stripe, PayPal, SumUp)
 

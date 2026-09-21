@@ -34,6 +34,10 @@
         .ld-hero h1 { margin: 0 auto; max-width: 820px; font-size: clamp(34px, 6vw, 62px); line-height: 1.08; font-weight: 800; letter-spacing: -.02em; background: linear-gradient(180deg, #fff, #a5b4fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .ld-hero p { margin: 22px auto 0; max-width: 640px; font-size: clamp(16px, 2.2vw, 20px); color: var(--muted); white-space: pre-line; }
         .ld-cta { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 34px; }
+        .ld-stats { position: relative; display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-top: 10px; }
+        .ld-stat { min-width: 190px; padding: 18px 26px; border-radius: 16px; border: 1px solid var(--line); background: rgba(255,255,255,.04); text-align: center; }
+        .ld-stat strong { display: block; font-size: 38px; line-height: 1.1; font-weight: 800; background: linear-gradient(180deg, #fff, #a5b4fc); -webkit-background-clip: text; background-clip: text; color: transparent; font-variant-numeric: tabular-nums; }
+        .ld-stat span { color: var(--muted); font-size: 14px; }
         .ld-section { position: relative; padding: 50px 0; }
         .ld-section h2 { margin: 0 0 30px; text-align: center; font-size: clamp(24px, 3.4vw, 34px); font-weight: 700; letter-spacing: -.01em; }
         .ld-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
@@ -77,6 +81,17 @@
             @endif
         </div>
     </header>
+
+    @if ($stats !== null && ($stats['servers'] > 0 || ($stats['sites'] ?? 0) > 0))
+        <div class="ld-stats" id="stats">
+            @if ($stats['servers'] > 0)
+                <div class="ld-stat"><strong>{{ number_format($stats['servers'], 0, ',', ' ') }}</strong><span>{{ trans_choice('landing.servers_hosted', $stats['servers']) }}</span></div>
+            @endif
+            @if (($stats['sites'] ?? 0) > 0)
+                <div class="ld-stat"><strong>{{ number_format($stats['sites'], 0, ',', ' ') }}</strong><span>{{ trans_choice('landing.sites_hosted', $stats['sites']) }}</span></div>
+            @endif
+        </div>
+    @endif
 
     @if (count($content['features']) > 0)
         <section class="ld-section" id="features">
