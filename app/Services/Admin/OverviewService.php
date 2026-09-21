@@ -67,6 +67,21 @@ class OverviewService
     }
 
     /**
+     * The figures shown next to some entries of the menu, on every page of the administration. They are kept for a
+     * minute, so the menu costs three counts a minute and not three per page.
+     *
+     * @return array<string, int>
+     */
+    public function menuCounts(): array
+    {
+        return cache()->remember('admin:menu-counts', 60, fn () => [
+            'servers' => Server::query()->count(),
+            'users' => User::query()->count(),
+            'nodes' => Node::query()->count(),
+        ]);
+    }
+
+    /**
      * How much of each node is promised to servers, taking the over-allocation of the node into account. A node that
      * allows unlimited over-allocation has no ceiling to measure against, and gets no percentage.
      *

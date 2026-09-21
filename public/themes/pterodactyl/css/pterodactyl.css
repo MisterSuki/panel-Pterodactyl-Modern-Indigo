@@ -2020,3 +2020,475 @@ input[type="radio"] {
     color: transparent;
     filter: drop-shadow(0 1px 0 #4f46e5) drop-shadow(0 2px 0 #3730a3) drop-shadow(0 5px 5px rgba(0, 0, 0, 0.5));
 }
+
+/*
+ * Drop-downs: the list of choices is drawn by the browser on a white background, while the text of the fields is light,
+ * so the choices could not be read. They get the dark colours of the panel, and the dark scheme also darkens the date
+ * pickers and the scrollbars of the fields.
+ */
+select,
+input,
+textarea {
+    color-scheme: dark;
+}
+
+select option,
+select optgroup,
+.form-control option {
+    background-color: #131826 !important;
+    color: #e5e7eb !important;
+}
+
+select option:checked,
+select option:hover {
+    background-color: #4f46e5 !important;
+    color: #ffffff !important;
+}
+
+select option:disabled {
+    color: #6b7280 !important;
+}
+
+/* ============================================================
+   Administration: menu and finishing touches (all the pages)
+   ============================================================ */
+
+/* ---- The menu ---- */
+.skin-blue .main-sidebar {
+    background: linear-gradient(180deg, #0d111b 0%, #0a0e17 100%) !important;
+    border-right: 1px solid var(--pd-border);
+}
+
+.pd-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 12px 4px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--pd-border);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.pd-user img {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+}
+
+.pd-user strong {
+    display: block;
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 130px;
+}
+
+.pd-user small {
+    color: var(--pd-accent-light);
+    font-size: 11px;
+}
+
+.skin-blue .sidebar-menu > li.header {
+    margin-top: 10px;
+    padding: 14px 24px 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: #55607a !important;
+    background: transparent !important;
+}
+
+.skin-blue .sidebar-menu > li > a {
+    display: block;
+    margin: 2px 10px;
+    padding: 7px 10px;
+    border-left: 0 !important;
+    border-radius: 10px;
+    color: #a3adc2 !important;
+    font-size: 13.5px;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.skin-blue .sidebar-menu > li > a > .fa {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    line-height: 30px;
+    text-align: center;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.045);
+    color: #8b95ab;
+    font-size: 14px;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.skin-blue .sidebar-menu > li:hover > a {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff !important;
+}
+
+.skin-blue .sidebar-menu > li:hover > a > .fa {
+    background: rgba(99, 102, 241, 0.2);
+    color: #c7d2fe;
+}
+
+.skin-blue .sidebar-menu > li.active > a {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.3), rgba(99, 102, 241, 0.06));
+    color: #fff !important;
+    font-weight: 500;
+    box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.4);
+}
+
+.skin-blue .sidebar-menu > li.active > a > .fa {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff;
+    box-shadow: 0 6px 16px -4px rgba(99, 102, 241, 0.8);
+}
+
+.pd-count {
+    float: right;
+    margin-top: 6px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #a3adc2;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.skin-blue .sidebar-menu > li.active .pd-count {
+    background: rgba(99, 102, 241, 0.35);
+    color: #fff;
+}
+
+.pd-sidebar-foot {
+    margin: 18px 12px 24px;
+}
+
+.pd-sidebar-foot a {
+    display: block;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px dashed var(--pd-border-strong);
+    color: var(--pd-text-muted) !important;
+    text-align: center;
+    font-size: 12.5px;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.pd-sidebar-foot a:hover {
+    border-color: rgba(99, 102, 241, 0.6);
+    background: rgba(99, 102, 241, 0.1);
+    color: #fff !important;
+}
+
+/* The menu folded to its icons */
+.sidebar-mini.sidebar-collapse .pd-user {
+    margin: 10px 8px;
+    padding: 6px;
+    justify-content: center;
+}
+
+.sidebar-mini.sidebar-collapse .pd-user > div,
+.sidebar-mini.sidebar-collapse .pd-count,
+.sidebar-mini.sidebar-collapse .pd-sidebar-foot span {
+    display: none;
+}
+
+.sidebar-mini.sidebar-collapse .skin-blue .sidebar-menu > li > a,
+.sidebar-mini.sidebar-collapse.skin-blue .sidebar-menu > li > a {
+    margin: 2px 8px;
+    padding: 7px 5px;
+    text-align: center;
+}
+
+.sidebar-mini.sidebar-collapse.skin-blue .sidebar-menu > li > a > .fa {
+    margin-right: 0;
+}
+
+.sidebar-mini.sidebar-collapse .pd-sidebar-foot {
+    margin: 10px 8px;
+}
+
+.sidebar-mini.sidebar-collapse .pd-sidebar-foot a {
+    padding: 9px 0;
+}
+
+.sidebar-mini.sidebar-collapse.skin-blue .sidebar-menu > li:hover > a > span:not(.pull-right) {
+    background: #131826;
+    border: 1px solid var(--pd-border-strong);
+    border-radius: 0 10px 10px 0;
+    color: #fff;
+}
+
+/* Folded, the name of the panel keeps only its first letter */
+.sidebar-mini.sidebar-collapse .main-header .logo span {
+    font-size: 0;
+}
+
+.sidebar-mini.sidebar-collapse .main-header .logo span::first-letter {
+    font-size: 22px;
+}
+
+/* ---- Small things every page has ---- */
+.skin-blue .main-footer {
+    font-size: 12px;
+}
+
+/* Scrollbars: thin and dark, like the rest */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Table headings: small, quiet capitals, so the rows are what one reads */
+.table > thead > tr > th,
+.table > tbody > tr > th {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--pd-text-muted) !important;
+    white-space: nowrap;
+}
+
+.table > tbody > tr > td {
+    vertical-align: middle !important;
+}
+
+/* Pagination: the disabled and hovered pages */
+.pagination > .disabled > span,
+.pagination > .disabled > a,
+.pagination > .disabled > a:hover {
+    background: transparent !important;
+    border-color: var(--pd-border) !important;
+    color: #4b5468 !important;
+}
+
+.pagination > li > a:hover,
+.pagination > li > span:hover {
+    background: rgba(99, 102, 241, 0.16) !important;
+    border-color: rgba(99, 102, 241, 0.45) !important;
+    color: #fff !important;
+}
+
+/* Callouts: the same soft tints as the alerts, with a coloured edge */
+.callout,
+.callout.callout-info,
+.callout.callout-warning,
+.callout.callout-danger,
+.callout.callout-success {
+    border: 1px solid var(--pd-border-strong) !important;
+    border-left-width: 4px !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: var(--pd-text) !important;
+}
+
+.callout.callout-info { border-color: rgba(56, 189, 248, 0.35) !important; border-left-color: #38bdf8 !important; background: rgba(56, 189, 248, 0.08) !important; }
+.callout.callout-warning { border-color: rgba(251, 191, 36, 0.35) !important; border-left-color: #fbbf24 !important; background: rgba(251, 191, 36, 0.08) !important; }
+.callout.callout-danger { border-color: rgba(248, 113, 113, 0.35) !important; border-left-color: #f87171 !important; background: rgba(248, 113, 113, 0.08) !important; }
+.callout.callout-success { border-color: rgba(74, 222, 128, 0.35) !important; border-left-color: #4ade80 !important; background: rgba(74, 222, 128, 0.08) !important; }
+
+.callout h4 {
+    color: #fff;
+}
+
+/* Menus that open, lists, tooltips and pop-ups */
+.dropdown-menu {
+    background: #131826 !important;
+    border: 1px solid var(--pd-border-strong) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.7) !important;
+    padding: 6px !important;
+}
+
+.dropdown-menu > li > a {
+    border-radius: 8px;
+    color: var(--pd-text) !important;
+}
+
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus {
+    background: rgba(99, 102, 241, 0.18) !important;
+    color: #fff !important;
+}
+
+.dropdown-menu .divider {
+    background-color: var(--pd-border) !important;
+}
+
+.list-group-item {
+    background: transparent !important;
+    border-color: var(--pd-border) !important;
+    color: var(--pd-text) !important;
+}
+
+a.list-group-item:hover {
+    background: rgba(99, 102, 241, 0.1) !important;
+}
+
+.tooltip-inner {
+    background: #1e2436 !important;
+    border: 1px solid var(--pd-border-strong);
+    border-radius: 8px;
+    padding: 6px 10px;
+    box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.7);
+}
+
+.tooltip.top .tooltip-arrow { border-top-color: #1e2436 !important; }
+.tooltip.bottom .tooltip-arrow { border-bottom-color: #1e2436 !important; }
+.tooltip.left .tooltip-arrow { border-left-color: #1e2436 !important; }
+.tooltip.right .tooltip-arrow { border-right-color: #1e2436 !important; }
+.tooltip.in { opacity: 1; }
+
+.popover {
+    background: #131826 !important;
+    border: 1px solid var(--pd-border-strong) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.7) !important;
+}
+
+.popover-title {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-bottom: 1px solid var(--pd-border) !important;
+    color: #fff;
+}
+
+.popover-content {
+    color: var(--pd-text);
+}
+
+.popover.top > .arrow, .popover.top > .arrow:after { border-top-color: #131826 !important; }
+.popover.bottom > .arrow:after { border-bottom-color: #131826 !important; }
+
+.modal-backdrop.in {
+    opacity: 0.7;
+    backdrop-filter: blur(3px);
+}
+
+.close {
+    color: #fff !important;
+    text-shadow: none !important;
+    opacity: 0.6;
+}
+
+.close:hover {
+    opacity: 1;
+}
+
+/* Confirmation windows (SweetAlert) */
+.sweet-alert {
+    background: #131826 !important;
+    border: 1px solid var(--pd-border-strong);
+    border-radius: 16px !important;
+    box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.8);
+    color: var(--pd-text);
+}
+
+.sweet-alert h2 {
+    color: #fff !important;
+    font-weight: 600;
+}
+
+.sweet-alert p {
+    color: var(--pd-text-muted) !important;
+}
+
+.sweet-alert button {
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    font-weight: 500;
+}
+
+.sweet-alert button.cancel {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid var(--pd-border-strong) !important;
+    color: #e5e7eb !important;
+}
+
+.sweet-alert button.confirm {
+    background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+}
+
+.sweet-alert input,
+.sweet-alert textarea {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--pd-border-strong) !important;
+    border-radius: 10px !important;
+    color: #f4f5f7 !important;
+    box-shadow: none !important;
+}
+
+.sweet-alert .sa-icon.sa-warning {
+    border-color: #fbbf24;
+}
+
+.sweet-alert .sa-icon.sa-warning .sa-body,
+.sweet-alert .sa-icon.sa-warning .sa-dot {
+    background-color: #fbbf24;
+}
+
+.sweet-alert .sa-icon.sa-success:before,
+.sweet-alert .sa-icon.sa-success:after,
+.sweet-alert .sa-icon.sa-success .sa-fix {
+    background: #131826 !important;
+}
+
+/* Pills and definition lists */
+.nav-pills > li > a {
+    border-radius: 10px;
+    color: var(--pd-text-muted);
+}
+
+.nav-pills > li.active > a,
+.nav-pills > li.active > a:hover {
+    background: var(--pd-accent-soft) !important;
+    border-color: transparent !important;
+    color: #fff !important;
+}
+
+dl dt {
+    color: var(--pd-text-muted);
+    font-weight: 500;
+}
+
+hr {
+    border-top-color: var(--pd-border);
+}
+
+kbd {
+    background: #1e2436;
+    border: 1px solid var(--pd-border-strong);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
+    color: #e5e7eb;
+}
+
+blockquote {
+    border-left-color: var(--pd-accent);
+    color: var(--pd-text-muted);
+}

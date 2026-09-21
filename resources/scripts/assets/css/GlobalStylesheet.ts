@@ -17,6 +17,31 @@ export default createGlobalStyle`
         background: #05070d;
     }
 
+    /*
+     * The list of a drop-down is drawn by the browser, on a white background, and the text of the fields is light:
+     * without this the choices could not be read. The dark scheme also darkens date pickers and scrollbars in fields.
+     */
+    select,
+    input,
+    textarea {
+        color-scheme: dark;
+    }
+
+    select option,
+    select optgroup {
+        background-color: #131826;
+        color: #e5e7eb;
+    }
+
+    select option:checked {
+        background-color: #4f46e5;
+        color: #ffffff;
+    }
+
+    select option:disabled {
+        color: #6b7280;
+    }
+
     body {
         ${tw`font-sans bg-neutral-900 text-neutral-200 antialiased`};
         letter-spacing: 0.015em;

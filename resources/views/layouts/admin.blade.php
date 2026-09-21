@@ -60,109 +60,70 @@
                                     <span class="hidden-xs">{{ Auth::user()->name_first }} {{ Auth::user()->name_last }}</span>
                                 </a>
                             </li>
-                            <li>
-                                <li><a href="{{ route('index') }}" data-toggle="tooltip" data-placement="bottom" title="Exit Admin Control"><i class="fa fa-server"></i></a></li>
-                            </li>
-                            <li>
-                                <li><a href="{{ route('auth.logout') }}" id="logoutButton" data-toggle="tooltip" data-placement="bottom" title="Logout"><i class="fa fa-sign-out"></i></a></li>
-                            </li>
+                            <li><a href="{{ route('index') }}" data-toggle="tooltip" data-placement="bottom" title="Exit Admin Control"><i class="fa fa-server"></i></a></li>
+                            <li><a href="{{ route('auth.logout') }}" id="logoutButton" data-toggle="tooltip" data-placement="bottom" title="Logout"><i class="fa fa-sign-out"></i></a></li>
                         </ul>
                     </div>
                 </nav>
             </header>
             <aside class="main-sidebar">
                 <section class="sidebar">
+                    @php
+                        $adminUser = Auth::user();
+                        $can = fn (string $section): bool => $adminUser->canAccessAdminSection($section);
+                        $isRoot = (bool) $adminUser->root_admin;
+                        $current = (string) Route::currentRouteName();
+                        $counts = app(\Pterodactyl\Services\Admin\OverviewService::class)->menuCounts();
+                        // [label, route, icon, the start of the route names that make it the current page, visible, count]
+                        $groups = [
+                            'BASIC ADMINISTRATION' => [
+                                ['Overview', 'admin.index', 'fa-home', '=admin.index', true, null],
+                                ['Settings', 'admin.settings', 'fa-wrench', 'admin.settings', $can('settings'), null],
+                                ['Application API', 'admin.api.index', 'fa-gamepad', 'admin.api', $isRoot, null],
+                            ],
+                            'MANAGEMENT' => [
+                                ['Databases', 'admin.databases', 'fa-database', 'admin.databases', $can('databases'), null],
+                                ['Locations', 'admin.locations', 'fa-globe', 'admin.locations', $can('locations'), null],
+                                ['Nodes', 'admin.nodes', 'fa-sitemap', 'admin.nodes', $can('nodes'), 'nodes'],
+                                ['Servers', 'admin.servers', 'fa-server', 'admin.servers', $can('servers'), 'servers'],
+                                ['Users', 'admin.users', 'fa-users', 'admin.users', $can('users'), 'users'],
+                                ['Staff Roles', 'admin.roles', 'fa-id-badge', 'admin.roles', $isRoot, null],
+                            ],
+                            'SERVICE MANAGEMENT' => [
+                                ['Mounts', 'admin.mounts', 'fa-magic', 'admin.mounts', $can('mounts'), null],
+                                ['Nests', 'admin.nests', 'fa-th-large', 'admin.nests', $can('nests'), null],
+                            ],
+                        ];
+                    @endphp
+                    <div class="pd-user">
+                        <img src="https://www.gravatar.com/avatar/{{ md5(strtolower($adminUser->email)) }}?s=96" alt="">
+                        <div>
+                            <strong>{{ trim($adminUser->name_first . ' ' . $adminUser->name_last) ?: $adminUser->username }}</strong>
+                            <small>@if ($isRoot)<span>Administrator</span>@else{{ $adminUser->adminRole?->name ?? 'Staff' }}@endif</small>
+                        </div>
+                    </div>
                     <ul class="sidebar-menu">
-                        @php
-                            $adminUser = Auth::user();
-                            $can = fn (string $section): bool => $adminUser->canAccessAdminSection($section);
-                            $isRoot = (bool) $adminUser->root_admin;
-                            $showManagement = $isRoot || $can('databases') || $can('locations') || $can('nodes') || $can('servers') || $can('users');
-                            $showServices = $can('mounts') || $can('nests');
-                        @endphp
-                        <li class="header">BASIC ADMINISTRATION</li>
-                        <li class="{{ Route::currentRouteName() !== 'admin.index' ?: 'active' }}">
-                            <a href="{{ route('admin.index') }}">
-                                <i class="fa fa-home"></i> <span>Overview</span>
-                            </a>
-                        </li>
-                        @if($can('settings'))
-                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.settings') ?: 'active' }}">
-                                <a href="{{ route('admin.settings')}}">
-                                    <i class="fa fa-wrench"></i> <span>Settings</span>
-                                </a>
-                            </li>
-                        @endif
-                        @if($isRoot)
-                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.api') ?: 'active' }}">
-                                <a href="{{ route('admin.api.index')}}">
-                                    <i class="fa fa-gamepad"></i> <span>Application API</span>
-                                </a>
-                            </li>
-                        @endif
-                        @if($showManagement)
-                            <li class="header">MANAGEMENT</li>
-                        @endif
-                        @if($can('databases'))
-                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.databases') ?: 'active' }}">
-                                <a href="{{ route('admin.databases') }}">
-                                    <i class="fa fa-database"></i> <span>Databases</span>
-                                </a>
-                            </li>
-                        @endif
-                        @if($can('locations'))
-                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.locations') ?: 'active' }}">
-                                <a href="{{ route('admin.locations') }}">
-                                    <i class="fa fa-globe"></i> <span>Locations</span>
-                                </a>
-                            </li>
-                        @endif
-                        @if($can('nodes'))
-                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.nodes') ?: 'active' }}">
-                                <a href="{{ route('admin.nodes') }}">
-                                    <i class="fa fa-sitemap"></i> <span>Nodes</span>
-                                </a>
-                            </li>
-                        @endif
-                        @if($can('servers'))
-                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.servers') ?: 'active' }}">
-                                <a href="{{ route('admin.servers') }}">
-                                    <i class="fa fa-server"></i> <span>Servers</span>
-                                </a>
-                            </li>
-                        @endif
-                        @if($can('users'))
-                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.users') ?: 'active' }}">
-                                <a href="{{ route('admin.users') }}">
-                                    <i class="fa fa-users"></i> <span>Users</span>
-                                </a>
-                            </li>
-                        @endif
-                        @if($isRoot)
-                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.roles') ?: 'active' }}">
-                                <a href="{{ route('admin.roles') }}">
-                                    <i class="fa fa-id-badge"></i> <span>Staff Roles</span>
-                                </a>
-                            </li>
-                        @endif
-                        @if($showServices)
-                            <li class="header">SERVICE MANAGEMENT</li>
-                        @endif
-                        @if($can('mounts'))
-                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.mounts') ?: 'active' }}">
-                                <a href="{{ route('admin.mounts') }}">
-                                    <i class="fa fa-magic"></i> <span>Mounts</span>
-                                </a>
-                            </li>
-                        @endif
-                        @if($can('nests'))
-                            <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.nests') ?: 'active' }}">
-                                <a href="{{ route('admin.nests') }}">
-                                    <i class="fa fa-th-large"></i> <span>Nests</span>
-                                </a>
-                            </li>
-                        @endif
+                        @foreach ($groups as $heading => $items)
+                            @php($visible = array_filter($items, fn ($item) => $item[4]))
+                            @if (count($visible) > 0)
+                                <li class="header">{{ $heading }}</li>
+                                @foreach ($visible as [$label, $route, $icon, $match, , $countKey])
+                                    @php($active = str_starts_with($match, '=') ? $current === substr($match, 1) : str_starts_with($current, $match))
+                                    <li class="{{ $active ? 'active' : '' }}">
+                                        <a href="{{ route($route) }}" title="{{ $label }}">
+                                            <i class="fa {{ $icon }}"></i> <span>{{ $label }}</span>
+                                            @if ($countKey && isset($counts[$countKey]))
+                                                <small class="pd-count">{{ $counts[$countKey] }}</small>
+                                            @endif
+                                        </a>
+                                    </li>
+                                @endforeach
+                            @endif
+                        @endforeach
                     </ul>
+                    <div class="pd-sidebar-foot">
+                        <a href="{{ route('index') }}"><i class="fa fa-arrow-left"></i> <span>Back to the dashboard</span></a>
+                    </div>
                 </section>
             </aside>
             <div class="content-wrapper">
