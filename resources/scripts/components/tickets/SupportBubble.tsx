@@ -438,6 +438,7 @@ const Thread = ({ id, onBack, onClose }: { id: number; onBack: () => void; onClo
                         )}
                     >
                         <div className={'flex items-center gap-2 mb-0.5 text-2xs text-neutral-400'}>
+                            <img src={m.avatar} alt={''} className={'w-4 h-4 rounded-full object-cover'} />
                             <strong className={'text-neutral-100'}>{m.author}</strong>
                             {m.staff && (
                                 <span

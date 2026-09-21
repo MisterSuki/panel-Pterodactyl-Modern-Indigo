@@ -15,6 +15,7 @@ use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Models\AdminRole;
 use Pterodactyl\Http\Controllers\Controller;
 use Illuminate\Contracts\Translation\Translator;
+use Pterodactyl\Services\Admin\UserLiveService;
 use Pterodactyl\Services\Users\UserUpdateService;
 use Pterodactyl\Traits\Helpers\AvailableLanguages;
 use Pterodactyl\Services\Users\UserCreationService;
@@ -81,6 +82,7 @@ class UserController extends Controller
     {
         return view('admin.users.view', [
             'user' => $user,
+            'live' => app(UserLiveService::class)->build($user),
             'languages' => $this->getAvailableLanguages(true),
             'roles' => AdminRole::query()->orderBy('name')->get(),
         ]);
@@ -158,14 +160,14 @@ class UserController extends Controller
         if ($request->query('user_id')) {
             $user = User::query()->findOrFail($request->input('user_id'));
             // @phpstan-ignore-next-line property.notFound
-            $user->md5 = md5(strtolower($user->email));
+            $user->avatar_url = $user->avatarUrl();
 
             return $user;
         }
 
         return $users->map(function ($item) {
             // @phpstan-ignore-next-line property.notFound
-            $item->md5 = md5(strtolower($item->email));
+            $item->avatar_url = $item->avatarUrl();
 
             return $item;
         });

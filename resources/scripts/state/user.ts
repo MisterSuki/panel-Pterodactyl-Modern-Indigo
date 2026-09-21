@@ -11,6 +11,8 @@ export interface UserData {
     useTotp: boolean;
     discordLinked: boolean;
     discordUsername: string | null;
+    // Where the profile picture is: the one the person chose, or the logo of the panel.
+    avatar: string;
     createdAt: Date;
     updatedAt: Date;
 }

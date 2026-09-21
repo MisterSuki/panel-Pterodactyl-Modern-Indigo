@@ -166,7 +166,7 @@ class TicketService
     public function messagesAfter(Ticket $ticket, int $after, bool $asStaff): Collection
     {
         return $ticket->messages()
-            ->with('author:id,username')
+            ->with('author:id,username,uuid,avatar,avatar_updated_at')
             ->where('id', '>', $after)
             ->when(!$asStaff, fn ($query) => $query->where('is_internal', false))
             ->get();
@@ -211,6 +211,7 @@ class TicketService
             'staff' => $message->is_staff,
             'internal' => $message->is_internal,
             'author' => $message->author->username ?? '?',
+            'avatar' => $message->author ? $message->author->avatarUrl() : User::DEFAULT_AVATAR,
             'mine' => $message->user_id === $viewerId,
             'at' => $message->created_at->toIso8601String(),
         ];

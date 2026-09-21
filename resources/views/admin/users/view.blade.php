@@ -130,6 +130,9 @@
         </div>
     </form>
     <div class="col-xs-12">
+        @include('admin.partials.user-live', ['liveUser' => $user, 'live' => $live])
+    </div>
+    <div class="col-xs-12">
         <div class="box box-danger">
             <div class="box-header with-border">
                 <h3 class="box-title">Delete User</h3>

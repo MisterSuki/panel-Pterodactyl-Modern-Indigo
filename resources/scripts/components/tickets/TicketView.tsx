@@ -40,6 +40,7 @@ const Bubble = ({ message }: { message: TicketMessage }) => (
         style={{ animation: 'none' }}
     >
         <div css={tw`flex items-center gap-2 mb-1 text-xs text-neutral-400`}>
+            <img src={message.avatar} alt={''} css={tw`w-5 h-5 rounded-full object-cover`} />
             <strong css={tw`text-neutral-100`}>{message.author}</strong>
             {message.staff && (
                 <span css={tw`rounded-full bg-primary-500/25 px-2 text-2xs uppercase tracking-wider text-primary-200`}>

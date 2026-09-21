@@ -449,9 +449,13 @@ gardée 6 heures pour aller vite ; le serveur du panel doit pouvoir joindre `egg
 
 Un système de tickets intégré, avec **discussion en temps réel** et **transcription**.
 
-- **Côté client** : un bouton *Support* dans la barre du haut (avec une pastille quand le staff a répondu). Chaque utilisateur ouvre un
-  ticket (sujet, catégorie, priorité, serveur concerné), discute avec l'équipe dans une conversation qui se met à jour toute seule
-  (toutes les 2 secondes tant que la page est ouverte), peut fermer et rouvrir son ticket. Cinq tickets ouverts au maximum par personne.
+- **Côté client** : une **bulle** en bas à droite de chaque page (avec une pastille quand le staff a répondu) qui ouvre une fenêtre de
+  discussion sans quitter la page. Chaque utilisateur ouvre un ticket (sujet, catégorie, serveur concerné), discute avec l'équipe dans
+  une conversation qui se met à jour toute seule (toutes les 2 secondes tant qu'elle est ouverte), peut fermer et rouvrir son ticket.
+  Cinq tickets ouverts au maximum par personne. La page complète reste disponible sur `/tickets`.
+- **Voir ce que fait la personne** : dans un ticket (et sur la fiche d'un utilisateur), une carte *Ce qu'il fait* en direct : est-elle sur
+  le panel, sur quelle page et quel serveur, et ses dernières actions (celles du journal d'activité que le panel garde déjà). Rien de
+  ce qui est tapé (contenu de fichier, commande de console) n'est affiché.
 - **Côté administration** : le menu *Support → Tickets* (avec le nombre de tickets en attente). Liste filtrable (à traiter, en attente,
   répondu, fermé), recherche, « les miens » ; dans un ticket, la conversation en direct, les **notes internes** (invisibles pour
   l'utilisateur), la priorité, la prise en charge (« le prendre » ou un autre membre du staff) et la fermeture.
@@ -462,6 +466,13 @@ Un système de tickets intégré, avec **discussion en temps réel** et **transc
   voir lit les tickets sans pouvoir répondre.
 
 Les messages sont toujours affichés comme du texte : rien de ce qui est écrit ne peut s'exécuter dans la page.
+
+### 🖼️ Photo de profil
+
+Chaque utilisateur peut choisir sa photo dans *Mon compte → Photo de profil* (png, jpeg ou webp, 2 Mo au maximum). Sans photo, c'est le
+**logo de Pterodactyl** qui s'affiche, partout (barre du haut, administration, discussions du support, journal d'activité).
+L'image est vérifiée d'après son contenu (pas son nom), recadrée en carré de 256 px, et gardée **hors du dossier public** : seules les
+personnes connectées peuvent la voir.
 
 ### 🎮 Joueurs connectés des jeux Steam
 

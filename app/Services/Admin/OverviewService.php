@@ -97,7 +97,7 @@ class OverviewService
             'username' => $user->username,
             'admin' => (bool) $user->root_admin,
             'discord' => !is_null($user->discord_id),
-            'avatar' => 'https://www.gravatar.com/avatar/' . md5(strtolower((string) $user->email)) . '?s=64&d=mp',
+            'avatar' => $user->avatarUrl(),
             'page' => $user->last_seen_page,
             'server' => $user->last_seen_server_id ? ($names[$user->last_seen_server_id] ?? null) : null,
             'seconds' => max(0, $now->timestamp - $user->last_seen_at->timestamp),

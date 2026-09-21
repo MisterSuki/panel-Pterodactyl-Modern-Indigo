@@ -31,6 +31,7 @@ interface ExtendedWindow extends Window {
         use_totp: boolean;
         discord_linked: boolean;
         discord_username: string | null;
+        avatar_url?: string;
         language: string;
         updated_at: string;
         created_at: string;
@@ -53,6 +54,7 @@ const App = () => {
             useTotp: PterodactylUser.use_totp,
             discordLinked: PterodactylUser.discord_linked,
             discordUsername: PterodactylUser.discord_username,
+            avatar: PterodactylUser.avatar_url || '/assets/svgs/pterodactyl.svg',
             createdAt: new Date(PterodactylUser.created_at),
             updatedAt: new Date(PterodactylUser.updated_at),
         });

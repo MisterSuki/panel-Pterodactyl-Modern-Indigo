@@ -4,16 +4,21 @@ import { useStoreState } from '@/state/hooks';
 
 const palette = ['#FFAD08', '#EDD75A', '#73B06F', '#0C8F8F', '#587291'];
 
-type Props = Omit<AvatarProps, 'colors'>;
-
 const _Avatar = ({ variant = 'beam', ...props }: AvatarProps) => (
     <BoringAvatar colors={palette} variant={variant} {...props} />
 );
 
-const _UserAvatar = ({ variant = 'beam', ...props }: Omit<Props, 'name'>) => {
-    const uuid = useStoreState((state) => state.user.data?.uuid);
+// The picture of the person who is signed in: the one they chose, or the logo of the panel.
+const _UserAvatar = () => {
+    const avatar = useStoreState((state) => state.user.data?.avatar);
 
-    return <BoringAvatar colors={palette} name={uuid || 'system'} variant={variant} {...props} />;
+    return (
+        <img
+            src={avatar || '/assets/svgs/pterodactyl.svg'}
+            alt={''}
+            className={'w-full h-full object-cover rounded-full'}
+        />
+    );
 };
 
 _Avatar.displayName = 'Avatar';

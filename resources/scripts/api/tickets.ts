@@ -23,6 +23,8 @@ export interface TicketMessage {
     body: string;
     staff: boolean;
     author: string;
+    // Where the picture of the author is.
+    avatar: string;
     // Written by the person who is looking.
     mine: boolean;
     at: Date;
@@ -46,6 +48,7 @@ const toMessage = (m: any): TicketMessage => ({
     body: m.body,
     staff: !!m.staff,
     author: m.author,
+    avatar: m.avatar || '/assets/svgs/pterodactyl.svg',
     mine: !!m.mine,
     at: new Date(m.at),
 });

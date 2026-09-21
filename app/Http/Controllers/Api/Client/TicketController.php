@@ -119,7 +119,7 @@ class TicketController extends ClientApiController
 
         $message = $this->tickets->reply($ticket, $request->user(), $data['message'], false);
 
-        return new JsonResponse(['object' => 'ticket_message', 'attributes' => $this->tickets->presentMessage($message->load('author:id,username'), $request->user()->id)], 201);
+        return new JsonResponse(['object' => 'ticket_message', 'attributes' => $this->tickets->presentMessage($message->load('author:id,username,uuid,avatar,avatar_updated_at'), $request->user()->id)], 201);
     }
 
     public function close(Request $request, int $id): JsonResponse

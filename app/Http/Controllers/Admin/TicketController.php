@@ -10,6 +10,7 @@ use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Pterodactyl\Http\Controllers\Controller;
+use Pterodactyl\Services\Admin\UserLiveService;
 use Pterodactyl\Services\Tickets\TicketService;
 use Pterodactyl\Services\Tickets\TicketTranscript;
 
@@ -65,6 +66,7 @@ class TicketController extends Controller
             'messages' => $messages->map(fn ($m) => $this->tickets->presentMessage($m, $request->user()->id))->all(),
             'staff' => User::query()->where('root_admin', true)->orWhereNotNull('admin_role_id')->orderBy('username')->get(['id', 'username']),
             'canManage' => $request->user()->hasAdminPermission('tickets.manage'),
+            'live' => app(UserLiveService::class)->build($ticket->user),
         ]);
     }
 
@@ -95,7 +97,7 @@ class TicketController extends Controller
 
         return new JsonResponse([
             'object' => 'ticket_message',
-            'attributes' => $this->tickets->presentMessage($message->load('author:id,username'), $request->user()->id),
+            'attributes' => $this->tickets->presentMessage($message->load('author:id,username,uuid,avatar,avatar_updated_at'), $request->user()->id),
             'ticket' => $this->summary($ticket->fresh()),
         ], 201);
     }

@@ -26,6 +26,8 @@ return [
         ],
         'account' => [
             'email-changed' => 'Email changé de :old à :new',
+            'avatar-changed' => 'Photo de profil changée',
+            'avatar-removed' => 'Photo de profil retirée',
             'password-changed' => 'Mot de passe changé',
         ],
         'api-key' => [

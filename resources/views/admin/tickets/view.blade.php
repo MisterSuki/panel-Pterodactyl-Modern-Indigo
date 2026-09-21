@@ -77,6 +77,7 @@
             </div>
             @endif
         </div>
+        @include('admin.partials.user-live', ['liveUser' => $ticket->user, 'live' => $live])
         <div class="pd-card">
             <div class="pd-card-head"><h3><i class="fa fa-file-text-o"></i> <span>Transcript</span></h3></div>
             <div class="pd-actions">
@@ -120,6 +121,12 @@
                 var kind = message.internal ? 'pd-msg--note' : (message.staff ? 'pd-msg--staff' : 'pd-msg--user');
                 var row = el('div', 'pd-msg ' + kind);
                 var meta = el('div', 'pd-msg-meta');
+                var picture = el('img', 'pd-msg-avatar');
+                picture.src = message.avatar;
+                picture.alt = '';
+                picture.width = 20;
+                picture.height = 20;
+                meta.appendChild(picture);
                 meta.appendChild(el('strong', null, message.author));
                 if (message.internal) { meta.appendChild(el('span', 'pd-tag', 'Internal note')); }
                 else if (message.staff) { meta.appendChild(el('span', 'pd-tag pd-tag--staff', 'Staff')); }

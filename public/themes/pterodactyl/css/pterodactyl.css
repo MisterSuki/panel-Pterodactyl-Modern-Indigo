@@ -2757,3 +2757,93 @@ blockquote {
 #pd-online .pd-row-main small {
     white-space: normal;
 }
+
+/* ---- profile pictures and the live view of what a person does ---------------------------------- */
+.pd-avatar,
+.pd-msg-avatar,
+.main-sidebar .pd-user-card img,
+.navbar-custom-menu .user-image {
+    object-fit: cover;
+}
+
+.pd-msg-avatar {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.pd-live-who {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--pd-border);
+}
+
+.pd-live-who .pd-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    box-shadow: none;
+}
+
+.pd-live-who-text {
+    min-width: 0;
+}
+
+.pd-live-who-text strong {
+    display: block;
+    color: #fff;
+}
+
+.pd-live-who-text small {
+    display: block;
+    color: var(--pd-text-muted);
+}
+
+.pd-dot {
+    margin-right: 6px;
+    font-size: 8px;
+    vertical-align: middle;
+    color: #64748b;
+}
+
+.pd-dot--on {
+    color: #4ade80;
+}
+
+.pd-live-actions {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.pd-live-actions li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 18px;
+    border-bottom: 1px solid var(--pd-border);
+    color: var(--pd-text);
+    font-size: 13px;
+}
+
+.pd-live-actions li:last-child {
+    border-bottom: 0;
+}
+
+.pd-live-what small {
+    display: block;
+    color: var(--pd-text-muted);
+}
+
+.pd-live-actions time {
+    flex: 0 0 auto;
+    font-size: 11px;
+    color: var(--pd-text-muted);
+}

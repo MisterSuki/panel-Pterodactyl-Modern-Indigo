@@ -18,5 +18,11 @@ Route::get('/locales/ui.json', Base\UiLocaleController::class)
     ->withoutMiddleware(['auth', RequireTwoFactorAuthentication::class])
     ->name('locales.ui');
 
+// The profile pictures, for the people who are signed in.
+Route::get('/avatars/{uuid}', [Base\AvatarController::class, 'show'])
+    ->withoutMiddleware(RequireTwoFactorAuthentication::class)
+    ->where('uuid', '[0-9a-fA-F-]{36}')
+    ->name('avatar');
+
 Route::get('/{react}', [Base\IndexController::class, 'index'])
     ->where('react', '^(?!(\/)?(api|auth|admin|daemon)).+');

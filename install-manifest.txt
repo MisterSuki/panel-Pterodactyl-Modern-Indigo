@@ -121,3 +121,14 @@ app/Http/Requests/Api/Client/Account/UpdateLanguageRequest.php
 app/Traits/Helpers/AvailableLanguages.php
 routes/base.php
 resources/views/templates/wrapper.blade.php
+
+# --- Profile pictures and the live view of what a person does ------------------------------------
+database/migrations/2026_09_25_000000_add_avatar_to_users_table.php
+app/Services/Users/AvatarService.php
+app/Http/Controllers/Base/AvatarController.php
+app/Http/Controllers/Api/Client/AvatarController.php
+app/Services/Admin/UserLiveService.php
+app/Transformers/Api/Client/UserTransformer.php
+resources/views/admin/partials/user-live.blade.php
+resources/views/admin/servers/view/details.blade.php
+resources/lang/fr/activity.php

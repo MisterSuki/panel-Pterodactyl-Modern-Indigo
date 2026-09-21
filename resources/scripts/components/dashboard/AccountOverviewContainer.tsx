@@ -12,6 +12,7 @@ import { useLocation } from 'react-router-dom';
 import { useStoreState } from 'easy-peasy';
 import DiscordConnectionBox from '@/components/dashboard/DiscordConnectionBox';
 import LanguageBox from '@/components/dashboard/LanguageBox';
+import AvatarBox from '@/components/dashboard/AvatarBox';
 
 const Container = styled.div`
     ${tw`flex flex-wrap`};
@@ -53,7 +54,8 @@ export default () => {
                 </ContentBox>
             </Container>
             <div css={tw`lg:grid lg:grid-cols-3 lg:gap-8 mb-10`}>
-                <LanguageBox />
+                <AvatarBox />
+                <LanguageBox css={tw`mt-8 lg:mt-0`} />
                 {discordEnabled && <DiscordConnectionBox css={tw`mt-8 lg:mt-0`} />}
             </div>
         </PageContentBlock>

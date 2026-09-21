@@ -47,6 +47,9 @@ Route::prefix('/account')->middleware(AccountSubject::class)->group(function () 
 
     Route::put('/language', [Client\AccountController::class, 'updateLanguage'])->name('api:client.account.update-language');
 
+    Route::post('/avatar', [Client\AvatarController::class, 'store'])->middleware('throttle:10,1')->name('api:client.account.avatar');
+    Route::delete('/avatar', [Client\AvatarController::class, 'destroy'])->name('api:client.account.avatar.remove');
+
     Route::put('/email', [Client\AccountController::class, 'updateEmail'])
         ->middleware('throttle')
         ->name('api:client.account.update-email');

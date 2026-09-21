@@ -122,6 +122,11 @@ class User extends Model implements
     protected string $accessLevel = 'all';
 
     /**
+     * The picture of a person who did not choose one.
+     */
+    public const DEFAULT_AVATAR = '/assets/svgs/pterodactyl.svg';
+
+    /**
      * The table associated with the model.
      */
     protected $table = 'users';
@@ -153,12 +158,13 @@ class User extends Model implements
         'gravatar' => 'boolean',
         'totp_authenticated_at' => 'datetime',
         'last_seen_at' => 'datetime',
+        'avatar_updated_at' => 'datetime',
     ];
 
     /**
      * The attributes excluded from the model's JSON form.
      */
-    protected $hidden = ['password', 'remember_token', 'totp_secret', 'totp_authenticated_at', 'discord_id', 'discord_username', 'admin_role_id'];
+    protected $hidden = ['password', 'remember_token', 'totp_secret', 'totp_authenticated_at', 'discord_id', 'discord_username', 'admin_role_id', 'avatar', 'avatar_updated_at'];
 
     /**
      * Default values for specific fields in the database.
@@ -205,6 +211,18 @@ class User extends Model implements
     /**
      * Return the user model in a format that can be passed over to Vue templates.
      */
+    /**
+     * The picture that stands for the person: the one they chose, or the logo of the panel.
+     */
+    public function avatarUrl(): string
+    {
+        if (!$this->avatar) {
+            return self::DEFAULT_AVATAR;
+        }
+
+        return '/avatars/' . $this->uuid . '?v=' . ($this->avatar_updated_at?->timestamp ?? 0);
+    }
+
     public function toVueObject(): array
     {
         return Collection::make($this->toArray())->except(['id', 'external_id'])
@@ -213,6 +231,7 @@ class User extends Model implements
                 'discord_linked' => !is_null($this->discord_id),
                 'discord_username' => $this->discord_username,
                 'admin_access' => $this->isStaff(),
+                'avatar_url' => $this->avatarUrl(),
             ])
             ->toArray();
     }

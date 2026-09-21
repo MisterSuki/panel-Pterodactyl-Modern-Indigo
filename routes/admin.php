@@ -6,6 +6,7 @@ use Pterodactyl\Http\Middleware\Admin\Servers\ServerInstalled;
 
 Route::get('/', [Admin\BaseController::class, 'index'])->name('admin.index');
 Route::get('/presence', [Admin\BaseController::class, 'presence'])->name('admin.presence');
+Route::get('/presence/{id}', [Admin\BaseController::class, 'person'])->whereNumber('id')->name('admin.presence.person');
 
 /*
 |--------------------------------------------------------------------------

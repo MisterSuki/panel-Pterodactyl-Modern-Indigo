@@ -5,7 +5,9 @@ namespace Pterodactyl\Http\Controllers\Admin;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Pterodactyl\Models\User;
 use Pterodactyl\Services\Admin\OverviewService;
+use Pterodactyl\Services\Admin\UserLiveService;
 use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\Services\Helpers\SoftwareVersionService;
 
@@ -14,8 +16,11 @@ class BaseController extends Controller
     /**
      * BaseController constructor.
      */
-    public function __construct(private SoftwareVersionService $version, private OverviewService $overview)
-    {
+    public function __construct(
+        private SoftwareVersionService $version,
+        private OverviewService $overview,
+        private UserLiveService $live
+    ) {
     }
 
     /**
@@ -26,6 +31,18 @@ class BaseController extends Controller
         abort_unless($request->user()->canAccessAdminSection('users'), 403);
 
         return new JsonResponse(['object' => 'presence', 'data' => $this->overview->online()]);
+    }
+
+    /**
+     * Where one person is and what they did last, so that the staff can help them. For the staff who see the users or
+     * the tickets, since it is asked from the page of a user and from a ticket.
+     */
+    public function person(Request $request, int $id): JsonResponse
+    {
+        $viewer = $request->user();
+        abort_unless($viewer->canAccessAdminSection('users') || $viewer->canAccessAdminSection('tickets'), 403);
+
+        return new JsonResponse($this->live->build(User::query()->findOrFail($id)));
     }
 
     /**

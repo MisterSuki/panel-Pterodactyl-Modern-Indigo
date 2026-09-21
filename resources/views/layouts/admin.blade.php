@@ -56,7 +56,7 @@
                         <ul class="nav navbar-nav">
                             <li class="user-menu">
                                 <a href="{{ route('account') }}">
-                                    <img src="https://www.gravatar.com/avatar/{{ md5(strtolower(Auth::user()->email)) }}?s=160" class="user-image" alt="User Image">
+                                    <img src="{{ Auth::user()->avatarUrl() }}" class="user-image" alt="User Image">
                                     <span class="hidden-xs">{{ Auth::user()->name_first }} {{ Auth::user()->name_last }}</span>
                                 </a>
                             </li>
@@ -99,7 +99,7 @@
                         ];
                     @endphp
                     <div class="pd-user">
-                        <img src="https://www.gravatar.com/avatar/{{ md5(strtolower($adminUser->email)) }}?s=96" alt="">
+                        <img src="{{ $adminUser->avatarUrl() }}" alt="">
                         <div>
                             <strong>{{ trim($adminUser->name_first . ' ' . $adminUser->name_last) ?: $adminUser->username }}</strong>
                             <small>@if ($isRoot)<span>Administrator</span>@else{{ $adminUser->adminRole?->name ?? 'Staff' }}@endif</small>
