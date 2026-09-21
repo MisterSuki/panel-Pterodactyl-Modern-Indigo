@@ -3049,3 +3049,12 @@ blockquote {
     outline: 2px solid var(--pd-accent-light);
     outline-offset: 2px;
 }
+
+/* ---- the editor of the home page ---------------------------------------------------------------- */
+.pd-slot {
+    margin-bottom: 14px;
+    padding: 12px 14px 2px;
+    border: 1px solid var(--pd-border);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+}

@@ -79,6 +79,7 @@
                             'BASIC ADMINISTRATION' => [
                                 ['Overview', 'admin.index', 'fa-home', '=admin.index', true, null],
                                 ['Settings', 'admin.settings', 'fa-wrench', 'admin.settings', $can('settings'), null],
+                                ['Home page', 'admin.home-page', 'fa-columns', 'admin.home-page', $can('settings'), null],
                                 ['Application API', 'admin.api.index', 'fa-gamepad', 'admin.api', $isRoot, null],
                             ],
                             'MANAGEMENT' => [

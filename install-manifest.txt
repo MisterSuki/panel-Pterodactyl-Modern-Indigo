@@ -155,3 +155,14 @@ routes/payments.php
 resources/views/admin/shop/
 database/migrations/2026_09_27_000000_create_shop_categories.php
 app/Models/ShopCategory.php
+
+# --- Home page for visitors (editable from the administration) ----------------------------------------
+app/Services/Landing/
+app/Http/Middleware/ShowLandingToGuests.php
+app/Http/Controllers/Base/LandingController.php
+app/Http/Controllers/Admin/LandingController.php
+resources/views/landing.blade.php
+resources/views/landing/
+resources/views/admin/landing.blade.php
+resources/lang/en/landing.php
+resources/lang/fr/landing.php

@@ -474,6 +474,14 @@ Un système de tickets intégré, avec **discussion en temps réel** et **transc
 
 Les messages sont toujours affichés comme du texte : rien de ce qui est écrit ne peut s'exécuter dans la page.
 
+### 🏠 Page d'accueil pour les visiteurs
+
+Quand on ouvre l'adresse du panel sans être connecté, on arrive sur une **page d'accueil** au lieu d'être renvoyé directement à la connexion.
+Elle se modifie dans *Administration → Page d'accueil* : titre, sous-titre, deux boutons (texte et lien), points forts (jusqu'à 6, avec
+icône), présentation, texte de bas de page, et l'affichage des **offres de la boutique**. On peut la désactiver (retour à l'ancien
+comportement), revenir aux textes d'origine, et la voir à tout moment sur `/welcome`. Les personnes connectées gardent leur tableau de bord.
+Tout ce qui est écrit s'affiche comme du texte (rien ne peut s'exécuter) et un lien ne peut être qu'un chemin du panel ou une adresse `https://`.
+
 ### 🛒 Boutique (Stripe, PayPal, SumUp)
 
 Une boutique intégrée que l'on **active ou désactive** d'un clic (*Administration → Boutique → Réglages*, réservé aux administrateurs).

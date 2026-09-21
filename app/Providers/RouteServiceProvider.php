@@ -10,6 +10,8 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
 use Pterodactyl\Http\Middleware\TrimStrings;
 use Pterodactyl\Http\Middleware\AdminAuthenticate;
+use Pterodactyl\Http\Middleware\ShowLandingToGuests;
+use Pterodactyl\Http\Controllers\Base\LandingController;
 use Pterodactyl\Http\Middleware\RequireTwoFactorAuthentication;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
@@ -37,7 +39,10 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->routes(function () {
             Route::middleware('web')->group(function () {
-                Route::middleware(['auth.session', RequireTwoFactorAuthentication::class])
+                // The home page, which anybody can open (the administration can see it even when signed in).
+                Route::get('/welcome', [LandingController::class, 'show'])->name('landing');
+
+                Route::middleware([ShowLandingToGuests::class, 'auth.session', RequireTwoFactorAuthentication::class])
                     ->group(base_path('routes/base.php'));
 
                 Route::middleware(['auth.session', RequireTwoFactorAuthentication::class, AdminAuthenticate::class])

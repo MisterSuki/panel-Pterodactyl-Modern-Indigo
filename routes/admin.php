@@ -5,6 +5,12 @@ use Pterodactyl\Http\Controllers\Admin;
 use Pterodactyl\Http\Middleware\Admin\Servers\ServerInstalled;
 
 Route::get('/', [Admin\BaseController::class, 'index'])->name('admin.index');
+// The home page that visitors see before they sign in (the right to manage the settings is needed to change it).
+Route::group(['prefix' => 'home-page', 'middleware' => 'admin.can:settings,manage'], function () {
+    Route::get('/', [Admin\LandingController::class, 'index'])->name('admin.home-page');
+    Route::post('/', [Admin\LandingController::class, 'update']);
+});
+
 Route::get('/presence', [Admin\BaseController::class, 'presence'])->name('admin.presence');
 Route::get('/presence/{id}', [Admin\BaseController::class, 'person'])->whereNumber('id')->name('admin.presence.person');
 
