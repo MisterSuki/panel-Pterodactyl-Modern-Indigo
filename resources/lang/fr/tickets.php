@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'transcript_title' => 'Ticket n°:id - :subject',
+    'transcript_generated' => 'Transcription générée le :date',
+    'status' => 'Statut',
+    'priority' => 'Priorité',
+    'category' => 'Catégorie',
+    'opened_by' => 'Ouvert par',
+    'opened_on' => 'Ouvert le',
+    'closed_on' => 'Fermé le',
+    'server' => 'Serveur',
+    'assigned_to' => 'Pris en charge par',
+    'status_open' => 'En attente du staff',
+    'status_answered' => 'Répondu',
+    'status_closed' => 'Fermé',
+    'priority_low' => 'Basse',
+    'priority_normal' => 'Normale',
+    'priority_high' => 'Haute',
+    'priority_urgent' => 'Urgente',
+    'category_general' => 'Général',
+    'category_technical' => 'Technique',
+    'category_billing' => 'Facturation',
+    'category_other' => 'Autre',
+    'author_staff' => 'Staff - :name',
+    'author_note' => 'Note interne - :name',
+];

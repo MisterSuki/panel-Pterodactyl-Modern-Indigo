@@ -9,6 +9,23 @@ Route::get('/presence', [Admin\BaseController::class, 'presence'])->name('admin.
 
 /*
 |--------------------------------------------------------------------------
+| Support tickets
+|--------------------------------------------------------------------------
+|
+| Endpoint: /admin/tickets
+|
+*/
+Route::group(['prefix' => 'tickets', 'middleware' => 'admin.can:tickets'], function () {
+    Route::get('/', [Admin\TicketController::class, 'index'])->name('admin.tickets');
+    Route::get('/{id}', [Admin\TicketController::class, 'view'])->whereNumber('id')->name('admin.tickets.view');
+    Route::get('/{id}/messages', [Admin\TicketController::class, 'messages'])->whereNumber('id')->name('admin.tickets.messages');
+    Route::post('/{id}/messages', [Admin\TicketController::class, 'reply'])->whereNumber('id')->name('admin.tickets.reply');
+    Route::post('/{id}', [Admin\TicketController::class, 'update'])->whereNumber('id')->name('admin.tickets.update');
+    Route::get('/{id}/transcript', [Admin\TicketController::class, 'transcript'])->whereNumber('id')->name('admin.tickets.transcript');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Location Controller Routes
 |--------------------------------------------------------------------------
 |

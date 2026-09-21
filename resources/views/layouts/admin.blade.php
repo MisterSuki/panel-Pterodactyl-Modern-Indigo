@@ -89,6 +89,9 @@
                                 ['Users', 'admin.users', 'fa-users', 'admin.users', $can('users'), 'users'],
                                 ['Staff Roles', 'admin.roles', 'fa-id-badge', 'admin.roles', $isRoot, null],
                             ],
+                            'SUPPORT' => [
+                                ['Tickets', 'admin.tickets', 'fa-life-ring', 'admin.tickets', $can('tickets'), 'tickets'],
+                            ],
                             'SERVICE MANAGEMENT' => [
                                 ['Mounts', 'admin.mounts', 'fa-magic', 'admin.mounts', $can('mounts'), null],
                                 ['Nests', 'admin.nests', 'fa-th-large', 'admin.nests', $can('nests'), null],

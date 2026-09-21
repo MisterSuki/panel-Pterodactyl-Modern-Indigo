@@ -77,6 +77,13 @@ class AdminRole extends Model
                 'manage' => 'Create, edit, import and delete nests and eggs.',
             ],
         ],
+        'tickets' => [
+            'label' => 'Support Tickets',
+            'abilities' => [
+                'view' => 'Read the support tickets.',
+                'manage' => 'Answer, assign and close support tickets, and write internal notes.',
+            ],
+        ],
         'settings' => [
             'label' => 'Panel Settings',
             'abilities' => [

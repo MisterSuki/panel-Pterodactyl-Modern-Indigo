@@ -445,6 +445,24 @@ gardée 6 heures pour aller vite ; le serveur du panel doit pouvoir joindre `egg
 
 </details>
 
+### 🎫 Tickets de support
+
+Un système de tickets intégré, avec **discussion en temps réel** et **transcription**.
+
+- **Côté client** : un bouton *Support* dans la barre du haut (avec une pastille quand le staff a répondu). Chaque utilisateur ouvre un
+  ticket (sujet, catégorie, priorité, serveur concerné), discute avec l'équipe dans une conversation qui se met à jour toute seule
+  (toutes les 2 secondes tant que la page est ouverte), peut fermer et rouvrir son ticket. Cinq tickets ouverts au maximum par personne.
+- **Côté administration** : le menu *Support → Tickets* (avec le nombre de tickets en attente). Liste filtrable (à traiter, en attente,
+  répondu, fermé), recherche, « les miens » ; dans un ticket, la conversation en direct, les **notes internes** (invisibles pour
+  l'utilisateur), la priorité, la prise en charge (« le prendre » ou un autre membre du staff) et la fermeture.
+- **Transcription** : à tout moment, en **texte** ou en **page à imprimer** (à enregistrer en PDF depuis le navigateur), dans la langue
+  de la personne. L'utilisateur reçoit ce qu'il a vu ; le staff peut avoir la version complète (notes internes et email) ou celle de
+  l'utilisateur.
+- **Rôles de staff** : une nouvelle section *Support Tickets* (voir / gérer) dans *Rôles de staff*. Un membre du staff qui peut seulement
+  voir lit les tickets sans pouvoir répondre.
+
+Les messages sont toujours affichés comme du texte : rien de ce qui est écrit ne peut s'exécuter dans la page.
+
 ### 🎮 Joueurs connectés des jeux Steam
 
 Si le jeu ne répond pas à la requête Steam mais écrit le nombre de connexions dans sa console (par exemple
@@ -547,6 +565,7 @@ injoignable ou occupé est réessayé 15 minutes plus tard sans gêner les autre
 | --- | --- |
 | 🔠 **Titre en 3D** | Le nom du panel (*Admin → Settings → Company Name*) s'affiche en relief dans la barre du haut et en grand sur les pages de connexion et d'inscription |
 | 🎛️ **Administration relookée** | Menu latéral avec icônes en tuiles, compteurs (serveurs, utilisateurs, nodes), carte du compte connecté et retour au dashboard ; menu réduit propre ; listes déroulantes, fenêtres de confirmation, infobulles, encadrés et pagination aux couleurs du thème ; barres de défilement fines |
+| 🎫 **Tickets de support** | Conversation en temps réel entre l'utilisateur et le staff, notes internes, priorités, prise en charge, transcription en texte ou à imprimer (voir [Tickets de support](#-tickets-de-support)) |
 | 🟢 **Actifs en temps réel** | Sur l'accueil de l'administration, la carte *Actifs en ce moment* liste les personnes qui utilisent le panel (avatar, serveur sur lequel elles sont, il y a combien de temps), mise à jour toutes les 5 secondes. Actif = une action dans les 2 dernières minutes ; seules les sessions sont suivies (pas les clés d'API), et la liste est réservée à ceux qui peuvent voir les utilisateurs |
 | 🧭 **Accueil de l'administration** | Un vrai tableau de bord : nombre de serveurs, utilisateurs, nodes et emplacements, **capacité de chaque node** (mémoire et disque promis aux serveurs, en vert, jaune puis rouge), derniers serveurs et derniers utilisateurs, actions rapides. Un membre du staff ne voit que les sections qui lui sont ouvertes |
 | 🗂️ **Dashboard repensé** | Résumé en haut (serveurs, en ligne, CPU et mémoire cumulés), cartes éclairées selon l'état du serveur, **jauges circulaires** CPU / mémoire / disque qui passent au jaune puis au rouge, adresse floutée dans une pastille, et recherche + filtre En ligne / Hors ligne dès 4 serveurs |

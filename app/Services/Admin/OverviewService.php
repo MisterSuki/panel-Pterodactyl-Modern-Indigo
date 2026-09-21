@@ -5,6 +5,7 @@ namespace Pterodactyl\Services\Admin;
 use Pterodactyl\Models\Node;
 use Pterodactyl\Models\User;
 use Pterodactyl\Models\Server;
+use Pterodactyl\Models\Ticket;
 use Pterodactyl\Models\Location;
 
 /**
@@ -97,6 +98,7 @@ class OverviewService
             'admin' => (bool) $user->root_admin,
             'discord' => !is_null($user->discord_id),
             'avatar' => 'https://www.gravatar.com/avatar/' . md5(strtolower((string) $user->email)) . '?s=64&d=mp',
+            'page' => $user->last_seen_page,
             'server' => $user->last_seen_server_id ? ($names[$user->last_seen_server_id] ?? null) : null,
             'seconds' => max(0, $now->timestamp - $user->last_seen_at->timestamp),
         ])->all();
@@ -114,7 +116,18 @@ class OverviewService
             'servers' => Server::query()->count(),
             'users' => User::query()->count(),
             'nodes' => Node::query()->count(),
+            // The tickets that wait for the staff. The table may not be there yet in the middle of an update.
+            'tickets' => $this->openTickets(),
         ]);
+    }
+
+    private function openTickets(): int
+    {
+        try {
+            return Ticket::query()->where('status', Ticket::OPEN)->count();
+        } catch (\Throwable) {
+            return 0;
+        }
     }
 
     /**

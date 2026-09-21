@@ -63,6 +63,7 @@ use Pterodactyl\Notifications\SendPasswordReset as ResetPasswordNotification;
  * @property \Pterodactyl\Models\AdminRole|null $adminRole
  * @property \Illuminate\Support\Carbon|null $last_seen_at
  * @property int|null $last_seen_server_id
+ * @property string|null $last_seen_page
  *
  * @method static \Database\Factories\UserFactory factory(...$parameters)
  * @method static Builder|User newModelQuery()

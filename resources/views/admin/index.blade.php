@@ -246,6 +246,13 @@
             var me = String(card.getAttribute('data-me'));
             var userUrl = card.getAttribute('data-user-url');
             var people = @json($overview['online']);
+            // The pages the dashboard can tell about, by code. The texts are translated with the rest of the page.
+            var pages = {
+                dashboard: 'Dashboard', console: 'Console', files: 'Files', databases: 'Databases', schedules: 'Schedules',
+                users: 'Users', backups: 'Backups', network: 'Network', startup: 'Startup', settings: 'Settings',
+                activity: 'Activity', account: 'Account', tickets: 'Support', admin: 'Administration', server: 'Server',
+                panel: 'On the panel'
+            };
             var fetchedAt = Date.now();
 
             function el(tag, className, text) {
@@ -281,12 +288,11 @@
                 var main = el('span', 'pd-row-main');
                 var name = el('strong', null, person.username);
                 main.appendChild(name);
+                // Where the person is: the page, and the server if it is a page of a server.
                 var where = el('small');
+                where.appendChild(el('span', null, pages[person.page] || pages.panel));
                 if (person.server) {
-                    where.appendChild(el('span', null, 'On server'));
-                    where.appendChild(document.createTextNode(' ' + person.server));
-                } else {
-                    where.appendChild(el('span', null, 'On the panel'));
+                    where.appendChild(document.createTextNode(' \u00b7 ' + person.server));
                 }
                 main.appendChild(where);
                 link.appendChild(main);

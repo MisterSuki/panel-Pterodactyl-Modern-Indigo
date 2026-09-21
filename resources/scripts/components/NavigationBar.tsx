@@ -1,8 +1,10 @@
 import * as React from 'react';
-import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCogs, faLayerGroup, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCogs, faLayerGroup, faLifeRing, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import useSWR from 'swr';
+import { getUnreadTickets } from '@/api/tickets';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
 import SearchContainer from '@/components/dashboard/search/SearchContainer';
@@ -40,6 +42,31 @@ const RightNavigation = styled.div`
 export default () => {
     const adminAccess = useStoreState((state: ApplicationStore) => state.user.data!.adminAccess);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const { pathname } = useLocation();
+
+    // Tells the panel which page this is, now and every half minute while the page is on screen, so the
+    // administration can see who is on the panel and where. Only the address of the page is sent.
+    useEffect(() => {
+        const beat = () => {
+            if (!document.hidden) {
+                http.post('/api/client/presence', { path: pathname }).catch(() => undefined);
+            }
+        };
+        beat();
+        const timer = window.setInterval(beat, 30000);
+        document.addEventListener('visibilitychange', beat);
+
+        return () => {
+            window.clearInterval(timer);
+            document.removeEventListener('visibilitychange', beat);
+        };
+    }, [pathname]);
+    // The answers of the staff that were not read yet, looked at again every half minute.
+    const { data: unread } = useSWR('tickets:unread', getUnreadTickets, {
+        refreshInterval: 30000,
+        revalidateOnFocus: true,
+        shouldRetryOnError: false,
+    });
 
     const onTriggerLogout = () => {
         setIsLoggingOut(true);
@@ -70,6 +97,20 @@ export default () => {
                     <Tooltip placement={'bottom'} content={'Dashboard'}>
                         <NavLink to={'/'} exact>
                             <FontAwesomeIcon icon={faLayerGroup} />
+                        </NavLink>
+                    </Tooltip>
+                    <Tooltip placement={'bottom'} content={'Support'}>
+                        <NavLink to={'/tickets'} className={'relative'}>
+                            <FontAwesomeIcon icon={faLifeRing} />
+                            {!!unread && (
+                                <span
+                                    className={
+                                        'absolute -top-1 -right-1 min-w-[1rem] h-4 px-1 rounded-full bg-primary-500 text-white text-2xs leading-4 text-center font-semibold shadow-glow'
+                                    }
+                                >
+                                    {unread}
+                                </span>
+                            )}
                         </NavLink>
                     </Tooltip>
                     {adminAccess && (

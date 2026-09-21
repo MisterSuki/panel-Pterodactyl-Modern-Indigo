@@ -21,6 +21,22 @@ Route::get('/', [Client\ClientController::class, 'index'])->name('api:client.ind
 Route::get('/permissions', [Client\ClientController::class, 'permissions']);
 Route::get('/resources', Client\ServerResourcesController::class)->name('api:client.resources');
 
+// Where the person is on the dashboard, told every half minute for the "active now" list of the administration.
+Route::post('/presence', Client\PresenceController::class)->middleware('throttle:120,1')->name('api:client.presence');
+
+// The support tickets of the person who is signed in.
+Route::prefix('/tickets')->group(function () {
+    Route::get('/', [Client\TicketController::class, 'index']);
+    Route::get('/unread', [Client\TicketController::class, 'unread']);
+    Route::post('/', [Client\TicketController::class, 'store'])->middleware('throttle:10,1');
+    Route::get('/{id}', [Client\TicketController::class, 'show'])->whereNumber('id');
+    Route::get('/{id}/messages', [Client\TicketController::class, 'messages'])->whereNumber('id');
+    Route::post('/{id}/messages', [Client\TicketController::class, 'reply'])->whereNumber('id')->middleware('throttle:30,1');
+    Route::post('/{id}/close', [Client\TicketController::class, 'close'])->whereNumber('id');
+    Route::post('/{id}/reopen', [Client\TicketController::class, 'reopen'])->whereNumber('id');
+    Route::get('/{id}/transcript', [Client\TicketController::class, 'transcript'])->whereNumber('id');
+});
+
 Route::prefix('/account')->middleware(AccountSubject::class)->group(function () {
     Route::prefix('/')->withoutMiddleware(RequireTwoFactorAuthentication::class)->group(function () {
         Route::get('/', [Client\AccountController::class, 'index'])->name('api:client.account');

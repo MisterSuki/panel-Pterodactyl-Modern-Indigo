@@ -24,6 +24,7 @@ class EventServiceProvider extends ServiceProvider
      */
     protected $listen = [
         ServerInstalledEvent::class => [ServerInstalledNotification::class],
+        \Illuminate\Auth\Events\Logout::class => [\Pterodactyl\Listeners\ForgetPresenceListener::class],
     ];
 
     protected $subscribe = [
