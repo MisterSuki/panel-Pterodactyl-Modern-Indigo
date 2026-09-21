@@ -8,11 +8,9 @@ use Illuminate\View\View;
 use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\Models\Server;
 use Pterodactyl\Models\ShopOffer;
-use Pterodactyl\Models\WebSite;
 use Pterodactyl\Services\Auth\AuthFeatures;
 use Pterodactyl\Services\Landing\LandingContent;
 use Pterodactyl\Services\Shop\ShopSettings;
-use Pterodactyl\Services\Web\WebHostingSettings;
 
 /**
  * The home page for visitors who are not signed in (see LandingContent). It is public: nothing here depends on who is
@@ -20,7 +18,7 @@ use Pterodactyl\Services\Web\WebHostingSettings;
  */
 class LandingController extends Controller
 {
-    public function __construct(private LandingContent $content, private ShopSettings $shop, private WebHostingSettings $web)
+    public function __construct(private LandingContent $content, private ShopSettings $shop)
     {
     }
 
@@ -53,28 +51,18 @@ class LandingController extends Controller
     }
 
     /**
-     * How many servers and websites the panel hosts, for everybody to see. Only numbers, kept for five minutes so that
-     * a busy home page does not count on every visit. The sites (when the web hosting is on) are counted apart from the
-     * other servers, so no server is counted twice.
+     * How many servers the panel hosts, for everybody to see. Only a number, kept for five minutes so that a busy home page
+     * does not count on every visit.
      *
-     * @return array{servers: int, sites: int|null}
+     * @return array{servers: int}
      */
     private function stats(): array
     {
-        return Cache::remember('landing:stats:' . ($this->web->enabled() ? 'web' : 'plain'), 300, function () {
+        return Cache::remember('landing:stats', 300, function () {
             try {
-                $sites = null;
-                $servers = Server::query()->withoutGlobalScopes()->without('allocation');
-                if ($this->web->enabled()) {
-                    $siteServers = WebSite::query()->whereNotNull('server_id')->select('server_id');
-                    $servers->whereNotIn('id', $siteServers);
-                    $sites = WebSite::query()->where('status', WebSite::ACTIVE)->count();
-                }
-
-                return ['servers' => (int) $servers->count(), 'sites' => $sites];
+                return ['servers' => (int) Server::query()->withoutGlobalScopes()->without('allocation')->count()];
             } catch (\Throwable) {
-                // A table may not be there yet in the middle of an update.
-                return ['servers' => 0, 'sites' => null];
+                return ['servers' => 0];
             }
         });
     }

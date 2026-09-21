@@ -93,9 +93,6 @@
                             'SUPPORT' => [
                                 ['Tickets', 'admin.tickets', 'fa-life-ring', 'admin.tickets', $can('tickets'), 'tickets'],
                             ],
-                            'WEB HOSTING' => [
-                                ['Web hosting', 'admin.hosting.clients', 'fa-cloud', 'admin.hosting', $can('hosting'), null],
-                            ],
                             'SHOP' => [
                                 ['Shop', 'admin.shop.offers', 'fa-shopping-cart', 'admin.shop', $can('shop'), null],
                             ],

@@ -12,7 +12,6 @@ use Pterodactyl\Services\Telemetry\TelemetryCollectionService;
 use Pterodactyl\Console\Commands\Server\RunAutoBackupsCommand;
 use Pterodactyl\Console\Commands\Server\UnsuspendExpiredCommand;
 use Pterodactyl\Console\Commands\Shop\ExpireShopOrdersCommand;
-use Pterodactyl\Console\Commands\Web\VerifyDomainsCommand;
 use Pterodactyl\Console\Commands\Schedule\ProcessRunnableCommand;
 use Pterodactyl\Console\Commands\Maintenance\PruneOrphanedBackupsCommand;
 use Pterodactyl\Console\Commands\Maintenance\CleanServiceBackupFilesCommand;
@@ -45,8 +44,6 @@ class Kernel extends ConsoleKernel
         // Servers bought in the shop whose paid time has ended are suspended (never deleted).
         $schedule->command(ExpireShopOrdersCommand::class)->everyFiveMinutes()->withoutOverlapping();
 
-        // Domains of the web hosting that wait for their DNS are checked, so they are served as soon as they lead here.
-        $schedule->command(VerifyDomainsCommand::class)->everyFiveMinutes()->withoutOverlapping();
 
         // Automatic backups: makes the ones that are due and removes the old ones.
         $schedule->command(RunAutoBackupsCommand::class)->everyMinute()->withoutOverlapping();

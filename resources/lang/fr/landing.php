@@ -12,7 +12,6 @@ return [
     'features_title' => 'Tout ce qu\'il vous faut',
     'offers_title' => 'Nos offres',
     'servers_hosted' => 'serveur hébergé|serveurs hébergés',
-    'sites_hosted' => 'site web hébergé|sites web hébergés',
     'features' => [
         'speed' => ['title' => 'Serveurs rapides', 'text' => 'Des machines modernes et un réseau qui garde vos joueurs au plus près de l\'action.'],
         'console' => ['title' => 'Une console moderne', 'text' => 'Console, fichiers, bases de données et planning, au même endroit.'],

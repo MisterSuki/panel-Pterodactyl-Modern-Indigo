@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloud, faCogs, faLayerGroup, faSignOutAlt, faStore } from '@fortawesome/free-solid-svg-icons';
+import { faCogs, faLayerGroup, faSignOutAlt, faStore } from '@fortawesome/free-solid-svg-icons';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
 import SearchContainer from '@/components/dashboard/search/SearchContainer';
@@ -42,7 +42,6 @@ const RightNavigation = styled.div`
 export default () => {
     const adminAccess = useStoreState((state: ApplicationStore) => state.user.data!.adminAccess);
     const shopOpen = useStoreState((state: ApplicationStore) => !!state.settings.data?.shop?.enabled);
-    const hasHosting = useStoreState((state: ApplicationStore) => !!state.user.data?.webHosting);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const { pathname } = useLocation();
 
@@ -100,13 +99,6 @@ export default () => {
                                 <FontAwesomeIcon icon={faLayerGroup} />
                             </NavLink>
                         </Tooltip>
-                        {hasHosting && (
-                            <Tooltip placement={'bottom'} content={'Web hosting'}>
-                                <NavLink to={'/hosting'}>
-                                    <FontAwesomeIcon icon={faCloud} />
-                                </NavLink>
-                            </Tooltip>
-                        )}
                         {shopOpen && (
                             <Tooltip placement={'bottom'} content={'Shop'}>
                                 <NavLink to={'/shop'}>

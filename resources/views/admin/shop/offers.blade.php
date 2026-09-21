@@ -37,7 +37,7 @@
                         </tr>
                         @forelse ($offers as $offer)
                             <tr>
-                                <td><strong>{{ $offer->name }}</strong>@if ($offer->web_plan_id) <span class="label label-info"><span>Web hosting</span></span>@endif<br><small class="text-muted">{{ $offer->egg?->name }} &middot; {{ $offer->location?->short }}</small></td>
+                                <td><strong>{{ $offer->name }}</strong><br><small class="text-muted">{{ $offer->egg?->name }} &middot; {{ $offer->location?->short }}</small></td>
                                 <td>{{ number_format($offer->price_cents / 100, 2, '.', '') }} {{ $currency }}</td>
                                 <td>{{ $offer->duration_days }} <span>days</span></td>
                                 <td>{{ $offer->memory }} MB &middot; {{ $offer->disk }} MB &middot; {{ $offer->cpu ?: '∞' }}% CPU</td>

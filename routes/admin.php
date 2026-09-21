@@ -16,40 +16,6 @@ Route::get('/presence/{id}', [Admin\BaseController::class, 'person'])->whereNumb
 
 /*
 |--------------------------------------------------------------------------
-| The web hosting
-|--------------------------------------------------------------------------
-|
-| Endpoint: /admin/hosting. Seeing is for staff who can see the hosting, anything that changes something needs the right
-| to manage it (the middleware asks for it on every request that is not a read), and the settings of the web server are
-| for full administrators.
-|
-*/
-Route::group(['prefix' => 'hosting', 'middleware' => 'admin.can:hosting'], function () {
-    Route::get('/', fn () => redirect()->route('admin.hosting.clients'))->name('admin.hosting');
-    Route::get('/clients', [Admin\HostingController::class, 'clients'])->name('admin.hosting.clients');
-    Route::get('/clients/new', [Admin\HostingController::class, 'clientForm'])->name('admin.hosting.clients.new');
-    Route::post('/clients/new', [Admin\HostingController::class, 'createClient']);
-    Route::get('/accounts/{id}', [Admin\HostingController::class, 'account'])->whereNumber('id')->name('admin.hosting.account');
-    Route::post('/accounts/{id}/sites', [Admin\HostingController::class, 'addSite'])->whereNumber('id')->name('admin.hosting.account.sites');
-    Route::post('/accounts/{id}/toggle', [Admin\HostingController::class, 'toggleAccount'])->whereNumber('id')->name('admin.hosting.account.toggle');
-    Route::delete('/sites/{id}', [Admin\HostingController::class, 'deleteSite'])->whereNumber('id')->name('admin.hosting.sites.delete');
-    Route::get('/sites', [Admin\HostingController::class, 'sites'])->name('admin.hosting.sites');
-    Route::get('/plans', [Admin\HostingController::class, 'plans'])->name('admin.hosting.plans');
-    Route::get('/plans/new', [Admin\HostingController::class, 'planForm'])->name('admin.hosting.plans.new');
-    Route::post('/plans/new', [Admin\HostingController::class, 'savePlan']);
-    Route::get('/plans/{id}', [Admin\HostingController::class, 'planForm'])->whereNumber('id')->name('admin.hosting.plans.edit');
-    Route::post('/plans/{id}', [Admin\HostingController::class, 'savePlan'])->whereNumber('id');
-    Route::delete('/plans/{id}', [Admin\HostingController::class, 'deletePlan'])->whereNumber('id')->name('admin.hosting.plans.delete');
-
-    Route::group(['middleware' => 'admin.can:root'], function () {
-        Route::get('/settings', [Admin\HostingController::class, 'settings'])->name('admin.hosting.settings');
-        Route::post('/settings', [Admin\HostingController::class, 'saveSettings']);
-        Route::post('/settings/token', [Admin\HostingController::class, 'newToken'])->name('admin.hosting.settings.token');
-    });
-});
-
-/*
-|--------------------------------------------------------------------------
 | The shop
 |--------------------------------------------------------------------------
 |

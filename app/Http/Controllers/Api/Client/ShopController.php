@@ -12,7 +12,6 @@ use Pterodactyl\Models\ShopTransaction;
 use Pterodactyl\Services\Shop\Payments\PaymentProvider;
 use Pterodactyl\Services\Shop\ShopService;
 use Pterodactyl\Services\Shop\ShopSettings;
-use Pterodactyl\Services\Web\WebHostingSettings;
 
 /**
  * The shop, seen by the people who buy: what is for sale, their credit and their orders, and the actions to add credit,
@@ -21,7 +20,7 @@ use Pterodactyl\Services\Web\WebHostingSettings;
  */
 class ShopController extends ClientApiController
 {
-    public function __construct(private ShopService $shop, private ShopSettings $settings, private WebHostingSettings $web)
+    public function __construct(private ShopService $shop, private ShopSettings $settings)
     {
         parent::__construct();
     }
@@ -44,9 +43,7 @@ class ShopController extends ClientApiController
             // Only the categories that have something on sale are shown.
             'categories' => ShopCategory::query()->whereIn('id', ShopOffer::query()->where('enabled', true)->whereNotNull('category_id')->select('category_id'))
                 ->orderBy('position')->orderBy('name')->get(['id', 'name'])->map(fn (ShopCategory $category) => ['id' => $category->id, 'name' => $category->name])->all(),
-            // What a buyer of a web hosting plan is asked: a domain of their own, or a free name under the hosting's domain.
-            'web' => ['free_subdomain' => $this->web->autoSubdomain(), 'base_domain' => $this->web->baseDomain()],
-            'offers' => ShopOffer::query()->with(['location:id,short', 'webPlan'])->where('enabled', true)->orderBy('position')->orderBy('price_cents')->get()
+            'offers' => ShopOffer::query()->with('location:id,short')->where('enabled', true)->orderBy('position')->orderBy('price_cents')->get()
                 ->map(fn (ShopOffer $offer) => [
                     'id' => $offer->id,
                     'category_id' => $offer->category_id,
@@ -60,9 +57,8 @@ class ShopController extends ClientApiController
                     'databases' => $offer->database_limit,
                     'backups' => $offer->backup_limit,
                     'location' => $offer->location?->short,
-                    'available' => $offer->isAvailable() && (!$offer->isWeb() || ($offer->webPlan && $offer->webPlan->enabled)),
+                    'available' => $offer->isAvailable(),
                     'stock' => $offer->stock,
-                    'web' => $offer->isWeb() && $offer->webPlan ? ['sites' => $offer->webPlan->max_sites, 'domains' => $offer->webPlan->max_domains, 'versions' => $offer->webPlan->versions()] : null,
                 ])->all(),
             'orders' => ShopOrder::query()->with('server:id,uuidShort,name')->where('user_id', $user->id)->where('status', '!=', ShopOrder::FAILED)->orderByDesc('id')->limit(50)->get()
                 ->map(fn (ShopOrder $order) => [
@@ -72,7 +68,6 @@ class ShopController extends ClientApiController
                     'price_cents' => $order->price_cents,
                     'duration_days' => $order->duration_days,
                     'expires_at' => $order->expires_at?->toAtomString(),
-                    'web' => $order->web_account_id !== null,
                     'server' => $order->server ? ['identifier' => $order->server->uuidShort, 'name' => $order->server->name] : null,
                 ])->all(),
             'transactions' => ShopTransaction::query()->where('user_id', $user->id)->orderByDesc('id')->limit(30)->get()
@@ -91,10 +86,10 @@ class ShopController extends ClientApiController
      */
     public function buy(Request $request): JsonResponse
     {
-        $request->validate(['offer_id' => ['required', 'integer'], 'site_name' => ['nullable', 'string', 'max:80'], 'domain' => ['nullable', 'string', 'max:253'], 'subdomain' => ['nullable', 'string', 'max:40']]);
+        $request->validate(['offer_id' => ['required', 'integer']]);
         $offer = ShopOffer::query()->findOrFail((int) $request->input('offer_id'));
 
-        $order = $this->shop->purchase($request->user(), $offer, $request->only(['site_name', 'domain', 'subdomain']));
+        $order = $this->shop->purchase($request->user(), $offer);
 
         return new JsonResponse(['order_id' => $order->id, 'balance_cents' => $this->shop->balance($request->user()->id)], 201);
     }
@@ -126,16 +121,13 @@ class ShopController extends ClientApiController
             'amount_cents' => ['nullable', 'integer'],
             'offer_id' => ['nullable', 'integer'],
             'order_id' => ['nullable', 'integer'],
-            'site_name' => ['nullable', 'string', 'max:80'],
-            'domain' => ['nullable', 'string', 'max:253'],
-            'subdomain' => ['nullable', 'string', 'max:40'],
         ]);
 
         $user = $request->user();
         $offer = $request->filled('offer_id') ? ShopOffer::query()->findOrFail((int) $request->input('offer_id')) : null;
         $order = $request->filled('order_id') ? ShopOrder::query()->where('user_id', $user->id)->findOrFail((int) $request->input('order_id')) : null;
 
-        $payment = $this->shop->startPayment($user, (string) $request->input('provider'), (int) $request->input('amount_cents', 0), $offer, $order, $request->only(['site_name', 'domain', 'subdomain']));
+        $payment = $this->shop->startPayment($user, (string) $request->input('provider'), (int) $request->input('amount_cents', 0), $offer, $order);
 
         return new JsonResponse(['url' => $payment->checkout_url], 201);
     }

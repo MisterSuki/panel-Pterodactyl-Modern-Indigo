@@ -34,8 +34,8 @@
                         <textarea id="subtitle" name="subtitle" class="form-control" rows="3" maxlength="300">{{ $v('subtitle') }}</textarea>
                     </div>
                     <p class="text-muted small"><i class="fa fa-lock"></i> <span>The buttons to log in and to create an account are fixed: they cannot be changed, so the way in never breaks. The registration button is hidden while registration is closed.</span></p>
-                    <label class="pd-switch"><input type="checkbox" name="show_stats" value="1" @checked(old('show_stats', $content['show_stats']))><i class="pd-switch-track"></i><span>Show the number of servers and websites hosted</span></label>
-                    <p class="text-muted small"><span>Only the numbers are shown. The websites are counted while the web hosting is on.</span></p>
+                    <label class="pd-switch"><input type="checkbox" name="show_stats" value="1" @checked(old('show_stats', $content['show_stats']))><i class="pd-switch-track"></i><span>Show the number of servers hosted</span></label>
+                    <p class="text-muted small"><span>Only the number is shown.</span></p>
                 </div>
             </div>
             <div class="box box-primary">

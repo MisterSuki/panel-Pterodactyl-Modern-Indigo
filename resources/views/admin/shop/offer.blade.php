@@ -21,24 +21,6 @@
             <div class="box box-primary">
                 <div class="box-header with-border"><h3 class="box-title">The offer</h3></div>
                 <div class="box-body">
-                    @php $type = $field('type', $offer->web_plan_id ? 'web' : 'game'); @endphp
-                    <div class="form-group">
-                        <label for="type">What is sold</label>
-                        <select id="type" name="type" class="form-control">
-                            <option value="game" @selected($type === 'game')>A game server</option>
-                            <option value="web" @selected($type === 'web')>A web hosting plan</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="pd-web-box">
-                        <label for="web_plan_id">Web hosting plan</label>
-                        <select id="web_plan_id" name="web_plan_id" class="form-control">
-                            @foreach ($webPlans as $webPlan)
-                                <option value="{{ $webPlan->id }}" @selected((int) $field('web_plan_id', $offer->web_plan_id) === $webPlan->id)>{{ $webPlan->name }}@if (!$webPlan->enabled) (off)@endif</option>
-                            @endforeach
-                        </select>
-                        <p class="text-muted small"><span>The buyer gets an account with this plan and their first site. They choose its name and its domain (or a free name under the domain of the hosting) when they buy. The resources come from the plan.</span></p>
-                        @if ($webPlans->isEmpty())<p class="text-danger small"><span>There is no web hosting plan yet: make one in Web hosting, Plans.</span></p>@endif
-                    </div>
                     <div class="form-group">
                         <label for="category_id">Category</label>
                         <select id="category_id" name="category_id" class="form-control">
@@ -83,7 +65,7 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div class="box box-primary" id="pd-game-box">
+            <div class="box box-primary">
                 <div class="box-header with-border"><h3 class="box-title">The server that is made</h3></div>
                 <div class="box-body">
                     <div class="row">
@@ -159,25 +141,4 @@
 @if ($offer->exists)
     <form id="pd-delete-offer" action="{{ route('admin.shop.offers.delete', $offer->id) }}" method="POST">{!! csrf_field() !!}{!! method_field('DELETE') !!}</form>
 @endif
-@endsection
-
-@section('footer-scripts')
-    @parent
-    <script>
-        (function () {
-            var type = document.getElementById('type');
-            var webBox = document.getElementById('pd-web-box');
-            var gameBox = document.getElementById('pd-game-box');
-            function apply() {
-                var web = type.value === 'web';
-                webBox.style.display = web ? '' : 'none';
-                gameBox.style.display = web ? 'none' : '';
-                // What is hidden is not sent and not checked: a web hosting plan brings its own server settings.
-                Array.prototype.forEach.call(gameBox.querySelectorAll('input, select, textarea'), function (field) { field.disabled = web; });
-                document.getElementById('web_plan_id').disabled = !web;
-            }
-            type.addEventListener('change', apply);
-            apply();
-        })();
-    </script>
 @endsection

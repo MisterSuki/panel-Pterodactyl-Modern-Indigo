@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $offer_id
  * @property string $offer_name
  * @property int|null $server_id
- * @property int|null $web_account_id the hosting account that this order gave, if it was a web hosting plan
  * @property string $status provisioning, active, expired or failed
  * @property int $price_cents
  * @property int $duration_days

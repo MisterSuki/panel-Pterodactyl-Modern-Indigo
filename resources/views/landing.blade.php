@@ -82,13 +82,10 @@
         </div>
     </header>
 
-    @if ($stats !== null && ($stats['servers'] > 0 || ($stats['sites'] ?? 0) > 0))
+    @if ($stats !== null && $stats['servers'] > 0)
         <div class="ld-stats" id="stats">
             @if ($stats['servers'] > 0)
                 <div class="ld-stat"><strong>{{ number_format($stats['servers'], 0, ',', ' ') }}</strong><span>{{ trans_choice('landing.servers_hosted', $stats['servers']) }}</span></div>
-            @endif
-            @if (($stats['sites'] ?? 0) > 0)
-                <div class="ld-stat"><strong>{{ number_format($stats['sites'], 0, ',', ' ') }}</strong><span>{{ trans_choice('landing.sites_hosted', $stats['sites']) }}</span></div>
             @endif
         </div>
     @endif

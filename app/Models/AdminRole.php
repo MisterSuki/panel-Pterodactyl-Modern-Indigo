@@ -84,13 +84,6 @@ class AdminRole extends Model
                 'manage' => 'Answer, assign and close support tickets, and write internal notes.',
             ],
         ],
-        'hosting' => [
-            'label' => 'Web Hosting',
-            'abilities' => [
-                'view' => 'See the web hosting: clients, plans and sites.',
-                'manage' => 'Make clients and sites, change plans, and suspend accounts. The settings of the web server stay reserved for full administrators.',
-            ],
-        ],
         'shop' => [
             'label' => 'Shop',
             'abilities' => [

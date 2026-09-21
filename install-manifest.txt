@@ -148,6 +148,7 @@ app/Models/ShopTransaction.php
 app/Services/Shop/
 app/Console/Commands/Shop/
 app/Http/Controllers/Admin/ShopController.php
+app/Http/Controllers/Admin/Concerns/
 app/Http/Controllers/Api/Client/ShopController.php
 app/Http/Controllers/Base/ShopReturnController.php
 app/Http/Controllers/Base/PaymentWebhookController.php
@@ -166,20 +167,3 @@ resources/views/landing/
 resources/views/admin/landing.blade.php
 resources/lang/en/landing.php
 resources/lang/fr/landing.php
-
-# --- Web hosting (clients, plans, sites, domains with automatic HTTPS) ------------------------------
-database/migrations/2026_09_28_000000_create_web_hosting_tables.php
-database/migrations/2026_09_29_000000_add_web_hosting_to_shop.php
-app/Models/WebPlan.php
-app/Models/WebAccount.php
-app/Models/WebSite.php
-app/Models/WebDomain.php
-app/Services/Web/
-app/Console/Commands/Web/
-app/Http/Controllers/Admin/Concerns/
-app/Http/Controllers/Admin/HostingController.php
-app/Http/Controllers/Api/Client/HostingController.php
-app/Http/Controllers/Base/ProxyConfigController.php
-routes/hosting.php
-resources/views/admin/hosting/
-docs/hosting/

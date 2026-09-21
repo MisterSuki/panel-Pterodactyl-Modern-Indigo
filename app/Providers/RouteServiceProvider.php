@@ -64,11 +64,6 @@ class RouteServiceProvider extends ServiceProvider
                     ->group(base_path('routes/api-client.php'));
             });
 
-            // Called by the web server of the web hosting (Caddy): it fetches its configuration with a token.
-            Route::middleware('throttle:60,1')
-                ->prefix('/api/hosting')
-                ->group(base_path('routes/hosting.php'));
-
             // Called by the payment providers (Stripe, SumUp): no session, no user, and every call is checked with the provider.
             Route::middleware('throttle:120,1')
                 ->prefix('/api/payments')

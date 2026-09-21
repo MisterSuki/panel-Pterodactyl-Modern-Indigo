@@ -4,32 +4,13 @@ import useSWR from 'swr';
 import tw from 'twin.macro';
 import classNames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faCode,
-    faCoins,
-    faGlobe,
-    faHdd,
-    faMemory,
-    faMicrochip,
-    faServer,
-    faStore,
-} from '@fortawesome/free-solid-svg-icons';
+import { faCoins, faHdd, faMemory, faMicrochip, faServer, faStore } from '@fortawesome/free-solid-svg-icons';
 import { useStoreState } from '@/state/hooks';
 import PageContentBlock from '@/components/elements/PageContentBlock';
 import Spinner from '@/components/elements/Spinner';
 import { httpErrorToHuman } from '@/api/http';
 import { bytesToString, mbToBytes } from '@/lib/formatters';
-import {
-    buyOffer,
-    getShop,
-    OrderStatus,
-    renewOrder,
-    ShopData,
-    ShopOffer,
-    ShopOrder,
-    SiteChoice,
-    startPayment,
-} from '@/api/shop';
+import { buyOffer, getShop, OrderStatus, renewOrder, ShopData, ShopOffer, ShopOrder, startPayment } from '@/api/shop';
 
 type Tab = 'offers' | 'orders' | 'credit';
 
@@ -93,103 +74,6 @@ const Spec = ({ icon, children }: { icon: any; children: React.ReactNode }) => (
     </li>
 );
 
-// What the buyer of a web hosting plan is asked: the name of the site, and its domain (their own, or a free name under the
-// domain of the hosting when that is on).
-const SiteForm = ({
-    shop,
-    choice,
-    onChange,
-}: {
-    shop: ShopData;
-    choice: SiteChoice & { mode: 'subdomain' | 'domain' };
-    onChange: (choice: SiteChoice & { mode: 'subdomain' | 'domain' }) => void;
-}) => {
-    const field = tw`w-full rounded-lg border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-neutral-50`;
-    const tab = (active: boolean) =>
-        classNames(
-            'flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors duration-150',
-            active ? 'bg-primary-500 text-white' : 'bg-white/5 text-neutral-300 hover:bg-white/10'
-        );
-
-    return (
-        <div css={tw`mb-4 flex flex-col gap-3`}>
-            <div>
-                <label htmlFor={'site-name'} css={tw`mb-1 block text-xs text-neutral-400`}>
-                    Name of your site
-                </label>
-                <input
-                    id={'site-name'}
-                    value={choice.siteName}
-                    maxLength={80}
-                    css={field}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        onChange({ ...choice, siteName: e.currentTarget.value })
-                    }
-                />
-            </div>
-            {shop.web.freeSubdomain && (
-                <div css={tw`flex gap-1 rounded-lg bg-black/20 p-1`}>
-                    <button
-                        type={'button'}
-                        className={tab(choice.mode === 'subdomain')}
-                        onClick={() => onChange({ ...choice, mode: 'subdomain' })}
-                    >
-                        A free name
-                    </button>
-                    <button
-                        type={'button'}
-                        className={tab(choice.mode === 'domain')}
-                        onClick={() => onChange({ ...choice, mode: 'domain' })}
-                    >
-                        My own domain
-                    </button>
-                </div>
-            )}
-            {shop.web.freeSubdomain && choice.mode === 'subdomain' ? (
-                <div>
-                    <label htmlFor={'site-label'} css={tw`mb-1 block text-xs text-neutral-400`}>
-                        Choose your name
-                    </label>
-                    <div css={tw`flex items-center gap-2`}>
-                        <input
-                            id={'site-label'}
-                            value={choice.subdomain}
-                            maxLength={40}
-                            placeholder={'my-site'}
-                            css={field}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                onChange({ ...choice, subdomain: e.currentTarget.value.toLowerCase() })
-                            }
-                        />
-                        <span css={tw`text-xs text-neutral-400 whitespace-nowrap`}>.{shop.web.baseDomain}</span>
-                    </div>
-                    <p css={tw`mt-1 text-2xs text-neutral-500`}>
-                        Leave it empty to get a name made from the name of your site.
-                    </p>
-                </div>
-            ) : (
-                <div>
-                    <label htmlFor={'site-domain'} css={tw`mb-1 block text-xs text-neutral-400`}>
-                        Your domain
-                    </label>
-                    <input
-                        id={'site-domain'}
-                        value={choice.domain}
-                        placeholder={'example.com'}
-                        css={field}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            onChange({ ...choice, domain: e.currentTarget.value })
-                        }
-                    />
-                    <p css={tw`mt-1 text-2xs text-neutral-500`}>
-                        You point it to our server after the purchase: the steps are shown on your hosting page.
-                    </p>
-                </div>
-            )}
-        </div>
-    );
-};
-
 const OfferCard = ({
     offer,
     shop,
@@ -205,31 +89,12 @@ const OfferCard = ({
 }) => {
     const [confirming, setConfirming] = useState(false);
     const [busy, setBusy] = useState(false);
-    const [choice, setChoice] = useState<SiteChoice & { mode: 'subdomain' | 'domain' }>({
-        siteName: '',
-        domain: '',
-        subdomain: '',
-        mode: shop.web.freeSubdomain ? 'subdomain' : 'domain',
-    });
     const enough = shop.balanceCents >= offer.priceCents;
     const missing = Math.max(50, offer.priceCents - shop.balanceCents);
-    const web = !!offer.web;
-    const ready =
-        !web || (choice.siteName.trim() !== '' && (choice.mode === 'subdomain' || choice.domain.trim() !== ''));
-
-    // Only what fits the mode that is shown is sent.
-    const siteChoice = (): SiteChoice | undefined =>
-        web
-            ? {
-                  siteName: choice.siteName,
-                  domain: choice.mode === 'domain' ? choice.domain : '',
-                  subdomain: choice.mode === 'subdomain' ? choice.subdomain : '',
-              }
-            : undefined;
 
     const buy = () => {
         setBusy(true);
-        buyOffer(offer.id, siteChoice())
+        buyOffer(offer.id)
             .then(onDone)
             .catch((e) => onError(httpErrorToHuman(e)))
             .then(() => {
@@ -240,7 +105,7 @@ const OfferCard = ({
 
     const pay = (provider: string) => {
         setBusy(true);
-        startPayment(provider, { offerId: offer.id, choice: siteChoice() })
+        startPayment(provider, { offerId: offer.id })
             .then((url) => {
                 window.location.href = url;
             })
@@ -252,16 +117,7 @@ const OfferCard = ({
 
     return (
         <div css={tw`flex flex-col rounded-2xl border border-white/5 bg-neutral-800 p-5 shadow-card`}>
-            <h3 css={tw`text-lg font-semibold text-neutral-50 flex items-center gap-2`}>
-                {offer.name}
-                {web && (
-                    <span
-                        css={tw`rounded-full bg-primary-500/20 px-2 py-0.5 text-2xs uppercase tracking-wider text-primary-200`}
-                    >
-                        Web
-                    </span>
-                )}
-            </h3>
+            <h3 css={tw`text-lg font-semibold text-neutral-50`}>{offer.name}</h3>
             <p css={tw`mt-1`}>
                 <span css={tw`text-2xl font-bold text-primary-300`}>{money(offer.priceCents)}</span>
                 <span css={tw`ml-1 text-sm text-neutral-400`}>/ {offer.durationDays} days</span>
@@ -270,12 +126,6 @@ const OfferCard = ({
                 <p css={tw`mt-2 text-sm text-neutral-400 whitespace-pre-wrap`}>{offer.description}</p>
             )}
             <ul css={tw`mt-4 flex flex-col gap-1.5`}>
-                {offer.web && (
-                    <Spec icon={faGlobe}>
-                        {offer.web.sites} <span>site(s)</span> &middot; {offer.web.domains}{' '}
-                        <span>domain(s) per site</span>
-                    </Spec>
-                )}
                 <Spec icon={faMemory}>
                     {bytesToString(mbToBytes(offer.memory))} <span>of memory</span>
                 </Spec>
@@ -291,70 +141,37 @@ const OfferCard = ({
                         'CPU not limited'
                     )}
                 </Spec>
-                {offer.web && offer.web.versions.length > 0 && (
-                    <Spec icon={faCode}>{offer.web.versions.join(', ')}</Spec>
-                )}
-                {offer.location && !web && <Spec icon={faServer}>{offer.location}</Spec>}
+                {offer.location && <Spec icon={faServer}>{offer.location}</Spec>}
             </ul>
             <div css={tw`mt-auto pt-5`}>
                 {!offer.available ? (
                     <p css={tw`text-sm text-red-300`}>Sold out</p>
                 ) : confirming ? (
-                    <div css={tw`flex flex-col`}>
-                        {web && <SiteForm shop={shop} choice={choice} onChange={setChoice} />}
-                        {enough ? (
-                            <div css={tw`flex flex-col gap-3`}>
-                                <p css={tw`text-sm text-neutral-300`}>
-                                    <strong>{money(offer.priceCents)}</strong>{' '}
-                                    <span>will be taken from your credit.</span>
-                                </p>
-                                <div css={tw`flex gap-2`}>
-                                    <button
-                                        type={'button'}
-                                        onClick={buy}
-                                        disabled={busy || !ready}
-                                        className={buttonStyle}
-                                    >
-                                        Confirm
-                                    </button>
-                                    <button
-                                        type={'button'}
-                                        onClick={() => setConfirming(false)}
-                                        disabled={busy}
-                                        className={quietButtonStyle}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div css={tw`flex flex-col gap-2`}>
-                                <p css={tw`text-xs text-neutral-400`}>
-                                    <span>Missing</span> <strong>{money(missing)}</strong>
-                                </p>
-                                {ready ? (
-                                    <Providers providers={shop.providers} onPick={pay} busy={busy} />
-                                ) : (
-                                    <p css={tw`text-xs text-yellow-300`}>Fill in the site to continue.</p>
-                                )}
-                                <button
-                                    type={'button'}
-                                    onClick={() => setConfirming(false)}
-                                    disabled={busy}
-                                    className={classNames(quietButtonStyle, 'self-start')}
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        )}
+                    <div css={tw`flex flex-col gap-3`}>
+                        <p css={tw`text-sm text-neutral-300`}>
+                            <strong>{money(offer.priceCents)}</strong> <span>will be taken from your credit.</span>
+                        </p>
+                        <div css={tw`flex gap-2`}>
+                            <button type={'button'} onClick={buy} disabled={busy} className={buttonStyle}>
+                                Confirm
+                            </button>
+                            <button
+                                type={'button'}
+                                onClick={() => setConfirming(false)}
+                                disabled={busy}
+                                className={quietButtonStyle}
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </div>
-                ) : web || enough ? (
+                ) : enough ? (
                     <button
                         type={'button'}
                         onClick={() => setConfirming(true)}
                         className={classNames(buttonStyle, 'w-full')}
                     >
-                        {web ? 'Choose' : 'Buy'}
+                        Buy
                     </button>
                 ) : (
                     <div css={tw`flex flex-col gap-2`}>
@@ -414,11 +231,7 @@ const OrderRow = ({
             <div css={tw`flex flex-wrap items-center gap-3`}>
                 <div css={tw`min-w-0 flex-1`}>
                     <p css={tw`font-medium text-neutral-50`}>
-                        {order.web ? (
-                            <Link to={'/hosting'} css={tw`text-neutral-50 hover:text-primary-300`}>
-                                {order.name}
-                            </Link>
-                        ) : order.server ? (
+                        {order.server ? (
                             <Link
                                 to={`/server/${order.server.identifier}`}
                                 css={tw`text-neutral-50 hover:text-primary-300`}
@@ -470,9 +283,7 @@ const OrderRow = ({
             )}
             {order.status === 'expired' && (
                 <p css={tw`mt-2 text-xs text-red-300`}>
-                    {order.web
-                        ? 'Your sites are suspended until you renew. Nothing was deleted.'
-                        : 'The server is suspended until you renew it. Nothing was deleted.'}
+                    The server is suspended until you renew it. Nothing was deleted.
                 </p>
             )}
         </div>

@@ -223,20 +223,6 @@ class User extends Model implements
         return '/avatars/' . $this->uuid . '?v=' . ($this->avatar_updated_at?->timestamp ?? 0);
     }
 
-    /**
-     * Whether the person has web hosting (and it is on), so that the dashboard shows the link to it.
-     */
-    public function hasWebHosting(): bool
-    {
-        try {
-            return app(\Pterodactyl\Services\Web\WebHostingSettings::class)->enabled()
-                && \Pterodactyl\Models\WebAccount::query()->where('user_id', $this->id)->exists();
-        } catch (\Throwable) {
-            // The table may not be there yet in the middle of an update.
-            return false;
-        }
-    }
-
     public function toVueObject(): array
     {
         return Collection::make($this->toArray())->except(['id', 'external_id'])
@@ -246,7 +232,6 @@ class User extends Model implements
                 'discord_username' => $this->discord_username,
                 'admin_access' => $this->isStaff(),
                 'avatar_url' => $this->avatarUrl(),
-                'web_hosting' => $this->hasWebHosting(),
             ])
             ->toArray();
     }

@@ -12,7 +12,6 @@ return [
     'features_title' => 'Everything you need',
     'offers_title' => 'Our offers',
     'servers_hosted' => 'server hosted|servers hosted',
-    'sites_hosted' => 'website hosted|websites hosted',
     'features' => [
         'speed' => ['title' => 'Fast servers', 'text' => 'Modern machines and a network that keeps your players close to the action.'],
         'console' => ['title' => 'A modern console', 'text' => 'Console, files, databases and schedules, in one clear place.'],

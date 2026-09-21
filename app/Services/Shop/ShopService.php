@@ -12,7 +12,6 @@ use Pterodactyl\Models\ShopOrder;
 use Pterodactyl\Models\ShopPayment;
 use Pterodactyl\Models\ShopTransaction;
 use Pterodactyl\Models\User;
-use Pterodactyl\Models\WebAccount;
 use Pterodactyl\Services\Servers\SuspensionService;
 use Pterodactyl\Services\Shop\Payments\PaymentProvider;
 use Pterodactyl\Services\Shop\Payments\PayPalProvider;
@@ -49,41 +48,8 @@ class ShopService
     public function __construct(
         private ShopSettings $settings,
         private ServerProvisioner $provisioner,
-        private SuspensionService $suspensions,
-        private ?\Pterodactyl\Services\Web\WebHostingService $web = null
+        private SuspensionService $suspensions
     ) {
-    }
-
-    /**
-     * The web hosting, for the offers that are web hosting plans.
-     */
-    private function web(): \Pterodactyl\Services\Web\WebHostingService
-    {
-        return $this->web ??= app(\Pterodactyl\Services\Web\WebHostingService::class);
-    }
-
-    /**
-     * What is needed to make the site of a web hosting plan, checked before anything is charged: a name, and a domain that
-     * is free (the buyer's own, or a name under the domain of the hosting).
-     *
-     * @param array<string, mixed> $options site_name, domain and subdomain, as the buyer wrote them
-     *
-     * @return array{name: string, domain: string|null}
-     *
-     * @throws DisplayException
-     */
-    private function prepareWeb(ShopOffer $offer, array $options): array
-    {
-        $plan = $offer->webPlan;
-        if (!$plan || !$plan->enabled) {
-            throw new DisplayException('This offer is not available.');
-        }
-        $name = trim((string) ($options['site_name'] ?? ''));
-        if ($name === '' || mb_strlen($name) > 80) {
-            throw new DisplayException('Give a name to your site (80 characters at most).');
-        }
-
-        return ['name' => $name, 'domain' => $this->web()->resolveDomain($options['domain'] ?? null, $options['subdomain'] ?? null, $name)];
     }
 
     /**
@@ -166,7 +132,7 @@ class ShopService
      *
      * @throws DisplayException
      */
-    public function startPayment(User $user, string $providerCode, int $amountCents, ?ShopOffer $buy = null, ?ShopOrder $renew = null, array $options = []): ShopPayment
+    public function startPayment(User $user, string $providerCode, int $amountCents, ?ShopOffer $buy = null, ?ShopOrder $renew = null): ShopPayment
     {
         $this->assertEnabled();
         $provider = $this->availableProviders()[$providerCode] ?? null;
@@ -178,10 +144,6 @@ class ShopService
             $price = $buy ? $buy->price_cents : $renew->price_cents;
             if ($buy && !$buy->isAvailable()) {
                 throw new DisplayException('This offer is not available.');
-            }
-            // The site of a web hosting plan is checked now, so that nobody pays for a name that is already taken.
-            if ($buy && $buy->isWeb()) {
-                $this->prepareWeb($buy, $options);
             }
             if ($renew && $renew->user_id !== $user->id) {
                 throw new DisplayException('This order is not yours.');
@@ -201,7 +163,6 @@ class ShopService
             'status' => ShopPayment::PENDING,
             'buy_offer_id' => $buy?->id,
             'renew_order_id' => $renew?->id,
-            'buy_options' => $buy && $buy->isWeb() ? array_map(fn ($value) => mb_substr(trim((string) $value), 0, 253), array_intersect_key($options, array_flip(['site_name', 'domain', 'subdomain']))) : null,
         ]);
 
         try {
@@ -291,7 +252,7 @@ class ShopService
 
         try {
             if ($payment->buy_offer_id && ($offer = ShopOffer::query()->find($payment->buy_offer_id))) {
-                $this->purchase($user, $offer, $payment->buy_options ?? []);
+                $this->purchase($user, $offer);
             } elseif ($payment->renew_order_id && ($order = ShopOrder::query()->find($payment->renew_order_id))) {
                 $this->renew($user, $order);
             }
@@ -305,10 +266,9 @@ class ShopService
      *
      * @throws DisplayException
      */
-    public function purchase(User $user, ShopOffer $offer, array $options = []): ShopOrder
+    public function purchase(User $user, ShopOffer $offer): ShopOrder
     {
         $this->assertEnabled();
-        $web = $offer->isWeb() ? $this->prepareWeb($offer, $options) : null;
 
         [$order, $offer] = DB::transaction(function () use ($user, $offer) {
             $offer = ShopOffer::query()->whereKey($offer->id)->lockForUpdate()->first();
@@ -332,25 +292,16 @@ class ShopService
             return [$order, $offer];
         });
 
-        $accountId = null;
         try {
-            if ($web !== null) {
-                [$account, $site] = $this->web()->provisionForOrder($user, $offer->webPlan, $web['name'], $web['domain']);
-                $serverId = $site->server_id;
-                $accountId = $account->id;
-            } else {
-                $serverId = $this->provisioner->provision($user, $offer)->id;
-            }
+            $serverId = $this->provisioner->provision($user, $offer)->id;
         } catch (\Throwable $exception) {
             report($exception);
             $this->giveBack($order, $offer);
 
-            throw new DisplayException($web !== null
-                ? 'The site could not be made, and you were not charged. Try again later or contact the support.'
-                : 'The server could not be made, and you were not charged. Try again later or contact the support.');
+            throw new DisplayException('The server could not be made, and you were not charged. Try again later or contact the support.');
         }
 
-        $order->update(['server_id' => $serverId, 'web_account_id' => $accountId, 'status' => ShopOrder::ACTIVE, 'expires_at' => now()->addDays($order->duration_days)]);
+        $order->update(['server_id' => $serverId, 'status' => ShopOrder::ACTIVE, 'expires_at' => now()->addDays($order->duration_days)]);
 
         return $order->refresh();
     }
@@ -364,13 +315,11 @@ class ShopService
     {
         $this->assertEnabled();
 
-        $wasExpired = false;
-        $order = DB::transaction(function () use ($user, $order, &$wasExpired) {
+        $order = DB::transaction(function () use ($user, $order) {
             $order = ShopOrder::query()->whereKey($order->id)->lockForUpdate()->first();
             if (!$order || $order->user_id !== $user->id || !in_array($order->status, [ShopOrder::ACTIVE, ShopOrder::EXPIRED], true) || !$order->server_id) {
                 throw new DisplayException('This order cannot be renewed.');
             }
-            $wasExpired = $order->status === ShopOrder::EXPIRED;
 
             $this->move($user->id, 'renewal', -$order->price_cents, $order->offer_name, ['order_id' => $order->id]);
             $from = $order->expires_at && $order->expires_at->isFuture() ? $order->expires_at : now();
@@ -383,7 +332,7 @@ class ShopService
             return $order;
         });
 
-        $this->liftExpiry($order, $wasExpired);
+        $this->liftExpiry($order);
 
         return $order->refresh();
     }
@@ -402,18 +351,6 @@ class ShopService
 
         foreach ($due as $order) {
             try {
-                if ($order->web_account_id) {
-                    // A web hosting plan: the whole account stops (all its sites), and nothing is deleted.
-                    $account = WebAccount::query()->find($order->web_account_id);
-                    if ($account && $account->status === WebAccount::ACTIVE) {
-                        $this->web()->setAccountSuspended($account, true);
-                        ++$count;
-                    }
-                    $order->update(['status' => ShopOrder::EXPIRED]);
-
-                    continue;
-                }
-
                 $server = Server::query()->without('allocation')->find($order->server_id);
                 if ($server && !$server->isSuspended()) {
                     $this->suspensions->toggle($server, SuspensionService::ACTION_SUSPEND, ['reason' => self::EXPIRED_REASON]);
@@ -431,18 +368,9 @@ class ShopService
     /**
      * Gives the server back if it was suspended for having run out of time (and only then).
      */
-    private function liftExpiry(ShopOrder $order, bool $wasExpired = true): void
+    private function liftExpiry(ShopOrder $order): void
     {
         try {
-            if ($order->web_account_id) {
-                $account = WebAccount::query()->find($order->web_account_id);
-                if ($account && $wasExpired && $account->status === WebAccount::SUSPENDED) {
-                    $this->web()->setAccountSuspended($account, false);
-                }
-
-                return;
-            }
-
             $server = Server::query()->without('allocation')->find($order->server_id);
             if ($server && $server->isSuspended() && optional(\Pterodactyl\Models\ServerSuspension::query()->where('server_id', $server->id)->first())->reason === self::EXPIRED_REASON) {
                 $this->suspensions->toggle($server, SuspensionService::ACTION_UNSUSPEND);
