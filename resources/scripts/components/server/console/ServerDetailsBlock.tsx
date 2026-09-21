@@ -1,14 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-    faClock,
-    faCloudDownloadAlt,
-    faCloudUploadAlt,
-    faHdd,
-    faMemory,
-    faMicrochip,
-    faUsers,
-    faWifi,
-} from '@fortawesome/free-solid-svg-icons';
+import { faClock, faHdd, faMemory, faMicrochip, faSignal, faUsers, faWifi } from '@fortawesome/free-solid-svg-icons';
 import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
 import { ServerContext } from '@/state/server';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
@@ -18,11 +9,12 @@ import HiddenAddress from '@/components/elements/HiddenAddress';
 import useFiveM from '@/components/server/console/useFiveM';
 import useGameStatus from '@/components/server/console/useGameStatus';
 import useConnectionCount from '@/components/server/console/useConnectionCount';
+import usePing from '@/components/server/console/usePing';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import classNames from 'classnames';
 import { capitalize } from '@/lib/strings';
 
-type Stats = Record<'memory' | 'cpu' | 'disk' | 'uptime' | 'rx' | 'tx', number>;
+type Stats = Record<'memory' | 'cpu' | 'disk' | 'uptime', number>;
 
 const getBackgroundColor = (value: number, max: number | null): string | undefined => {
     const delta = !max ? 0 : value / max;
@@ -45,7 +37,8 @@ const Limit = ({ limit, children }: { limit: string | null; children: React.Reac
 );
 
 const ServerDetailsBlock = ({ className }: { className?: string }) => {
-    const [stats, setStats] = useState<Stats>({ memory: 0, cpu: 0, disk: 0, uptime: 0, tx: 0, rx: 0 });
+    const [stats, setStats] = useState<Stats>({ memory: 0, cpu: 0, disk: 0, uptime: 0 });
+    const ping = usePing();
 
     const status = ServerContext.useStoreState((state) => state.status.value);
     const fivem = useFiveM();
@@ -103,8 +96,6 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             memory: stats.memory_bytes,
             cpu: stats.cpu_absolute,
             disk: stats.disk_bytes,
-            tx: stats.network.tx_bytes,
-            rx: stats.network.rx_bytes,
             uptime: stats.uptime || 0,
         });
     });
@@ -196,11 +187,8 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             <StatBlock icon={faHdd} title={'Disk'} color={getBackgroundColor(stats.disk / 1024, limits.disk * 1024)}>
                 <Limit limit={textLimits.disk}>{bytesToString(stats.disk)}</Limit>
             </StatBlock>
-            <StatBlock icon={faCloudDownloadAlt} title={'Network (Inbound)'}>
-                {status === 'offline' ? <span className={'text-gray-400'}>Offline</span> : bytesToString(stats.rx)}
-            </StatBlock>
-            <StatBlock icon={faCloudUploadAlt} title={'Network (Outbound)'}>
-                {status === 'offline' ? <span className={'text-gray-400'}>Offline</span> : bytesToString(stats.tx)}
+            <StatBlock icon={faSignal} title={'Ping'} color={ping === null ? undefined : getBackgroundColor(ping, 300)}>
+                {ping === null ? <span className={'text-gray-400'}>&ndash;</span> : `${ping} ms`}
             </StatBlock>
         </div>
     );

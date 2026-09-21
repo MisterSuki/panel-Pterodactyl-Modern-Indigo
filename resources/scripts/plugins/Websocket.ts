@@ -75,6 +75,32 @@ export class Websocket extends EventEmitter {
         }
     }
 
+    // Measures, in milliseconds, how long the machine of the server takes to answer. Authenticating again is used for
+    // that: it is answered at once with "auth success", and changes nothing else.
+    ping(timeout = 5000): Promise<number> {
+        return new Promise((resolve, reject) => {
+            if (!this.url || !this.token) {
+                reject(new Error('The socket is not connected.'));
+
+                return;
+            }
+
+            const start = performance.now();
+            let timer = 0;
+            const onSuccess = () => {
+                window.clearTimeout(timer);
+                resolve(performance.now() - start);
+            };
+            timer = window.setTimeout(() => {
+                this.removeListener('auth success', onSuccess);
+                reject(new Error('The socket did not answer.'));
+            }, timeout);
+
+            this.once('auth success', onSuccess);
+            this.authenticate();
+        });
+    }
+
     close(code?: number, reason?: string) {
         this.url = null;
         this.token = '';
