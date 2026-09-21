@@ -388,6 +388,8 @@ const CreditTab = ({
 export default () => {
     const query = new URLSearchParams(useLocation().search);
     const [tab, setTab] = useState<Tab>('offers');
+    // The category whose offers are shown, or null for all of them.
+    const [category, setCategory] = useState<number | null>(null);
     const [error, setError] = useState('');
     const [notice, setNotice] = useState('');
     const { data: shop, mutate } = useSWR<ShopData>('shop', getShop, {
@@ -507,24 +509,46 @@ export default () => {
                 ))}
             </div>
 
+            {tab === 'offers' && shop.categories.length > 0 && (
+                <div css={tw`mb-4 flex flex-wrap gap-2`}>
+                    {[{ id: null, name: 'All' }, ...shop.categories].map((item) => (
+                        <button
+                            key={String(item.id)}
+                            type={'button'}
+                            onClick={() => setCategory(item.id)}
+                            className={classNames(
+                                'rounded-full border px-4 py-1.5 text-sm font-medium transition-colors duration-150',
+                                category === item.id
+                                    ? 'border-primary-400 bg-primary-500/20 text-primary-100'
+                                    : 'border-white/10 bg-white/5 text-neutral-300 hover:bg-white/10'
+                            )}
+                        >
+                            {item.id === null ? <span>All</span> : item.name}
+                        </button>
+                    ))}
+                </div>
+            )}
+
             {tab === 'offers' &&
                 (shop.offers.length === 0 ? (
                     <p css={tw`text-center text-neutral-400 py-10`}>Nothing is for sale for the moment.</p>
                 ) : (
                     <div css={tw`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}>
-                        {shop.offers.map((offer) => (
-                            <OfferCard
-                                key={offer.id}
-                                offer={offer}
-                                shop={shop}
-                                money={money}
-                                onDone={done(
-                                    'Your server is being made. You find it in "My orders" and on your dashboard.',
-                                    'orders'
-                                )}
-                                onError={setError}
-                            />
-                        ))}
+                        {shop.offers
+                            .filter((offer) => category === null || offer.categoryId === category)
+                            .map((offer) => (
+                                <OfferCard
+                                    key={offer.id}
+                                    offer={offer}
+                                    shop={shop}
+                                    money={money}
+                                    onDone={done(
+                                        'Your server is being made. You find it in "My orders" and on your dashboard.',
+                                        'orders'
+                                    )}
+                                    onError={setError}
+                                />
+                            ))}
                     </div>
                 ))}
 

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Something the shop sells: a server with fixed limits, for a number of days, at a price.
  *
  * @property int $id
+ * @property int|null $category_id
  * @property string $name
  * @property string|null $description
  * @property int $price_cents
@@ -39,6 +40,14 @@ class ShopOffer extends Model
         'stock' => 'integer',
         'enabled' => 'boolean',
     ];
+
+    /**
+     * @return BelongsTo<ShopCategory, $this>
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(ShopCategory::class, 'category_id');
+    }
 
     /**
      * @return BelongsTo<Egg, $this>

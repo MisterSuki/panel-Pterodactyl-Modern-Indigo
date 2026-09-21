@@ -481,6 +481,7 @@ Fermée, elle disparaît du tableau de bord et rien ne peut être acheté.
 
 - **Ce qui est vendu** : des **offres de serveur** (œuf, emplacement, mémoire, disque, CPU, limites, durée payée, prix, stock). Après
   paiement, le serveur est **créé automatiquement** pour le client, sur un node de l'emplacement qui a encore de la place.
+- **Catégories** : l'administration crée des catégories d'offres (Minecraft, FiveM, bots…) ; le client filtre la boutique par catégorie (seules celles qui ont une offre en vente s'affichent).
 - **Crédit** : chaque client a un solde qu'il recharge par **Stripe, PayPal ou SumUp** (montants min/max réglables) et qui sert à payer
   les offres et les renouvellements. S'il lui manque de l'argent, seul le **manque** lui est demandé, et l'achat se fait tout seul dès
   que le paiement est confirmé.

@@ -50,9 +50,7 @@
                             <input type="number" id="position" name="position" class="form-control" min="0" value="{{ $field('position', $offer->position ?? 0) }}">
                         </div>
                     </div>
-                    <div class="checkbox">
-                        <label><input type="checkbox" name="enabled" value="1" @checked($field('enabled', $offer->enabled))> <span>On sale</span></label>
-                    </div>
+                    <label class="pd-switch"><input type="checkbox" name="enabled" value="1" @checked($field('enabled', $offer->enabled))><i class="pd-switch-track"></i><span>On sale</span></label>
                 </div>
             </div>
         </div>
@@ -77,6 +75,16 @@
                                 @endforeach
                             </select>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="category_id">Category</label>
+                        <select id="category_id" name="category_id" class="form-control">
+                            <option value="">No category</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}" @selected((int) $field('category_id', $offer->category_id) === $category->id)>{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-muted small"><span>Categories are made in the Categories tab of the shop.</span></p>
                     </div>
                     <p class="text-muted small"><span>The node and the port are chosen by the panel among the nodes of the location that still have room.</span></p>
                     <div class="row">

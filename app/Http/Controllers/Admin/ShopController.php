@@ -12,6 +12,7 @@ use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\Models\Egg;
 use Pterodactyl\Models\Location;
+use Pterodactyl\Models\ShopCategory;
 use Pterodactyl\Models\ShopOffer;
 use Pterodactyl\Models\ShopOrder;
 use Pterodactyl\Models\ShopPayment;
@@ -29,6 +30,39 @@ class ShopController extends Controller
 {
     public function __construct(private ShopService $shop, private ShopSettings $settings, private AlertsMessageBag $alert)
     {
+    }
+
+    // ---- categories -----------------------------------------------------------------------------------------------
+
+    public function categories(): View
+    {
+        return view('admin.shop.categories', [
+            'categories' => ShopCategory::query()->withCount('offers')->orderBy('position')->orderBy('name')->get(),
+        ]);
+    }
+
+    public function saveCategory(Request $request, ?int $id = null): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:60'],
+            'position' => ['nullable', 'integer', 'min:0', 'max:65000'],
+        ]);
+
+        $category = $id ? ShopCategory::query()->findOrFail($id) : new ShopCategory();
+        $category->fill(['name' => trim($data['name']), 'position' => (int) ($data['position'] ?? 0)])->save();
+        $this->alert->success('The category was saved.')->flash();
+
+        return redirect()->route('admin.shop.categories');
+    }
+
+    public function deleteCategory(int $id): RedirectResponse
+    {
+        // The offers of the category stay on sale, without a category.
+        ShopOffer::query()->where('category_id', $id)->update(['category_id' => null]);
+        ShopCategory::query()->findOrFail($id)->delete();
+        $this->alert->success('The category was deleted. Its offers are still on sale, without a category.')->flash();
+
+        return redirect()->route('admin.shop.categories');
     }
 
     // ---- offers ---------------------------------------------------------------------------------------------------
@@ -49,6 +83,7 @@ class ShopController extends Controller
             'offer' => $offer,
             'eggs' => Egg::query()->with('nest:id,name')->orderBy('name')->get(['id', 'nest_id', 'name']),
             'locations' => Location::query()->orderBy('short')->get(['id', 'short']),
+            'categories' => ShopCategory::query()->orderBy('position')->orderBy('name')->get(['id', 'name']),
             'currency' => $this->settings->currency(),
             'price' => $offer->exists ? $this->plain($offer->price_cents) : '',
             'environment' => collect($offer->environment ?? [])->map(fn ($value, $name) => $name . '=' . $value)->implode("\n"),
@@ -64,6 +99,7 @@ class ShopController extends Controller
             'duration_days' => ['required', 'integer', 'between:1,365'],
             'egg_id' => ['required', 'integer', 'exists:eggs,id'],
             'location_id' => ['required', 'integer', 'exists:locations,id'],
+            'category_id' => ['nullable', 'integer', 'exists:shop_categories,id'],
             'memory' => ['required', 'integer', 'min:64'],
             'disk' => ['required', 'integer', 'min:64'],
             'cpu' => ['required', 'integer', 'min:0'],
@@ -88,6 +124,7 @@ class ShopController extends Controller
             'duration_days' => (int) $data['duration_days'],
             'egg_id' => (int) $data['egg_id'],
             'location_id' => (int) $data['location_id'],
+            'category_id' => ($data['category_id'] ?? '') === '' ? null : (int) $data['category_id'],
             'memory' => (int) $data['memory'],
             'disk' => (int) $data['disk'],
             'cpu' => (int) $data['cpu'],

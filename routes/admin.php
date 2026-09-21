@@ -26,6 +26,10 @@ Route::group(['prefix' => 'shop', 'middleware' => 'admin.can:shop'], function ()
     Route::get('/offers/{id}', [Admin\ShopController::class, 'offerForm'])->whereNumber('id')->name('admin.shop.offers.edit');
     Route::post('/offers/{id}', [Admin\ShopController::class, 'saveOffer'])->whereNumber('id');
     Route::delete('/offers/{id}', [Admin\ShopController::class, 'deleteOffer'])->whereNumber('id')->name('admin.shop.offers.delete');
+    Route::get('/categories', [Admin\ShopController::class, 'categories'])->name('admin.shop.categories');
+    Route::post('/categories', [Admin\ShopController::class, 'saveCategory']);
+    Route::post('/categories/{id}', [Admin\ShopController::class, 'saveCategory'])->whereNumber('id')->name('admin.shop.categories.save');
+    Route::delete('/categories/{id}', [Admin\ShopController::class, 'deleteCategory'])->whereNumber('id')->name('admin.shop.categories.delete');
     Route::get('/orders', [Admin\ShopController::class, 'orders'])->name('admin.shop.orders');
     Route::get('/credit', [Admin\ShopController::class, 'credit'])->name('admin.shop.credit');
     Route::post('/credit/adjust', [Admin\ShopController::class, 'adjust'])->name('admin.shop.credit.adjust');

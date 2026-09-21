@@ -23,7 +23,7 @@
             <div class="box box-primary">
                 <div class="box-header with-border"><h3 class="box-title">The shop</h3></div>
                 <div class="box-body">
-                    <div class="checkbox"><label><input type="checkbox" name="enabled" value="1" @checked(old('enabled', $enabled))> <strong><span>The shop is open</span></strong></label></div>
+                    <label class="pd-switch"><input type="checkbox" name="enabled" value="1" @checked(old('enabled', $enabled))><i class="pd-switch-track"></i><span>The shop is open</span></label>
                     <p class="text-muted small"><span>When it is closed, the shop does not appear on the dashboard and nothing can be bought.</span></p>
                     <div class="row">
                         <div class="form-group col-xs-4">
@@ -46,7 +46,7 @@
             <div class="box box-primary">
                 <div class="box-header with-border"><h3 class="box-title">Stripe</h3></div>
                 <div class="box-body">
-                    <div class="checkbox"><label><input type="checkbox" name="stripe_enabled" value="1" @checked(old('stripe_enabled', $stripe['on']))> <span>Accept payments with Stripe</span></label></div>
+                    <label class="pd-switch"><input type="checkbox" name="stripe_enabled" value="1" @checked(old('stripe_enabled', $stripe['on']))><i class="pd-switch-track"></i><span>Accept payments with Stripe</span></label>
                     <div class="form-group">
                         <label for="stripe_secret">Secret key</label>
                         <input type="password" id="stripe_secret" name="stripe_secret" class="form-control" placeholder="{{ $stripe['secret'] ? '•••••••• (kept, type to replace)' : 'sk_live_...' }}" autocomplete="new-password">
@@ -65,7 +65,7 @@
             <div class="box box-primary">
                 <div class="box-header with-border"><h3 class="box-title">PayPal</h3></div>
                 <div class="box-body">
-                    <div class="checkbox"><label><input type="checkbox" name="paypal_enabled" value="1" @checked(old('paypal_enabled', $paypal['on']))> <span>Accept payments with PayPal</span></label></div>
+                    <label class="pd-switch"><input type="checkbox" name="paypal_enabled" value="1" @checked(old('paypal_enabled', $paypal['on']))><i class="pd-switch-track"></i><span>Accept payments with PayPal</span></label>
                     <div class="form-group">
                         <label for="paypal_client_id">Client ID</label>
                         <input type="text" id="paypal_client_id" name="paypal_client_id" class="form-control" value="{{ old('paypal_client_id', $paypal['client']) }}" autocomplete="off">
@@ -75,13 +75,13 @@
                         <input type="password" id="paypal_secret" name="paypal_secret" class="form-control" placeholder="{{ $paypal['secret'] ? '•••••••• (kept, type to replace)' : '' }}" autocomplete="new-password">
                         @if ($paypal['secret'])<label class="small text-muted"><input type="checkbox" name="clear_paypal_secret" value="1"> <span>Remove it</span></label>@endif
                     </div>
-                    <div class="checkbox"><label><input type="checkbox" name="paypal_sandbox" value="1" @checked(old('paypal_sandbox', $paypal['sandbox']))> <span>Test mode (sandbox): no real money moves</span></label></div>
+                    <label class="pd-switch"><input type="checkbox" name="paypal_sandbox" value="1" @checked(old('paypal_sandbox', $paypal['sandbox']))><i class="pd-switch-track"></i><span>Test mode (sandbox): no real money moves</span></label>
                 </div>
             </div>
             <div class="box box-primary">
                 <div class="box-header with-border"><h3 class="box-title">SumUp</h3></div>
                 <div class="box-body">
-                    <div class="checkbox"><label><input type="checkbox" name="sumup_enabled" value="1" @checked(old('sumup_enabled', $sumup['on']))> <span>Accept payments with SumUp</span></label></div>
+                    <label class="pd-switch"><input type="checkbox" name="sumup_enabled" value="1" @checked(old('sumup_enabled', $sumup['on']))><i class="pd-switch-track"></i><span>Accept payments with SumUp</span></label>
                     <div class="form-group">
                         <label for="sumup_api_key">API key</label>
                         <input type="password" id="sumup_api_key" name="sumup_api_key" class="form-control" placeholder="{{ $sumup['key'] ? '•••••••• (kept, type to replace)' : 'sup_sk_...' }}" autocomplete="new-password">

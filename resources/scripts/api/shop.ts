@@ -1,7 +1,13 @@
 import http from '@/api/http';
 
+export interface ShopCategory {
+    id: number;
+    name: string;
+}
+
 export interface ShopOffer {
     id: number;
+    categoryId: number | null;
     name: string;
     description: string | null;
     priceCents: number;
@@ -43,6 +49,7 @@ export interface ShopData {
     minTopupCents: number;
     maxTopupCents: number;
     providers: { code: string; label: string }[];
+    categories: ShopCategory[];
     offers: ShopOffer[];
     orders: ShopOrder[];
     transactions: ShopTransaction[];
@@ -58,6 +65,7 @@ export const getShop = async (): Promise<ShopData> => {
             minTopupCents: 0,
             maxTopupCents: 0,
             providers: [],
+            categories: [],
             offers: [],
             orders: [],
             transactions: [],
@@ -71,8 +79,10 @@ export const getShop = async (): Promise<ShopData> => {
         minTopupCents: data.min_topup_cents,
         maxTopupCents: data.max_topup_cents,
         providers: data.providers,
+        categories: data.categories || [],
         offers: data.offers.map((o: any) => ({
             id: o.id,
+            categoryId: o.category_id ?? null,
             name: o.name,
             description: o.description,
             priceCents: o.price_cents,

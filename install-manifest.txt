@@ -153,3 +153,5 @@ app/Http/Controllers/Base/ShopReturnController.php
 app/Http/Controllers/Base/PaymentWebhookController.php
 routes/payments.php
 resources/views/admin/shop/
+database/migrations/2026_09_27_000000_create_shop_categories.php
+app/Models/ShopCategory.php
