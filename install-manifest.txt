@@ -166,3 +166,19 @@ resources/views/landing/
 resources/views/admin/landing.blade.php
 resources/lang/en/landing.php
 resources/lang/fr/landing.php
+
+# --- Web hosting (clients, plans, sites, domains with automatic HTTPS) ------------------------------
+database/migrations/2026_09_28_000000_create_web_hosting_tables.php
+app/Models/WebPlan.php
+app/Models/WebAccount.php
+app/Models/WebSite.php
+app/Models/WebDomain.php
+app/Services/Web/
+app/Console/Commands/Web/
+app/Http/Controllers/Admin/Concerns/
+app/Http/Controllers/Admin/HostingController.php
+app/Http/Controllers/Api/Client/HostingController.php
+app/Http/Controllers/Base/ProxyConfigController.php
+routes/hosting.php
+resources/views/admin/hosting/
+docs/hosting/

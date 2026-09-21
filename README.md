@@ -474,6 +474,32 @@ Un système de tickets intégré, avec **discussion en temps réel** et **transc
 
 Les messages sont toujours affichés comme du texte : rien de ce qui est écrit ne peut s'exécuter dans la page.
 
+### ☁️ Hébergement web (à la Plesk, dans le panel)
+
+Chaque **site web est un serveur du panel** (un conteneur qui fait tourner un serveur web et PHP) : on retrouve donc, pour chaque site, les
+fichiers, le SFTP, les bases de données, les sauvegardes et les limites du panel. Par-dessus, l'hébergement web ajoute :
+
+- **Forfaits** : nombre de sites et de domaines, ressources de chaque site (mémoire, disque, CPU, bases, sauvegardes), œuf et emplacement,
+  et les **versions de PHP** proposées (chacune est l'image docker qui la fait tourner).
+- **Clients** : *Administration → Hébergement web → Nouveau client* crée en un formulaire la personne (elle reçoit un email pour choisir son
+  mot de passe), son forfait et son premier site — ou donne un forfait à quelqu'un qui a déjà un compte. On peut suspendre un compte (ses
+  sites sont arrêtés, rien n'est supprimé), ajouter un site, en supprimer un.
+- **Espace client** : une page *Hébergement web* (icône nuage dans la barre du haut) où le client voit ses sites, ajoute et retire ses
+  **domaines**, change la **version de PHP** et crée d'autres sites si son forfait le permet.
+- **Domaines et HTTPS automatique** : un domaine n'est **servi qu'une fois que son DNS mène à ton serveur web** (adresses IP réglables) :
+  personne ne peut prendre un nom qui n'est pas le sien. Le panel vérifie tout seul toutes les 5 minutes. Un nom gratuit par site sous un
+  domaine de l'hébergement (`site.hebergement.exemple.fr`) est possible avec un DNS joker.
+- **Serveur web (Caddy)** : le panel produit la liste « domaine → serveur du site » ; Caddy la récupère avec un jeton (`GET
+  /api/hosting/proxy-config`, jeton jamais stocké en clair) grâce au script `docs/hosting/panel-proxy-sync.sh`, qui ne recharge Caddy que si
+  la liste a changé et **remet l'ancienne configuration si Caddy la refuse**. Caddy crée et renouvelle seul les certificats Let's Encrypt.
+
+**Mise en route** : importer (ou choisir) un œuf de serveur web avec PHP ; *Réglages* : activer l'hébergement, renseigner l'IP du serveur web
+et créer un jeton ; installer Caddy sur ce serveur (ligne `import /etc/caddy/panel-sites.caddy` + le script en cron/timer, voir la page des
+réglages) ; créer un forfait, puis un client.
+
+*À venir (pas encore fait)* : installeur en un clic (WordPress…), éditeur de zone DNS, boîtes e-mail, vente des forfaits web dans la boutique.
+Ces trois derniers demandent des choix d'infrastructure (serveur DNS, serveur mail) à faire ensemble.
+
 ### 🏠 Page d'accueil pour les visiteurs
 
 Quand on ouvre l'adresse du panel sans être connecté, on arrive sur une **page d'accueil** au lieu d'être renvoyé directement à la connexion.

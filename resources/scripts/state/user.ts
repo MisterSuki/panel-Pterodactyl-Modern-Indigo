@@ -13,6 +13,8 @@ export interface UserData {
     discordUsername: string | null;
     // Where the profile picture is: the one the person chose, or the logo of the panel.
     avatar: string;
+    // True when the person has web hosting, so that the dashboard shows the link to it.
+    webHosting: boolean;
     createdAt: Date;
     updatedAt: Date;
 }

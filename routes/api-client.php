@@ -37,6 +37,16 @@ Route::prefix('/tickets')->group(function () {
     Route::get('/{id}/transcript', [Client\TicketController::class, 'transcript'])->whereNumber('id');
 });
 
+// The web hosting: the sites of the person, their domains and the version of PHP.
+Route::prefix('/hosting')->group(function () {
+    Route::get('/', [Client\HostingController::class, 'index'])->middleware('throttle:60,1');
+    Route::post('/sites', [Client\HostingController::class, 'createSite'])->middleware('throttle:10,1');
+    Route::post('/sites/{id}/domains', [Client\HostingController::class, 'addDomain'])->whereNumber('id')->middleware('throttle:20,1');
+    Route::delete('/sites/{id}/domains/{domainId}', [Client\HostingController::class, 'removeDomain'])->whereNumber('id')->whereNumber('domainId');
+    Route::post('/sites/{id}/domains/{domainId}/verify', [Client\HostingController::class, 'verifyDomain'])->whereNumber('id')->whereNumber('domainId')->middleware('throttle:20,1');
+    Route::put('/sites/{id}/php', [Client\HostingController::class, 'setPhp'])->whereNumber('id')->middleware('throttle:10,1');
+});
+
 // The shop: what is for sale, the credit of the person, what they bought, and paying.
 Route::prefix('/shop')->group(function () {
     Route::get('/', [Client\ShopController::class, 'index'])->middleware('throttle:60,1');

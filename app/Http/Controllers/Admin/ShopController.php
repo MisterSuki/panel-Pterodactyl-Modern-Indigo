@@ -9,6 +9,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Prologue\Alerts\AlertsMessageBag;
 use Pterodactyl\Exceptions\DisplayException;
+use Pterodactyl\Http\Controllers\Admin\Concerns\ReadsEggEnvironment;
 use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\Models\Egg;
 use Pterodactyl\Models\Location;
@@ -28,6 +29,8 @@ use Pterodactyl\Services\Shop\ShopSettings;
  */
 class ShopController extends Controller
 {
+    use ReadsEggEnvironment;
+
     public function __construct(private ShopService $shop, private ShopSettings $settings, private AlertsMessageBag $alert)
     {
     }
@@ -115,7 +118,7 @@ class ShopController extends Controller
         if ($price === null || $price < ShopService::MIN_PAYMENT) {
             throw ValidationException::withMessages(['price' => 'The price must be at least ' . $this->plain(ShopService::MIN_PAYMENT) . '.']);
         }
-        $environment = $this->environment((string) ($data['environment'] ?? ''), (int) $data['egg_id']);
+        $environment = $this->eggEnvironment((string) ($data['environment'] ?? ''), (int) $data['egg_id']);
 
         $values = [
             'name' => $data['name'],
@@ -291,42 +294,5 @@ class ShopController extends Controller
     private function plain(int $cents): string
     {
         return number_format($cents / 100, 2, '.', '');
-    }
-
-    /**
-     * The variables that an offer sets for the egg, written "NAME=value" one per line. They have to be variables of the
-     * egg, and every variable that the egg requires without a default value has to be given, because nobody is there to
-     * fill it in when the server is made.
-     *
-     * @return array<string, string>
-     *
-     * @throws ValidationException
-     */
-    private function environment(string $text, int $eggId): array
-    {
-        $egg = Egg::query()->with('variables')->findOrFail($eggId);
-        $known = $egg->variables->keyBy('env_variable');
-        $given = [];
-        foreach (preg_split('/\r\n|\r|\n/', $text) ?: [] as $line) {
-            $line = trim($line);
-            if ($line === '') {
-                continue;
-            }
-            [$name, $value] = array_pad(explode('=', $line, 2), 2, '');
-            $name = trim($name);
-            if (!$known->has($name)) {
-                throw ValidationException::withMessages(['environment' => '"' . $name . '" is not a variable of this egg.']);
-            }
-            $given[$name] = trim($value);
-        }
-
-        foreach ($known as $name => $variable) {
-            $required = str_contains((string) $variable->rules, 'required') && !str_contains((string) $variable->rules, 'nullable');
-            if ($required && (string) $variable->default_value === '' && ($given[$name] ?? '') === '') {
-                throw ValidationException::withMessages(['environment' => 'The egg requires "' . $name . '" and gives no default value: write it here as ' . $name . '=value.']);
-            }
-        }
-
-        return $given;
     }
 }
