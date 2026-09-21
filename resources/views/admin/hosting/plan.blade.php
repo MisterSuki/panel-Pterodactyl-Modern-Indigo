@@ -36,15 +36,9 @@
             <div class="box box-primary">
                 <div class="box-header with-border"><h3 class="box-title">Versions of PHP</h3></div>
                 <div class="box-body">
-                    <div class="form-group">
-                        <label for="versions">Versions and their image</label>
-                        <textarea id="versions" name="versions" class="form-control" rows="5" placeholder="8.3=ghcr.io/parkervcp/yolks:php_8.3&#10;8.2=ghcr.io/parkervcp/yolks:php_8.2">{{ $f('versions', $versions) }}</textarea>
-                        <p class="text-muted small"><span>One per line: the version, then the docker image that runs it. The client picks one of these for each site.</span></p>
-                    </div>
-                    <div class="form-group">
-                        <label for="default_php">Version to start with</label>
-                        <input type="text" id="default_php" name="default_php" class="form-control" maxlength="10" value="{{ $f('default_php', $plan->default_php) }}" placeholder="8.3">
-                    </div>
+                    <p class="text-muted small"><span>The images that the egg runs. Tick the ones a client can choose, and give each the name the client sees (8.3, 8.2...). The others are left out.</span></p>
+                    <div id="pd-images"></div>
+                    <p class="text-muted small" id="pd-images-none" style="display:none;margin-bottom:0"><span>This egg has no image: sites will not be made.</span></p>
                 </div>
             </div>
         </div>
@@ -56,7 +50,16 @@
                         <div class="form-group col-xs-6">
                             <label for="egg_id">Egg</label>
                             <select id="egg_id" name="egg_id" class="form-control" required>
-                                @foreach ($eggs as $egg)<option value="{{ $egg->id }}" @selected((int) $f('egg_id', $plan->egg_id) === $egg->id)>{{ $egg->nest?->name }} &rsaquo; {{ $egg->name }}</option>@endforeach
+                                @if ($suggested->isNotEmpty())
+                                    <optgroup label="{{ __('Suggested for web hosting') }}">
+                                        @foreach ($suggested as $egg)<option value="{{ $egg->id }}" @selected((int) $f('egg_id', $plan->egg_id) === $egg->id)>{{ $egg->nest?->name }} &rsaquo; {{ $egg->name }}</option>@endforeach
+                                    </optgroup>
+                                @endif
+                                @foreach ($others as $nest => $group)
+                                    <optgroup label="{{ $nest }}">
+                                        @foreach ($group as $egg)<option value="{{ $egg->id }}" @selected((int) $f('egg_id', $plan->egg_id) === $egg->id)>{{ $egg->name }}</option>@endforeach
+                                    </optgroup>
+                                @endforeach
                             </select>
                         </div>
                         <div class="form-group col-xs-6">
@@ -97,4 +100,89 @@
 @if ($plan->exists)
     <form id="pd-delete-plan" action="{{ route('admin.hosting.plans.delete', $plan->id) }}" method="POST">{!! csrf_field() !!}{!! method_field('DELETE') !!}</form>
 @endif
+@endsection
+
+@section('footer-scripts')
+    @parent
+    <script>
+        (function () {
+            var images = @json($images);
+            var chosen = @json((object) $chosen);
+            var chosenDefault = @json($chosenDefault);
+            var select = document.getElementById('egg_id');
+            var box = document.getElementById('pd-images');
+            var none = document.getElementById('pd-images-none');
+            var first = true;
+
+            function el(tag, className, text) {
+                var node = document.createElement(tag);
+                if (className) { node.className = className; }
+                if (text !== undefined) { node.textContent = text; }
+                return node;
+            }
+
+            function render() {
+                var egg = images[select.value] || {};
+                var keys = Object.keys(egg);
+                box.textContent = '';
+                none.style.display = keys.length === 0 ? '' : 'none';
+                keys.forEach(function (name, index) {
+                    var image = egg[name];
+                    // The versions the plan already has are shown as they are, but only for the egg it was saved with.
+                    var known = first && Object.prototype.hasOwnProperty.call(chosen, image);
+                    var row = el('div', 'pd-slot');
+
+                    var use = el('label', 'pd-switch');
+                    var check = el('input');
+                    check.type = 'checkbox';
+                    check.name = 'img[' + index + '][use]';
+                    check.value = '1';
+                    check.checked = first ? known : true;
+                    use.appendChild(check);
+                    use.appendChild(el('i', 'pd-switch-track'));
+                    use.appendChild(el('span', null, name));
+                    row.appendChild(use);
+
+                    var hidden = el('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'img[' + index + '][image]';
+                    hidden.value = image;
+                    row.appendChild(hidden);
+
+                    var line = el('div', 'row');
+                    var left = el('div', 'form-group col-xs-8');
+                    var input = el('input', 'form-control');
+                    input.type = 'text';
+                    input.name = 'img[' + index + '][label]';
+                    input.maxLength = 20;
+                    input.placeholder = name;
+                    input.value = known ? chosen[image] : name;
+                    input.setAttribute('aria-label', 'Name of the version');
+                    left.appendChild(input);
+                    line.appendChild(left);
+
+                    var right = el('div', 'form-group col-xs-4');
+                    var radio = el('label', 'small');
+                    var r = el('input');
+                    r.type = 'radio';
+                    r.name = 'default_index';
+                    r.value = String(index);
+                    r.checked = known && chosenDefault !== null && chosen[image] === chosenDefault;
+                    radio.appendChild(r);
+                    radio.appendChild(document.createTextNode(' '));
+                    radio.appendChild(el('span', null, 'Start with this one'));
+                    right.appendChild(radio);
+                    line.appendChild(right);
+                    row.appendChild(line);
+
+                    row.appendChild(el('p', 'text-muted small', image));
+                    box.appendChild(row);
+                });
+                first = false;
+            }
+
+            select.addEventListener('change', render);
+            render();
+        })();
+    </script>
 @endsection

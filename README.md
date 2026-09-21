@@ -480,7 +480,8 @@ Chaque **site web est un serveur du panel** (un conteneur qui fait tourner un se
 fichiers, le SFTP, les bases de données, les sauvegardes et les limites du panel. Par-dessus, l'hébergement web ajoute :
 
 - **Forfaits** : nombre de sites et de domaines, ressources de chaque site (mémoire, disque, CPU, bases, sauvegardes), œuf et emplacement,
-  et les **versions de PHP** proposées (chacune est l'image docker qui la fait tourner).
+  et les **versions de PHP** proposées : on coche, parmi les **images de l'œuf choisi**, celles que le client peut prendre et on leur donne
+  un nom (8.3, 8.2…). Les versions sont donc toujours cohérentes avec l'œuf ; les œufs qui ressemblent à un serveur web sont en haut de la liste.
 - **Clients** : *Administration → Hébergement web → Nouveau client* crée en un formulaire la personne (elle reçoit un email pour choisir son
   mot de passe), son forfait et son premier site — ou donne un forfait à quelqu'un qui a déjà un compte. On peut suspendre un compte (ses
   sites sont arrêtés, rien n'est supprimé), ajouter un site, en supprimer un.

@@ -116,7 +116,7 @@ const SiteCard = ({
                     </h3>
                     <p css={tw`text-xs text-neutral-400 mt-0.5`}>
                         {site.status === 'active' ? 'Running' : site.status}
-                        {site.phpVersion && ` · PHP ${site.phpVersion}`}
+                        {site.phpVersion && ` · ${/^\d/.test(site.phpVersion) ? 'PHP ' : ''}${site.phpVersion}`}
                     </p>
                 </div>
                 {site.server && (

@@ -35,7 +35,7 @@
                 <div class="box-body">
                     <p style="margin-bottom:8px">
                         @if ($site->status === 'active')<span class="label label-success"><span>Running</span></span>@else<span class="label label-warning">{{ $site->status }}</span>@endif
-                        @if ($site->php_version)<span class="label label-default">PHP {{ $site->php_version }}</span>@endif
+                        @if ($site->php_version)<span class="label label-default">{{ preg_match('/^\d/', $site->php_version) ? 'PHP ' : '' }}{{ $site->php_version }}</span>@endif
                     </p>
                     @forelse ($site->domains as $domain)
                         <div>

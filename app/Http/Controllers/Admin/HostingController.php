@@ -161,12 +161,22 @@ class HostingController extends Controller
     public function planForm(?int $id = null): View
     {
         $plan = $id ? WebPlan::query()->findOrFail($id) : new WebPlan(['max_sites' => 1, 'max_domains' => 3, 'memory' => 512, 'disk' => 5120, 'cpu' => 0, 'database_limit' => 1, 'backup_limit' => 1, 'enabled' => true]);
+        $eggs = Egg::query()->with('nest:id,name')->orderBy('name')->get(['id', 'nest_id', 'name', 'docker_images']);
+        if (!$plan->egg_id && ($first = $eggs->first(fn (Egg $egg) => self::looksLikeWeb($egg)))) {
+            $plan->egg_id = $first->id;
+        }
 
         return view('admin.hosting.plan', [
             'plan' => $plan,
-            'eggs' => Egg::query()->with('nest:id,name')->orderBy('name')->get(['id', 'nest_id', 'name']),
+            'eggs' => $eggs,
+            'suggested' => $eggs->filter(fn (Egg $egg) => self::looksLikeWeb($egg))->values(),
+            'others' => $eggs->reject(fn (Egg $egg) => self::looksLikeWeb($egg))->groupBy(fn (Egg $egg) => $egg->nest?->name ?? '—'),
+            // What the form needs to show, for each egg, the images it can run: label => image.
+            'images' => $eggs->mapWithKeys(fn (Egg $egg) => [$egg->id => (object) ($egg->docker_images ?? [])])->all(),
             'locations' => Location::query()->orderBy('short')->get(['id', 'short']),
-            'versions' => collect($plan->php_versions ?? [])->map(fn ($image, $version) => $version . '=' . $image)->implode("\n"),
+            // The versions this plan already has: image => name.
+            'chosen' => array_flip($plan->php_versions ?? []),
+            'chosenDefault' => $plan->default_php,
             'environment' => collect($plan->environment ?? [])->map(fn ($value, $name) => $name . '=' . $value)->implode("\n"),
         ]);
     }
@@ -185,17 +195,16 @@ class HostingController extends Controller
             'cpu' => ['required', 'integer', 'min:0'],
             'database_limit' => ['nullable', 'integer', 'min:0'],
             'backup_limit' => ['nullable', 'integer', 'min:0'],
-            'versions' => ['nullable', 'string', 'max:4000'],
-            'default_php' => ['nullable', 'string', 'max:10'],
+            'img' => ['nullable', 'array', 'max:50'],
+            'img.*.image' => ['nullable', 'string', 'max:255'],
+            'img.*.label' => ['nullable', 'string', 'max:40'],
+            'img.*.use' => ['nullable'],
+            'default_index' => ['nullable', 'integer', 'min:0'],
             'position' => ['nullable', 'integer', 'min:0'],
             'environment' => ['nullable', 'string', 'max:4000'],
         ]);
 
-        $versions = $this->versions((string) ($data['versions'] ?? ''));
-        $default = (string) ($data['default_php'] ?? '');
-        if ($default !== '' && !array_key_exists($default, $versions)) {
-            throw ValidationException::withMessages(['default_php' => 'The version to start with has to be one of the versions of the list.']);
-        }
+        [$versions, $default] = $this->versionsOf(Egg::query()->findOrFail((int) $data['egg_id']), (array) ($data['img'] ?? []), isset($data['default_index']) ? (int) $data['default_index'] : null);
 
         $plan = $id ? WebPlan::query()->findOrFail($id) : new WebPlan();
         $plan->fill([
@@ -211,7 +220,7 @@ class HostingController extends Controller
             'database_limit' => (int) ($data['database_limit'] ?? 0),
             'backup_limit' => (int) ($data['backup_limit'] ?? 0),
             'php_versions' => $versions ?: null,
-            'default_php' => $default !== '' ? $default : null,
+            'default_php' => $default,
             'position' => (int) ($data['position'] ?? 0),
             'environment' => $this->eggEnvironment((string) ($data['environment'] ?? ''), (int) $data['egg_id']) ?: null,
             'enabled' => $request->boolean('enabled'),
@@ -287,29 +296,54 @@ class HostingController extends Controller
     // ---- helpers --------------------------------------------------------------------------------------------------
 
     /**
-     * The versions of PHP of a plan, written "8.3=image" one per line.
+     * Whether an egg looks like something that serves web pages, by its name or the name of its nest. Only used to show
+     * these first: any egg can still be chosen.
+     */
+    private static function looksLikeWeb(Egg $egg): bool
+    {
+        return preg_match('/php|web|nginx|apache|caddy|wordpress|http|lamp|lemp|site/i', $egg->name . ' ' . ($egg->nest?->name ?? '')) === 1;
+    }
+
+    /**
+     * The versions of PHP of a plan, taken from the images of the egg: a row of the form says whether an image is used,
+     * and the name that the client sees for it. An image that the egg does not have cannot be used, so the versions are
+     * always consistent with the egg that was chosen.
      *
-     * @return array<string, string>
+     * @param array<int, array<string, mixed>> $rows
+     *
+     * @return array{0: array<string, string>, 1: string|null} the versions (name => image) and the one to start with
      *
      * @throws ValidationException
      */
-    private function versions(string $text): array
+    private function versionsOf(Egg $egg, array $rows, ?int $defaultIndex): array
     {
+        $available = array_values($egg->docker_images ?? []);
+        $labels = array_flip($egg->docker_images ?? []);
         $versions = [];
-        foreach (preg_split('/\r\n|\r|\n/', $text) ?: [] as $line) {
-            $line = trim($line);
-            if ($line === '') {
+        $default = null;
+
+        foreach ($rows as $index => $row) {
+            if (empty($row['use'])) {
                 continue;
             }
-            [$version, $image] = array_pad(explode('=', $line, 2), 2, '');
-            $version = trim($version);
-            $image = trim($image);
-            if (preg_match('/^\d{1,2}\.\d{1,2}$/', $version) !== 1 || preg_match('#^[A-Za-z0-9][A-Za-z0-9._/:@-]{1,250}$#', $image) !== 1) {
-                throw ValidationException::withMessages(['versions' => '"' . $line . '" is not written as 8.3=ghcr.io/example/image:tag.']);
+            $image = (string) ($row['image'] ?? '');
+            if (!in_array($image, $available, true)) {
+                throw ValidationException::withMessages(['img' => 'An image is not one of the images of this egg.']);
             }
-            $versions[$version] = $image;
+            $name = trim((string) ($row['label'] ?? ''));
+            $name = $name !== '' ? $name : (string) ($labels[$image] ?? $image);
+            if (preg_match('/^[\p{L}\p{N} .+_-]{1,20}$/u', $name) !== 1) {
+                throw ValidationException::withMessages(['img' => '"' . $name . '" cannot be used as the name of a version (20 characters at most: letters, digits, spaces and . + _ -).']);
+            }
+            if (isset($versions[$name])) {
+                throw ValidationException::withMessages(['img' => 'Two versions have the same name: "' . $name . '".']);
+            }
+            $versions[$name] = $image;
+            if ($defaultIndex !== null && (int) $index === $defaultIndex) {
+                $default = $name;
+            }
         }
 
-        return $versions;
+        return [$versions, $default];
     }
 }
