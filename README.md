@@ -17,6 +17,10 @@ et **un seul script** qui installe tout.
 ![Systèmes](https://img.shields.io/badge/Ubuntu%2022.04%2F24.04%20·%20Debian%2011%2F12-0ea5e9?style=for-the-badge)
 ![Licence](https://img.shields.io/badge/licence-MIT-a855f7?style=for-the-badge)
 
+[![Étoiles](https://img.shields.io/github/stars/MisterSuki/panel-Pterodactyl-Modern-Indigo?style=for-the-badge&color=facc15&logo=github)](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/stargazers)
+[![Dernière mise à jour](https://img.shields.io/github/last-commit/MisterSuki/panel-Pterodactyl-Modern-Indigo?style=for-the-badge&color=6366f1)](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/commits/main)
+[![Problèmes](https://img.shields.io/github/issues/MisterSuki/panel-Pterodactyl-Modern-Indigo?style=for-the-badge&color=f43f5e)](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/issues)
+
 <br>
 
 [**🚀 Installer**](#-installation-en-une-commande) &nbsp;·&nbsp;
@@ -283,6 +287,9 @@ bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Mo
 bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --update
 ```
 
+> [!IMPORTANT]
+> **Le projet a changé de dépôt.** Il vit maintenant sur [`MisterSuki/panel-Pterodactyl-Modern-Indigo`](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo). L'ancienne adresse `MisterSuki/panel-ptero-terra` n'est plus mise à jour : si tu l'utilises encore, ton panel reste sur une ancienne version. Change l'adresse dans ta commande comme ci-dessus, une seule fois : le nouvel installateur pointe déjà sur le bon dépôt.
+
 Il installe tout le contenu de ce dépôt sur ton panel **1.15.1** : le design, l'inscription, Discord, les rôles et
 toutes les fonctionnalités ci-dessus. Il :
 
@@ -375,7 +382,7 @@ perdu** : serveurs, utilisateurs, nodes, allocations, sauvegardes, bases de donn
 | `--no-phpmyadmin` | Avec `--panel` : n'installe pas phpMyAdmin |
 | `--pma-source=` | Dossier ou archive `.tar.gz` de phpMyAdmin à utiliser au lieu de télécharger la dernière version |
 | `--stock-version=`, `--stock-source=` | Avec `--uninstall` : version officielle à remettre (celle de ton panel par défaut), ou dossier / archive locale à la place du téléchargement |
-| `--branch=`, `--repo=`, `--source=` | Installe depuis une autre branche, un autre dépôt ou un dossier local |
+| `--branch=`, `--repo=`, `--source=` | Installe depuis une autre branche, un autre dépôt (`MisterSuki/panel-Pterodactyl-Modern-Indigo` par défaut) ou un dossier local |
 
 </details>
 
@@ -711,6 +718,8 @@ indique la ligne et la cause.
 Pour travailler sur le thème en local (Node.js 22+ et Yarn) :
 
 ```bash
+git clone https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo.git
+cd panel-Pterodactyl-Modern-Indigo
 yarn install
 yarn watch   # recompile à chaque modification
 ```
@@ -728,6 +737,8 @@ dans les variables CSS `--pd-*` de [`public/themes/pterodactyl/css/pterodactyl.c
 Ce projet est un thème construit sur [Pterodactyl Panel](https://github.com/pterodactyl/panel), publié sous
 [licence MIT](LICENSE.md). Il n'est ni affilié ni approuvé par le projet Pterodactyl.
 Pterodactyl® est une marque de ses propriétaires.
+
+Un problème, une idée ? Ouvre une [issue](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/issues) sur le dépôt.
 
 <br>
 
