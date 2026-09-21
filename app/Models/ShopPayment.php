@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $buy_offer_id an offer to buy with this money as soon as it arrives
  * @property int|null $renew_order_id an order to renew with this money as soon as it arrives
  * @property string|null $checkout_url
+ * @property array<string, string>|null $buy_options what the buyer chose for the site, when the offer is a web hosting plan
  * @property \Illuminate\Support\Carbon|null $paid_at
  */
 class ShopPayment extends Model
@@ -36,6 +37,7 @@ class ShopPayment extends Model
 
     protected $casts = [
         'amount_cents' => 'integer',
+        'buy_options' => 'array',
         'paid_at' => 'datetime',
     ];
 

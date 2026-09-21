@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @property int $id
  * @property int|null $category_id
+ * @property int|null $web_plan_id the web hosting plan that this offer gives, or null for a game server
  * @property string $name
  * @property string|null $description
  * @property int $price_cents
@@ -40,6 +41,19 @@ class ShopOffer extends Model
         'stock' => 'integer',
         'enabled' => 'boolean',
     ];
+
+    /**
+     * @return BelongsTo<WebPlan, $this>
+     */
+    public function webPlan(): BelongsTo
+    {
+        return $this->belongsTo(WebPlan::class, 'web_plan_id');
+    }
+
+    public function isWeb(): bool
+    {
+        return $this->web_plan_id !== null;
+    }
 
     /**
      * @return BelongsTo<ShopCategory, $this>

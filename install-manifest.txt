@@ -169,6 +169,7 @@ resources/lang/fr/landing.php
 
 # --- Web hosting (clients, plans, sites, domains with automatic HTTPS) ------------------------------
 database/migrations/2026_09_28_000000_create_web_hosting_tables.php
+database/migrations/2026_09_29_000000_add_web_hosting_to_shop.php
 app/Models/WebPlan.php
 app/Models/WebAccount.php
 app/Models/WebSite.php

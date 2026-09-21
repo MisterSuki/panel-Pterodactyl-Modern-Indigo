@@ -498,8 +498,15 @@ fichiers, le SFTP, les bases de données, les sauvegardes et les limites du pane
 et créer un jeton ; installer Caddy sur ce serveur (ligne `import /etc/caddy/panel-sites.caddy` + le script en cron/timer, voir la page des
 réglages) ; créer un forfait, puis un client.
 
-*À venir (pas encore fait)* : installeur en un clic (WordPress…), éditeur de zone DNS, boîtes e-mail, vente des forfaits web dans la boutique.
-Ces trois derniers demandent des choix d'infrastructure (serveur DNS, serveur mail) à faire ensemble.
+**Vendre l'hébergement web dans la boutique** : une offre de la boutique peut être un **forfait web** (*Boutique → Offres → « Ce qui est vendu »*).
+À l'achat, le client choisit le nom de son site puis **son propre domaine**, ou — si l'option *« Donner à chaque site un nom gratuit sous le
+domaine de l'hébergement »* est activée (*Hébergement web → Réglages*, avec un domaine d'hébergement renseigné) — **un nom gratuit**
+(`monsite.hebergement.exemple.fr`, ou un nom fabriqué à partir du nom du site s'il n'en choisit pas). Il reçoit son compte d'hébergement et son
+premier site tout de suite. Le domaine et le nom sont **vérifiés avant tout débit**, le paiement chez un prestataire retient le choix du
+client, et à l'échéance **tout le compte** est suspendu (et remis en route au renouvellement).
+
+*À venir (pas encore fait)* : installeur en un clic (WordPress…), éditeur de zone DNS, boîtes e-mail.
+Ces deux derniers demandent des choix d'infrastructure (serveur DNS, serveur mail) à faire ensemble.
 
 ### 🏠 Page d'accueil pour les visiteurs
 
@@ -516,7 +523,8 @@ Une boutique intégrée que l'on **active ou désactive** d'un clic (*Administra
 Fermée, elle disparaît du tableau de bord et rien ne peut être acheté.
 
 - **Ce qui est vendu** : des **offres de serveur** (œuf, emplacement, mémoire, disque, CPU, limites, durée payée, prix, stock). Après
-  paiement, le serveur est **créé automatiquement** pour le client, sur un node de l'emplacement qui a encore de la place.
+  paiement, le serveur est **créé automatiquement** pour le client, sur un node de l'emplacement qui a encore de la place. Une offre peut
+  aussi être un **forfait d'hébergement web** (voir plus haut : le client choisit son domaine ou un nom gratuit).
 - **Catégories** : l'administration crée des catégories d'offres (Minecraft, FiveM, bots…) ; le client filtre la boutique par catégorie (seules celles qui ont une offre en vente s'affichent).
 - **Crédit** : chaque client a un solde qu'il recharge par **Stripe, PayPal ou SumUp** (montants min/max réglables) et qui sert à payer
   les offres et les renouvellements. S'il lui manque de l'argent, seul le **manque** lui est demandé, et l'achat se fait tout seul dès

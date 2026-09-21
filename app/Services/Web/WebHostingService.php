@@ -32,6 +32,11 @@ class WebHostingService
      */
     private const RESERVED_ENDINGS = ['local', 'localhost', 'internal', 'invalid', 'lan', 'home', 'corp', 'arpa'];
 
+    /**
+     * Names under the domain of the hosting that a client cannot pick: they are the ones people expect to be the hosting's.
+     */
+    private const RESERVED_LABELS = ['www', 'mail', 'smtp', 'imap', 'pop', 'pop3', 'ftp', 'sftp', 'ns', 'ns1', 'ns2', 'admin', 'administrator', 'panel', 'api', 'app', 'root', 'webmail', 'cpanel', 'plesk', 'support', 'billing', 'status', 'blog', 'shop', 'store', 'test', 'dev', 'staging', 'demo', 'localhost'];
+
     private DnsResolver $dns;
 
     public function __construct(
@@ -103,7 +108,7 @@ class WebHostingService
      *
      * @throws DisplayException
      */
-    public function createSite(WebAccount $account, string $name, ?string $domain = null, ?string $php = null): WebSite
+    public function createSite(WebAccount $account, string $name, ?string $domain = null, ?string $php = null, bool $resolved = false): WebSite
     {
         $name = trim($name);
         if ($name === '' || mb_strlen($name) > 80) {
@@ -119,9 +124,16 @@ class WebHostingService
         if ($php !== null && $plan->imageFor($php) === null) {
             throw new DisplayException('This version of PHP is not part of the plan.');
         }
-        $domain = $domain !== null && trim($domain) !== '' ? $this->normalise($domain) : null;
+        $domain = $domain !== null && trim($domain) !== '' ? ($resolved ? strtolower(trim($domain)) : $this->normalise($domain)) : null;
         if ($domain !== null) {
-            $this->assertFreeDomain($domain);
+            if ($resolved) {
+                // A domain that resolveDomain() gave (a name of the hosting itself): it only has to be free.
+                if (WebDomain::query()->where('domain', $domain)->exists()) {
+                    throw new DisplayException('This domain is already used by a site.');
+                }
+            } else {
+                $this->assertFreeDomain($domain);
+            }
         }
 
         $site = DB::transaction(function () use ($account, $name, $plan, $php) {
@@ -149,7 +161,7 @@ class WebHostingService
 
         $site->update(['server_id' => $server->id, 'status' => WebSite::ACTIVE]);
 
-        $primary = $domain ?? $this->subdomainFor($name);
+        $primary = $domain ?? ($this->settings->autoSubdomain() ? $this->subdomainFor($name) : null);
         if ($primary !== null) {
             $this->attachDomain($site, $primary, false, true);
         }
@@ -219,6 +231,67 @@ class WebHostingService
         }
 
         return $site;
+    }
+
+    /**
+     * Gives a person a hosting account with the plan and its first site, in one go: what happens when a web hosting plan
+     * is bought. If the site cannot be made, the account is not kept either.
+     *
+     * @return array{0: WebAccount, 1: WebSite}
+     *
+     * @throws DisplayException
+     */
+    public function provisionForOrder(User $user, WebPlan $plan, string $siteName, ?string $domain): array
+    {
+        $account = $this->giveAccount($user, $plan);
+
+        try {
+            $site = $this->createSite($account, $siteName, $domain, null, true);
+        } catch (\Throwable $exception) {
+            $account->delete();
+
+            throw $exception;
+        }
+
+        return [$account, $site];
+    }
+
+    /**
+     * The domain a new site is going to have, checked before anything is made or paid: the one the buyer wrote, or a name
+     * under the domain of the hosting (the one they picked, or one made from the name of the site) if that is switched on.
+     *
+     * @throws DisplayException
+     */
+    public function resolveDomain(?string $domain, ?string $label, string $siteName): ?string
+    {
+        $domain = trim((string) $domain);
+        if ($domain !== '') {
+            $domain = $this->normalise($domain);
+            $this->assertFreeDomain($domain);
+
+            return $domain;
+        }
+
+        if (!$this->settings->autoSubdomain()) {
+            throw new DisplayException('Give the domain of your site.');
+        }
+
+        $label = strtolower(trim((string) $label));
+        if ($label === '') {
+            return $this->subdomainFor($siteName);
+        }
+        if (preg_match('/^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/', $label) !== 1) {
+            throw new DisplayException('The name can only have letters, digits and hyphens (40 characters at most), and cannot start or end with a hyphen.');
+        }
+        if (in_array($label, self::RESERVED_LABELS, true)) {
+            throw new DisplayException('This name is reserved, choose another one.');
+        }
+        $candidate = $label . '.' . $this->settings->baseDomain();
+        if (WebDomain::query()->where('domain', $candidate)->exists()) {
+            throw new DisplayException('This name is already taken, choose another one.');
+        }
+
+        return $candidate;
     }
 
     // ---- domains ----------------------------------------------------------------------------------------------
@@ -434,6 +507,9 @@ class WebHostingService
 
         $slug = trim((string) preg_replace('/[^a-z0-9]+/', '-', strtolower(Str::ascii($name))), '-');
         $slug = substr($slug !== '' ? $slug : 'site', 0, 40);
+        if (in_array($slug, self::RESERVED_LABELS, true)) {
+            $slug .= '-site';
+        }
         $candidate = $slug . '.' . $base;
         for ($i = 2; WebDomain::query()->where('domain', $candidate)->exists(); ++$i) {
             $candidate = $slug . '-' . $i . '.' . $base;

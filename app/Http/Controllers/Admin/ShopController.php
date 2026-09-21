@@ -19,6 +19,7 @@ use Pterodactyl\Models\ShopOrder;
 use Pterodactyl\Models\ShopPayment;
 use Pterodactyl\Models\ShopTransaction;
 use Pterodactyl\Models\User;
+use Pterodactyl\Models\WebPlan;
 use Pterodactyl\Services\Shop\ShopService;
 use Pterodactyl\Services\Shop\ShopSettings;
 
@@ -87,6 +88,7 @@ class ShopController extends Controller
             'eggs' => Egg::query()->with('nest:id,name')->orderBy('name')->get(['id', 'nest_id', 'name']),
             'locations' => Location::query()->orderBy('short')->get(['id', 'short']),
             'categories' => ShopCategory::query()->orderBy('position')->orderBy('name')->get(['id', 'name']),
+            'webPlans' => WebPlan::query()->orderBy('position')->orderBy('name')->get(['id', 'name', 'enabled']),
             'currency' => $this->settings->currency(),
             'price' => $offer->exists ? $this->plain($offer->price_cents) : '',
             'environment' => collect($offer->environment ?? [])->map(fn ($value, $name) => $name . '=' . $value)->implode("\n"),
@@ -95,17 +97,21 @@ class ShopController extends Controller
 
     public function saveOffer(Request $request, ?int $id = null): RedirectResponse
     {
+        $web = $request->input('type') === 'web';
+        $game = fn (array $rules) => $web ? ['nullable'] : $rules;
         $data = $request->validate([
+            'type' => ['nullable', 'in:game,web'],
+            'web_plan_id' => $web ? ['required', 'integer', 'exists:web_plans,id'] : ['nullable'],
             'name' => ['required', 'string', 'max:80'],
             'description' => ['nullable', 'string', 'max:1000'],
             'price' => ['required', 'string'],
             'duration_days' => ['required', 'integer', 'between:1,365'],
-            'egg_id' => ['required', 'integer', 'exists:eggs,id'],
-            'location_id' => ['required', 'integer', 'exists:locations,id'],
+            'egg_id' => $game(['required', 'integer', 'exists:eggs,id']),
+            'location_id' => $game(['required', 'integer', 'exists:locations,id']),
             'category_id' => ['nullable', 'integer', 'exists:shop_categories,id'],
-            'memory' => ['required', 'integer', 'min:64'],
-            'disk' => ['required', 'integer', 'min:64'],
-            'cpu' => ['required', 'integer', 'min:0'],
+            'memory' => $game(['required', 'integer', 'min:64']),
+            'disk' => $game(['required', 'integer', 'min:64']),
+            'cpu' => $game(['required', 'integer', 'min:0']),
             'database_limit' => ['nullable', 'integer', 'min:0'],
             'allocation_limit' => ['nullable', 'integer', 'min:0'],
             'backup_limit' => ['nullable', 'integer', 'min:0'],
@@ -118,7 +124,16 @@ class ShopController extends Controller
         if ($price === null || $price < ShopService::MIN_PAYMENT) {
             throw ValidationException::withMessages(['price' => 'The price must be at least ' . $this->plain(ShopService::MIN_PAYMENT) . '.']);
         }
-        $environment = $this->eggEnvironment((string) ($data['environment'] ?? ''), (int) $data['egg_id']);
+        // A web hosting plan brings its own egg, place and resources: they are copied from the plan (what the buyer is shown),
+        // and the offer only sets the price and the time.
+        $plan = $web ? WebPlan::query()->findOrFail((int) $data['web_plan_id']) : null;
+        if ($plan) {
+            $data = array_merge($data, [
+                'egg_id' => $plan->egg_id, 'location_id' => $plan->location_id, 'memory' => $plan->memory, 'disk' => $plan->disk, 'cpu' => $plan->cpu,
+                'database_limit' => $plan->database_limit, 'backup_limit' => $plan->backup_limit, 'allocation_limit' => 0,
+            ]);
+        }
+        $environment = $plan ? [] : $this->eggEnvironment((string) ($data['environment'] ?? ''), (int) $data['egg_id']);
 
         $values = [
             'name' => $data['name'],
@@ -137,6 +152,7 @@ class ShopController extends Controller
             'stock' => ($data['stock'] ?? '') === '' ? null : (int) $data['stock'],
             'position' => (int) ($data['position'] ?? 0),
             'environment' => $environment ?: null,
+            'web_plan_id' => $plan?->id,
             'enabled' => $request->boolean('enabled'),
         ];
 

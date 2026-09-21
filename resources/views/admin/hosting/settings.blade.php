@@ -34,8 +34,10 @@
                     <div class="form-group">
                         <label for="base_domain">Domain of the hosting</label>
                         <input type="text" id="base_domain" name="base_domain" class="form-control" value="{{ old('base_domain', $baseDomain) }}" placeholder="hosting.example.com">
-                        <p class="text-muted small"><span>Optional. Every site gets a free name under it (site.hosting.example.com). It needs a wildcard DNS record (*.hosting.example.com) that leads to the web server.</span></p>
+                        <p class="text-muted small"><span>Optional. It is the domain under which sites can get a free name (site.hosting.example.com). It needs a wildcard DNS record (*.hosting.example.com) that leads to the web server.</span></p>
                     </div>
+                    <label class="pd-switch"><input type="checkbox" name="auto_subdomain" value="1" @checked(old('auto_subdomain', $autoSubdomain))><i class="pd-switch-track"></i><span>Give every site a free name under the domain of the hosting</span></label>
+                    <p class="text-muted small"><span>On, a buyer can pick a name under the domain of the hosting instead of bringing their own domain, and a site made without a domain gets one. Off, every site needs a domain of its own.</span></p>
                 </div>
                 <div class="box-footer">{!! csrf_field() !!}<button type="submit" class="btn btn-success btn-sm pull-right"><span>Save</span></button></div>
             </div>

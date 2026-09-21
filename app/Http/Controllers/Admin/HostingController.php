@@ -247,6 +247,7 @@ class HostingController extends Controller
             'enabled' => $this->settings->enabled(),
             'serverIps' => (string) $this->settings->get('server_ips', ''),
             'baseDomain' => (string) $this->settings->get('base_domain', ''),
+            'autoSubdomain' => $this->settings->get('auto_subdomain', '1') !== '0',
             'hasToken' => $this->settings->hasToken(),
             'configUrl' => url('/api/hosting/proxy-config'),
             'token' => session('web-token'),
@@ -278,6 +279,7 @@ class HostingController extends Controller
         }
 
         $this->settings->set('enabled', $request->boolean('enabled') ? '1' : '0');
+        $this->settings->set('auto_subdomain', $request->boolean('auto_subdomain') ? '1' : '0');
         $this->settings->set('server_ips', $ips);
         $this->alert->success('The settings of the web hosting were saved.')->flash();
 

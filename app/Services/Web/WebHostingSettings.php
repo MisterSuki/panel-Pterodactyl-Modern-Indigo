@@ -64,6 +64,15 @@ class WebHostingSettings
     }
 
     /**
+     * Whether every site gets a free name under the domain of the hosting when its owner gives no domain of their own.
+     * It needs the domain of the hosting to be set. On unless it was switched off.
+     */
+    public function autoSubdomain(): bool
+    {
+        return $this->baseDomain() !== null && $this->get('auto_subdomain', '1') !== '0';
+    }
+
+    /**
      * Makes a new token, keeps its hash and gives the token itself, this one time.
      */
     public function newToken(): string

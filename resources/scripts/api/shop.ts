@@ -5,8 +5,18 @@ export interface ShopCategory {
     name: string;
 }
 
+// What a person chooses for the site they buy.
+export interface SiteChoice {
+    siteName: string;
+    // The domain of their own, or the name they picked under the domain of the hosting.
+    domain: string;
+    subdomain: string;
+}
+
 export interface ShopOffer {
     id: number;
+    // Set when the offer is a web hosting plan.
+    web: { sites: number; domains: number; versions: string[] } | null;
     categoryId: number | null;
     name: string;
     description: string | null;
@@ -30,6 +40,7 @@ export interface ShopOrder {
     status: OrderStatus;
     priceCents: number;
     durationDays: number;
+    web: boolean;
     expiresAt: Date | null;
     server: { identifier: string; name: string } | null;
 }
@@ -49,6 +60,7 @@ export interface ShopData {
     minTopupCents: number;
     maxTopupCents: number;
     providers: { code: string; label: string }[];
+    web: { freeSubdomain: boolean; baseDomain: string | null };
     categories: ShopCategory[];
     offers: ShopOffer[];
     orders: ShopOrder[];
@@ -65,6 +77,7 @@ export const getShop = async (): Promise<ShopData> => {
             minTopupCents: 0,
             maxTopupCents: 0,
             providers: [],
+            web: { freeSubdomain: false, baseDomain: null },
             categories: [],
             offers: [],
             orders: [],
@@ -79,9 +92,11 @@ export const getShop = async (): Promise<ShopData> => {
         minTopupCents: data.min_topup_cents,
         maxTopupCents: data.max_topup_cents,
         providers: data.providers,
+        web: { freeSubdomain: !!data.web?.free_subdomain, baseDomain: data.web?.base_domain ?? null },
         categories: data.categories || [],
         offers: data.offers.map((o: any) => ({
             id: o.id,
+            web: o.web ?? null,
             categoryId: o.category_id ?? null,
             name: o.name,
             description: o.description,
@@ -102,6 +117,7 @@ export const getShop = async (): Promise<ShopData> => {
             status: o.status,
             priceCents: o.price_cents,
             durationDays: o.duration_days,
+            web: !!o.web,
             expiresAt: o.expires_at ? new Date(o.expires_at) : null,
             server: o.server,
         })),
@@ -115,8 +131,11 @@ export const getShop = async (): Promise<ShopData> => {
     };
 };
 
-export const buyOffer = async (offerId: number): Promise<void> => {
-    await http.post('/api/client/shop/buy', { offer_id: offerId });
+const choiceToBody = (choice?: SiteChoice) =>
+    choice ? { site_name: choice.siteName, domain: choice.domain || null, subdomain: choice.subdomain || null } : {};
+
+export const buyOffer = async (offerId: number, choice?: SiteChoice): Promise<void> => {
+    await http.post('/api/client/shop/buy', { offer_id: offerId, ...choiceToBody(choice) });
 };
 
 export const renewOrder = async (orderId: number): Promise<void> => {
@@ -126,13 +145,14 @@ export const renewOrder = async (orderId: number): Promise<void> => {
 // Opens a payment at a provider and gives back the address to send the person to.
 export const startPayment = async (
     provider: string,
-    what: { amountCents?: number; offerId?: number; orderId?: number }
+    what: { amountCents?: number; offerId?: number; orderId?: number; choice?: SiteChoice }
 ): Promise<string> => {
     const { data } = await http.post('/api/client/shop/topup', {
         provider,
         amount_cents: what.amountCents,
         offer_id: what.offerId,
         order_id: what.orderId,
+        ...choiceToBody(what.choice),
     });
 
     return data.url;
