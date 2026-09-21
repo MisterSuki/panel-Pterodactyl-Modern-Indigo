@@ -248,7 +248,9 @@ class ScreenShareService
             throw new DisplayException('The description of the connection is not valid.');
         }
 
-        return $sdp;
+        // Every line of a description ends with a line break, the last one too. The request went through the trimming
+        // of the texts, which took the last one away, and the browser then refuses the description ("Invalid SDP line").
+        return rtrim((string) preg_replace('/\r\n|\r|\n/', "\r\n", $sdp), "\r\n") . "\r\n";
     }
 
     /**

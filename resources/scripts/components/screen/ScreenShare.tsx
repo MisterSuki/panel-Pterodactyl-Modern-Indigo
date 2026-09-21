@@ -33,6 +33,9 @@ const gathered = (peer: RTCPeerConnection): Promise<void> =>
         window.setTimeout(resolve, 4000);
     });
 
+// Every line of a description ends with a line break, the last one too.
+const withLineBreaks = (sdp: string): string => sdp.replace(/\r?\n/g, '\r\n').replace(/(\r\n)*$/, '\r\n');
+
 // What is being shared lives outside of the component: the bar at the top is drawn again by every part of the panel, and
 // going from the dashboard to a server must not end the sharing.
 const shared: {
@@ -116,7 +119,9 @@ export default () => {
                     }
                     if (next.answer && shared.peer && next.answer !== shared.answered) {
                         shared.answered = next.answer;
-                        shared.peer.setRemoteDescription({ type: 'answer', sdp: next.answer }).catch(() => stop());
+                        shared.peer
+                            .setRemoteDescription({ type: 'answer', sdp: withLineBreaks(next.answer) })
+                            .catch(() => stop());
                     }
                 })
                 .catch(() => undefined);

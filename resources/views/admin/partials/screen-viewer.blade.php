@@ -59,6 +59,11 @@
             status.style.display = text ? '' : 'none';
         }
 
+        // Every line of a description ends with a line break, the last one too.
+        function lines(sdp) {
+            return sdp.replace(/\r?\n/g, '\r\n').replace(/(\r\n)*$/, '\r\n');
+        }
+
         function gathered(pc) {
             return new Promise(function (resolve) {
                 if (pc.iceGatheringState === 'complete') { resolve(); return; }
@@ -99,7 +104,7 @@
                 if (pc.connectionState === 'failed') { say('The connection could not be made (some networks block it).', 'end'); }
                 if (pc.connectionState === 'disconnected') { say('The connection is lost...', 'wait'); }
             };
-            pc.setRemoteDescription({ type: 'offer', sdp: session.offer })
+            pc.setRemoteDescription({ type: 'offer', sdp: lines(session.offer) })
                 .then(function () { return pc.createAnswer(); })
                 .then(function (answer) { return pc.setLocalDescription(answer); })
                 .then(function () { return gathered(pc); })
