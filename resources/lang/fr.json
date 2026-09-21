@@ -346,6 +346,7 @@
  "Disk Space": "Espace disque",
  "Disk Space Allocated": "Espace disque alloué",
  "Disk Space Limit": "Limite d'espace disque",
+ "Disk write": "Écriture disque",
  "Do not use the same account details for MySQL that you have defined for this panel.": "N'utilisez pas pour MySQL les mêmes identifiants que ceux définis pour ce panel.",
  "Do not use the same port that you have assigned for your physical server's SSH process.": "N'utilisez pas le même port que celui de SSH sur votre serveur physique.",
  "Docker Configuration": "Configuration Docker",

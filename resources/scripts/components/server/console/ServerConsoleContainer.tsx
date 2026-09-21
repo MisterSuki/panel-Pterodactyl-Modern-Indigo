@@ -63,7 +63,7 @@ const ServerConsoleContainer = () => {
                 </div>
                 <ServerDetailsBlock className={'col-span-4 lg:col-span-1 order-last lg:order-none'} />
             </div>
-            <div className={'grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4'}>
+            <div className={'grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4'}>
                 <Spinner.Suspense>
                     <StatGraphs />
                 </Spinner.Suspense>
