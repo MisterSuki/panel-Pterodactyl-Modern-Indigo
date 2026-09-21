@@ -16,6 +16,7 @@ import UptimeDuration from '@/components/server/UptimeDuration';
 import StatBlock from '@/components/server/console/StatBlock';
 import HiddenAddress from '@/components/elements/HiddenAddress';
 import useFiveM from '@/components/server/console/useFiveM';
+import useGameStatus from '@/components/server/console/useGameStatus';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import classNames from 'classnames';
 import { capitalize } from '@/lib/strings';
@@ -47,6 +48,7 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
 
     const status = ServerContext.useStoreState((state) => state.status.value);
     const fivem = useFiveM();
+    const game = useGameStatus(fivem.isFiveM);
     const connected = ServerContext.useStoreState((state) => state.socket.connected);
     const instance = ServerContext.useStoreState((state) => state.socket.instance);
     const limits = ServerContext.useStoreState((state) => state.server.data!.limits);
@@ -128,6 +130,32 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                         </>
                     ) : (
                         <span className={'text-gray-400'}>{status === 'offline' ? 'Offline' : 'Waiting...'}</span>
+                    )}
+                </StatBlock>
+            )}
+            {game.isSteam && (
+                <StatBlock
+                    icon={faUsers}
+                    title={'Players'}
+                    color={
+                        game.data?.online && game.data.players !== null && game.data.maxPlayers
+                            ? getBackgroundColor(game.data.players, game.data.maxPlayers)
+                            : undefined
+                    }
+                >
+                    {game.data?.online && game.data.players !== null ? (
+                        <>
+                            {game.data.players}
+                            {game.data.maxPlayers ? (
+                                <span className={'ml-1 text-gray-300 text-[70%] select-none'}>
+                                    / {game.data.maxPlayers}
+                                </span>
+                            ) : null}
+                        </>
+                    ) : (
+                        <span className={'text-gray-400'}>
+                            {status === 'offline' ? 'Offline' : game.data ? 'Unavailable' : 'Waiting...'}
+                        </span>
                     )}
                 </StatBlock>
             )}

@@ -999,6 +999,7 @@
  "UUID / Docker Container ID": "UUID / ID du conteneur Docker",
  "Unable to sign in with Discord. Please try again.": "Impossible de se connecter avec Discord. Veuillez réessayer.",
  "Unarchive": "Décompresser",
+ "Unavailable": "Indisponible",
  "Under Maintenance": "En maintenance",
  "Unique ID": "ID unique",
  "Unique name used to separate this mount from another.": "Nom unique qui distingue ce montage des autres.",

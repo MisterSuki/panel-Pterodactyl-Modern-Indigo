@@ -445,6 +445,16 @@ gardée 6 heures pour aller vite ; le serveur du panel doit pouvoir joindre `egg
 
 </details>
 
+### 🎮 Joueurs connectés des jeux Steam
+
+Pour un serveur créé à partir d'un egg **Steam** (image SteamCMD ou variable `SRCDS_APPID` : Source, Rust, ARK, Valheim, Nova-Life…), la
+page Console affiche un bloc **Joueurs** (`6 / 25`), rafraîchi toutes les 3 secondes. Le panel interroge le jeu avec la **requête
+Steam (A2S)**, en UDP, sur chacune des **allocations** du serveur (la première qui répond est mémorisée). Les bots ne sont pas comptés.
+
+> [!NOTE]
+> C'est le **jeu** qui décide de répondre. S'il ne répond pas, le bloc indique *Indisponible*. Dans ce cas, ajoute à ton serveur
+> l'allocation du **port de requête** du jeu (souvent 27015 ou le port du jeu +1), le panel l'essaiera tout seul.
+
 ### 🎮 Serveurs FiveM
 
 Sur la page *Console* d'un serveur FiveM (ou RedM), le panel ajoute :
