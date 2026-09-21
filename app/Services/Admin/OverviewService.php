@@ -31,7 +31,8 @@ class OverviewService
         $nodes = $recentServers = $recentUsers = [];
 
         if ($can('servers')) {
-            $row = Server::query()
+            // Plain rows: a count has no use for whole servers, which would also each load their allocation.
+            $row = Server::query()->toBase()
                 ->selectRaw("count(*) as total, sum(case when status = 'suspended' then 1 else 0 end) as suspended, sum(case when status in ('install_failed', 'reinstall_failed') then 1 else 0 end) as attention")
                 ->first();
             $counts['servers'] = [
@@ -43,7 +44,7 @@ class OverviewService
         }
 
         if ($can('users')) {
-            $row = User::query()
+            $row = User::query()->toBase()
                 ->selectRaw('count(*) as total, sum(case when root_admin = 1 then 1 else 0 end) as admins')
                 ->first();
             $counts['users'] = ['total' => (int) $row->total, 'admins' => (int) $row->admins];
@@ -84,11 +85,11 @@ class OverviewService
             ->map(fn (Node $node) => [
                 'id' => $node->id,
                 'name' => $node->name,
-                'location' => $node->location?->short,
+                'location' => $node->location->short,
                 'maintenance' => (bool) $node->maintenance_mode,
                 'servers' => (int) $node->servers_count,
-                'memory' => $this->usage((int) $node->allocated_memory, (int) $node->memory, (int) $node->memory_overallocate),
-                'disk' => $this->usage((int) $node->allocated_disk, (int) $node->disk, (int) $node->disk_overallocate),
+                'memory' => $this->usage((int) $node->getAttribute('allocated_memory'), (int) $node->memory, (int) $node->memory_overallocate),
+                'disk' => $this->usage((int) $node->getAttribute('allocated_disk'), (int) $node->disk, (int) $node->disk_overallocate),
             ])
             ->all();
     }
@@ -113,6 +114,7 @@ class OverviewService
     private function recentServers(): array
     {
         return Server::query()
+            ->without('allocation')
             ->with(['user:id,username', 'node:id,name'])
             ->latest()
             ->limit(self::LATEST)
@@ -120,8 +122,8 @@ class OverviewService
             ->map(fn (Server $server) => [
                 'id' => $server->id,
                 'name' => $server->name,
-                'owner' => $server->user?->username,
-                'node' => $server->node?->name,
+                'owner' => $server->user->username,
+                'node' => $server->node->name,
                 'status' => $server->status,
                 'created_at' => $server->created_at,
             ])

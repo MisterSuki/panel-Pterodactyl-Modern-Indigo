@@ -2007,3 +2007,16 @@ input[type="radio"] {
 .pd-pill--warn { color: #fcd34d; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35); }
 .pd-pill--info { color: #a5b4fc; background: rgba(99, 102, 241, 0.14); border-color: rgba(99, 102, 241, 0.4); }
 .pd-pill--discord { color: #c7d2fe; background: rgba(88, 101, 242, 0.16); border-color: rgba(88, 101, 242, 0.45); }
+
+/* The name of the panel in the top left corner: the same raised title as on the dashboard and the login page. */
+.skin-blue .main-header .logo span {
+    display: inline-block;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    background-image: linear-gradient(180deg, #c7d2fe 0%, #818cf8 38%, #a78bfa 68%, #22d3ee 125%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    filter: drop-shadow(0 1px 0 #4f46e5) drop-shadow(0 2px 0 #3730a3) drop-shadow(0 5px 5px rgba(0, 0, 0, 0.5));
+}

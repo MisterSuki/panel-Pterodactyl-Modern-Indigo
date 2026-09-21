@@ -532,6 +532,7 @@ injoignable ou occupé est réessayé 15 minutes plus tard sans gêner les autre
 | | Ce que ça fait |
 | --- | --- |
 | 🔠 **Titre en 3D** | Le nom du panel (*Admin → Settings → Company Name*) s'affiche en relief dans la barre du haut et en grand sur les pages de connexion et d'inscription |
+| 🧭 **Accueil de l'administration** | Un vrai tableau de bord : nombre de serveurs, utilisateurs, nodes et emplacements, **capacité de chaque node** (mémoire et disque promis aux serveurs, en vert, jaune puis rouge), derniers serveurs et derniers utilisateurs, actions rapides. Un membre du staff ne voit que les sections qui lui sont ouvertes |
 | 🗂️ **Dashboard repensé** | Résumé en haut (serveurs, en ligne, CPU et mémoire cumulés), cartes éclairées selon l'état du serveur, **jauges circulaires** CPU / mémoire / disque qui passent au jaune puis au rouge, adresse floutée dans une pastille, et recherche + filtre En ligne / Hors ligne dès 4 serveurs |
 | 🖥️ **Console améliorée** | Console dans un cadre arrondi, barre d'outils **Rechercher / Copier / Pause / Clear**, `[étiquettes]` en bleu, heures en gris, erreurs en rouge, avertissements en jaune, succès en vert et traces d'exception en gris, ligne de commande avec bouton d'envoi, bouton « retour en bas » rond |
 | 🔘 **Boutons d'alimentation** | *Start / Restart / Stop* avec icônes, couleurs, état d'attente pendant que le serveur répond, et *Kill* quand l'arrêt traîne |
