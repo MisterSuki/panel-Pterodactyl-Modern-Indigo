@@ -1,6 +1,14 @@
 import React, { memo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronRight, faEthernet, faHdd, faMemory, faMicrochip, faServer } from '@fortawesome/free-solid-svg-icons';
+import {
+    faChevronRight,
+    faEthernet,
+    faHdd,
+    faLock,
+    faMemory,
+    faMicrochip,
+    faServer,
+} from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
 import { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
@@ -50,6 +58,11 @@ const ServerCard = styled(GreyRowBox)<{ $tint: string }>`
         ${tw`w-12 h-12 rounded-xl`};
     }
 
+    &[aria-disabled='true'] {
+        ${tw`cursor-not-allowed`};
+        filter: saturate(0.6);
+    }
+
     & .chevron {
         ${tw`opacity-30 transition-all duration-200`};
     }
@@ -81,8 +94,20 @@ const ServerRow = ({ server, stats = null, unreachable = false, className, style
 
     const address = server.allocations.filter((alloc) => alloc.isDefault);
 
+    // A suspended server cannot be opened: the card is only there to say so, and is not a link.
+    const card: Record<string, unknown> = isSuspended
+        ? { 'aria-disabled': true, title: 'This server is suspended.' }
+        : { to: `/server/${server.id}` };
+
     return (
-        <ServerCard as={Link} to={`/server/${server.id}`} className={className} style={style} $tint={tint}>
+        <ServerCard
+            as={isSuspended ? 'div' : (Link as React.ElementType)}
+            {...card}
+            $hoverable={!isSuspended}
+            className={className}
+            style={style}
+            $tint={tint}
+        >
             <div css={tw`flex items-center col-span-12 lg:col-span-5 min-w-0`}>
                 <div css={tw`relative flex-shrink-0 mr-4`}>
                     <div className={'icon'}>
@@ -220,7 +245,15 @@ const ServerRow = ({ server, stats = null, unreachable = false, className, style
                         </div>
                     )}
                 </div>
-                <FontAwesomeIcon icon={faChevronRight} className={'chevron'} css={tw`text-neutral-400 flex-shrink-0`} />
+                {isSuspended ? (
+                    <FontAwesomeIcon icon={faLock} css={tw`text-red-300/60 flex-shrink-0`} />
+                ) : (
+                    <FontAwesomeIcon
+                        icon={faChevronRight}
+                        className={'chevron'}
+                        css={tw`text-neutral-400 flex-shrink-0`}
+                    />
+                )}
             </div>
         </ServerCard>
     );

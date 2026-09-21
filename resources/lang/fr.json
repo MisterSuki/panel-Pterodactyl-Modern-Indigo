@@ -1013,6 +1013,7 @@
  "This server is currently running an unsupported version of Java and cannot be started.": "Ce serveur utilise actuellement une version de Java non prise en charge et ne peut pas démarrer.",
  "This server is set to skip its install script. Disable \"Skip Egg Install Script\" on the startup page to reinstall it.": "Ce serveur ignore son script d'installation. Désactivez « Skip Egg Install Script » sur la page de démarrage pour le réinstaller.",
  "This server is suspended and cannot be accessed for now.": "Ce serveur est suspendu et ne peut pas être utilisé pour le moment.",
+ "This server is suspended.": "Ce serveur est suspendu.",
  "This server will not be allowed to boot if it is using more than this amount of space. If a server goes over this limit while running it will be safely stopped and locked until enough space is available. Set to": "Ce serveur ne pourra pas démarrer s'il utilise plus que cet espace. Si un serveur dépasse cette limite en fonctionnement, il sera arrêté proprement et verrouillé jusqu'à ce qu'il y ait assez d'espace. Mettre à",
  "This service option is copying installation scripts and container options from": "Cette option de service copie les scripts d'installation et les options de conteneur de",
  "This setting does nothing other than default to this database host when adding a database to a server on the selected node.": "Ce réglage sert seulement à choisir ce serveur de bases de données par défaut quand on ajoute une base à un serveur du node choisi.",

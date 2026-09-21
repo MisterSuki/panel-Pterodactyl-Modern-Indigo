@@ -31,6 +31,15 @@ const ServerResult = styled(Link)`
     &:not(:last-of-type) {
         ${tw`mb-2`};
     }
+
+    // A suspended server cannot be opened.
+    &[aria-disabled='true'] {
+        ${tw`cursor-not-allowed opacity-60`};
+
+        &:hover {
+            ${tw`shadow-none border-neutral-900`};
+        }
+    }
 `;
 
 const SearchWatcher = () => {
@@ -104,7 +113,15 @@ export default ({ ...props }: Props) => {
                                 <ServerResult
                                     key={server.uuid}
                                     to={`/server/${server.id}`}
-                                    onClick={() => props.onDismissed()}
+                                    aria-disabled={server.status === 'suspended' || undefined}
+                                    onClick={(e: React.MouseEvent) => {
+                                        if (server.status === 'suspended') {
+                                            e.preventDefault();
+
+                                            return;
+                                        }
+                                        props.onDismissed();
+                                    }}
                                 >
                                     <div css={tw`flex-1 mr-4`}>
                                         <p css={tw`text-sm`}>{server.name}</p>
@@ -120,7 +137,7 @@ export default ({ ...props }: Props) => {
                                     </div>
                                     <div css={tw`flex-none text-right`}>
                                         <span css={tw`text-xs py-1 px-2 bg-cyan-800 text-cyan-100 rounded`}>
-                                            {server.node}
+                                            {server.status === 'suspended' ? 'Suspended' : server.node}
                                         </span>
                                     </div>
                                 </ServerResult>
