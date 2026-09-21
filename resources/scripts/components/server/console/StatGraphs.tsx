@@ -28,6 +28,8 @@ export default () => {
     );
     const network = useChart('Network', {
         sets: 2,
+        // The first line is what goes out, the second what comes in (see the callback below).
+        format: (value, index) => `${index === 0 ? '\u2191' : '\u2193'} ${bytesToString(value)}/s`,
         options: {
             scales: {
                 y: {
@@ -51,9 +53,11 @@ export default () => {
 
     useEffect(() => {
         if (status === 'offline') {
-            cpu.clear();
-            memory.clear();
-            network.clear();
+            // The lines come down to zero instead of vanishing.
+            cpu.settle();
+            memory.settle();
+            network.settle();
+            previous.current = { tx: -1, rx: -1 };
         }
     }, [status]);
 

@@ -102,6 +102,124 @@ function gradientFill(color: string, top = 0.38): (context: { chart: ChartJS }) 
     };
 }
 
+// A chart that follows the mouse: where the cursor is, and how to write a value.
+type Hoverable = ChartJS<'line'> & { $hover?: { x: number }; $format?: (value: number, index: number) => string };
+
+interface Point {
+    x: number;
+    y: number;
+}
+
+// The value of a line at a moment, worked out between the two points around it.
+const valueAt = (points: Point[], x: number): number | null => {
+    if (points.length === 0 || x < points[0].x) {
+        return null;
+    }
+    for (let i = 0; i < points.length - 1; i++) {
+        const a = points[i];
+        const b = points[i + 1];
+        if (x >= a.x && x <= b.x) {
+            return b.x === a.x ? b.y : a.y + ((b.y - a.y) * (x - a.x)) / (b.x - a.x);
+        }
+    }
+
+    return points[points.length - 1].y;
+};
+
+const roundedBox = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+};
+
+// Draws, at the place of the mouse, a dashed line, a dot on every curve and a box that says what each one was worth at
+// that moment and how long ago that was. The chart moves on its own, so the values follow it under a still mouse.
+const drawHover = (chart: Hoverable) => {
+    const hover = chart.$hover;
+    const area = chart.chartArea;
+    if (!hover || !area || hover.x < area.left || hover.x > area.right) {
+        return;
+    }
+
+    const moment = chart.scales.x.getValueForPixel(hover.x);
+    if (moment === undefined || moment === null) {
+        return;
+    }
+
+    const rows: { color: string; text: string; y: number }[] = [];
+    chart.data.datasets.forEach((dataset, index) => {
+        const value = valueAt(dataset.data as unknown as Point[], moment);
+        if (value === null) {
+            return;
+        }
+        rows.push({
+            color: String(dataset.borderColor),
+            text: chart.$format ? chart.$format(value, index) : value.toFixed(1),
+            y: chart.scales.y.getPixelForValue(value),
+        });
+    });
+    if (rows.length === 0) {
+        return;
+    }
+
+    const { ctx } = chart;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(hover.x, area.top);
+    ctx.lineTo(hover.x, area.bottom);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    rows.forEach((row) => {
+        ctx.fillStyle = row.color;
+        ctx.beginPath();
+        ctx.arc(hover.x, row.y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    const seconds = Math.max(0, Math.round((chart.scales.x.max as number) - moment));
+    const title = seconds === 0 ? 'now' : `-${seconds} s`;
+    const family = String(theme('fontFamily.sans'));
+    ctx.font = `600 12px ${family}`;
+    const widest = Math.max(...rows.map((row) => ctx.measureText(row.text).width));
+    ctx.font = `10px ${family}`;
+    const width = Math.max(widest + 26, ctx.measureText(title).width + 20);
+    const height = 24 + rows.length * 17;
+    const left = hover.x + 14 + width > area.right ? hover.x - 14 - width : hover.x + 14;
+    const top = area.top + 2;
+
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = 'rgba(12, 16, 28, 0.96)';
+    roundedBox(ctx, left, top, width, height, 8);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.stroke();
+
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(title, left + 10, top + 12);
+    ctx.font = `600 12px ${family}`;
+    rows.forEach((row, index) => {
+        const y = top + 30 + index * 17;
+        ctx.fillStyle = row.color;
+        ctx.beginPath();
+        ctx.arc(left + 13, y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f1f5f9';
+        ctx.fillText(row.text, left + 23, y);
+    });
+    ctx.restore();
+};
+
 // Gives every line a soft glow and puts a dot with a halo on its latest value, so the eye lands on
 // "now". Nothing is drawn while the chart is still empty (those points are stored as -5).
 const lineEffects: Plugin<'line'> = {
@@ -135,6 +253,9 @@ const lineEffects: Plugin<'line'> = {
         ctx.arc(last.x, last.y, 3.5, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
+    },
+    afterDraw(chart) {
+        drawHover(chart as Hoverable);
     },
 };
 
@@ -175,17 +296,25 @@ const seconds = (): number => performance.now() / 1000;
 
 // Draws the window of time that is on screen: the values that arrived, and a last point at the very edge whose value is
 // worked out between the two values around that moment. Called once per screen refresh.
-function draw(chart: ChartJS<'line'> | null, samples: Sample[], drawn: { current: boolean }): void {
+interface DrawState {
+    // Whether something was drawn since the samples were last emptied.
+    drawn: boolean;
+    // Whether the picture stopped changing: the last value is older than the whole window, so the line is flat.
+    settled: boolean;
+}
+
+function draw(chart: ChartJS<'line'> | null, samples: Sample[], state: DrawState): void {
     if (!chart) {
         return;
     }
 
     if (samples.length === 0) {
         // Nothing to show: empty the chart once, and then leave it alone.
-        if (drawn.current) {
+        if (state.drawn) {
             chart.data.datasets.forEach((dataset) => (dataset.data = []));
             chart.update('none');
-            drawn.current = false;
+            state.drawn = false;
+            state.settled = false;
         }
 
         return;
@@ -193,6 +322,17 @@ function draw(chart: ChartJS<'line'> | null, samples: Sample[], drawn: { current
 
     const end = seconds() - DELAY_SECONDS;
     const start = end - WINDOW_SECONDS;
+
+    // A server that stopped sends nothing more. Once its last value has slid out of the window, the flat line that is
+    // left is drawn one last time and then left alone (the mouse still moves the values on it, see the hover).
+    if (samples[samples.length - 1].t < start - 1) {
+        if (state.settled) {
+            return;
+        }
+        state.settled = true;
+    } else {
+        state.settled = false;
+    }
 
     const x = chart.options.scales?.x;
     if (x) {
@@ -203,12 +343,14 @@ function draw(chart: ChartJS<'line'> | null, samples: Sample[], drawn: { current
     chart.data.datasets.forEach((dataset, index) => {
         const points: { x: number; y: number }[] = [];
         let next: Sample | undefined;
+        let known: number | undefined;
         for (const sample of samples) {
             const value = sample.values[index];
             if (typeof value !== 'number') {
                 continue;
             }
             if (sample.t <= end) {
+                known = value;
                 // One value before the left edge is kept, so the line starts at the edge and not after it.
                 if (sample.t >= start - 3) {
                     points.push({ x: sample.t, y: value });
@@ -226,16 +368,21 @@ function draw(chart: ChartJS<'line'> | null, samples: Sample[], drawn: { current
                     ? last.y + (upcoming - last.y) * Math.min(1, (end - last.x) / Math.max(0.001, next.t - last.x))
                     : last.y;
             points.push({ x: end, y: tip });
+        } else if (known !== undefined) {
+            // The last value is older than the window: the line stays at that value, all along.
+            points.push({ x: start, y: known }, { x: end, y: known });
         }
 
         dataset.data = points;
     });
 
-    drawn.current = true;
+    state.drawn = true;
     chart.update('none');
 }
 
 interface UseChartOptions {
+    // How a value is written in the box that follows the mouse, for the line with that number.
+    format?: (value: number, index: number) => string;
     sets: number;
     options?: DeepPartial<ChartOptions<'line'>> | number | undefined;
     callback?: ChartDatasetCallback | undefined;
@@ -260,16 +407,54 @@ function useChart(label: string, opts?: UseChartOptions, deps: unknown[] = []) {
     const data = useMemo(() => getEmptyData(label, opts?.sets || 1, opts?.callback), []);
     const ref = useRef<ChartJS<'line'>>(null);
     const samples = useRef<Sample[]>([]);
-    const drawn = useRef(false);
+    const state = useRef<DrawState>({ drawn: false, settled: false });
     const [latestValues, setLatestValues] = useState<(number | null)[]>([]);
 
     useEffect(() => {
         let frame = window.requestAnimationFrame(function tick() {
-            draw(ref.current, samples.current, drawn);
+            draw(ref.current, samples.current, state.current);
             frame = window.requestAnimationFrame(tick);
         });
 
         return () => window.cancelAnimationFrame(frame);
+    }, []);
+
+    // How the values are written in the box that follows the mouse.
+    useEffect(() => {
+        if (ref.current) {
+            (ref.current as Hoverable).$format = opts?.format;
+        }
+    });
+
+    // The mouse over the chart: the chart draws the values of the place where it is (see drawHover).
+    useEffect(() => {
+        const chart = ref.current as Hoverable | null;
+        const canvas = chart?.canvas;
+        if (!chart || !canvas) {
+            return;
+        }
+
+        // A chart that has stopped moving is not drawn by itself any more, so it is drawn when the mouse moves.
+        const move = (event: MouseEvent) => {
+            chart.$hover = { x: event.clientX - canvas.getBoundingClientRect().left };
+            if (state.current.settled) {
+                chart.draw();
+            }
+        };
+        const leave = () => {
+            chart.$hover = undefined;
+            if (state.current.settled) {
+                chart.draw();
+            }
+        };
+        canvas.addEventListener('mousemove', move);
+        canvas.addEventListener('mouseleave', leave);
+        canvas.style.cursor = 'crosshair';
+
+        return () => {
+            canvas.removeEventListener('mousemove', move);
+            canvas.removeEventListener('mouseleave', leave);
+        };
     }, []);
 
     const push = (items: number | null | (number | null)[]) => {
@@ -279,6 +464,7 @@ function useChart(label: string, opts?: UseChartOptions, deps: unknown[] = []) {
 
         const now = seconds();
         samples.current.push({ t: now, values });
+        state.current.settled = false;
         // Only what can still be seen is kept.
         while (samples.current.length > 0 && samples.current[0].t < now - WINDOW_SECONDS - DELAY_SECONDS - 3) {
             samples.current.shift();
@@ -298,7 +484,15 @@ function useChart(label: string, opts?: UseChartOptions, deps: unknown[] = []) {
         return typeof value === 'number' && value >= 0 ? value : null;
     };
 
-    return { props: { data, options, ref }, push, clear, latest };
+    // The server stopped: the lines come down to zero on their own, over the next second, and stay there. Nothing is
+    // done for a chart that has never had a value, which would only draw a flat line out of nothing.
+    const settle = () => {
+        if (samples.current.length > 0) {
+            push(Array(opts?.sets || 1).fill(0));
+        }
+    };
+
+    return { props: { data, options, ref }, push, clear, settle, latest };
 }
 
 function useChartTickLabel(
@@ -312,6 +506,7 @@ function useChartTickLabel(
         label,
         {
             sets: 1,
+            format: (value) => (typeof tickLabel === 'function' ? tickLabel(value) : `${value.toFixed(1)}${tickLabel}`),
             callback: color
                 ? (opts) => ({ ...opts, borderColor: color, backgroundColor: gradientFill(color) })
                 : undefined,
