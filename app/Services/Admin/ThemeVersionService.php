@@ -64,10 +64,10 @@ class ThemeVersionService
     }
 
     /**
-     * What was installed: the commit the files came from, when it was installed. Null when the panel was themed before
-     * this was added, or from a local folder (no commit to point to).
+     * What was installed: when the theme was installed, and the commit it came from when it is known. Null when the panel
+     * was themed before this was added (no marker at all).
      *
-     * @return array{sha: string, at: string|null}|null
+     * @return array{sha: string|null, at: string|null}|null
      */
     public function installed(): ?array
     {
@@ -77,12 +77,17 @@ class ThemeVersionService
                 return null;
             }
             $data = json_decode((string) file_get_contents($path), true);
-            $sha = is_array($data) ? (string) ($data['sha'] ?? '') : '';
-            if (!preg_match('/^[0-9a-f]{7,40}$/', $sha)) {
+            if (!is_array($data)) {
+                return null;
+            }
+            $sha = (string) ($data['sha'] ?? '');
+            $sha = preg_match('/^[0-9a-f]{7,40}$/', $sha) ? $sha : null;
+            $at = isset($data['at']) ? (string) $data['at'] : null;
+            if ($sha === null && $at === null) {
                 return null;
             }
 
-            return ['sha' => $sha, 'at' => isset($data['at']) ? (string) $data['at'] : null];
+            return ['sha' => $sha, 'at' => $at];
         } catch (\Throwable) {
             return null;
         }
@@ -133,8 +138,20 @@ class ThemeVersionService
         $installed = $this->installed();
         $latest = $this->latest();
         $known = $installed !== null && $latest !== null;
-        // Same commit, or the installed one is the start of the latest (short id): up to date.
-        $upToDate = $known && str_starts_with($latest['sha'], $installed['sha']);
+
+        // Up to date when the same commit is installed, or when the theme was installed after the latest commit was made
+        // (the reliable signal: it does not depend on the commit id having been read at install time). A minute of slack
+        // absorbs a small clock difference between the server and GitHub.
+        $upToDate = false;
+        if ($known) {
+            if (!empty($installed['sha']) && !empty($latest['sha']) && str_starts_with($latest['sha'], $installed['sha'])) {
+                $upToDate = true;
+            } elseif (!empty($installed['at']) && !empty($latest['at'])) {
+                $installedAt = strtotime($installed['at']);
+                $latestAt = strtotime($latest['at']);
+                $upToDate = $installedAt !== false && $latestAt !== false && $installedAt + 60 >= $latestAt;
+            }
+        }
 
         return [
             'name' => $this->name(),

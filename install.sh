@@ -366,13 +366,14 @@ fetch_source() {
     fi
 }
 
-# Writes which commit the theme was installed from, read by the admin overview to show "an update is available".
+# Writes when the theme was installed and, when known, the commit it came from. The admin overview reads it to show
+# "an update is available": it is up to date when it was installed after the latest commit on GitHub. Always written
+# (even if the commit could not be read), so an update never leaves a stale marker behind.
 write_theme_marker() {
-    [[ -n "${SRC_SHA:-}" ]] || return 0
     local dir="$PANEL_PATH/storage/app"
     mkdir -p "$dir"
     printf '{"sha":"%s","branch":"%s","repo":"%s","at":"%s"}\n' \
-        "$SRC_SHA" "$BRANCH" "$REPO" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >"$dir/theme-version.json"
+        "${SRC_SHA:-}" "$BRANCH" "$REPO" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >"$dir/theme-version.json"
     chown "${OWNER:-$WEB_USER:$WEB_USER}" "$dir/theme-version.json" 2>/dev/null || true
 }
 
