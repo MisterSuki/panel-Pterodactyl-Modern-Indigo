@@ -22,9 +22,12 @@ class LocaleController extends Controller
      */
     public function __invoke(LocaleRequest $request): JsonResponse
     {
-        $locale = $request->input('locale');
-        $namespace = $request->input('namespace');
-        $response[$locale][$namespace] = $this->i18n($this->loader->load($locale, $namespace));
+        $response = [];
+        foreach (explode(' ', (string) $request->input('locale')) as $locale) {
+            foreach (explode(' ', (string) $request->input('namespace')) as $namespace) {
+                $response[$locale][$namespace] = $this->i18n($this->loader->load($locale, $namespace));
+            }
+        }
 
         return new JsonResponse($response, 200, [
             // Cache this in the browser for an hour, and allow the browser to use a stale

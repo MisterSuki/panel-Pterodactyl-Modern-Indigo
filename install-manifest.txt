@@ -117,6 +117,8 @@ app/Services/Admin/OverviewService.php
 app/Http/Controllers/Admin/BaseController.php
 resources/views/admin/index.blade.php
 app/Http/Controllers/Base/UiLocaleController.php
+app/Http/Controllers/Base/LocaleController.php
+app/Http/Requests/Base/LocaleRequest.php
 app/Http/Requests/Api/Client/Account/UpdateLanguageRequest.php
 app/Traits/Helpers/AvailableLanguages.php
 routes/base.php

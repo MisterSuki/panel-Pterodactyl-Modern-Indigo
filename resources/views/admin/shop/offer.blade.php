@@ -89,12 +89,12 @@
                     <p class="text-muted small"><span>The node and the port are chosen by the panel among the nodes of the location that still have room.</span></p>
                     <div class="row">
                         <div class="form-group col-xs-4">
-                            <label for="memory">Memory (MB)</label>
-                            <input type="number" id="memory" name="memory" class="form-control" min="64" value="{{ $field('memory', $offer->memory) }}" required>
+                            <label for="memory_gb">Memory (GB)</label>
+                            <input type="number" id="memory_gb" name="memory_gb" class="form-control" min="0.0625" step="any" value="{{ $field('memory_gb', round($offer->memory / 1024, 3)) }}" required>
                         </div>
                         <div class="form-group col-xs-4">
-                            <label for="disk">Disk (MB)</label>
-                            <input type="number" id="disk" name="disk" class="form-control" min="64" value="{{ $field('disk', $offer->disk) }}" required>
+                            <label for="disk_gb">Disk (GB)</label>
+                            <input type="number" id="disk_gb" name="disk_gb" class="form-control" min="0.0625" step="any" value="{{ $field('disk_gb', round($offer->disk / 1024, 3)) }}" required>
                         </div>
                         <div class="form-group col-xs-4">
                             <label for="cpu">CPU (%)</label>
@@ -119,15 +119,13 @@
                     <div class="form-group">
                         <label for="environment">Variables of the egg</label>
                         <textarea id="environment" name="environment" class="form-control" rows="4" placeholder="SERVER_NAME=My server">{{ $field('environment', $environment) }}</textarea>
+                        <p class="text-danger small" id="pd-required-vars" style="display:none"><span>This egg needs these variables, with a value:</span> <strong></strong></p>
                         <p class="text-muted small"><span>One per line, NAME=value. The other variables of the egg take their default value.</span></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    @if ($errors->any())
-        <div class="alert alert-danger">@foreach ($errors->all() as $message)<div>{{ $message }}</div>@endforeach</div>
-    @endif
     <div class="box box-primary">
         <div class="box-footer">
             {!! csrf_field() !!}
@@ -141,4 +139,34 @@
 @if ($offer->exists)
     <form id="pd-delete-offer" action="{{ route('admin.shop.offers.delete', $offer->id) }}" method="POST">{!! csrf_field() !!}{!! method_field('DELETE') !!}</form>
 @endif
+@endsection
+
+@section('footer-scripts')
+    @parent
+    <script>
+        (function () {
+            var required = @json($requiredVariables);
+            var egg = document.getElementById('egg_id');
+            var box = document.getElementById('environment');
+            var hint = document.getElementById('pd-required-vars');
+            function apply() {
+                var names = required[egg.value] || [];
+                // What another egg asked for and was left empty is not a variable of this egg.
+                var others = [].concat.apply([], Object.keys(required).map(function (id) { return required[id]; }));
+                var lines = box.value.split(/\r?\n/).filter(function (line) {
+                    var parts = line.split('=');
+                    return !(others.indexOf(parts[0].trim()) !== -1 && names.indexOf(parts[0].trim()) === -1 && parts.slice(1).join('=').trim() === '');
+                });
+                names.forEach(function (name) {
+                    var present = lines.some(function (line) { return line.split('=')[0].trim() === name; });
+                    if (!present) { lines.push(name + '='); }
+                });
+                box.value = lines.filter(function (line, i) { return line.trim() !== '' || i < lines.length - 1; }).join('\n').replace(/^\n+/, '');
+                hint.style.display = names.length ? '' : 'none';
+                hint.querySelector('strong').textContent = names.join(', ');
+            }
+            egg.addEventListener('change', apply);
+            apply();
+        })();
+    </script>
 @endsection

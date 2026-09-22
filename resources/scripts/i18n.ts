@@ -8,11 +8,15 @@ import I18NextMultiloadBackendAdapter from 'i18next-multiload-backend-adapter';
 // the URL to allow cache busting to occur whenever the front-end is rebuilt.
 const hash = module.hot ? Date.now().toString(16) : process.env.WEBPACK_BUILD_HASH;
 
+// The language the panel is shown in (public/js/translator.js picks it: the account's, then the visitor's choice).
+const w = window as any;
+const language = String(w.PterodactylLanguage || w.PterodactylUser?.language || 'en').toLowerCase();
+
 i18n.use(I18NextMultiloadBackendAdapter)
     .use(initReactI18next)
     .init({
         debug: process.env.DEBUG === 'true',
-        lng: 'en',
+        lng: /^[a-z]{2}$/.test(language) ? language : 'en',
         fallbackLng: 'en',
         keySeparator: '.',
         backend: {

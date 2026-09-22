@@ -9,7 +9,7 @@ import { DesktopComputerIcon, XCircleIcon } from '@heroicons/react/solid';
 import Spinner from '@/components/elements/Spinner';
 import { styles as btnStyles } from '@/components/elements/button/index';
 import classNames from 'classnames';
-import ActivityLogEntry from '@/components/elements/activity/ActivityLogEntry';
+import ActivityLogList from '@/components/elements/activity/ActivityLogList';
 import Tooltip from '@/components/elements/tooltip/Tooltip';
 import useLocationHash from '@/plugins/useLocationHash';
 
@@ -47,19 +47,18 @@ export default () => {
             {!data && isValidating ? (
                 <Spinner centered />
             ) : (
-                <div className={'bg-gray-700'}>
-                    {data?.items.map((activity) => (
-                        <ActivityLogEntry key={activity.id} activity={activity}>
-                            {typeof activity.properties.useragent === 'string' && (
-                                <Tooltip content={activity.properties.useragent} placement={'top'}>
-                                    <span>
-                                        <DesktopComputerIcon />
-                                    </span>
-                                </Tooltip>
-                            )}
-                        </ActivityLogEntry>
-                    ))}
-                </div>
+                <ActivityLogList
+                    items={data?.items || []}
+                    extra={(activity) =>
+                        typeof activity.properties.useragent === 'string' && (
+                            <Tooltip content={activity.properties.useragent} placement={'top'}>
+                                <span>
+                                    <DesktopComputerIcon />
+                                </span>
+                            </Tooltip>
+                        )
+                    }
+                />
             )}
             {data && (
                 <PaginationFooter

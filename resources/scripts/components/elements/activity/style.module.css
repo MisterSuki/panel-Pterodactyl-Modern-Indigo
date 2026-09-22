@@ -1,15 +1,73 @@
 .icons {
-    @apply flex space-x-1 mx-2 transition-colors duration-100 text-gray-400;
+    @apply inline-flex items-center space-x-1 transition-colors duration-100 text-gray-400;
 
     & svg {
-        @apply px-1 py-px cursor-pointer hover:text-gray-50 h-5 w-auto;
+        @apply cursor-pointer hover:text-gray-50 h-4 w-auto;
+    }
+}
+
+.day {
+    @apply flex items-center gap-2 mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400;
+}
+
+.count {
+    @apply rounded-full bg-gray-700 px-2 py-0.5 text-2xs text-gray-300 normal-case tracking-normal;
+}
+
+/* One event: the badge on the line on the left, the card on the right. */
+.entry {
+    @apply flex gap-3 sm:gap-4;
+}
+
+.rail {
+    @apply relative flex flex-col items-center shrink-0;
+
+    &::after {
+        content: '';
+        @apply absolute top-10 bottom-0 w-px bg-gray-700;
+    }
+}
+
+.entry:last-child .rail::after {
+    @apply hidden;
+}
+
+.badge {
+    @apply relative z-10 flex items-center justify-center w-10 h-10 rounded-full ring-1;
+}
+
+.card {
+    @apply rounded-xl border border-white/5 bg-gray-700/60 px-4 py-3 transition-colors duration-100;
+
+    &:hover {
+        @apply bg-gray-700 border-white/10;
     }
 }
 
 .description {
-    @apply mt-1 text-sm break-words line-clamp-2 pr-4;
+    @apply text-sm text-gray-200 break-words;
 
     & strong {
         @apply text-gray-50 font-semibold break-all;
+    }
+}
+
+.details {
+    @apply mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400;
+}
+
+.dot {
+    @apply w-1 h-1 rounded-full bg-gray-500;
+}
+
+.tag {
+    @apply inline-flex items-center gap-1 rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-2xs font-semibold text-gray-300;
+}
+
+.event {
+    @apply hidden md:inline-block shrink-0 self-start rounded-md bg-black/20 px-2 py-1 font-mono text-2xs text-gray-400 transition-colors duration-100;
+
+    &:hover {
+        @apply text-primary-300 bg-black/30;
     }
 }

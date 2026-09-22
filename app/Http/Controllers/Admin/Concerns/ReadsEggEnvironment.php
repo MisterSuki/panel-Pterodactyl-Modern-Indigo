@@ -8,6 +8,27 @@ use Pterodactyl\Models\Egg;
 trait ReadsEggEnvironment
 {
     /**
+     * For every egg, the variables that must be given a value because the egg has none by default (the forms use it to
+     * write them in the box before the administrator has to find out by an error).
+     *
+     * @return array<int, array<int, string>>
+     */
+    private function requiredVariables(): array
+    {
+        $eggs = [];
+        foreach (Egg::query()->with('variables')->get() as $egg) {
+            $names = $egg->variables->filter(fn ($variable) => str_contains((string) $variable->rules, 'required')
+                && !str_contains((string) $variable->rules, 'nullable') && (string) $variable->default_value === '')
+                ->pluck('env_variable')->values()->all();
+            if ($names) {
+                $eggs[$egg->id] = $names;
+            }
+        }
+
+        return $eggs;
+    }
+
+    /**
      * The variables that an offer or a plan sets for an egg, written "NAME=value" one per line. They have to be
      * variables of the egg, and every variable that the egg requires without a default value has to be given, because
      * nobody is there to fill it in when the server is made.

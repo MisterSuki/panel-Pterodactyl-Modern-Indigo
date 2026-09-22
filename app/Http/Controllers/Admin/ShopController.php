@@ -87,6 +87,7 @@ class ShopController extends Controller
             'eggs' => Egg::query()->with('nest:id,name')->orderBy('name')->get(['id', 'nest_id', 'name']),
             'locations' => Location::query()->orderBy('short')->get(['id', 'short']),
             'categories' => ShopCategory::query()->orderBy('position')->orderBy('name')->get(['id', 'name']),
+            'requiredVariables' => $this->requiredVariables(),
             'currency' => $this->settings->currency(),
             'price' => $offer->exists ? $this->plain($offer->price_cents) : '',
             'environment' => collect($offer->environment ?? [])->map(fn ($value, $name) => $name . '=' . $value)->implode("\n"),
@@ -95,6 +96,13 @@ class ShopController extends Controller
 
     public function saveOffer(Request $request, ?int $id = null): RedirectResponse
     {
+        // The form gives the memory and the disk in GB; they are kept in MB.
+        foreach (['memory', 'disk'] as $field) {
+            if ($request->filled($field . '_gb')) {
+                $request->merge([$field => (int) round((float) str_replace(',', '.', (string) $request->input($field . '_gb')) * 1024)]);
+            }
+        }
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:80'],
             'description' => ['nullable', 'string', 'max:1000'],
