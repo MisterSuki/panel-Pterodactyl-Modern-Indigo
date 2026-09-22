@@ -21,10 +21,28 @@ export default ({ points, color, max }: Props) => {
         }
         const top = max && max > 0 ? max : Math.max(...points, 1);
         const step = W / (points.length - 1);
-        const y = (value: number) => H - 2 - (Math.min(value, top) / top) * (H - 4);
-        const line = points
-            .map((value, index) => `${index === 0 ? 'M' : 'L'}${(index * step).toFixed(2)},${y(value).toFixed(2)}`)
-            .join(' ');
+        const coords = points.map((value, index) => ({
+            x: index * step,
+            y: H - 2 - (Math.min(value, top) / top) * (H - 4),
+        }));
+
+        // A smooth line through the points (Catmull-Rom turned into bezier curves), so a reading every couple of seconds
+        // reads as a curve instead of a zigzag, like the big charts.
+        const tension = 0.5;
+        let line = `M${coords[0].x.toFixed(2)},${coords[0].y.toFixed(2)}`;
+        for (let i = 0; i < coords.length - 1; i++) {
+            const p0 = coords[i - 1] || coords[i];
+            const p1 = coords[i];
+            const p2 = coords[i + 1];
+            const p3 = coords[i + 2] || p2;
+            const c1x = p1.x + ((p2.x - p0.x) / 6) * tension;
+            const c1y = p1.y + ((p2.y - p0.y) / 6) * tension;
+            const c2x = p2.x - ((p3.x - p1.x) / 6) * tension;
+            const c2y = p2.y - ((p3.y - p1.y) / 6) * tension;
+            line += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(
+                2
+            )},${p2.y.toFixed(2)}`;
+        }
         const area = `${line} L${W},${H} L0,${H} Z`;
 
         return { line, area };
