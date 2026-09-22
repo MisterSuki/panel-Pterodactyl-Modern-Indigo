@@ -69,6 +69,20 @@
     </div>
 </div>
 
+@if ($theme['known'] && !$theme['upToDate'])
+<div class="pd-update-note">
+    <i class="fa fa-arrow-circle-up"></i>
+    <div class="pd-update-note-body">
+        <strong><span>An update of the theme is available.</span></strong>
+        <p><span>Please update your panel with this command (as root, on the panel server):</span></p>
+        <div class="pd-update-cmd">
+            <code id="pd-update-command">{{ $theme['command'] }}</code>
+            <button type="button" class="pd-copy-btn" onclick="pdCopyUpdate(this)"><i class="fa fa-clipboard"></i> <span>Copy</span></button>
+        </div>
+    </div>
+</div>
+@endif
+
 @if (!empty($counts))
 <div class="row pd-tiles">
     @isset($counts['servers'])
@@ -386,6 +400,26 @@
             window.setInterval(tick, 1000);
             document.addEventListener('visibilitychange', refresh);
         })();
+
+        function pdCopyUpdate(button) {
+            var text = document.getElementById('pd-update-command');
+            if (!text) { return; }
+            var value = text.textContent.trim();
+            var done = function () {
+                var label = button.querySelector('span');
+                if (label) { label.textContent = 'Copied'; window.setTimeout(function () { label.textContent = 'Copy'; }, 2000); }
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(value).then(done).catch(function () {});
+            } else {
+                var range = document.createRange();
+                range.selectNodeContents(text);
+                var sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                try { document.execCommand('copy'); done(); } catch (e) { /* the person can still select it by hand */ }
+            }
+        }
     </script>
 @endsection
 @endisset

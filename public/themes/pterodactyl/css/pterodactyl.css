@@ -1718,6 +1718,79 @@ input[type="radio"] {
     font-size: 85%;
 }
 
+/* The "an update is available" banner with the command to run. */
+.pd-update-note {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    background: rgba(251, 191, 36, 0.08);
+}
+
+.pd-update-note > i {
+    font-size: 22px;
+    color: #fbbf24;
+    margin-top: 2px;
+}
+
+.pd-update-note-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.pd-update-note-body strong {
+    color: #fff;
+}
+
+.pd-update-note-body p {
+    margin: 2px 0 10px;
+    color: var(--pd-text-muted);
+    font-size: 13px;
+}
+
+.pd-update-cmd {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pd-update-cmd code {
+    flex: 1;
+    min-width: 240px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--pd-border-strong);
+    color: #e5e7eb;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    user-select: all;
+}
+
+.pd-copy-btn {
+    flex-shrink: 0;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid var(--pd-border-strong);
+    background: var(--pd-bg-card);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.pd-copy-btn:hover {
+    border-color: var(--pd-accent, #6366f1);
+    background: rgba(99, 102, 241, 0.15);
+}
+
 .pd-version--ok > i {
     color: #4ade80;
 }

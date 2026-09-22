@@ -56,6 +56,14 @@ class ThemeVersionService
     }
 
     /**
+     * The command that updates the panel from this repository.
+     */
+    public function updateCommand(): string
+    {
+        return 'bash <(curl -s https://raw.githubusercontent.com/' . $this->repo() . '/' . $this->branch() . '/install.sh) --update';
+    }
+
+    /**
      * What was installed: the commit the files came from, when it was installed. Null when the panel was themed before
      * this was added, or from a local folder (no commit to point to).
      *
@@ -139,6 +147,7 @@ class ThemeVersionService
             'message' => $latest !== null ? strtok((string) $latest['message'], "\n") : null,
             'repoUrl' => $this->repoUrl(),
             'branch' => $this->branch(),
+            'command' => $this->updateCommand(),
         ];
     }
 }
