@@ -1675,6 +1675,12 @@ input[type="radio"] {
     color: var(--pd-text-muted);
 }
 
+.pd-versions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .pd-version {
     display: flex;
     align-items: center;

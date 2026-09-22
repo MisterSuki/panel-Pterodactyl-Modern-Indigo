@@ -54,6 +54,11 @@ class BaseController extends Controller
     {
         $user = $request->user();
 
+        // "Check now": ask GitHub again straight away instead of waiting for the kept answer to expire.
+        if ($request->boolean('check_update')) {
+            $this->theme->refresh();
+        }
+
         return view('admin.index', [
             'version' => $this->version,
             'theme' => $this->theme->status(),

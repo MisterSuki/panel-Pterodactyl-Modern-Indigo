@@ -21,6 +21,14 @@ class ThemeVersionService
     {
     }
 
+    /**
+     * Forgets the kept answer, so the next look asks GitHub again. Used by the "check now" link.
+     */
+    public function refresh(): void
+    {
+        $this->cache->forget(self::CACHE_KEY);
+    }
+
     public function repo(): string
     {
         return (string) config('pterodactyl.theme.repo');

@@ -141,7 +141,7 @@ return [
     'theme' => [
         'repo' => env('THEME_REPO', 'MisterSuki/panel-Pterodactyl-Modern-Indigo'),
         'branch' => env('THEME_BRANCH', 'main'),
-        'cache_time' => env('THEME_CACHE_TIME', 30),
+        'cache_time' => env('THEME_CACHE_TIME', 5),
     ],
 
     /*

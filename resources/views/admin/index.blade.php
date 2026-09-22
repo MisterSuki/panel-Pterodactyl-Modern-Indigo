@@ -36,22 +36,35 @@
         <p>Here is what is happening on your panel.</p>
     </div>
     @php
-        // The badge follows the theme (this GitHub repository): a push there shows up here as an update.
+        // Two separate badges: the theme (this GitHub repository) and Pterodactyl itself.
         $themeClass = !$theme['known'] ? '' : ($theme['upToDate'] ? 'pd-version--ok' : 'pd-version--warn');
         $themeIcon = !$theme['known'] ? 'fa-github' : ($theme['upToDate'] ? 'fa-check-circle' : 'fa-exclamation-triangle');
     @endphp
-    <div class="pd-version {{ $themeClass }}">
-        <i class="fa {{ $themeIcon }}"></i>
-        <div>
-            <strong>{{ config('app.name') }}</strong>
-            @if (!$theme['known'])
-                <small><a href="{{ $theme['repoUrl'] }}" target="_blank" rel="noopener"><span>See the latest version on GitHub</span></a></small>
-            @elseif ($theme['upToDate'])
-                <small><span>Up to date with GitHub</span></small>
-            @else
-                <small><a href="{{ $theme['repoUrl'] }}/commits/{{ $theme['branch'] }}" target="_blank" rel="noopener" @if ($theme['message']) title="{{ $theme['message'] }}" @endif><span>An update is available on GitHub</span></a></small>
-            @endif
-            <small class="pd-version-core"><span>Pterodactyl</span> {{ config('app.version') }} @if ($upToDate)<span>&middot; up to date</span>@else<span>&middot; {{ $version->getPanel() }} available</span>@endif</small>
+    <div class="pd-versions">
+        <div class="pd-version {{ $themeClass }}">
+            <i class="fa {{ $themeIcon }}"></i>
+            <div>
+                <strong>{{ config('app.name') }}</strong>
+                @if (!$theme['known'])
+                    <small><a href="{{ $theme['repoUrl'] }}" target="_blank" rel="noopener"><span>See the latest version on GitHub</span></a></small>
+                @elseif ($theme['upToDate'])
+                    <small><span>Up to date with GitHub</span></small>
+                @else
+                    <small><a href="{{ $theme['repoUrl'] }}/commits/{{ $theme['branch'] }}" target="_blank" rel="noopener" @if ($theme['message']) title="{{ $theme['message'] }}" @endif><span>An update is available on GitHub</span></a></small>
+                @endif
+                <small class="pd-version-core"><a href="{{ route('admin.index', ['check_update' => 1]) }}"><i class="fa fa-refresh"></i> <span>Check now</span></a></small>
+            </div>
+        </div>
+        <div class="pd-version {{ $upToDate ? 'pd-version--ok' : 'pd-version--warn' }}">
+            <i class="fa {{ $upToDate ? 'fa-check-circle' : 'fa-exclamation-triangle' }}"></i>
+            <div>
+                <strong><span>Pterodactyl</span> {{ config('app.version') }}</strong>
+                @if ($upToDate)
+                    <small><span>Up to date</span></small>
+                @else
+                    <small><a href="https://github.com/pterodactyl/panel/releases/tag/v{{ $version->getPanel() }}" target="_blank" rel="noopener"><span>Update available:</span> {{ $version->getPanel() }}</a></small>
+                @endif
+            </div>
         </div>
     </div>
 </div>
