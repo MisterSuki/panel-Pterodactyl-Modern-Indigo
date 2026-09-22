@@ -96,6 +96,42 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header with-border"><h3 class="box-title">Resources on demand (billed monthly)</h3></div>
+                <div class="box-body">
+                    <label class="pd-switch"><input type="checkbox" name="res_enabled" value="1" @checked(old('res_enabled', $resources['enabled']))><i class="pd-switch-track"></i><span>Let clients raise or lower the resources of a server they bought</span></label>
+                    <p class="text-muted small"><span>Set a price per unit. A change made during the month is charged only for the days left, on an invoice made on the first of the next month and paid from the credit. Leave a price at 0 to keep that component fixed. The "max" is how many units a client may add on top of their offer.</span></p>
+                    <div class="row">
+                        @foreach ($resources['items'] as $res)
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="res_{{ $res['key'] }}_price">{{ $res['label'] }}</label>
+                                    <div class="row">
+                                        <div class="col-xs-7">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">{{ $currency }}</span>
+                                                <input type="text" id="res_{{ $res['key'] }}_price" name="res_{{ $res['key'] }}_price" class="form-control" value="{{ old('res_' . $res['key'] . '_price', $res['price']) }}" placeholder="0.00">
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-5">
+                                            <input type="number" min="0" name="res_{{ $res['key'] }}_max" class="form-control" value="{{ old('res_' . $res['key'] . '_max', $res['max']) }}" placeholder="max" title="Maximum a client may add">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="form-group" style="max-width:220px">
+                        <label for="res_due_days">Days to pay an invoice</label>
+                        <input type="number" min="1" id="res_due_days" name="res_due_days" class="form-control" value="{{ old('res_due_days', $resources['dueDays']) }}">
+                        <p class="text-muted small"><span>After this, an unpaid invoice suspends the servers (nothing is deleted). They come back when it is paid.</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="box box-primary">
         <div class="box-footer">{!! csrf_field() !!}<button type="submit" class="btn btn-success btn-sm pull-right"><span>Save the settings</span></button></div>
     </div>

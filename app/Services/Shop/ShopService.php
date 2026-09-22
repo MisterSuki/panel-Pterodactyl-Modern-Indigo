@@ -283,6 +283,16 @@ class ShopService
                 'status' => ShopOrder::PROVISIONING,
                 'price_cents' => $offer->price_cents,
                 'duration_days' => $offer->duration_days,
+                // The resources of the offer become the floor the client cannot go below, kept so a later change of the
+                // offer does not move it.
+                'base_resources' => [
+                    'memory' => (int) $offer->memory,
+                    'disk' => (int) $offer->disk,
+                    'cpu' => (int) $offer->cpu,
+                    'database_limit' => (int) $offer->database_limit,
+                    'backup_limit' => (int) $offer->backup_limit,
+                    'allocation_limit' => (int) $offer->allocation_limit,
+                ],
             ]);
             $this->move($user->id, 'purchase', -$offer->price_cents, $offer->name, ['order_id' => $order->id]);
             if ($offer->stock !== null) {

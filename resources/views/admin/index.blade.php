@@ -207,6 +207,7 @@
             <div class="pd-actions">
                 <a href="https://pterodactyl.io" target="_blank" rel="noopener"><i class="fa fa-book"></i> <span>Documentation</span> <i class="fa fa-external-link pd-go"></i></a>
                 <a href="https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo" target="_blank" rel="noopener"><i class="fa fa-github"></i> <span>This theme on GitHub</span> <i class="fa fa-external-link pd-go"></i></a>
+                <a href="https://discord.gg/Uuspbe2zWt" target="_blank" rel="noopener"><i class="fa fa-comments"></i> <span>The theme's Discord</span> <i class="fa fa-external-link pd-go"></i></a>
                 <a href="https://github.com/pterodactyl/panel" target="_blank" rel="noopener"><i class="fa fa-code-fork"></i> <span>Pterodactyl on GitHub</span> <i class="fa fa-external-link pd-go"></i></a>
             </div>
         </div>

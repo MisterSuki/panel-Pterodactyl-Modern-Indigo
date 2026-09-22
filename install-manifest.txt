@@ -159,6 +159,10 @@ routes/payments.php
 resources/views/admin/shop/
 database/migrations/2026_09_27_000000_create_shop_categories.php
 app/Models/ShopCategory.php
+database/migrations/2026_09_30_000000_create_shop_billing.php
+app/Models/ShopInvoice.php
+app/Models/ShopInvoiceLine.php
+app/Models/ShopResourceChange.php
 
 # --- Home page for visitors (editable from the administration) ----------------------------------------
 app/Services/Landing/

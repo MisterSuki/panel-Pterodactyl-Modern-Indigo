@@ -91,4 +91,51 @@ class ShopSettings
     {
         return $this->get($code . ':enabled') === '1';
     }
+
+    // ---- Resource billing (per-component prices, billed monthly) ---------------------------------------------------
+
+    /**
+     * The resources a client can add to a server, each with the field it maps to on the server, the size of one unit and
+     * a short label. Prices are set per unit, in cents.
+     */
+    public const RESOURCES = [
+        'ram' => ['field' => 'memory', 'unit' => 1024, 'label' => 'RAM (per GB)'],
+        'disk' => ['field' => 'disk', 'unit' => 1024, 'label' => 'Disk (per GB)'],
+        'cpu' => ['field' => 'cpu', 'unit' => 100, 'label' => 'CPU (per 100%)'],
+        'database' => ['field' => 'database_limit', 'unit' => 1, 'label' => 'Database'],
+        'backup' => ['field' => 'backup_limit', 'unit' => 1, 'label' => 'Backup'],
+        'port' => ['field' => 'allocation_limit', 'unit' => 1, 'label' => 'Extra port'],
+    ];
+
+    /**
+     * Whether clients may change the resources of their servers (and be billed monthly for them).
+     */
+    public function resourceBillingEnabled(): bool
+    {
+        return $this->get('res:enabled') === '1';
+    }
+
+    /**
+     * The price of one unit of a resource, in cents (0 means it cannot be added).
+     */
+    public function resourcePrice(string $key): int
+    {
+        return max(0, (int) $this->get('res:' . $key . ':price', '0'));
+    }
+
+    /**
+     * The most units of a resource a client may add on top of the offer (0 means none).
+     */
+    public function resourceMax(string $key): int
+    {
+        return max(0, (int) $this->get('res:' . $key . ':max', '0'));
+    }
+
+    /**
+     * How many days a client has to pay an invoice before their servers are suspended.
+     */
+    public function invoiceDueDays(): int
+    {
+        return max(1, (int) $this->get('res:due_days', '7'));
+    }
 }

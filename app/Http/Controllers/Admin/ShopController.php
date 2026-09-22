@@ -230,6 +230,7 @@ class ShopController extends Controller
             'paypal' => ['on' => $this->settings->providerSwitchedOn('paypal'), 'client' => (string) $this->settings->get('paypal:client_id'), 'secret' => $has('paypal:secret'), 'sandbox' => $this->settings->get('paypal:sandbox') === '1'],
             'sumup' => ['on' => $this->settings->providerSwitchedOn('sumup'), 'merchant' => (string) $this->settings->get('sumup:merchant_code'), 'key' => $has('sumup:api_key')],
             'webhooks' => ['stripe' => url('/api/payments/stripe'), 'sumup' => url('/api/payments/sumup')],
+            'resources' => $this->resourceSettings(),
         ]);
     }
 
@@ -264,6 +265,15 @@ class ShopController extends Controller
         $this->settings->set('paypal:sandbox', $request->boolean('paypal_sandbox') ? '1' : '0');
         $this->settings->set('paypal:client_id', $data['paypal_client_id'] ?? null);
         $this->settings->set('sumup:merchant_code', $data['sumup_merchant_code'] ?? null);
+
+        // Resource billing: the price per unit and the most a client may add, per component.
+        $this->settings->set('res:enabled', $request->boolean('res_enabled') ? '1' : '0');
+        $this->settings->set('res:due_days', (string) max(1, (int) $request->input('res_due_days', 7)));
+        foreach (array_keys(ShopSettings::RESOURCES) as $key) {
+            $price = $this->cents((string) $request->input('res_' . $key . '_price', ''));
+            $this->settings->set('res:' . $key . ':price', $price === null ? '0' : (string) $price);
+            $this->settings->set('res:' . $key . ':max', (string) max(0, (int) $request->input('res_' . $key . '_max', 0)));
+        }
 
         // A secret is only replaced when a new one is typed, and removed when its box is ticked: the page never shows them.
         foreach ([
@@ -302,5 +312,29 @@ class ShopController extends Controller
     private function plain(int $cents): string
     {
         return number_format($cents / 100, 2, '.', '');
+    }
+
+    /**
+     * The per-component prices for the settings page.
+     *
+     * @return array{enabled: bool, dueDays: int, items: array<int, array{key: string, label: string, price: string, max: int}>}
+     */
+    private function resourceSettings(): array
+    {
+        $items = [];
+        foreach (ShopSettings::RESOURCES as $key => $meta) {
+            $items[] = [
+                'key' => $key,
+                'label' => $meta['label'],
+                'price' => $this->plain($this->settings->resourcePrice($key)),
+                'max' => $this->settings->resourceMax($key),
+            ];
+        }
+
+        return [
+            'enabled' => $this->settings->resourceBillingEnabled(),
+            'dueDays' => $this->settings->invoiceDueDays(),
+            'items' => $items,
+        ];
     }
 }

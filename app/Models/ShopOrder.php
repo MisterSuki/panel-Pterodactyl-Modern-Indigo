@@ -39,6 +39,8 @@ class ShopOrder extends Model
         'duration_days' => 'integer',
         'renewals' => 'integer',
         'expires_at' => 'datetime',
+        'base_resources' => 'array',
+        'resource_cents' => 'integer',
     ];
 
     /**

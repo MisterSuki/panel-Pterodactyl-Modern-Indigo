@@ -12,6 +12,7 @@ use Pterodactyl\Services\Telemetry\TelemetryCollectionService;
 use Pterodactyl\Console\Commands\Server\RunAutoBackupsCommand;
 use Pterodactyl\Console\Commands\Server\UnsuspendExpiredCommand;
 use Pterodactyl\Console\Commands\Shop\ExpireShopOrdersCommand;
+use Pterodactyl\Console\Commands\Shop\BillResourcesCommand;
 use Pterodactyl\Console\Commands\Schedule\ProcessRunnableCommand;
 use Pterodactyl\Console\Commands\Maintenance\PruneOrphanedBackupsCommand;
 use Pterodactyl\Console\Commands\Maintenance\CleanServiceBackupFilesCommand;
@@ -43,6 +44,10 @@ class Kernel extends ConsoleKernel
 
         // Servers bought in the shop whose paid time has ended are suspended (never deleted).
         $schedule->command(ExpireShopOrdersCommand::class)->everyFiveMinutes()->withoutOverlapping();
+
+        // Monthly billing of the resources clients added to their servers: makes the invoices on the first of the month,
+        // and suspends servers with an overdue invoice. Runs daily; the command itself only invoices on the first.
+        $schedule->command(BillResourcesCommand::class)->dailyAt('00:10')->withoutOverlapping();
 
 
         // Automatic backups: makes the ones that are due and removes the old ones.
