@@ -139,6 +139,8 @@ return [
     | GitHub shows up as "an update is available".
     */
     'theme' => [
+        'name' => env('THEME_NAME', 'Modern Indigo'),
+        'author' => env('THEME_AUTHOR', 'MisterSuki'),
         'repo' => env('THEME_REPO', 'MisterSuki/panel-Pterodactyl-Modern-Indigo'),
         'branch' => env('THEME_BRANCH', 'main'),
         'cache_time' => env('THEME_CACHE_TIME', 5),

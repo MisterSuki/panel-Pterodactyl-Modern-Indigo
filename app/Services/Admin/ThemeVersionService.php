@@ -29,6 +29,17 @@ class ThemeVersionService
         $this->cache->forget(self::CACHE_KEY);
     }
 
+    public function name(): string
+    {
+        return (string) config('pterodactyl.theme.name');
+    }
+
+    public function author(): string
+    {
+        // The name set in the config, or, if none, the owner of the GitHub repository.
+        return (string) (config('pterodactyl.theme.author') ?: strtok($this->repo(), '/'));
+    }
+
     public function repo(): string
     {
         return (string) config('pterodactyl.theme.repo');
@@ -118,6 +129,8 @@ class ThemeVersionService
         $upToDate = $known && str_starts_with($latest['sha'], $installed['sha']);
 
         return [
+            'name' => $this->name(),
+            'author' => $this->author(),
             'known' => $known,
             'upToDate' => $upToDate,
             'installed' => $installed['sha'] ?? null,

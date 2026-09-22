@@ -44,7 +44,7 @@
         <div class="pd-version {{ $themeClass }}">
             <i class="fa {{ $themeIcon }}"></i>
             <div>
-                <strong>{{ config('app.name') }}</strong>
+                <strong>{{ $theme['name'] }} <span class="pd-version-by"><span>by</span> {{ $theme['author'] }}</span></strong>
                 @if (!$theme['known'])
                     <small><a href="{{ $theme['repoUrl'] }}" target="_blank" rel="noopener"><span>See the latest version on GitHub</span></a></small>
                 @elseif ($theme['upToDate'])

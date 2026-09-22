@@ -1475,6 +1475,7 @@
  "available. To limit a server to using half of a single thread, you would set the value to": "disponible. Pour limiter un serveur à la moitié d'un seul thread, mettez la valeur à",
  "backups have been created for this server.": "sauvegardes ont été créées pour ce serveur.",
  "below you are indicating your agreement to the": "ci-dessous, vous acceptez le",
+ "by": "par",
  "command to update your email settings, or set": "pour modifier vos paramètres d'emails, ou définissez",
  "containers on the system. Value should be between": "conteneurs du système. La valeur doit être comprise entre",
  "core (thread) on the system is considered to be": "cœur (thread) du système est considéré comme",
