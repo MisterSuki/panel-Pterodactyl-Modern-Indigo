@@ -9,7 +9,9 @@ use Pterodactyl\Models\ShopCategory;
 use Pterodactyl\Models\ShopOffer;
 use Pterodactyl\Models\ShopOrder;
 use Pterodactyl\Models\ShopTransaction;
+use Pterodactyl\Models\Server;
 use Pterodactyl\Services\Shop\Payments\PaymentProvider;
+use Pterodactyl\Services\Shop\ResourceBillingService;
 use Pterodactyl\Services\Shop\ShopService;
 use Pterodactyl\Services\Shop\ShopSettings;
 
@@ -20,7 +22,7 @@ use Pterodactyl\Services\Shop\ShopSettings;
  */
 class ShopController extends ClientApiController
 {
-    public function __construct(private ShopService $shop, private ShopSettings $settings)
+    public function __construct(private ShopService $shop, private ShopSettings $settings, private ResourceBillingService $billing)
     {
         parent::__construct();
     }
@@ -130,5 +132,101 @@ class ShopController extends ClientApiController
         $payment = $this->shop->startPayment($user, (string) $request->input('provider'), (int) $request->input('amount_cents', 0), $offer, $order);
 
         return new JsonResponse(['url' => $payment->checkout_url], 201);
+    }
+
+    /**
+     * The servers the person may change the resources of (bought in the shop, with resource billing on). Only the
+     * identifiers, so the dashboard can show the little settings button on the right cards.
+     */
+    public function upgradeable(Request $request): JsonResponse
+    {
+        if (!$this->settings->resourceBillingEnabled()) {
+            return new JsonResponse(['servers' => []]);
+        }
+
+        $identifiers = ShopOrder::query()->where('user_id', $request->user()->id)
+            ->where('status', ShopOrder::ACTIVE)->whereNotNull('server_id')
+            ->with('server:id,uuidShort')->get()
+            ->map(fn (ShopOrder $order) => $order->server?->uuidShort)->filter()->values();
+
+        return new JsonResponse(['servers' => $identifiers]);
+    }
+
+    /**
+     * What a person may set for the resources of one of their servers, with the prices and what they have now.
+     */
+    public function resources(Request $request, string $server): JsonResponse
+    {
+        [$order] = $this->orderForServer($request, $server);
+
+        $limits = $this->billing->limits($order);
+        $meta = ShopSettings::RESOURCES;
+        $items = [];
+        foreach ($limits as $key => $range) {
+            $items[] = [
+                'key' => $key,
+                'label' => $meta[$key]['label'],
+                'unit' => $meta[$key]['unit'],
+                'min' => $range['min'],
+                'max' => $range['max'],
+                'current' => $range['current'],
+                'price_cents' => $range['price'],
+            ];
+        }
+
+        return new JsonResponse([
+            'currency' => $this->settings->currency(),
+            'balance_cents' => $this->shop->balance($request->user()->id),
+            'monthly_cents' => (int) $order->resource_cents,
+            'items' => $items,
+        ]);
+    }
+
+    /**
+     * Applies the resources a person chose to their server and records the part of the month left to pay.
+     */
+    public function updateResources(Request $request, string $server): JsonResponse
+    {
+        [$order] = $this->orderForServer($request, $server);
+        $request->validate(['resources' => ['required', 'array']]);
+
+        $chosen = [];
+        foreach (array_keys(ShopSettings::RESOURCES) as $key) {
+            if ($request->has('resources.' . $key)) {
+                $chosen[$key] = (int) $request->input('resources.' . $key);
+            }
+        }
+
+        $order = $this->billing->adjust($request->user(), $order, $chosen);
+
+        return new JsonResponse([
+            'monthly_cents' => (int) $order->resource_cents,
+            'balance_cents' => $this->shop->balance($request->user()->id),
+        ]);
+    }
+
+    /**
+     * Finds the active shop order of one of the person's servers, refusing when resource billing is off or the server is
+     * not theirs.
+     *
+     * @return array{0: ShopOrder}
+     *
+     * @throws DisplayException
+     */
+    private function orderForServer(Request $request, string $server): array
+    {
+        if (!$this->settings->resourceBillingEnabled()) {
+            throw new DisplayException('Changing the resources is not available.');
+        }
+        $model = Server::query()->where('uuidShort', $server)->first();
+        $order = $model
+            ? ShopOrder::query()->where('user_id', $request->user()->id)->where('server_id', $model->id)
+                ->where('status', ShopOrder::ACTIVE)->first()
+            : null;
+        if (!$order) {
+            throw new DisplayException('This server cannot be changed.');
+        }
+
+        return [$order];
     }
 }
