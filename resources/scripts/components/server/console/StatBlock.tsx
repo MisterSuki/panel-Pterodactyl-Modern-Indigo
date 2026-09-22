@@ -12,12 +12,15 @@ interface StatBlockProps {
     icon: IconDefinition;
     children: React.ReactNode;
     className?: string;
+    // A small trend line drawn behind the value (see Sparkline).
+    sparkline?: React.ReactNode;
 }
 
-export default ({ title, copyOnClick, icon, color, className, children }: StatBlockProps) => {
+export default ({ title, copyOnClick, icon, color, className, children, sparkline }: StatBlockProps) => {
     return (
         <CopyOnClick text={copyOnClick}>
-            <div className={classNames(styles.stat_block, 'bg-gray-600', className)}>
+            <div className={classNames(styles.stat_block, 'bg-gray-600 overflow-hidden', className)}>
+                {sparkline}
                 <div className={classNames(styles.status_bar, color || 'bg-gray-700')} />
                 <div className={classNames(styles.icon, color || 'bg-gray-700')}>
                     <Icon

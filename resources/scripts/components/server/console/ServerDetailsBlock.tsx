@@ -13,8 +13,15 @@ import usePing from '@/components/server/console/usePing';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import classNames from 'classnames';
 import { capitalize } from '@/lib/strings';
+import Sparkline from '@/components/server/console/Sparkline';
+import { theme } from 'twin.macro';
 
 type Stats = Record<'memory' | 'cpu' | 'disk' | 'uptime', number>;
+
+// How many readings the little trend lines keep (about a minute at one reading every two seconds).
+const HISTORY = 30;
+
+const pushHistory = (list: number[], value: number): number[] => [...list, value].slice(-HISTORY);
 
 const getBackgroundColor = (value: number, max: number | null): string | undefined => {
     const delta = !max ? 0 : value / max;
@@ -38,6 +45,11 @@ const Limit = ({ limit, children }: { limit: string | null; children: React.Reac
 
 const ServerDetailsBlock = ({ className }: { className?: string }) => {
     const [stats, setStats] = useState<Stats>({ memory: 0, cpu: 0, disk: 0, uptime: 0 });
+    const [history, setHistory] = useState<Record<'cpu' | 'memory' | 'disk', number[]>>({
+        cpu: [],
+        memory: [],
+        disk: [],
+    });
     const ping = usePing();
 
     const status = ServerContext.useStoreState((state) => state.status.value);
@@ -98,7 +110,19 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             disk: stats.disk_bytes,
             uptime: stats.uptime || 0,
         });
+        setHistory((prev) => ({
+            cpu: pushHistory(prev.cpu, stats.cpu_absolute || 0),
+            memory: pushHistory(prev.memory, stats.memory_bytes || 0),
+            disk: pushHistory(prev.disk, stats.disk_bytes || 0),
+        }));
     });
+
+    // When the server stops, the little trend lines are cleared so they do not show a stale minute.
+    useEffect(() => {
+        if (status === 'offline') {
+            setHistory({ cpu: [], memory: [], disk: [] });
+        }
+    }, [status]);
 
     return (
         <div className={classNames('grid grid-cols-6 gap-2 md:gap-4', className)}>
@@ -166,7 +190,16 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                     capitalize(status)
                 )}
             </StatBlock>
-            <StatBlock icon={faMicrochip} title={'CPU Load'} color={getBackgroundColor(stats.cpu, limits.cpu)}>
+            <StatBlock
+                icon={faMicrochip}
+                title={'CPU Load'}
+                color={getBackgroundColor(stats.cpu, limits.cpu)}
+                sparkline={
+                    status !== 'offline' && (
+                        <Sparkline points={history.cpu} max={limits.cpu || null} color={theme('colors.primary.400')} />
+                    )
+                }
+            >
                 {status === 'offline' ? (
                     <span className={'text-gray-400'}>Offline</span>
                 ) : (
@@ -177,6 +210,15 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                 icon={faMemory}
                 title={'Memory'}
                 color={getBackgroundColor(stats.memory / 1024, limits.memory * 1024)}
+                sparkline={
+                    status !== 'offline' && (
+                        <Sparkline
+                            points={history.memory}
+                            max={limits.memory ? mbToBytes(limits.memory) : null}
+                            color={theme('colors.cyan.400')}
+                        />
+                    )
+                }
             >
                 {status === 'offline' ? (
                     <span className={'text-gray-400'}>Offline</span>
@@ -184,7 +226,18 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                     <Limit limit={textLimits.memory}>{bytesToString(stats.memory)}</Limit>
                 )}
             </StatBlock>
-            <StatBlock icon={faHdd} title={'Disk'} color={getBackgroundColor(stats.disk / 1024, limits.disk * 1024)}>
+            <StatBlock
+                icon={faHdd}
+                title={'Disk'}
+                color={getBackgroundColor(stats.disk / 1024, limits.disk * 1024)}
+                sparkline={
+                    <Sparkline
+                        points={history.disk}
+                        max={limits.disk ? mbToBytes(limits.disk) : null}
+                        color={theme('colors.green.400')}
+                    />
+                }
+            >
                 <Limit limit={textLimits.disk}>{bytesToString(stats.disk)}</Limit>
             </StatBlock>
             <StatBlock icon={faSignal} title={'Ping'} color={ping === null ? undefined : getBackgroundColor(ping, 300)}>
