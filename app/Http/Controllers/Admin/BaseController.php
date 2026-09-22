@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Pterodactyl\Models\User;
 use Pterodactyl\Services\Admin\OverviewService;
+use Pterodactyl\Services\Admin\ThemeVersionService;
 use Pterodactyl\Services\Admin\UserLiveService;
 use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\Services\Helpers\SoftwareVersionService;
@@ -19,7 +20,8 @@ class BaseController extends Controller
     public function __construct(
         private SoftwareVersionService $version,
         private OverviewService $overview,
-        private UserLiveService $live
+        private UserLiveService $live,
+        private ThemeVersionService $theme
     ) {
     }
 
@@ -54,6 +56,7 @@ class BaseController extends Controller
 
         return view('admin.index', [
             'version' => $this->version,
+            'theme' => $this->theme->status(),
             'overview' => $this->overview->build(fn (string $section) => $user->canAccessAdminSection($section)),
         ]);
     }

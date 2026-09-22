@@ -131,6 +131,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Theme repository (Modern Indigo)
+    |--------------------------------------------------------------------------
+    |
+    | The GitHub repository the theme is installed from. The admin overview
+    | compares the installed version with the latest commit here, so a push to
+    | GitHub shows up as "an update is available".
+    */
+    'theme' => [
+        'repo' => env('THEME_REPO', 'MisterSuki/panel-Pterodactyl-Modern-Indigo'),
+        'branch' => env('THEME_BRANCH', 'main'),
+        'cache_time' => env('THEME_CACHE_TIME', 30),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Client Features
     |--------------------------------------------------------------------------
     |

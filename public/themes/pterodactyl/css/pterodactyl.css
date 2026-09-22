@@ -1700,6 +1700,12 @@ input[type="radio"] {
     color: var(--pd-text-muted);
 }
 
+.pd-version .pd-version-core {
+    margin-top: 2px;
+    font-size: 11px;
+    opacity: 0.7;
+}
+
 .pd-version--ok > i {
     color: #4ade80;
 }

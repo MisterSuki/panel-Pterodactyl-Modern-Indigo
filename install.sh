@@ -337,6 +337,7 @@ require_root() {
 fetch_source() {
     TMP="$(mktemp -d)"
     SRC="$TMP/src"
+    SRC_SHA=""
     mkdir -p "$SRC"
 
     if [[ -n "$SOURCE" ]]; then
@@ -358,7 +359,21 @@ fetch_source() {
             die "Check the repository name and branch, and that the repository is public."
         fi
         tar -xzf "$TMP/theme.tar.gz" -C "$SRC" --strip-components=1 || die "The downloaded archive is not valid."
+        # The commit these files come from, so the panel can tell when GitHub is ahead. Not fatal if the API is unreachable.
+        SRC_SHA="$(curl -fsSL --retry 2 -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${REPO}/commits/${BRANCH}" 2>/dev/null \
+            | grep -m1 '"sha"' | sed -E 's/.*"sha"[[:space:]]*:[[:space:]]*"([0-9a-f]+)".*/\1/' || true)"
     fi
+}
+
+# Writes which commit the theme was installed from, read by the admin overview to show "an update is available".
+write_theme_marker() {
+    [[ -n "${SRC_SHA:-}" ]] || return 0
+    local dir="$PANEL_PATH/storage/app"
+    mkdir -p "$dir"
+    printf '{"sha":"%s","branch":"%s","repo":"%s","at":"%s"}\n' \
+        "$SRC_SHA" "$BRANCH" "$REPO" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >"$dir/theme-version.json"
+    chown "${OWNER:-$WEB_USER:$WEB_USER}" "$dir/theme-version.json" 2>/dev/null || true
 }
 
 # ---------------------------------------------------------------------------------------------
@@ -613,6 +628,7 @@ run_update() {
         fi
         chown -R "$OWNER" "$PANEL_PATH/${entry%/}" 2>/dev/null || warn "Could not set the owner of $entry (not fatal)."
     done
+    write_theme_marker
     ok "Files copied"
 
     if command -v composer >/dev/null 2>&1; then
@@ -1220,6 +1236,7 @@ place_panel_files() {
     chmod -R 755 "$PANEL_PATH/storage" "$PANEL_PATH/bootstrap/cache"
     [[ -f "$PANEL_PATH/.env.example" ]] || die "The downloaded files are not a Pterodactyl panel (.env.example is missing)."
     cp "$PANEL_PATH/.env.example" "$PANEL_PATH/.env"
+    write_theme_marker
     ok "Files placed in $PANEL_PATH"
 }
 

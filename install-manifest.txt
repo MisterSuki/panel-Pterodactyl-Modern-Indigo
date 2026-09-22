@@ -114,6 +114,7 @@ resources/lang/fr.json
 app/Services/Helpers/Locales.php
 app/Services/Helpers/Copyright.php
 app/Services/Admin/OverviewService.php
+app/Services/Admin/ThemeVersionService.php
 app/Http/Controllers/Admin/BaseController.php
 resources/views/admin/index.blade.php
 app/Http/Controllers/Base/UiLocaleController.php
