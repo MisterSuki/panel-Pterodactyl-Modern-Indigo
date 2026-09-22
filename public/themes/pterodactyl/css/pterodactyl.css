@@ -3149,3 +3149,151 @@ blockquote {
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.02);
 }
+
+/* ============================================================
+   Round three — a lift for every admin page: airier tables,
+   readable headers, tidy action buttons, pill labels and a few
+   finishing touches applied through the shared skin.
+   ============================================================ */
+
+/* Tables: more room, quieter grid, a clear header and gentle zebra so long
+   lists of servers, users and nodes are easier to scan. */
+.box-body.no-padding > .table {
+    margin-bottom: 0;
+}
+
+.table > thead > tr > th {
+    padding: 12px 16px !important;
+    font-size: 11px !important;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--pd-text-muted) !important;
+    border-bottom: 1px solid var(--pd-border-strong) !important;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.table > tbody > tr > td {
+    padding: 12px 16px !important;
+    vertical-align: middle !important;
+}
+
+.table > tbody > tr:nth-of-type(odd) > td {
+    background-color: rgba(255, 255, 255, 0.015);
+}
+
+.table-hover > tbody > tr {
+    transition: background-color 0.12s ease;
+}
+
+.table-hover > tbody > tr:hover > td {
+    background-color: rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Rows that link somewhere (server/user lists) feel clickable. */
+.table > tbody > tr[data-server],
+.table > tbody > tr.clickable-row {
+    cursor: pointer;
+}
+
+/* Small action buttons that sit in table rows (edit, delete, manage). */
+.table .btn-xs,
+.table .btn-sm {
+    border-radius: 7px !important;
+}
+
+td .btn + .btn,
+td .btn-group + .btn,
+.text-right .btn + .btn {
+    margin-left: 6px;
+}
+
+/* Labels / badges as soft pills, wherever they appear. */
+.label {
+    display: inline-block;
+    padding: 0.28em 0.65em;
+    border-radius: 999px !important;
+    font-weight: 600;
+    font-size: 84%;
+    letter-spacing: 0.01em;
+}
+
+/* Form fields: clearer labels and help text on every form page. */
+.form-group > label,
+label.control-label {
+    color: #dfe3ea;
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.form-group p.text-muted,
+p.text-muted.small,
+.help-block {
+    color: var(--pd-text-muted) !important;
+}
+
+/* A touch of depth when hovering a card, without moving the layout. */
+.box {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.box:hover {
+    border-color: var(--pd-border-strong) !important;
+    box-shadow: 0 18px 36px -18px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* The person at the top of the sidebar. */
+.user-panel > .info,
+.user-panel > .info > p {
+    color: #f4f5f7 !important;
+    font-weight: 600;
+}
+
+.user-panel > .info > a,
+.user-panel > .info > small {
+    color: var(--pd-text-muted) !important;
+    font-weight: 400;
+}
+
+/* Section titles between menu groups: a little more air. */
+.sidebar-menu > li.header {
+    margin-top: 14px;
+    padding: 8px 16px 6px !important;
+}
+
+/* Description blocks used on node/server detail pages. */
+.description-block {
+    border-color: var(--pd-border) !important;
+}
+
+.description-block .description-header {
+    color: #f7f8fa !important;
+}
+
+.description-block .description-text {
+    color: var(--pd-text-muted) !important;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+}
+
+/* Buttons a hair bigger to click, consistent everywhere. */
+.btn {
+    padding: 7px 14px;
+}
+
+.btn-xs {
+    padding: 3px 9px;
+}
+
+/* Progress bars (node capacity, disk usage) as thin rounded lines. */
+.progress {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+    overflow: hidden;
+}
+
+.progress-bar {
+    border-radius: 999px !important;
+}
