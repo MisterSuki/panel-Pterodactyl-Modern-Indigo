@@ -380,6 +380,12 @@ class ResourceBillingService
                 $order->update(['status' => ShopOrder::FAILED]);
             });
 
+            // A normal client gets a plain message; an administrator gets the real reason so they can fix the setup
+            // (a game whose required variables have no default, no node with room in the location, no free port...).
+            if ($user->root_admin) {
+                throw new DisplayException('The server could not be made (admin detail): ' . $exception->getMessage());
+            }
+
             throw new DisplayException('The server could not be made, and you were not charged. Try again later or contact the support.');
         }
 
