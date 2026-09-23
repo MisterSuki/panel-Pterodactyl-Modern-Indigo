@@ -99,12 +99,12 @@ class ShopSettings
      * a short label. Prices are set per unit, in cents.
      */
     public const RESOURCES = [
-        'ram' => ['field' => 'memory', 'unit' => 1024, 'label' => 'RAM (per GB)'],
-        'disk' => ['field' => 'disk', 'unit' => 1024, 'label' => 'Disk (per GB)'],
-        'cpu' => ['field' => 'cpu', 'unit' => 100, 'label' => 'CPU (per 100%)'],
-        'database' => ['field' => 'database_limit', 'unit' => 1, 'label' => 'Database'],
-        'backup' => ['field' => 'backup_limit', 'unit' => 1, 'label' => 'Backup'],
-        'port' => ['field' => 'allocation_limit', 'unit' => 1, 'label' => 'Extra port'],
+        'ram' => ['field' => 'memory', 'unit' => 1024, 'label' => 'RAM (per GB)', 'cmin' => 1, 'cmax' => 32],
+        'disk' => ['field' => 'disk', 'unit' => 1024, 'label' => 'Disk (per GB)', 'cmin' => 1, 'cmax' => 500],
+        'cpu' => ['field' => 'cpu', 'unit' => 100, 'label' => 'CPU (per 100%)', 'cmin' => 1, 'cmax' => 8],
+        'database' => ['field' => 'database_limit', 'unit' => 1, 'label' => 'Database', 'cmin' => 0, 'cmax' => 20],
+        'backup' => ['field' => 'backup_limit', 'unit' => 1, 'label' => 'Backup', 'cmin' => 0, 'cmax' => 50],
+        'port' => ['field' => 'allocation_limit', 'unit' => 1, 'label' => 'Extra port', 'cmin' => 0, 'cmax' => 20],
     ];
 
     /**
@@ -154,12 +154,21 @@ class ShopSettings
      */
     public function customMin(string $key): int
     {
-        return max(0, (int) $this->get('res:' . $key . ':cmin', '0'));
+        $default = (string) (self::RESOURCES[$key]['cmin'] ?? 0);
+
+        return max(0, (int) $this->get('res:' . $key . ':cmin', $default));
     }
 
     public function customMax(string $key): int
     {
-        return max($this->customMin($key), (int) $this->get('res:' . $key . ':cmax', '0'));
+        // A max of 0 (never set, or left empty) means "not limited by the admin": fall back to a sensible cap so a client
+        // can build a server as soon as the component has a price.
+        $value = (int) $this->get('res:' . $key . ':cmax', '0');
+        if ($value <= 0) {
+            $value = (int) (self::RESOURCES[$key]['cmax'] ?? 0);
+        }
+
+        return max($this->customMin($key), $value);
     }
 
     /**
