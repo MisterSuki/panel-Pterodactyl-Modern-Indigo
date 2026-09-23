@@ -138,4 +138,64 @@ class ShopSettings
     {
         return max(1, (int) $this->get('res:due_days', '7'));
     }
+
+    // ---- Custom servers (the client builds their own, billed monthly) ----------------------------------------------
+
+    /**
+     * Whether clients may build their own server from the resources, at the per-unit prices.
+     */
+    public function customEnabled(): bool
+    {
+        return $this->get('res:custom:enabled') === '1';
+    }
+
+    /**
+     * The smallest and biggest number of units of a resource a client may pick when building a custom server.
+     */
+    public function customMin(string $key): int
+    {
+        return max(0, (int) $this->get('res:' . $key . ':cmin', '0'));
+    }
+
+    public function customMax(string $key): int
+    {
+        return max($this->customMin($key), (int) $this->get('res:' . $key . ':cmax', '0'));
+    }
+
+    /**
+     * The eggs (games) a client may choose for a custom server.
+     *
+     * @return array<int, int>
+     */
+    public function customEggIds(): array
+    {
+        return $this->ids('res:custom:eggs');
+    }
+
+    /**
+     * The locations a client may choose. Empty means the panel picks one on its own.
+     *
+     * @return array<int, int>
+     */
+    public function customLocationIds(): array
+    {
+        return $this->ids('res:custom:locations');
+    }
+
+    /**
+     * How many custom servers one client may have (0 means no limit).
+     */
+    public function customMaxPerUser(): int
+    {
+        return max(0, (int) $this->get('res:custom:max_per_user', '0'));
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function ids(string $key): array
+    {
+        return collect(explode(',', (string) $this->get($key, '')))
+            ->map(fn ($id) => (int) trim($id))->filter()->unique()->values()->all();
+    }
 }

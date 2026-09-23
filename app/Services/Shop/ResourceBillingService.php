@@ -31,7 +31,16 @@ class ResourceBillingService
         private ShopService $shop,
         private BuildModificationService $builder,
         private SuspensionService $suspensions,
+        private ServerProvisioner $provisioner,
     ) {
+    }
+
+    /**
+     * A custom server is one a client built themselves: it has no offer, so every resource is billed (nothing is free).
+     */
+    public function isCustom(ShopOrder $order): bool
+    {
+        return $order->offer_id === null;
     }
 
     /**
@@ -104,28 +113,85 @@ class ResourceBillingService
     }
 
     /**
-     * What a client may set for each resource on an order: the floor (the offer) and the ceiling (the floor plus what the
-     * administration allows on top), in whole units, with the unit price.
+     * What a client may set for each resource on an order, in whole units: the lowest and highest they may pick, what they
+     * have now, the unit price, and the point from which it is billed ("billedFrom": the offer for a bought server, zero
+     * for a custom one, where everything is paid for).
      *
-     * @return array<string, array{min: int, max: int, current: int, price: int}>
+     * @return array<string, array{min: int, max: int, current: int, price: int, billedFrom: int}>
      */
     public function limits(ShopOrder $order): array
     {
+        $custom = $this->isCustom($order);
         $base = $this->toUnits($this->baseline($order));
         $current = $order->server ? $this->toUnits($order->server->only(array_column(ShopSettings::RESOURCES, 'field'))) : $base;
 
         $out = [];
         foreach ($this->prices() as $key => $price) {
-            $min = $base[$key];
+            $billedFrom = $base[$key];
+            $min = $custom ? $this->settings->customMin($key) : $billedFrom;
+            $max = $custom ? $this->settings->customMax($key) : $billedFrom + $this->settings->resourceMax($key);
             $out[$key] = [
                 'min' => $min,
-                'max' => $min + $this->settings->resourceMax($key),
-                'current' => max($min, $current[$key] ?? $min),
+                'max' => max($min, $max),
+                'current' => min(max($min, $current[$key] ?? $min), max($min, $max)),
                 'price' => $price,
+                'billedFrom' => $billedFrom,
             ];
         }
 
         return $out;
+    }
+
+    /**
+     * What the client sees to build a custom server: whether it is on, the eggs and locations they may pick, and each
+     * resource with its range and price.
+     *
+     * @return array{enabled: bool, eggs: array<int, array{id: int, name: string}>, locations: array<int, array{id: int, name: string}>, items: array<int, array{key: string, label: string, unit: int, min: int, max: int, default: int, price: int}>, maxPerUser: int, owned: int}
+     */
+    public function customConfig(User $user): array
+    {
+        if (!$this->settings->customEnabled()) {
+            return ['enabled' => false, 'eggs' => [], 'locations' => [], 'items' => [], 'maxPerUser' => 0, 'owned' => 0];
+        }
+
+        $eggIds = $this->settings->customEggIds();
+        $eggs = \Pterodactyl\Models\Egg::query()->whereIn('id', $eggIds ?: [0])->with('nest:id,name')->get(['id', 'nest_id', 'name'])
+            ->map(fn ($egg) => ['id' => $egg->id, 'name' => ($egg->nest?->name ? $egg->nest->name . ' · ' : '') . $egg->name])->values()->all();
+
+        $locationIds = $this->settings->customLocationIds();
+        $locations = $locationIds
+            ? \Pterodactyl\Models\Location::query()->whereIn('id', $locationIds)->get(['id', 'short'])
+                ->map(fn ($l) => ['id' => $l->id, 'name' => $l->short])->values()->all()
+            : [];
+
+        $items = [];
+        foreach ($this->prices() as $key => $price) {
+            $min = $this->settings->customMin($key);
+            $items[] = [
+                'key' => $key,
+                'label' => ShopSettings::RESOURCES[$key]['label'],
+                'unit' => ShopSettings::RESOURCES[$key]['unit'],
+                'min' => $min,
+                'max' => $this->settings->customMax($key),
+                'default' => $min,
+                'price' => $price,
+            ];
+        }
+
+        return [
+            'enabled' => !empty($eggs) && !empty($items),
+            'eggs' => $eggs,
+            'locations' => $locations,
+            'items' => $items,
+            'maxPerUser' => $this->settings->customMaxPerUser(),
+            'owned' => $this->countCustom($user),
+        ];
+    }
+
+    public function countCustom(User $user): int
+    {
+        return ShopOrder::query()->where('user_id', $user->id)->whereNull('offer_id')
+            ->where('status', ShopOrder::ACTIVE)->count();
     }
 
     /**
@@ -217,6 +283,102 @@ class ResourceBillingService
                 ]);
             }
         });
+
+        return $order->refresh();
+    }
+
+    /**
+     * Builds a server the client configured themselves: an egg, a location and the resources they chose, at the per-unit
+     * prices. The rest of the current month is taken from the credit now, then it is billed every month like any other
+     * resources. The server is billed in full (there is no free floor).
+     *
+     * @param array<string, int> $chosen the wanted units per resource
+     *
+     * @throws DisplayException
+     */
+    public function createCustom(User $user, int $eggId, ?int $locationId, array $chosen, string $name, ?CarbonInterface $now = null): ShopOrder
+    {
+        if (!$this->settings->customEnabled()) {
+            throw new DisplayException('Building a server is not available.');
+        }
+        $name = trim($name);
+        if ($name === '' || mb_strlen($name) > 80) {
+            throw new DisplayException('Give a name to your server (80 characters at most).');
+        }
+        if (!in_array($eggId, $this->settings->customEggIds(), true)) {
+            throw new DisplayException('This game is not available.');
+        }
+
+        $allowed = $this->settings->customLocationIds();
+        if ($allowed) {
+            if ($locationId === null || !in_array($locationId, $allowed, true)) {
+                throw new DisplayException('Choose a location.');
+            }
+            $locations = [$locationId];
+        } else {
+            $locations = \Pterodactyl\Models\Location::query()->pluck('id')->all();
+        }
+
+        $max = $this->settings->customMaxPerUser();
+        if ($max > 0 && $this->countCustom($user) >= $max) {
+            throw new DisplayException('You have reached the number of custom servers you may have (' . $max . ').');
+        }
+
+        // The resources, checked against the allowed range, turned into the server fields and the monthly price.
+        $fields = ['memory' => 0, 'disk' => 0, 'cpu' => 0, 'database_limit' => 0, 'backup_limit' => 0, 'allocation_limit' => 0];
+        $monthly = 0;
+        foreach ($this->prices() as $key => $price) {
+            $units = (int) ($chosen[$key] ?? $this->settings->customMin($key));
+            if ($units < $this->settings->customMin($key) || $units > $this->settings->customMax($key)) {
+                throw new DisplayException('The chosen amount of ' . $key . ' is out of the allowed range.');
+            }
+            $fields[ShopSettings::RESOURCES[$key]['field']] = $units * ShopSettings::RESOURCES[$key]['unit'];
+            $monthly += $units * $price;
+        }
+        if ($monthly <= 0) {
+            throw new DisplayException('Choose some resources for your server.');
+        }
+
+        $now = $now ? Carbon::instance($now->toDateTime()) : Carbon::now();
+        $firstCharge = max(0, $this->prorate($monthly, $now));
+        if ($this->shop->balance($user->id) < $firstCharge) {
+            throw new DisplayException('Not enough credit: the rest of this month costs ' . $this->shop->format($firstCharge) . '.');
+        }
+
+        // Take the money and open the order first; if the server cannot be made, give the money back (like a purchase).
+        $order = DB::transaction(function () use ($user, $name, $monthly, $firstCharge, $now) {
+            $order = ShopOrder::query()->create([
+                'user_id' => $user->id,
+                'offer_id' => null,
+                'offer_name' => $name,
+                'status' => ShopOrder::PROVISIONING,
+                'price_cents' => 0,
+                'duration_days' => 30,
+                'resource_cents' => $monthly,
+                'base_resources' => ['memory' => 0, 'disk' => 0, 'cpu' => 0, 'database_limit' => 0, 'backup_limit' => 0, 'allocation_limit' => 0],
+            ]);
+            if ($firstCharge > 0) {
+                $this->shop->move($user->id, 'custom', -$firstCharge, $name . ' (' . $now->format('d/m') . ' – end of month)', ['order_id' => $order->id]);
+            }
+
+            return $order;
+        });
+
+        try {
+            $server = $this->provisioner->provisionCustom($user, $eggId, $fields, $name, $locations);
+        } catch (\Throwable $exception) {
+            report($exception);
+            DB::transaction(function () use ($order, $firstCharge) {
+                if ($firstCharge > 0) {
+                    $this->shop->move($order->user_id, 'refund', $firstCharge, $order->offer_name . ' (not delivered)', ['order_id' => $order->id]);
+                }
+                $order->update(['status' => ShopOrder::FAILED]);
+            });
+
+            throw new DisplayException('The server could not be made, and you were not charged. Try again later or contact the support.');
+        }
+
+        $order->update(['server_id' => $server->id, 'status' => ShopOrder::ACTIVE]);
 
         return $order->refresh();
     }

@@ -273,7 +273,16 @@ class ShopController extends Controller
             $price = $this->cents((string) $request->input('res_' . $key . '_price', ''));
             $this->settings->set('res:' . $key . ':price', $price === null ? '0' : (string) $price);
             $this->settings->set('res:' . $key . ':max', (string) max(0, (int) $request->input('res_' . $key . '_max', 0)));
+            $this->settings->set('res:' . $key . ':cmin', (string) max(0, (int) $request->input('res_' . $key . '_cmin', 0)));
+            $this->settings->set('res:' . $key . ':cmax', (string) max(0, (int) $request->input('res_' . $key . '_cmax', 0)));
         }
+
+        // Custom servers built by clients.
+        $this->settings->set('res:custom:enabled', $request->boolean('custom_enabled') ? '1' : '0');
+        $this->settings->set('res:custom:max_per_user', (string) max(0, (int) $request->input('custom_max_per_user', 0)));
+        $clean = fn (string $field) => collect((array) $request->input($field, []))->map(fn ($v) => (int) $v)->filter()->unique()->implode(',');
+        $this->settings->set('res:custom:eggs', $clean('custom_eggs') ?: null);
+        $this->settings->set('res:custom:locations', $clean('custom_locations') ?: null);
 
         // A secret is only replaced when a new one is typed, and removed when its box is ticked: the page never shows them.
         foreach ([
@@ -328,6 +337,8 @@ class ShopController extends Controller
                 'label' => $meta['label'],
                 'price' => $this->plain($this->settings->resourcePrice($key)),
                 'max' => $this->settings->resourceMax($key),
+                'cmin' => $this->settings->customMin($key),
+                'cmax' => $this->settings->customMax($key),
             ];
         }
 
@@ -335,6 +346,16 @@ class ShopController extends Controller
             'enabled' => $this->settings->resourceBillingEnabled(),
             'dueDays' => $this->settings->invoiceDueDays(),
             'items' => $items,
+            'custom' => [
+                'enabled' => $this->settings->customEnabled(),
+                'maxPerUser' => $this->settings->customMaxPerUser(),
+                'eggs' => $this->settings->customEggIds(),
+                'locations' => $this->settings->customLocationIds(),
+            ],
+            'eggs' => Egg::query()->with('nest:id,name')->orderBy('name')->get(['id', 'nest_id', 'name'])
+                ->map(fn ($e) => ['id' => $e->id, 'name' => ($e->nest?->name ? $e->nest->name . ' · ' : '') . $e->name])->all(),
+            'locations' => Location::query()->orderBy('short')->get(['id', 'short'])
+                ->map(fn ($l) => ['id' => $l->id, 'name' => $l->short])->all(),
         ];
     }
 }

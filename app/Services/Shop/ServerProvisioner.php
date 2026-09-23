@@ -66,4 +66,50 @@ class ServerProvisioner
 
         return $this->creation->handle($data, $deployment);
     }
+
+    /**
+     * Makes a server a client built themselves: an egg and the resources they chose, placed among the locations given
+     * (or every location when none is given).
+     *
+     * @param array{memory: int, disk: int, cpu: int, database_limit: int, allocation_limit: int, backup_limit: int} $limits
+     * @param array<int, int>                                                                                          $locationIds
+     *
+     * @throws \Throwable
+     */
+    public function provisionCustom(User $user, int $eggId, array $limits, string $name, array $locationIds): Server
+    {
+        $egg = Egg::query()->with('variables')->findOrFail($eggId);
+
+        $environment = [];
+        foreach ($egg->variables as $variable) {
+            $environment[$variable->env_variable] = (string) $variable->default_value;
+        }
+
+        $data = [
+            'name' => Str::limit($name . ' - ' . $user->username, 60, ''),
+            'description' => 'Custom server',
+            'owner_id' => $user->id,
+            'egg_id' => $egg->id,
+            'nest_id' => $egg->nest_id,
+            'memory' => $limits['memory'],
+            'swap' => 0,
+            'disk' => $limits['disk'],
+            'io' => 500,
+            'cpu' => $limits['cpu'],
+            'threads' => null,
+            'oom_disabled' => true,
+            'database_limit' => $limits['database_limit'],
+            'allocation_limit' => $limits['allocation_limit'],
+            'backup_limit' => $limits['backup_limit'],
+            'startup' => $egg->startup,
+            'image' => (string) Arr::first($egg->docker_images ?? []),
+            'environment' => $environment,
+            'skip_scripts' => false,
+            'start_on_completion' => true,
+        ];
+
+        $deployment = (new DeploymentObject())->setLocations($locationIds)->setDedicated(false)->setPorts([]);
+
+        return $this->creation->handle($data, $deployment);
+    }
 }

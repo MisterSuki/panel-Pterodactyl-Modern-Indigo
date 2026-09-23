@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faChevronRight,
@@ -8,7 +8,9 @@ import {
     faMemory,
     faMicrochip,
     faServer,
+    faSlidersH,
 } from '@fortawesome/free-solid-svg-icons';
+import UpgradeServerDialog from '@/components/dashboard/UpgradeServerDialog';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
 import { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
@@ -79,11 +81,14 @@ interface Props {
     stats?: ServerStats | null;
     // True once the usage was asked for and this server did not answer, so the card says so instead of waiting.
     unreachable?: boolean;
+    // True when this server was bought in the shop and its resources can be changed (billed monthly).
+    upgradeable?: boolean;
     className?: string;
     style?: React.CSSProperties;
 }
 
-const ServerRow = ({ server, stats = null, unreachable = false, className, style }: Props) => {
+const ServerRow = ({ server, stats = null, unreachable = false, upgradeable = false, className, style }: Props) => {
+    const [upgradeOpen, setUpgradeOpen] = useState(false);
     const isSuspended = !!stats?.isSuspended || server.status === 'suspended';
     const state: ServerPowerState | 'unknown' = isSuspended || !stats ? 'unknown' : stats.status;
     const tint = isSuspended ? TINTS.offline : TINTS[state];
@@ -255,6 +260,29 @@ const ServerRow = ({ server, stats = null, unreachable = false, className, style
                     />
                 )}
             </div>
+            {upgradeable && !isSuspended && (
+                <button
+                    type={'button'}
+                    title={'Resources'}
+                    aria-label={'Change the resources'}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setUpgradeOpen(true);
+                    }}
+                    css={tw`absolute top-3 right-3 z-10 w-8 h-8 rounded-lg border border-white/10 bg-black/30 text-neutral-300 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors duration-150`}
+                >
+                    <FontAwesomeIcon icon={faSlidersH} css={tw`text-xs`} />
+                </button>
+            )}
+            {upgradeable && (
+                <UpgradeServerDialog
+                    server={server.id}
+                    serverName={server.name}
+                    open={upgradeOpen}
+                    onClose={() => setUpgradeOpen(false)}
+                />
+            )}
         </ServerCard>
     );
 };

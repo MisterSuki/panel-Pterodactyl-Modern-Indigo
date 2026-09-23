@@ -103,30 +103,54 @@
                 <div class="box-body">
                     <label class="pd-switch"><input type="checkbox" name="res_enabled" value="1" @checked(old('res_enabled', $resources['enabled']))><i class="pd-switch-track"></i><span>Let clients raise or lower the resources of a server they bought</span></label>
                     <p class="text-muted small"><span>Set a price per unit. A change made during the month is charged only for the days left, on an invoice made on the first of the next month and paid from the credit. Leave a price at 0 to keep that component fixed. The "max" is how many units a client may add on top of their offer.</span></p>
-                    <div class="row">
-                        @foreach ($resources['items'] as $res)
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="res_{{ $res['key'] }}_price">{{ $res['label'] }}</label>
-                                    <div class="row">
-                                        <div class="col-xs-7">
-                                            <div class="input-group">
-                                                <span class="input-group-addon">{{ $currency }}</span>
-                                                <input type="text" id="res_{{ $res['key'] }}_price" name="res_{{ $res['key'] }}_price" class="form-control" value="{{ old('res_' . $res['key'] . '_price', $res['price']) }}" placeholder="0.00">
-                                            </div>
-                                        </div>
-                                        <div class="col-xs-5">
-                                            <input type="number" min="0" name="res_{{ $res['key'] }}_max" class="form-control" value="{{ old('res_' . $res['key'] . '_max', $res['max']) }}" placeholder="max" title="Maximum a client may add">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead><tr><th>Component</th><th>Price / unit ({{ $currency }})</th><th title="Maximum a client may add on top of their offer">Max to add (upgrade)</th><th title="For custom servers">Custom min</th><th title="For custom servers">Custom max</th></tr></thead>
+                            <tbody>
+                                @foreach ($resources['items'] as $res)
+                                    <tr>
+                                        <td style="vertical-align:middle">{{ $res['label'] }}</td>
+                                        <td><input type="text" name="res_{{ $res['key'] }}_price" class="form-control" value="{{ old('res_' . $res['key'] . '_price', $res['price']) }}" placeholder="0.00"></td>
+                                        <td><input type="number" min="0" name="res_{{ $res['key'] }}_max" class="form-control" value="{{ old('res_' . $res['key'] . '_max', $res['max']) }}"></td>
+                                        <td><input type="number" min="0" name="res_{{ $res['key'] }}_cmin" class="form-control" value="{{ old('res_' . $res['key'] . '_cmin', $res['cmin']) }}"></td>
+                                        <td><input type="number" min="0" name="res_{{ $res['key'] }}_cmax" class="form-control" value="{{ old('res_' . $res['key'] . '_cmax', $res['cmax']) }}"></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                     <div class="form-group" style="max-width:220px">
                         <label for="res_due_days">Days to pay an invoice</label>
                         <input type="number" min="1" id="res_due_days" name="res_due_days" class="form-control" value="{{ old('res_due_days', $resources['dueDays']) }}">
                         <p class="text-muted small"><span>After this, an unpaid invoice suspends the servers (nothing is deleted). They come back when it is paid.</span></p>
+                    </div>
+                    <hr>
+                    <label class="pd-switch"><input type="checkbox" name="custom_enabled" value="1" @checked(old('custom_enabled', $resources['custom']['enabled']))><i class="pd-switch-track"></i><span>Let clients build their own custom server</span></label>
+                    <p class="text-muted small"><span>Clients pick a game, a location and the resources above, at the prices set above (the "custom min/max" is the range they may pick). It is billed monthly like the resources.</span></p>
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label for="custom_eggs">Games clients may choose</label>
+                            <select id="custom_eggs" name="custom_eggs[]" class="form-control" multiple size="6">
+                                @foreach ($resources['eggs'] as $egg)
+                                    <option value="{{ $egg['id'] }}" @selected(in_array($egg['id'], old('custom_eggs', $resources['custom']['eggs'])))>{{ $egg['name'] }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-muted small"><span>Hold Ctrl (or Cmd) to select several.</span></p>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="custom_locations">Locations clients may choose</label>
+                            <select id="custom_locations" name="custom_locations[]" class="form-control" multiple size="6">
+                                @foreach ($resources['locations'] as $loc)
+                                    <option value="{{ $loc['id'] }}" @selected(in_array($loc['id'], old('custom_locations', $resources['custom']['locations'])))>{{ $loc['name'] }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-muted small"><span>Leave empty to let the panel pick a location automatically.</span></p>
+                        </div>
+                    </div>
+                    <div class="form-group" style="max-width:260px">
+                        <label for="custom_max_per_user">Most custom servers per client</label>
+                        <input type="number" min="0" id="custom_max_per_user" name="custom_max_per_user" class="form-control" value="{{ old('custom_max_per_user', $resources['custom']['maxPerUser']) }}">
+                        <p class="text-muted small"><span>0 means no limit.</span></p>
                     </div>
                 </div>
             </div>

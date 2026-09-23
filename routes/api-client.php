@@ -45,6 +45,7 @@ Route::prefix('/shop')->group(function () {
     Route::post('/renew', [Client\ShopController::class, 'renew'])->middleware('throttle:10,1');
     Route::post('/topup', [Client\ShopController::class, 'topup'])->middleware('throttle:10,1');
     // Changing the resources of a server bought in the shop (billed monthly).
+    Route::post('/custom', [Client\ShopController::class, 'createCustom'])->middleware('throttle:10,1');
     Route::get('/upgradeable', [Client\ShopController::class, 'upgradeable'])->middleware('throttle:60,1');
     Route::get('/servers/{server}/resources', [Client\ShopController::class, 'resources'])->middleware('throttle:60,1');
     Route::put('/servers/{server}/resources', [Client\ShopController::class, 'updateResources'])->middleware('throttle:20,1');

@@ -14,6 +14,7 @@ import Pagination from '@/components/elements/Pagination';
 import { useLocation } from 'react-router-dom';
 import getServersResourceUsage from '@/api/getServersResourceUsage';
 import { ServerStats } from '@/api/server/getServerResourceUsage';
+import { getUpgradeableServers } from '@/api/shop';
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -51,6 +52,13 @@ export default () => {
 
     // Once the first answer is in (or has failed), a server that is missing from it could not be reached.
     const usageSettled = usage !== undefined || !!usageError;
+
+    // The servers whose resources the person may change (bought in the shop). Fetched once; empty when the feature is off.
+    const { data: upgradeable } = useSWR<string[]>('shop-upgradeable', getUpgradeableServers, {
+        revalidateOnFocus: false,
+        shouldRetryOnError: false,
+    });
+    const upgradeableSet = new Set(upgradeable || []);
 
     useEffect(() => {
         setPage(1);
@@ -177,6 +185,7 @@ export default () => {
                                     server={server}
                                     stats={usage?.[server.uuid] ?? null}
                                     unreachable={usageSettled && !usage?.[server.uuid]}
+                                    upgradeable={upgradeableSet.has(server.id)}
                                     css={index > 0 ? tw`mt-2` : undefined}
                                     style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
                                 />

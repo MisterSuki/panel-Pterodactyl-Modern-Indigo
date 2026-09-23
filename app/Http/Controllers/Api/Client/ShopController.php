@@ -42,6 +42,8 @@ class ShopController extends ClientApiController
             'min_topup_cents' => $this->settings->minTopup(),
             'max_topup_cents' => $this->settings->maxTopup(),
             'providers' => array_values(array_map(fn (PaymentProvider $provider) => ['code' => $provider->code(), 'label' => $provider->label()], $this->shop->availableProviders())),
+            // What is needed to build a custom server (empty/off when the feature is not on).
+            'custom' => $this->billing->customConfig($user),
             // Only the categories that have something on sale are shown.
             'categories' => ShopCategory::query()->whereIn('id', ShopOffer::query()->where('enabled', true)->whereNotNull('category_id')->select('category_id'))
                 ->orderBy('position')->orderBy('name')->get(['id', 'name'])->map(fn (ShopCategory $category) => ['id' => $category->id, 'name' => $category->name])->all(),
@@ -171,6 +173,7 @@ class ShopController extends ClientApiController
                 'max' => $range['max'],
                 'current' => $range['current'],
                 'price_cents' => $range['price'],
+                'billed_from' => $range['billedFrom'],
             ];
         }
 
@@ -203,6 +206,40 @@ class ShopController extends ClientApiController
             'monthly_cents' => (int) $order->resource_cents,
             'balance_cents' => $this->shop->balance($request->user()->id),
         ]);
+    }
+
+    /**
+     * Builds a server the client configured themselves, billed monthly.
+     */
+    public function createCustom(Request $request): JsonResponse
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:80'],
+            'egg_id' => ['required', 'integer'],
+            'location_id' => ['nullable', 'integer'],
+            'resources' => ['required', 'array'],
+        ]);
+
+        $chosen = [];
+        foreach (array_keys(ShopSettings::RESOURCES) as $key) {
+            if ($request->has('resources.' . $key)) {
+                $chosen[$key] = (int) $request->input('resources.' . $key);
+            }
+        }
+
+        $order = $this->billing->createCustom(
+            $request->user(),
+            (int) $request->input('egg_id'),
+            $request->filled('location_id') ? (int) $request->input('location_id') : null,
+            $chosen,
+            (string) $request->input('name'),
+        );
+
+        return new JsonResponse([
+            'order_id' => $order->id,
+            'server' => $order->server ? $order->server->uuidShort : null,
+            'balance_cents' => $this->shop->balance($request->user()->id),
+        ], 201);
     }
 
     /**

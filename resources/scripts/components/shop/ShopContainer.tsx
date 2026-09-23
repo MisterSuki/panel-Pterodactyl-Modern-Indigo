@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useHistory, useLocation } from 'react-router-dom';
 import useSWR from 'swr';
 import tw from 'twin.macro';
 import classNames from 'classnames';
@@ -10,9 +10,19 @@ import PageContentBlock from '@/components/elements/PageContentBlock';
 import Spinner from '@/components/elements/Spinner';
 import { httpErrorToHuman } from '@/api/http';
 import { bytesToString, mbToBytes } from '@/lib/formatters';
-import { buyOffer, getShop, OrderStatus, renewOrder, ShopData, ShopOffer, ShopOrder, startPayment } from '@/api/shop';
+import {
+    buyOffer,
+    createCustomServer,
+    getShop,
+    OrderStatus,
+    renewOrder,
+    ShopData,
+    ShopOffer,
+    ShopOrder,
+    startPayment,
+} from '@/api/shop';
 
-type Tab = 'offers' | 'orders' | 'credit';
+type Tab = 'offers' | 'custom' | 'orders' | 'credit';
 
 const useMoney = (currency: string) => (cents: number) =>
     new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(cents / 100);
@@ -389,8 +399,166 @@ const CreditTab = ({
     );
 };
 
+// Build-your-own: the client picks a game, a location and the resources; the monthly price is worked out live, and the
+// server is made right away (the rest of the month is taken from the credit, then it is billed every month).
+const CustomTab = ({
+    shop,
+    money,
+    onError,
+    onDone,
+}: {
+    shop: ShopData;
+    money: (cents: number) => string;
+    onError: (message: string) => void;
+    onDone: (identifier: string | null) => void;
+}) => {
+    const c = shop.custom;
+    const [name, setName] = useState('');
+    const [eggId, setEggId] = useState<number>(c.eggs[0]?.id ?? 0);
+    const [locationId, setLocationId] = useState<number | null>(c.locations[0]?.id ?? null);
+    const [values, setValues] = useState<Record<string, number>>(
+        Object.fromEntries(c.items.map((i) => [i.key, i.default]))
+    );
+    const [busy, setBusy] = useState(false);
+
+    const monthly = c.items.reduce((sum, i) => sum + (values[i.key] ?? i.min) * i.priceCents, 0);
+    const atLimit = c.maxPerUser > 0 && c.owned >= c.maxPerUser;
+    const ready = name.trim() !== '' && eggId > 0 && monthly > 0 && (c.locations.length === 0 || locationId !== null);
+
+    const field = tw`w-full rounded-lg border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-neutral-50`;
+
+    const create = () => {
+        setBusy(true);
+        onError('');
+        createCustomServer({ name, eggId, locationId: c.locations.length ? locationId : null, resources: values })
+            .then((r) => onDone(r.server))
+            .catch((e) => onError(httpErrorToHuman(e)))
+            .then(() => setBusy(false));
+    };
+
+    if (!c.enabled) {
+        return <p css={tw`text-center text-neutral-400 py-10`}>Building a server is not available.</p>;
+    }
+
+    return (
+        <div css={tw`grid grid-cols-1 lg:grid-cols-3 gap-4`}>
+            <div css={tw`lg:col-span-2 rounded-2xl border border-white/5 bg-neutral-800 p-5`}>
+                <div css={tw`grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4`}>
+                    <div>
+                        <label css={tw`mb-1 block text-xs text-neutral-400`}>Name of your server</label>
+                        <input
+                            css={field}
+                            value={name}
+                            maxLength={80}
+                            onChange={(e) => setName(e.currentTarget.value)}
+                        />
+                    </div>
+                    <div>
+                        <label css={tw`mb-1 block text-xs text-neutral-400`}>Game</label>
+                        <select css={field} value={eggId} onChange={(e) => setEggId(Number(e.currentTarget.value))}>
+                            {c.eggs.map((egg) => (
+                                <option key={egg.id} value={egg.id}>
+                                    {egg.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    {c.locations.length > 0 && (
+                        <div>
+                            <label css={tw`mb-1 block text-xs text-neutral-400`}>Location</label>
+                            <select
+                                css={field}
+                                value={locationId ?? ''}
+                                onChange={(e) => setLocationId(Number(e.currentTarget.value))}
+                            >
+                                {c.locations.map((loc) => (
+                                    <option key={loc.id} value={loc.id}>
+                                        {loc.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                </div>
+                <div>
+                    {c.items.map((item) => {
+                        const value = values[item.key] ?? item.min;
+                        const set = (v: number) =>
+                            setValues((s) => ({ ...s, [item.key]: Math.min(item.max, Math.max(item.min, v)) }));
+
+                        return (
+                            <div
+                                key={item.key}
+                                css={tw`flex items-center justify-between gap-3 py-2.5 border-b border-white/5 last:border-0`}
+                            >
+                                <div css={tw`min-w-0`}>
+                                    <p css={tw`text-sm font-medium text-neutral-100`}>{item.label}</p>
+                                    <p css={tw`text-xs text-neutral-400`}>
+                                        {money(item.priceCents)} <span>each / month</span>
+                                    </p>
+                                </div>
+                                <div css={tw`flex items-center gap-2 flex-shrink-0`}>
+                                    <button
+                                        type={'button'}
+                                        onClick={() => set(value - 1)}
+                                        disabled={value <= item.min}
+                                        css={tw`w-8 h-8 rounded-lg border border-white/10 bg-white/5 text-neutral-200 disabled:opacity-40 hover:bg-white/10`}
+                                    >
+                                        −
+                                    </button>
+                                    <span css={tw`w-12 text-center tabular-nums text-neutral-50 font-semibold`}>
+                                        {value}
+                                    </span>
+                                    <button
+                                        type={'button'}
+                                        onClick={() => set(value + 1)}
+                                        disabled={value >= item.max}
+                                        css={tw`w-8 h-8 rounded-lg border border-white/10 bg-white/5 text-neutral-200 disabled:opacity-40 hover:bg-white/10`}
+                                    >
+                                        +
+                                    </button>
+                                    <span css={tw`w-16 text-right text-xs text-neutral-400 tabular-nums`}>
+                                        {value > 0 ? money(value * item.priceCents) : '—'}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+            <div css={tw`rounded-2xl border border-white/5 bg-neutral-800 p-5 flex flex-col`}>
+                <h3 css={tw`text-lg font-semibold text-neutral-50`}>Your server</h3>
+                <p css={tw`mt-3`}>
+                    <span css={tw`text-2xl font-bold text-primary-300`}>{money(monthly)}</span>
+                    <span css={tw`ml-1 text-sm text-neutral-400`}>/ month</span>
+                </p>
+                <p css={tw`mt-2 text-xs text-neutral-400`}>
+                    The rest of this month is taken from your credit now, then it is on your monthly invoice. Your
+                    credit: {money(shop.balanceCents)}.
+                </p>
+                {atLimit && (
+                    <p css={tw`mt-3 text-xs text-yellow-300`}>
+                        You have reached the number of custom servers you may have.
+                    </p>
+                )}
+                <div css={tw`mt-auto pt-5`}>
+                    <button
+                        type={'button'}
+                        onClick={create}
+                        disabled={busy || !ready || atLimit}
+                        className={classNames(buttonStyle, 'w-full')}
+                    >
+                        Create my server
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export default () => {
     const query = new URLSearchParams(useLocation().search);
+    const history = useHistory();
     const [tab, setTab] = useState<Tab>('offers');
     // The category whose offers are shown, or null for all of them.
     const [category, setCategory] = useState<number | null>(null);
@@ -450,6 +618,7 @@ export default () => {
 
     const tabs: { id: Tab; label: string }[] = [
         { id: 'offers', label: 'Offers' },
+        ...(shop.custom.enabled ? [{ id: 'custom' as Tab, label: 'Build your own' }] : []),
         { id: 'orders', label: 'My orders' },
         { id: 'credit', label: 'Credit' },
     ];
@@ -555,6 +724,22 @@ export default () => {
                             ))}
                     </div>
                 ))}
+
+            {tab === 'custom' && (
+                <CustomTab
+                    shop={shop}
+                    money={money}
+                    onError={setError}
+                    onDone={(identifier) => {
+                        mutate();
+                        if (identifier) {
+                            history.push(`/server/${identifier}`);
+                        } else {
+                            done('Your server is being made. You find it on your dashboard.', 'orders')();
+                        }
+                    }}
+                />
+            )}
 
             {tab === 'orders' &&
                 (shop.orders.length === 0 ? (
