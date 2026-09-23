@@ -126,7 +126,7 @@
                     </div>
                     <hr>
                     <label class="pd-switch"><input type="checkbox" name="custom_enabled" value="1" @checked(old('custom_enabled', $resources['custom']['enabled']))><i class="pd-switch-track"></i><span>Let clients build their own custom server</span></label>
-                    <p class="text-muted small"><span>Clients pick a game, a location and the resources above, at the prices set above (the "custom min/max" is the range they may pick). It is billed monthly like the resources.</span></p>
+                    <p class="text-muted small"><span>Clients pick a game, a location and the resources above, at the prices set above. A component is offered only when its "custom max" (in the table above) is set higher than its "custom min" — otherwise the client cannot pick any. It is billed monthly like the resources.</span></p>
                     <div class="row">
                         <div class="form-group col-md-6">
                             <label for="custom_eggs">Games clients may choose</label>

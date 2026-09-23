@@ -167,12 +167,17 @@ class ResourceBillingService
         $items = [];
         foreach ($this->prices() as $key => $price) {
             $min = $this->settings->customMin($key);
+            $max = $this->settings->customMax($key);
+            // Only offer a component that the administration actually opened up (a ceiling above the floor).
+            if ($max <= 0 || $max <= $min) {
+                continue;
+            }
             $items[] = [
                 'key' => $key,
                 'label' => ShopSettings::RESOURCES[$key]['label'],
                 'unit' => ShopSettings::RESOURCES[$key]['unit'],
                 'min' => $min,
-                'max' => $this->settings->customMax($key),
+                'max' => $max,
                 'default' => $min,
                 'price' => $price,
             ];
