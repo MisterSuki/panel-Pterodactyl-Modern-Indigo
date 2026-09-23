@@ -72,6 +72,9 @@ class ShopController extends ClientApiController
                     'price_cents' => $order->price_cents,
                     'duration_days' => $order->duration_days,
                     'expires_at' => $order->expires_at?->toAtomString(),
+                    // A custom server has no offer: it is billed monthly, not renewed by a fixed period.
+                    'custom' => $order->offer_id === null,
+                    'monthly_cents' => (int) $order->resource_cents,
                     'server' => $order->server ? ['identifier' => $order->server->uuidShort, 'name' => $order->server->name] : null,
                 ])->all(),
             'transactions' => ShopTransaction::query()->where('user_id', $user->id)->orderByDesc('id')->limit(30)->get()
@@ -112,6 +115,22 @@ class ShopController extends ClientApiController
         $this->shop->renew($request->user(), $order);
 
         return new JsonResponse(['balance_cents' => $this->shop->balance($request->user()->id)]);
+    }
+
+    /**
+     * Cancels an order: the server is suspended and it stops being billed.
+     */
+    public function cancel(Request $request): JsonResponse
+    {
+        $request->validate(['order_id' => ['required', 'integer']]);
+        $order = ShopOrder::query()->where('user_id', $request->user()->id)->find((int) $request->input('order_id'));
+        if (!$order) {
+            throw new DisplayException('This order cannot be cancelled.');
+        }
+
+        $this->shop->cancel($request->user(), $order);
+
+        return new JsonResponse(['ok' => true]);
     }
 
     /**

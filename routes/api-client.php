@@ -41,8 +41,9 @@ Route::prefix('/tickets')->group(function () {
 // The shop: what is for sale, the credit of the person, what they bought, and paying.
 Route::prefix('/shop')->group(function () {
     Route::get('/', [Client\ShopController::class, 'index'])->middleware('throttle:60,1');
-    Route::post('/buy', [Client\ShopController::class, 'buy'])->middleware('throttle:10,1');
-    Route::post('/renew', [Client\ShopController::class, 'renew'])->middleware('throttle:10,1');
+    Route::post('/buy', [Client\ShopController::class, 'buy'])->middleware('throttle:20,1');
+    Route::post('/renew', [Client\ShopController::class, 'renew'])->middleware('throttle:20,1');
+    Route::post('/cancel', [Client\ShopController::class, 'cancel'])->middleware('throttle:20,1');
     Route::post('/topup', [Client\ShopController::class, 'topup'])->middleware('throttle:10,1');
     // Changing the resources of a server bought in the shop (billed monthly).
     Route::post('/custom', [Client\ShopController::class, 'createCustom'])->middleware('throttle:20,1');

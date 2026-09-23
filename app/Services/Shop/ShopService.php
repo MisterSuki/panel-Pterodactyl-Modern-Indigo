@@ -33,6 +33,8 @@ class ShopService
      */
     public const EXPIRED_REASON = 'Shop: the time paid for has ended.';
 
+    public const CANCELLED_REASON = 'Shop: the order was cancelled.';
+
     /**
      * The smallest payment the providers take, in cents.
      */
@@ -330,6 +332,10 @@ class ShopService
             if (!$order || $order->user_id !== $user->id || !in_array($order->status, [ShopOrder::ACTIVE, ShopOrder::EXPIRED], true) || !$order->server_id) {
                 throw new DisplayException('This order cannot be renewed.');
             }
+            // A custom server is billed every month on its own; it is not renewed by a fixed period.
+            if ($order->offer_id === null) {
+                throw new DisplayException('This server is billed monthly and does not need to be renewed.');
+            }
 
             $this->move($user->id, 'renewal', -$order->price_cents, $order->offer_name, ['order_id' => $order->id]);
             $from = $order->expires_at && $order->expires_at->isFuture() ? $order->expires_at : now();
@@ -343,6 +349,39 @@ class ShopService
         });
 
         $this->liftExpiry($order);
+
+        return $order->refresh();
+    }
+
+    /**
+     * Cancels an order: the server is suspended (nothing is deleted) and it stops being billed. It cannot be brought back
+     * by the person; an administrator can remove the server or hand it back.
+     *
+     * @throws DisplayException
+     */
+    public function cancel(User $user, ShopOrder $order): ShopOrder
+    {
+        $order = ShopOrder::query()->whereKey($order->id)->first();
+        if (!$order || $order->user_id !== $user->id) {
+            throw new DisplayException('This order is not yours.');
+        }
+        if (!in_array($order->status, [ShopOrder::ACTIVE, ShopOrder::EXPIRED], true)) {
+            throw new DisplayException('This order cannot be cancelled.');
+        }
+
+        if ($order->server_id) {
+            try {
+                $server = Server::query()->without('allocation')->find($order->server_id);
+                if ($server && !$server->isSuspended()) {
+                    $this->suspensions->toggle($server, SuspensionService::ACTION_SUSPEND, ['reason' => self::CANCELLED_REASON]);
+                }
+            } catch (\Throwable $exception) {
+                Log::warning('A cancelled order could not have its server suspended.', ['order' => $order->id, 'error' => $exception->getMessage()]);
+            }
+        }
+
+        // Stop future billing (custom servers) and mark it cancelled.
+        $order->update(['status' => ShopOrder::CANCELLED, 'resource_cents' => 0]);
 
         return $order->refresh();
     }

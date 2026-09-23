@@ -30,6 +30,8 @@ class ShopOrder extends Model
 
     public const FAILED = 'failed';
 
+    public const CANCELLED = 'cancelled';
+
     protected $table = 'shop_orders';
 
     protected $guarded = ['id'];

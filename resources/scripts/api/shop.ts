@@ -22,7 +22,7 @@ export interface ShopOffer {
     stock: number | null;
 }
 
-export type OrderStatus = 'provisioning' | 'active' | 'expired' | 'failed';
+export type OrderStatus = 'provisioning' | 'active' | 'expired' | 'failed' | 'cancelled';
 
 export interface ShopOrder {
     id: number;
@@ -31,6 +31,9 @@ export interface ShopOrder {
     priceCents: number;
     durationDays: number;
     expiresAt: Date | null;
+    // A custom server built by the client: billed monthly, no fixed expiry, cannot be renewed.
+    custom: boolean;
+    monthlyCents: number;
     server: { identifier: string; name: string } | null;
 }
 
@@ -147,6 +150,8 @@ export const getShop = async (): Promise<ShopData> => {
             priceCents: o.price_cents,
             durationDays: o.duration_days,
             expiresAt: o.expires_at ? new Date(o.expires_at) : null,
+            custom: !!o.custom,
+            monthlyCents: o.monthly_cents ?? 0,
             server: o.server,
         })),
         transactions: data.transactions.map((t: any) => ({
@@ -183,6 +188,10 @@ export const buyOffer = async (offerId: number): Promise<void> => {
 
 export const renewOrder = async (orderId: number): Promise<void> => {
     await http.post('/api/client/shop/renew', { order_id: orderId });
+};
+
+export const cancelOrder = async (orderId: number): Promise<void> => {
+    await http.post('/api/client/shop/cancel', { order_id: orderId });
 };
 
 // One resource a client can raise or lower on a server bought in the shop, billed monthly.

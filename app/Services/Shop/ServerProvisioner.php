@@ -4,6 +4,8 @@ namespace Pterodactyl\Services\Shop;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use Pterodactyl\Models\Allocation;
 use Pterodactyl\Models\Egg;
 use Pterodactyl\Models\Objects\DeploymentObject;
 use Pterodactyl\Models\Server;
@@ -64,7 +66,10 @@ class ServerProvisioner
 
         $deployment = (new DeploymentObject())->setLocations([$offer->location_id])->setDedicated(false)->setPorts([]);
 
-        return $this->creation->handle($data, $deployment);
+        $server = $this->creation->handle($data, $deployment);
+        $this->addTxAdminPort($server, $egg);
+
+        return $server;
     }
 
     /**
@@ -110,6 +115,41 @@ class ServerProvisioner
 
         $deployment = (new DeploymentObject())->setLocations($locationIds)->setDedicated(false)->setPorts([]);
 
-        return $this->creation->handle($data, $deployment);
+        $server = $this->creation->handle($data, $deployment);
+        $this->addTxAdminPort($server, $egg);
+
+        return $server;
+    }
+
+    /**
+     * A FiveM server needs a second port for txAdmin. When the egg is FiveM, a free port on the same node is given to the
+     * server on top of the game port, without counting against the extra ports the client paid for. If none is free, the
+     * server is still made (the port can be added by hand later).
+     */
+    private function addTxAdminPort(Server $server, Egg $egg): void
+    {
+        if (stripos((string) $egg->name, 'fivem') === false) {
+            return;
+        }
+
+        try {
+            $extra = Allocation::query()
+                ->where('node_id', $server->node_id)
+                ->whereNull('server_id')
+                ->where('id', '!=', $server->allocation_id)
+                ->first();
+
+            if (!$extra) {
+                Log::warning('No free port for txAdmin on the node of a new FiveM server.', ['server' => $server->id]);
+
+                return;
+            }
+
+            $extra->update(['server_id' => $server->id]);
+            // Keep it on top of the ports the client bought, so their own limit stays free.
+            Server::query()->whereKey($server->id)->update(['allocation_limit' => (int) $server->allocation_limit + 1]);
+        } catch (\Throwable $exception) {
+            Log::warning('The txAdmin port could not be assigned.', ['server' => $server->id, 'error' => $exception->getMessage()]);
+        }
     }
 }

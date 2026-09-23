@@ -12,6 +12,7 @@ import { httpErrorToHuman } from '@/api/http';
 import { bytesToString, mbToBytes } from '@/lib/formatters';
 import {
     buyOffer,
+    cancelOrder,
     createCustomServer,
     getShop,
     OrderStatus,
@@ -50,6 +51,7 @@ const statusLabels: Record<OrderStatus, { label: string; className: string }> = 
     active: { label: 'Paid', className: 'bg-green-500/10 border-green-500/30 text-green-300' },
     expired: { label: 'Ran out', className: 'bg-red-500/10 border-red-500/30 text-red-300' },
     failed: { label: 'Not delivered', className: 'bg-gray-500/10 border-gray-500/30 text-gray-300' },
+    cancelled: { label: 'Cancelled', className: 'bg-gray-500/10 border-gray-500/30 text-gray-300' },
 };
 
 // The ways to pay. Picking one opens the payment at the provider and sends the person there.
@@ -212,13 +214,28 @@ const OrderRow = ({
     const [busy, setBusy] = useState(false);
     const [paying, setPaying] = useState(false);
     const enough = shop.balanceCents >= order.priceCents;
-    const canRenew = (order.status === 'active' || order.status === 'expired') && !!order.server;
+    // A custom server is billed monthly, so it is not renewed; the others can be renewed while they have a server.
+    const canRenew = !order.custom && (order.status === 'active' || order.status === 'expired') && !!order.server;
+    const canCancel = (order.status === 'active' || order.status === 'expired') && !!order.server;
     const status = statusLabels[order.status];
     const date = useDate();
 
     const renew = () => {
         setBusy(true);
         renewOrder(order.id)
+            .then(onDone)
+            .catch((e) => onError(httpErrorToHuman(e)))
+            .then(() => setBusy(false));
+    };
+
+    const cancel = () => {
+        if (
+            !window.confirm('Cancel this server? It is stopped right away and stops being billed. Nothing is deleted.')
+        ) {
+            return;
+        }
+        setBusy(true);
+        cancelOrder(order.id)
             .then(onDone)
             .catch((e) => onError(httpErrorToHuman(e)))
             .then(() => setBusy(false));
@@ -253,12 +270,20 @@ const OrderRow = ({
                         )}
                     </p>
                     <p css={tw`text-xs text-neutral-400 mt-0.5`}>
-                        {money(order.priceCents)} / {order.durationDays} days
-                        {order.expiresAt && (
+                        {order.custom ? (
                             <>
-                                {' · '}
-                                <span>{order.status === 'expired' ? 'Ran out on' : 'Paid until'}</span>{' '}
-                                {date(order.expiresAt)}
+                                {money(order.monthlyCents)} <span>/ month</span> · <span>Billed monthly</span>
+                            </>
+                        ) : (
+                            <>
+                                {money(order.priceCents)} / {order.durationDays} days
+                                {order.expiresAt && (
+                                    <>
+                                        {' · '}
+                                        <span>{order.status === 'expired' ? 'Ran out on' : 'Paid until'}</span>{' '}
+                                        {date(order.expiresAt)}
+                                    </>
+                                )}
                             </>
                         )}
                     </p>
@@ -281,6 +306,16 @@ const OrderRow = ({
                             Renew
                         </button>
                     ))}
+                {canCancel && (
+                    <button
+                        type={'button'}
+                        onClick={cancel}
+                        disabled={busy}
+                        className={classNames(quietButtonStyle, 'text-red-300')}
+                    >
+                        Cancel
+                    </button>
+                )}
             </div>
             {paying && !enough && (
                 <div css={tw`mt-3`}>
@@ -293,7 +328,14 @@ const OrderRow = ({
             )}
             {order.status === 'expired' && (
                 <p css={tw`mt-2 text-xs text-red-300`}>
-                    The server is suspended until you renew it. Nothing was deleted.
+                    {order.custom
+                        ? 'The server is suspended for an unpaid invoice. It comes back once the invoice is paid.'
+                        : 'The server is suspended until you renew it. Nothing was deleted.'}
+                </p>
+            )}
+            {order.status === 'cancelled' && (
+                <p css={tw`mt-2 text-xs text-neutral-400`}>
+                    This order was cancelled. The server is suspended and no longer billed.
                 </p>
             )}
         </div>
