@@ -4,6 +4,7 @@ import { Button } from '@/components/elements/button/index';
 import Spinner from '@/components/elements/Spinner';
 import tw from 'twin.macro';
 import { getServerResources, updateServerResources, ResourceItem, ServerResources } from '@/api/shop';
+import { httpErrorToHuman } from '@/api/http';
 import useFlash from '@/plugins/useFlash';
 
 interface Props {
@@ -74,6 +75,7 @@ export default ({ server, serverName, open, onClose, onSaved }: Props) => {
     const [values, setValues] = useState<Record<string, number>>({});
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [failed, setFailed] = useState<string | null>(null);
 
     useEffect(() => {
         if (!open) {
@@ -81,12 +83,13 @@ export default ({ server, serverName, open, onClose, onSaved }: Props) => {
         }
         setLoading(true);
         setData(null);
+        setFailed(null);
         getServerResources(server)
             .then((res) => {
                 setData(res);
                 setValues(Object.fromEntries(res.items.map((i) => [i.key, i.current])));
             })
-            .catch((error) => clearAndAddHttpError({ key: 'dashboard', error }))
+            .catch((error) => setFailed(httpErrorToHuman(error)))
             .then(() => setLoading(false));
     }, [open, server]);
 
@@ -115,7 +118,18 @@ export default ({ server, serverName, open, onClose, onSaved }: Props) => {
 
     return (
         <Dialog open={open} onClose={onClose} title={'Server resources'} description={serverName}>
-            {loading || !data ? (
+            {loading ? (
+                <div css={tw`py-8`}>
+                    <Spinner centered />
+                </div>
+            ) : failed ? (
+                <div css={tw`py-4`}>
+                    <p css={tw`text-sm text-red-300`}>{failed}</p>
+                    <Dialog.Footer>
+                        <Button.Text onClick={onClose}>Close</Button.Text>
+                    </Dialog.Footer>
+                </div>
+            ) : !data ? (
                 <div css={tw`py-8`}>
                     <Spinner centered />
                 </div>

@@ -37,6 +37,8 @@ Route::group(['prefix' => 'shop', 'middleware' => 'admin.can:shop'], function ()
     Route::post('/categories/{id}', [Admin\ShopController::class, 'saveCategory'])->whereNumber('id')->name('admin.shop.categories.save');
     Route::delete('/categories/{id}', [Admin\ShopController::class, 'deleteCategory'])->whereNumber('id')->name('admin.shop.categories.delete');
     Route::get('/orders', [Admin\ShopController::class, 'orders'])->name('admin.shop.orders');
+    Route::post('/orders/{id}/action', [Admin\ShopController::class, 'orderAction'])->whereNumber('id')->name('admin.shop.orders.action');
+    Route::delete('/orders/{id}', [Admin\ShopController::class, 'deleteOrder'])->whereNumber('id')->name('admin.shop.orders.delete');
     Route::get('/credit', [Admin\ShopController::class, 'credit'])->name('admin.shop.credit');
     Route::post('/credit/adjust', [Admin\ShopController::class, 'adjust'])->name('admin.shop.credit.adjust');
 

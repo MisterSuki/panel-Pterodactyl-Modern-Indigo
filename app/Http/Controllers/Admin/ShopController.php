@@ -13,6 +13,7 @@ use Pterodactyl\Http\Controllers\Admin\Concerns\ReadsEggEnvironment;
 use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\Models\Egg;
 use Pterodactyl\Models\Location;
+use Pterodactyl\Models\Server;
 use Pterodactyl\Models\ShopCategory;
 use Pterodactyl\Models\ShopOffer;
 use Pterodactyl\Models\ShopOrder;
@@ -31,7 +32,7 @@ class ShopController extends Controller
 {
     use ReadsEggEnvironment;
 
-    public function __construct(private ShopService $shop, private ShopSettings $settings, private AlertsMessageBag $alert)
+    public function __construct(private ShopService $shop, private ShopSettings $settings, private AlertsMessageBag $alert, private \Pterodactyl\Services\Servers\ServerDeletionService $deletion)
     {
     }
 
@@ -168,13 +169,65 @@ class ShopController extends Controller
 
     public function orders(Request $request): View
     {
-        $status = in_array($request->query('status'), [ShopOrder::ACTIVE, ShopOrder::EXPIRED, ShopOrder::PROVISIONING, ShopOrder::FAILED], true) ? $request->query('status') : null;
+        $status = in_array($request->query('status'), [ShopOrder::ACTIVE, ShopOrder::EXPIRED, ShopOrder::PROVISIONING, ShopOrder::FAILED, ShopOrder::CANCELLED], true) ? $request->query('status') : null;
 
         return view('admin.shop.orders', [
             'orders' => ShopOrder::query()->with(['user:id,username', 'server:id,uuidShort'])->when($status, fn ($query) => $query->where('status', $status))->orderByDesc('id')->paginate(50)->withQueryString(),
             'status' => $status,
             'currency' => $this->settings->currency(),
         ]);
+    }
+
+    /**
+     * Renew, cancel or refund an order from the administration.
+     */
+    public function orderAction(Request $request, int $id): RedirectResponse
+    {
+        $order = ShopOrder::query()->findOrFail($id);
+        $action = (string) $request->input('action');
+
+        if ($action === 'renew') {
+            $this->shop->adminRenew($order);
+            $this->alert->success('The order was renewed.')->flash();
+        } elseif ($action === 'cancel') {
+            $this->shop->adminCancel($order);
+            $this->alert->success('The order was cancelled: the server is suspended and no longer billed.')->flash();
+        } elseif ($action === 'refund') {
+            $cents = $this->cents((string) $request->input('amount', ''));
+            $cents = $cents === null ? (int) $order->price_cents : $cents;
+            $this->shop->adminRefund($order, $cents);
+            $this->alert->success('The order was refunded to the buyer\'s credit and cancelled.')->flash();
+        } else {
+            $this->alert->danger('Unknown action.')->flash();
+        }
+
+        return redirect()->route('admin.shop.orders');
+    }
+
+    /**
+     * Delete an order and, when it has one, its server (this removes the server from the node).
+     */
+    public function deleteOrder(int $id): RedirectResponse
+    {
+        $order = ShopOrder::query()->findOrFail($id);
+
+        if ($order->server_id) {
+            try {
+                $server = Server::query()->find($order->server_id);
+                if ($server) {
+                    $this->deletion->handle($server);
+                }
+            } catch (\Throwable $exception) {
+                report($exception);
+                $this->alert->danger('The server could not be deleted: ' . $exception->getMessage())->flash();
+
+                return redirect()->route('admin.shop.orders');
+            }
+        }
+        $order->delete();
+        $this->alert->success('The order and its server were deleted.')->flash();
+
+        return redirect()->route('admin.shop.orders');
     }
 
     public function credit(): View

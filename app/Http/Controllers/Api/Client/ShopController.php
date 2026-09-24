@@ -169,8 +169,6 @@ class ShopController extends ClientApiController
 
         $identifiers = ShopOrder::query()->where('user_id', $request->user()->id)
             ->where('status', ShopOrder::ACTIVE)->whereNotNull('server_id')
-            // If only custom is on, only custom servers can be changed; if selling resources is on, all of them can.
-            ->when(!$this->settings->resourceBillingEnabled(), fn ($q) => $q->whereNull('offer_id'))
             ->with('server:id,uuidShort')->get()
             ->map(fn (ShopOrder $order) => $order->server?->uuidShort)->filter()->values();
 
@@ -284,11 +282,7 @@ class ShopController extends ClientApiController
                 ->where('status', ShopOrder::ACTIVE)->first()
             : null;
         if (!$order) {
-            throw new DisplayException('This server cannot be changed.');
-        }
-        // When only custom servers may be adjusted, an offer-bought server cannot be changed here.
-        if (!$this->settings->resourceBillingEnabled() && $order->offer_id !== null) {
-            throw new DisplayException('This server cannot be changed.');
+            throw new DisplayException('Only servers bought in the shop can be changed here.');
         }
 
         return [$order];

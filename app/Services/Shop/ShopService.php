@@ -387,6 +387,69 @@ class ShopService
     }
 
     /**
+     * Admin: extends an order (a game offer) for another period without charging, and gives the server back if it was
+     * suspended. For a custom (monthly) server it just makes it active again and lifts the suspension.
+     */
+    public function adminRenew(ShopOrder $order): ShopOrder
+    {
+        $from = $order->expires_at && $order->expires_at->isFuture() ? $order->expires_at : now();
+        $order->update([
+            'status' => ShopOrder::ACTIVE,
+            'expires_at' => $order->offer_id ? $from->copy()->addDays($order->duration_days) : null,
+            'renewals' => $order->renewals + 1,
+        ]);
+
+        // The administrator asked for it, so the server comes back whatever the reason it was suspended.
+        if ($order->server_id) {
+            try {
+                $server = Server::query()->without('allocation')->find($order->server_id);
+                if ($server && $server->isSuspended()) {
+                    $this->suspensions->toggle($server, SuspensionService::ACTION_UNSUSPEND);
+                }
+            } catch (\Throwable $exception) {
+                Log::warning('A server could not be given back by an administrator.', ['order' => $order->id, 'error' => $exception->getMessage()]);
+            }
+        }
+
+        return $order->refresh();
+    }
+
+    /**
+     * Admin: suspends the server (nothing deleted) and stops billing.
+     */
+    public function adminCancel(ShopOrder $order): ShopOrder
+    {
+        if ($order->server_id) {
+            try {
+                $server = Server::query()->without('allocation')->find($order->server_id);
+                if ($server && !$server->isSuspended()) {
+                    $this->suspensions->toggle($server, SuspensionService::ACTION_SUSPEND, ['reason' => self::CANCELLED_REASON]);
+                }
+            } catch (\Throwable $exception) {
+                Log::warning('Admin cancel could not suspend the server.', ['order' => $order->id, 'error' => $exception->getMessage()]);
+            }
+        }
+        $order->update(['status' => ShopOrder::CANCELLED, 'resource_cents' => 0]);
+
+        return $order->refresh();
+    }
+
+    /**
+     * Admin: gives an amount back to the buyer's credit and cancels the order.
+     */
+    public function adminRefund(ShopOrder $order, int $cents): ShopOrder
+    {
+        if ($cents > 0) {
+            $this->move($order->user_id, 'refund', $cents, $order->offer_name . ' (refund by an administrator)', ['order_id' => $order->id]);
+        }
+        if (in_array($order->status, [ShopOrder::ACTIVE, ShopOrder::EXPIRED], true)) {
+            $this->adminCancel($order);
+        }
+
+        return $order->refresh();
+    }
+
+    /**
      * Suspends the servers that are not paid for any more. A server that cannot be reached is tried again the next time;
      * nothing is ever deleted, so the files of a person who comes back to pay are still there.
      *

@@ -28,6 +28,13 @@ type Tab = 'offers' | 'custom' | 'orders' | 'credit';
 const useMoney = (currency: string) => (cents: number) =>
     new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(cents / 100);
 
+// The first of next month: when the monthly invoice for a custom server is made.
+const nextFirstOfMonth = (): Date => {
+    const now = new Date();
+
+    return new Date(now.getFullYear(), now.getMonth() + 1, 1);
+};
+
 // A date, written in the language chosen by the person.
 const useDate = (withTime = false) => {
     const language = useStoreState((state) => state.user.data?.language) || 'en';
@@ -273,6 +280,12 @@ const OrderRow = ({
                         {order.custom ? (
                             <>
                                 {money(order.monthlyCents)} <span>/ month</span> · <span>Billed monthly</span>
+                                {order.status === 'active' && (
+                                    <>
+                                        {' · '}
+                                        <span>Next invoice on</span> {date(nextFirstOfMonth())}
+                                    </>
+                                )}
                             </>
                         ) : (
                             <>
@@ -443,6 +456,46 @@ const CreditTab = ({
 
 // Build-your-own: the client picks a game, a location and the resources; the monthly price is worked out live, and the
 // server is made right away (the rest of the month is taken from the credit, then it is billed every month).
+// One resource as a slider: label + value on top, the slider below, and the monthly price of what is chosen.
+const SliderRow = ({
+    label,
+    unitLabel,
+    min,
+    max,
+    value,
+    lineTotal,
+    onChange,
+}: {
+    label: string;
+    unitLabel: string;
+    min: number;
+    max: number;
+    value: number;
+    lineTotal: string;
+    onChange: (value: number) => void;
+}) => (
+    <div css={tw`py-3 border-b border-white/5 last:border-0`}>
+        <div css={tw`flex items-baseline justify-between gap-3`}>
+            <p css={tw`text-sm font-medium text-neutral-100`}>{label}</p>
+            <p css={tw`text-sm font-semibold text-neutral-50 tabular-nums`}>
+                {value}
+                <span css={tw`ml-2 text-xs font-normal text-neutral-400`}>{lineTotal}</span>
+            </p>
+        </div>
+        <input
+            type={'range'}
+            min={min}
+            max={max}
+            step={1}
+            value={value}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(Number(e.currentTarget.value))}
+            css={tw`mt-2 w-full h-1.5 rounded-full appearance-none bg-neutral-700 cursor-pointer`}
+            style={{ accentColor: '#6366f1' } as React.CSSProperties}
+        />
+        <p css={tw`mt-1 text-2xs text-neutral-500`}>{unitLabel}</p>
+    </div>
+);
+
 const CustomTab = ({
     shop,
     money,
@@ -525,45 +578,18 @@ const CustomTab = ({
                 <div>
                     {c.items.map((item) => {
                         const value = values[item.key] ?? item.min;
-                        const set = (v: number) =>
-                            setValues((s) => ({ ...s, [item.key]: Math.min(item.max, Math.max(item.min, v)) }));
 
                         return (
-                            <div
+                            <SliderRow
                                 key={item.key}
-                                css={tw`flex items-center justify-between gap-3 py-2.5 border-b border-white/5 last:border-0`}
-                            >
-                                <div css={tw`min-w-0`}>
-                                    <p css={tw`text-sm font-medium text-neutral-100`}>{item.label}</p>
-                                    <p css={tw`text-xs text-neutral-400`}>
-                                        {money(item.priceCents)} <span>each / month</span>
-                                    </p>
-                                </div>
-                                <div css={tw`flex items-center gap-2 flex-shrink-0`}>
-                                    <button
-                                        type={'button'}
-                                        onClick={() => set(value - 1)}
-                                        disabled={value <= item.min}
-                                        css={tw`w-8 h-8 rounded-lg border border-white/10 bg-white/5 text-neutral-200 disabled:opacity-40 hover:bg-white/10`}
-                                    >
-                                        −
-                                    </button>
-                                    <span css={tw`w-12 text-center tabular-nums text-neutral-50 font-semibold`}>
-                                        {value}
-                                    </span>
-                                    <button
-                                        type={'button'}
-                                        onClick={() => set(value + 1)}
-                                        disabled={value >= item.max}
-                                        css={tw`w-8 h-8 rounded-lg border border-white/10 bg-white/5 text-neutral-200 disabled:opacity-40 hover:bg-white/10`}
-                                    >
-                                        +
-                                    </button>
-                                    <span css={tw`w-16 text-right text-xs text-neutral-400 tabular-nums`}>
-                                        {value > 0 ? money(value * item.priceCents) : '—'}
-                                    </span>
-                                </div>
-                            </div>
+                                label={item.label}
+                                unitLabel={`${money(item.priceCents)} / mois`}
+                                min={item.min}
+                                max={item.max}
+                                value={value}
+                                lineTotal={value > 0 ? money(value * item.priceCents) : '—'}
+                                onChange={(v) => setValues((s) => ({ ...s, [item.key]: v }))}
+                            />
                         );
                     })}
                 </div>
