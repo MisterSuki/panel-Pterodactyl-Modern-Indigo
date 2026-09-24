@@ -161,12 +161,16 @@ class ShopController extends ClientApiController
      */
     public function upgradeable(Request $request): JsonResponse
     {
-        if (!$this->settings->resourceBillingEnabled()) {
+        // Resources can be changed as soon as selling resources OR building custom servers is on: both use the same prices.
+        $anyOn = $this->settings->resourceBillingEnabled() || $this->settings->customEnabled();
+        if (!$anyOn) {
             return new JsonResponse(['servers' => []]);
         }
 
         $identifiers = ShopOrder::query()->where('user_id', $request->user()->id)
             ->where('status', ShopOrder::ACTIVE)->whereNotNull('server_id')
+            // If only custom is on, only custom servers can be changed; if selling resources is on, all of them can.
+            ->when(!$this->settings->resourceBillingEnabled(), fn ($q) => $q->whereNull('offer_id'))
             ->with('server:id,uuidShort')->get()
             ->map(fn (ShopOrder $order) => $order->server?->uuidShort)->filter()->values();
 
@@ -271,7 +275,7 @@ class ShopController extends ClientApiController
      */
     private function orderForServer(Request $request, string $server): array
     {
-        if (!$this->settings->resourceBillingEnabled()) {
+        if (!$this->settings->resourceBillingEnabled() && !$this->settings->customEnabled()) {
             throw new DisplayException('Changing the resources is not available.');
         }
         $model = Server::query()->where('uuidShort', $server)->first();
@@ -280,6 +284,10 @@ class ShopController extends ClientApiController
                 ->where('status', ShopOrder::ACTIVE)->first()
             : null;
         if (!$order) {
+            throw new DisplayException('This server cannot be changed.');
+        }
+        // When only custom servers may be adjusted, an offer-bought server cannot be changed here.
+        if (!$this->settings->resourceBillingEnabled() && $order->offer_id !== null) {
             throw new DisplayException('This server cannot be changed.');
         }
 

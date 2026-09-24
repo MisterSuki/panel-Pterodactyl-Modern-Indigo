@@ -609,7 +609,16 @@ export default () => {
     const { data: shop, mutate } = useSWR<ShopData>('shop', getShop, {
         revalidateOnFocus: true,
         refreshInterval: 20000,
+        // Do not hammer the server if it answers with an error (avoids piling up "Too Many Attempts").
+        shouldRetryOnError: false,
     });
+
+    // Move between tabs and forget any old error/notice so a stale message does not stay on screen.
+    const goTo = (next: Tab) => {
+        setError('');
+        setNotice('');
+        setTab(next);
+    };
     const money = useMoney(shop?.currency || 'EUR');
 
     const result = query.get('payment');
@@ -677,7 +686,7 @@ export default () => {
                 </div>
                 <button
                     type={'button'}
-                    onClick={() => setTab('credit')}
+                    onClick={() => goTo('credit')}
                     css={tw`flex items-center gap-3 rounded-xl border border-white/10 bg-neutral-800 px-4 py-2 shadow-card`}
                 >
                     <FontAwesomeIcon icon={faCoins} css={tw`text-yellow-300`} />
@@ -711,7 +720,7 @@ export default () => {
                     <button
                         key={id}
                         type={'button'}
-                        onClick={() => setTab(id)}
+                        onClick={() => goTo(id)}
                         className={classNames(
                             'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors duration-150',
                             tab === id
