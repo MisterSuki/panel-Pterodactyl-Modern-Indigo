@@ -602,7 +602,12 @@ const CustomTab = ({
                                 <input
                                     css={field}
                                     value={vars[v.env] ?? ''}
-                                    onChange={(e) => setVars((s) => ({ ...s, [v.env]: e.currentTarget.value }))}
+                                    onChange={(e) => {
+                                        // Read the value now, not inside the updater: React recycles the event, so
+                                        // e.currentTarget is null by the time the updater runs (crash on typing).
+                                        const value = e.currentTarget.value;
+                                        setVars((s) => ({ ...s, [v.env]: value }));
+                                    }}
                                 />
                                 {v.description && <p css={tw`mt-1 text-2xs text-neutral-500`}>{v.description}</p>}
                             </div>
