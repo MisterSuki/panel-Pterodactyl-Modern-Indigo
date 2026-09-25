@@ -1,0 +1,147 @@
+import tw from 'twin.macro';
+import { createGlobalStyle } from 'styled-components/macro';
+// @ts-expect-error untyped font file
+import font from '@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2';
+
+export default createGlobalStyle`
+    @font-face {
+        font-family: 'IBM Plex Sans';
+        font-style: normal;
+        font-display: swap;
+        font-weight: 100 700;
+        src: url(${font}) format('woff2-variations');
+        unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+    }
+
+    html {
+        background: #05070d;
+    }
+
+    /*
+     * The list of a drop-down is drawn by the browser, on a white background, and the text of the fields is light:
+     * without this the choices could not be read. The dark scheme also darkens date pickers and scrollbars in fields.
+     */
+    select,
+    input,
+    textarea {
+        color-scheme: dark;
+    }
+
+    select option,
+    select optgroup {
+        background-color: #131826;
+        color: #e5e7eb;
+    }
+
+    select option:checked {
+        background-color: #4f46e5;
+        color: #ffffff;
+    }
+
+    select option:disabled {
+        color: #6b7280;
+    }
+
+    body {
+        ${tw`font-sans bg-neutral-900 text-neutral-200 antialiased`};
+        letter-spacing: 0.015em;
+        min-height: 100vh;
+        background-color: #05070d;
+    }
+
+    /*
+     * The glow behind the page lives on its own fixed layer. With "background-attachment: fixed"
+     * the browser repaints the whole gradient on every scroll frame, which is what made the
+     * console page feel heavy.
+     */
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background-image:
+            radial-gradient(1100px circle at 8% -10%, rgba(99, 102, 241, 0.16), transparent 55%),
+            radial-gradient(900px circle at 100% 0%, rgba(6, 182, 212, 0.10), transparent 50%),
+            radial-gradient(1200px circle at 50% 120%, rgba(139, 92, 246, 0.08), transparent 55%);
+        transform: translateZ(0);
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    ::selection {
+        background: rgba(99, 102, 241, 0.45);
+        color: #fff;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        ${tw`font-medium tracking-normal font-header`};
+    }
+
+    p {
+        ${tw`text-neutral-200 leading-snug font-sans`};
+    }
+
+    form {
+        ${tw`m-0`};
+    }
+
+    textarea, select, input, button, button:focus, button:focus-visible {
+        ${tw`outline-none`};
+    }
+
+    a {
+        ${tw`text-primary-400`};
+    }
+
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield !important;
+    }
+
+    /* Scroll Bar Style */
+    ::-webkit-scrollbar {
+        background: none;
+        width: 12px;
+        height: 12px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: solid 3px transparent;
+        border-radius: 9999px;
+        background-clip: padding-box;
+        background-color: hsl(222, 18%, 32%);
+        transition: background-color 150ms ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: hsl(238, 65%, 62%);
+    }
+
+    ::-webkit-scrollbar-track-piece {
+        margin: 4px 0;
+    }
+
+    ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+`;
