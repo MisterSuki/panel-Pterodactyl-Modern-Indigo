@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useHistory, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import useSWR from 'swr';
 import tw from 'twin.macro';
 import classNames from 'classnames';
@@ -596,8 +596,8 @@ const CustomTab = ({
                         <p css={tw`mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-400`}>
                             <span>This game needs</span>
                         </p>
-                        {eggVars.map((v) => (
-                            <div key={v.env} css={tw`mb-2 last:mb-0`}>
+                        {eggVars.map((v, i) => (
+                            <div key={`${v.env}-${i}`} css={tw`mb-2 last:mb-0`}>
                                 <label css={tw`mb-1 block text-xs text-neutral-300`}>{v.name}</label>
                                 <input
                                     css={field}
@@ -660,7 +660,6 @@ const CustomTab = ({
 
 export default () => {
     const query = new URLSearchParams(useLocation().search);
-    const history = useHistory();
     const [tab, setTab] = useState<Tab>('offers');
     // The category whose offers are shown, or null for all of them.
     const [category, setCategory] = useState<number | null>(null);
@@ -841,13 +840,14 @@ export default () => {
                     shop={shop}
                     money={money}
                     onError={setError}
-                    onDone={(identifier) => {
-                        mutate();
-                        if (identifier) {
-                            history.push(`/server/${identifier}`);
-                        } else {
-                            done('Your server is being made. You find it on your dashboard.', 'orders')();
-                        }
+                    onDone={() => {
+                        // A freshly made server is not ready to open yet (it is still being installed), so we do not
+                        // send the person into it — that page would crash on a server that has no data yet. It shows up
+                        // in "My orders" and on the dashboard, ready to open, once it is done.
+                        done(
+                            'Your server is being made. You find it in "My orders" and on your dashboard.',
+                            'orders'
+                        )();
                     }}
                 />
             )}
