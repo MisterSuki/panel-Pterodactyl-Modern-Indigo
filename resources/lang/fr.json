@@ -1632,5 +1632,15 @@
  "Only when online": "Seulement si en ligne",
  "active": "actifs",
  "task": "tâche",
- "tasks": "tâches"
+ "tasks": "tâches",
+ "Quick presets": "Préréglages rapides",
+ "Every 5 minutes": "Toutes les 5 minutes",
+ "Every 15 minutes": "Toutes les 15 minutes",
+ "Every 30 minutes": "Toutes les 30 minutes",
+ "Hourly": "Toutes les heures",
+ "Daily at midnight": "Tous les jours à minuit",
+ "Weekly (Monday)": "Chaque semaine (lundi)",
+ "Monthly (1st)": "Chaque mois (le 1er)",
+ "This runs": "Ceci s'exécute",
+ "Custom timing": "Horaire personnalisé"
 }

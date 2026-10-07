@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Schedule } from '@/api/server/schedules/getServerSchedules';
 import Field from '@/components/elements/Field';
-import { Form, Formik, FormikHelpers } from 'formik';
+import { Form, Formik, FormikHelpers, useFormikContext } from 'formik';
 import FormikSwitch from '@/components/elements/FormikSwitch';
 import createOrUpdateSchedule from '@/api/server/schedules/createOrUpdateSchedule';
 import { ServerContext } from '@/state/server';
@@ -9,6 +9,7 @@ import { httpErrorToHuman } from '@/api/http';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import useFlash from '@/plugins/useFlash';
 import tw from 'twin.macro';
+import classNames from 'classnames';
 import { Button } from '@/components/elements/button/index';
 import ModalContext from '@/context/ModalContext';
 import asModal from '@/hoc/asModal';
@@ -29,6 +30,92 @@ interface Values {
     enabled: boolean;
     onlyWhenOnline: boolean;
 }
+
+type Cron = Pick<Values, 'minute' | 'hour' | 'dayOfMonth' | 'month' | 'dayOfWeek'>;
+
+// One-click timings that fill the five cron fields. The labels are translated through the dictionary.
+const PRESETS: { label: string; cron: Cron }[] = [
+    { label: 'Every 5 minutes', cron: { minute: '*/5', hour: '*', dayOfMonth: '*', month: '*', dayOfWeek: '*' } },
+    { label: 'Every 15 minutes', cron: { minute: '*/15', hour: '*', dayOfMonth: '*', month: '*', dayOfWeek: '*' } },
+    { label: 'Every 30 minutes', cron: { minute: '*/30', hour: '*', dayOfMonth: '*', month: '*', dayOfWeek: '*' } },
+    { label: 'Hourly', cron: { minute: '0', hour: '*', dayOfMonth: '*', month: '*', dayOfWeek: '*' } },
+    { label: 'Every 6 hours', cron: { minute: '0', hour: '*/6', dayOfMonth: '*', month: '*', dayOfWeek: '*' } },
+    { label: 'Every 12 hours', cron: { minute: '0', hour: '*/12', dayOfMonth: '*', month: '*', dayOfWeek: '*' } },
+    { label: 'Daily at midnight', cron: { minute: '0', hour: '0', dayOfMonth: '*', month: '*', dayOfWeek: '*' } },
+    { label: 'Weekly (Monday)', cron: { minute: '0', hour: '0', dayOfMonth: '*', month: '*', dayOfWeek: '1' } },
+    { label: 'Monthly (1st)', cron: { minute: '0', hour: '0', dayOfMonth: '1', month: '*', dayOfWeek: '*' } },
+];
+
+const sameCron = (a: Cron, b: Cron) =>
+    a.minute === b.minute && a.hour === b.hour && a.dayOfMonth === b.dayOfMonth && a.month === b.month && a.dayOfWeek === b.dayOfWeek;
+
+// The cron timing: quick presets, the five fields and a short summary of what is set.
+const CronBuilder = () => {
+    const { values, setFieldValue } = useFormikContext<Values>();
+    const current: Cron = {
+        minute: values.minute,
+        hour: values.hour,
+        dayOfMonth: values.dayOfMonth,
+        month: values.month,
+        dayOfWeek: values.dayOfWeek,
+    };
+    const match = PRESETS.find((p) => sameCron(p.cron, current));
+
+    const apply = (cron: Cron) => {
+        (Object.keys(cron) as (keyof Cron)[]).forEach((key) => setFieldValue(key, cron[key]));
+    };
+
+    return (
+        <div css={tw`mt-6 rounded-xl border border-white/5 bg-neutral-900/40 p-4`}>
+            <p css={tw`text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2`}>
+                <span>Quick presets</span>
+            </p>
+            <div css={tw`flex flex-wrap gap-2`}>
+                {PRESETS.map((preset) => (
+                    <button
+                        key={preset.label}
+                        type={'button'}
+                        onClick={() => apply(preset.cron)}
+                        className={classNames(
+                            'rounded-full border px-3 py-1.5 text-xs font-medium transition-colors duration-150',
+                            match && match.label === preset.label
+                                ? 'border-primary-400 bg-primary-500/20 text-primary-100'
+                                : 'border-white/10 bg-white/5 text-neutral-300 hover:bg-white/10'
+                        )}
+                    >
+                        {preset.label}
+                    </button>
+                ))}
+            </div>
+            <div css={tw`grid grid-cols-2 sm:grid-cols-5 gap-4 mt-4`}>
+                <Field name={'minute'} label={'Minute'} />
+                <Field name={'hour'} label={'Hour'} />
+                <Field name={'dayOfMonth'} label={'Day of month'} />
+                <Field name={'month'} label={'Month'} />
+                <Field name={'dayOfWeek'} label={'Day of week'} />
+            </div>
+            <p css={tw`mt-3 text-xs text-neutral-400`}>
+                {match ? (
+                    <>
+                        <span>This runs</span>:{' '}
+                        <span css={tw`text-primary-300 font-medium`}>{match.label}</span>
+                    </>
+                ) : (
+                    <>
+                        <span>Custom timing</span>:{' '}
+                        <code css={tw`text-neutral-300`}>
+                            {values.minute} {values.hour} {values.dayOfMonth} {values.month} {values.dayOfWeek}
+                        </code>
+                    </>
+                )}
+            </p>
+            <p css={tw`text-neutral-500 text-2xs mt-2`}>
+                The schedule system supports the use of Cronjob syntax when defining when tasks should begin running. Use
+                the fields above to specify when these tasks should begin running.
+            </p>
+        </div>
+    );
+};
 
 const EditScheduleModal = ({ schedule }: Props) => {
     const { addError, clearFlashes } = useFlash();
@@ -97,18 +184,8 @@ const EditScheduleModal = ({ schedule }: Props) => {
                         label={'Schedule name'}
                         description={'A human readable identifier for this schedule.'}
                     />
-                    <div css={tw`grid grid-cols-2 sm:grid-cols-5 gap-4 mt-6`}>
-                        <Field name={'minute'} label={'Minute'} />
-                        <Field name={'hour'} label={'Hour'} />
-                        <Field name={'dayOfMonth'} label={'Day of month'} />
-                        <Field name={'month'} label={'Month'} />
-                        <Field name={'dayOfWeek'} label={'Day of week'} />
-                    </div>
-                    <p css={tw`text-neutral-400 text-xs mt-2`}>
-                        The schedule system supports the use of Cronjob syntax when defining when tasks should begin
-                        running. Use the fields above to specify when these tasks should begin running.
-                    </p>
-                    <div css={tw`mt-6 bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded`}>
+                    <CronBuilder />
+                    <div css={tw`mt-6 rounded-xl border border-white/5 bg-neutral-900/40 p-4`}>
                         <Switch
                             name={'show_cheatsheet'}
                             description={'Show the cron cheatsheet for some examples.'}
@@ -117,19 +194,19 @@ const EditScheduleModal = ({ schedule }: Props) => {
                             onChange={() => setShowCheetsheet((s) => !s)}
                         />
                         {showCheatsheet && (
-                            <div css={tw`block md:flex w-full`}>
+                            <div css={tw`block md:flex w-full mt-3`}>
                                 <ScheduleCheatsheetCards />
                             </div>
                         )}
                     </div>
-                    <div css={tw`mt-6 bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded`}>
+                    <div css={tw`mt-4 rounded-xl border border-white/5 bg-neutral-900/40 p-4`}>
                         <FormikSwitch
                             name={'onlyWhenOnline'}
                             description={'Only execute this schedule when the server is in a running state.'}
                             label={'Only When Server Is Online'}
                         />
                     </div>
-                    <div css={tw`mt-6 bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded`}>
+                    <div css={tw`mt-4 rounded-xl border border-white/5 bg-neutral-900/40 p-4`}>
                         <FormikSwitch
                             name={'enabled'}
                             description={'This schedule will be executed automatically if enabled.'}
