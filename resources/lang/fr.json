@@ -1622,5 +1622,15 @@
  "you will be denying the ability to auto-deploy to this node.": "vous empêchez le déploiement automatique sur ce node.",
  "— unless you are absolutely sure of what you are doing.": "— sauf si vous êtes absolument sûr de ce que vous faites.",
  "→ Install Script": "→ Script d'installation",
- "→ Variables": "→ Variables"
+ "→ Variables": "→ Variables",
+ "Automate your server: run backups, restarts and commands at the times you choose.": "Automatisez votre serveur : lancez sauvegardes, redémarrages et commandes aux horaires de votre choix.",
+ "New schedule": "Nouveau planning",
+ "No schedule yet": "Aucun planning pour le moment",
+ "Create a schedule to automate backups, restarts or console commands. Each schedule runs its tasks on a cron timing you choose.": "Créez un planning pour automatiser les sauvegardes, redémarrages ou commandes console. Chaque planning exécute ses tâches selon un horaire cron que vous choisissez.",
+ "Next run": "Prochaine exécution",
+ "Last run": "Dernière exécution",
+ "Only when online": "Seulement si en ligne",
+ "active": "actifs",
+ "task": "tâche",
+ "tasks": "tâches"
 }
