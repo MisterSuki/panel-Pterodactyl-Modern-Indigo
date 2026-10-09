@@ -30,6 +30,9 @@ export default () => {
 
     const id = ServerContext.useStoreState((state) => state.server.data?.id);
     const uuid = ServerContext.useStoreState((state) => state.server.data?.uuid);
+    const eggFeatures = ServerContext.useStoreState((state) => state.server.data?.eggFeatures || []);
+    // Minecraft (Java) eggs carry the EULA / Java-version features; the Minecraft tab is only for them.
+    const isMinecraft = eggFeatures.includes('eula') || eggFeatures.includes('java_version');
     const inConflictState = ServerContext.useStoreState((state) => state.server.inConflictState);
     const serverId = ServerContext.useStoreState((state) => state.server.data?.internalId);
     const getServer = ServerContext.useStoreActions((actions) => actions.server.getServer);
@@ -77,7 +80,7 @@ export default () => {
                         <SubNavigation>
                             <div>
                                 {routes.server
-                                    .filter((route) => !!route.name)
+                                    .filter((route) => !!route.name && (!route.minecraft || isMinecraft))
                                     .map((route) =>
                                         route.permission ? (
                                             <Can key={route.path} action={route.permission} matchAny>
@@ -109,7 +112,9 @@ export default () => {
                         <ErrorBoundary>
                             <TransitionRouter>
                                 <Switch location={location}>
-                                    {routes.server.map(({ path, permission, component: Component }) => (
+                                    {routes.server
+                                        .filter((route) => !route.minecraft || isMinecraft)
+                                        .map(({ path, permission, component: Component }) => (
                                         <PermissionRoute key={path} permission={permission} path={to(path)} exact>
                                             <Spinner.Suspense>
                                                 <Component />

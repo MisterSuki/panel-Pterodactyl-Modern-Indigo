@@ -21,6 +21,7 @@ import ServerActivityLogContainer from '@/components/server/ServerActivityLogCon
 // for the server dashboard when they're only needed for specific instances.
 const FileEditContainer = lazy(() => import('@/components/server/files/FileEditContainer'));
 const ScheduleEditContainer = lazy(() => import('@/components/server/schedules/ScheduleEditContainer'));
+const MinecraftContainer = lazy(() => import('@/components/server/minecraft/MinecraftContainer'));
 
 interface RouteDefinition {
     path: string;
@@ -33,6 +34,8 @@ interface RouteDefinition {
 
 interface ServerRouteDefinition extends RouteDefinition {
     permission: string | string[] | null;
+    // Only shown (and routed) for Minecraft servers, detected from the server's egg features.
+    minecraft?: boolean;
 }
 
 interface Routes {
@@ -127,6 +130,13 @@ export default {
             permission: 'startup.*',
             name: 'Startup',
             component: StartupContainer,
+        },
+        {
+            path: '/minecraft',
+            permission: 'file.*',
+            name: 'Minecraft',
+            component: MinecraftContainer,
+            minecraft: true,
         },
         {
             path: '/settings',
