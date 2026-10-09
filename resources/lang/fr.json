@@ -1695,5 +1695,14 @@
  "Library": "Bibliothèque",
  "Any version": "Toutes versions",
  "Snapshots": "Snapshots",
- "Installed": "Installé"
+ "Installed": "Installé",
+ "Online players": "Joueurs connectés",
+ "Start the server to see connected players.": "Démarrez le serveur pour voir les joueurs connectés.",
+ "Nobody is connected.": "Personne n'est connecté.",
+ "Refresh": "Rafraîchir",
+ "Add to whitelist": "Ajouter à la whitelist",
+ "Kick": "Expulser",
+ "Ban": "Bannir",
+ "Op": "Op",
+ "Turn the whitelist on or off": "Activer/désactiver la whitelist"
 }

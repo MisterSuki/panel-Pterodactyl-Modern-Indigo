@@ -7,15 +7,19 @@ import {
     faBoxOpen,
     faCheck,
     faDownload,
+    faGavel,
     faImage,
     faPlus,
     faPowerOff,
     faPuzzlePiece,
     faScroll,
     faSearch,
+    faSync,
     faTrash,
     faUpload,
+    faUserPlus,
     faUserShield,
+    faUserSlash,
     faUsers,
     faCircleNotch,
 } from '@fortawesome/free-solid-svg-icons';
@@ -33,17 +37,21 @@ import {
     detectStartup,
     getGameVersions,
     directoryForLoader,
+    getWhitelistEnabled,
     levelName,
     pullFile,
     resolveDownload,
     searchModrinth,
     sendCommand,
     setResourcePack,
+    setWhitelistEnabled,
 } from '@/api/server/minecraft';
 import loadDirectory, { FileObject } from '@/api/server/files/loadDirectory';
 import deleteFiles from '@/api/server/files/deleteFiles';
 import renameFiles from '@/api/server/files/renameFiles';
 import getFileContents from '@/api/server/files/getFileContents';
+import useWebsocketEvent from '@/plugins/useWebsocketEvent';
+import { SocketEvent } from '@/components/server/events';
 
 type Tab = 'content' | 'players';
 
@@ -513,6 +521,7 @@ const PlayerList = ({
     removeCommand,
     running,
     onError,
+    headerRight,
 }: {
     uuid: string;
     icon: any;
@@ -522,6 +531,7 @@ const PlayerList = ({
     removeCommand: (name: string) => string;
     running: boolean;
     onError: (m: string) => void;
+    headerRight?: React.ReactNode;
 }) => {
     const [names, setNames] = useState<string[] | null>(null);
     const [value, setValue] = useState('');
@@ -555,7 +565,10 @@ const PlayerList = ({
         <div css={card} style={cardPad}>
             <h3 css={tw`flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-neutral-300 mb-3`}>
                 <FontAwesomeIcon icon={icon} css={tw`text-primary-300`} /> {title}
-                {names && <span css={tw`ml-auto text-xs font-normal text-neutral-500`}>{names.length}</span>}
+                <span css={tw`ml-auto flex items-center gap-2`}>
+                    {headerRight}
+                    {names && <span css={tw`text-xs font-normal text-neutral-500`}>{names.length}</span>}
+                </span>
             </h3>
             <div css={tw`flex gap-2 mb-3`}>
                 <input
@@ -602,13 +615,166 @@ const PlayerList = ({
     );
 };
 
-const PlayersTab = ({ uuid, running, onError }: { uuid: string; running: boolean; onError: (m: string) => void }) => (
-    <div css={tw`grid grid-cols-1 md:grid-cols-3 gap-4`}>
-        <PlayerList uuid={uuid} icon={faUsers} title={'Whitelist'} file={'/whitelist.json'} addCommand={(n) => `whitelist add ${n}`} removeCommand={(n) => `whitelist remove ${n}`} running={running} onError={onError} />
-        <PlayerList uuid={uuid} icon={faUserShield} title={'Operators'} file={'/ops.json'} addCommand={(n) => `op ${n}`} removeCommand={(n) => `deop ${n}`} running={running} onError={onError} />
-        <PlayerList uuid={uuid} icon={faBan} title={'Banned'} file={'/banned-players.json'} addCommand={(n) => `ban ${n}`} removeCommand={(n) => `pardon ${n}`} running={running} onError={onError} />
-    </div>
-);
+// The players connected right now, read from the reply to the "list" command on the console stream. Each one gets quick
+// actions (add to whitelist, op, kick, ban).
+const OnlinePlayers = ({ uuid, running, onError }: { uuid: string; running: boolean; onError: (m: string) => void }) => {
+    const [names, setNames] = useState<string[] | null>(null);
+    const [busy, setBusy] = useState(false);
+
+    useWebsocketEvent(SocketEvent.CONSOLE_OUTPUT, (line: string) => {
+        const match = line.match(/players online:?\s*(.*)$/i);
+        if (!match) return;
+        const rest = match[1].replace(/\u001b\[[0-9;]*m/g, '').trim();
+        setNames(
+            rest === ''
+                ? []
+                : rest
+                      .split(',')
+                      .map((n) => n.trim().replace(/\.$/, ''))
+                      .filter((n) => n !== '')
+        );
+    });
+
+    const refresh = useCallback(() => {
+        if (!running) {
+            setNames(null);
+
+            return;
+        }
+        sendCommand(uuid, 'list').catch(() => undefined);
+    }, [uuid, running]);
+
+    useEffect(() => {
+        refresh();
+        if (!running) return;
+        const timer = setInterval(refresh, 15000);
+
+        return () => clearInterval(timer);
+    }, [refresh, running]);
+
+    const act = (command: string) => {
+        setBusy(true);
+        onError('');
+        sendCommand(uuid, command)
+            .then(() => setTimeout(refresh, 800))
+            .catch((e) => onError(e.message || 'The command could not be sent.'))
+            .then(() => setBusy(false));
+    };
+
+    const action = (icon: any, title: string, command: string, color: any) => (
+        <button
+            type={'button'}
+            disabled={busy}
+            title={title}
+            onClick={() => act(command)}
+            css={[tw`p-1 rounded hover:bg-white/10 disabled:opacity-40`, color]}
+        >
+            <FontAwesomeIcon icon={icon} />
+        </button>
+    );
+
+    return (
+        <div css={card} style={cardPad}>
+            <h3 css={tw`flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-neutral-300 mb-3`}>
+                <FontAwesomeIcon icon={faUsers} css={tw`text-green-400`} /> <span>Online players</span>
+                <span css={tw`ml-auto flex items-center gap-3`}>
+                    {names && <span css={tw`text-xs font-normal text-neutral-500`}>{names.length}</span>}
+                    <button
+                        type={'button'}
+                        onClick={refresh}
+                        disabled={!running}
+                        title={'Refresh'}
+                        css={tw`text-neutral-400 hover:text-neutral-100 disabled:opacity-40`}
+                    >
+                        <FontAwesomeIcon icon={faSync} />
+                    </button>
+                </span>
+            </h3>
+            {!running ? (
+                <p css={tw`text-sm text-neutral-400`}>Start the server to see connected players.</p>
+            ) : names === null ? (
+                <p css={tw`text-sm text-neutral-400`}>
+                    <FontAwesomeIcon icon={faCircleNotch} spin />
+                </p>
+            ) : names.length === 0 ? (
+                <p css={tw`text-sm text-neutral-400`}>Nobody is connected.</p>
+            ) : (
+                <div css={tw`flex flex-wrap gap-2`}>
+                    {names.map((name) => (
+                        <div
+                            key={name}
+                            css={tw`flex items-center gap-2 rounded-xl border border-white/5 bg-neutral-900/50 px-3 py-1.5`}
+                        >
+                            <span css={tw`text-sm text-neutral-100`}>{name}</span>
+                            <span css={tw`flex items-center gap-1`}>
+                                {action(faUserPlus, 'Add to whitelist', `whitelist add ${name}`, tw`text-green-400`)}
+                                {action(faUserShield, 'Op', `op ${name}`, tw`text-primary-300`)}
+                                {action(faUserSlash, 'Kick', `kick ${name}`, tw`text-yellow-400`)}
+                                {action(faGavel, 'Ban', `ban ${name}`, tw`text-red-400`)}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+const PlayersTab = ({ uuid, running, onError }: { uuid: string; running: boolean; onError: (m: string) => void }) => {
+    const [wlOn, setWlOn] = useState<boolean | null>(null);
+    const [wlBusy, setWlBusy] = useState(false);
+
+    const loadWl = useCallback(() => {
+        getWhitelistEnabled(uuid).then(setWlOn);
+    }, [uuid]);
+
+    useEffect(() => {
+        loadWl();
+    }, [loadWl]);
+
+    const toggleWl = () => {
+        const next = !(wlOn ?? false);
+        setWlBusy(true);
+        onError('');
+        setWhitelistEnabled(uuid, next, running)
+            .then(() => {
+                setWlOn(next);
+                setTimeout(loadWl, 900);
+            })
+            .catch((e) => onError(e.message || 'Could not change the whitelist.'))
+            .then(() => setWlBusy(false));
+    };
+
+    const wlToggle = (
+        <button
+            type={'button'}
+            onClick={toggleWl}
+            disabled={wlBusy}
+            title={'Turn the whitelist on or off'}
+            css={[
+                tw`rounded-full border px-2.5 py-0.5 text-2xs font-semibold uppercase tracking-wide disabled:opacity-50`,
+                wlOn
+                    ? tw`bg-green-500/20 text-green-300 border-green-500/30`
+                    : tw`bg-neutral-500/20 text-neutral-300 border-neutral-500/30`,
+            ]}
+        >
+            {wlOn === null ? '…' : wlOn ? <span>On</span> : <span>Off</span>}
+        </button>
+    );
+
+    return (
+        <>
+            <div css={tw`mb-4`}>
+                <OnlinePlayers uuid={uuid} running={running} onError={onError} />
+            </div>
+            <div css={tw`grid grid-cols-1 md:grid-cols-3 gap-4`}>
+                <PlayerList uuid={uuid} icon={faUsers} title={'Whitelist'} file={'/whitelist.json'} addCommand={(n) => `whitelist add ${n}`} removeCommand={(n) => `whitelist remove ${n}`} running={running} onError={onError} headerRight={wlToggle} />
+                <PlayerList uuid={uuid} icon={faUserShield} title={'Operators'} file={'/ops.json'} addCommand={(n) => `op ${n}`} removeCommand={(n) => `deop ${n}`} running={running} onError={onError} />
+                <PlayerList uuid={uuid} icon={faBan} title={'Banned'} file={'/banned-players.json'} addCommand={(n) => `ban ${n}`} removeCommand={(n) => `pardon ${n}`} running={running} onError={onError} />
+            </div>
+        </>
+    );
+};
 
 // ---- Container -----------------------------------------------------------------------------------------------------
 

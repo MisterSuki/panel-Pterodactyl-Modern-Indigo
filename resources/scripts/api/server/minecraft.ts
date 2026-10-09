@@ -246,10 +246,9 @@ export const levelName = async (uuid: string): Promise<string> => {
 };
 
 /**
- * Points the server at a resource pack by writing its URL (and checksum) into server.properties. A running server must
- * be restarted for players to get it. Lines that are already there keep their place; the two keys are set or added.
+ * Sets or adds keys in server.properties, keeping every other line where it is.
  */
-export const setResourcePack = async (uuid: string, url: string, sha1: string | null): Promise<void> => {
+export const updateProperties = async (uuid: string, changes: Record<string, string>): Promise<void> => {
     let raw = '';
     try {
         raw = await getFileContents(uuid, '/server.properties');
@@ -257,17 +256,42 @@ export const setResourcePack = async (uuid: string, url: string, sha1: string | 
         raw = '';
     }
     const lines = raw.split('\n');
-    const set = (key: string, value: string) => {
+    Object.entries(changes).forEach(([key, value]) => {
         const index = lines.findIndex((l) => l.trim().startsWith(key + '='));
         if (index === -1) {
             lines.push(`${key}=${value}`);
         } else {
             lines[index] = `${key}=${value}`;
         }
-    };
-    set('resource-pack', url);
-    set('resource-pack-sha1', sha1 || '');
+    });
     await saveFileContents(uuid, '/server.properties', lines.join('\n'));
+};
+
+/**
+ * Points the server at a resource pack by writing its URL (and checksum) into server.properties. A running server must
+ * be restarted for players to get it.
+ */
+export const setResourcePack = (uuid: string, url: string, sha1: string | null): Promise<void> =>
+    updateProperties(uuid, { 'resource-pack': url, 'resource-pack-sha1': sha1 || '' });
+
+/**
+ * Whether the whitelist is on (server.properties white-list=true).
+ */
+export const getWhitelistEnabled = async (uuid: string): Promise<boolean> => {
+    const props = await readProperties(uuid);
+
+    return (props['white-list'] || '').trim() === 'true';
+};
+
+/**
+ * Turns the whitelist on or off. On a running server the command does it live; otherwise server.properties is edited.
+ */
+export const setWhitelistEnabled = async (uuid: string, on: boolean, running: boolean): Promise<void> => {
+    if (running) {
+        await sendCommand(uuid, on ? 'whitelist on' : 'whitelist off');
+    } else {
+        await updateProperties(uuid, { 'white-list': on ? 'true' : 'false' });
+    }
 };
 
 // ---- auto-detection from the egg -----------------------------------------------------------------------------------
