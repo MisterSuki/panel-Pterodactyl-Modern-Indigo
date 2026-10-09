@@ -144,6 +144,8 @@ return [
         'repo' => env('THEME_REPO', 'MisterSuki/panel-Pterodactyl-Modern-Indigo'),
         'branch' => env('THEME_BRANCH', 'main'),
         'cache_time' => env('THEME_CACHE_TIME', 5),
+        // Fallback version, used only when the VERSION file at the panel root is missing. Bump the VERSION file to release.
+        'version' => env('THEME_VERSION', '1.2.1'),
     ],
 
     /*

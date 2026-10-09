@@ -15,6 +15,8 @@ class ThemeVersionService
 {
     public const CACHE_KEY = 'theme:latest-commit';
 
+    public const VERSION_CACHE_KEY = 'theme:latest-version';
+
     private const MARKER = 'theme-version.json';
 
     public function __construct(private CacheRepository $cache)
@@ -22,11 +24,65 @@ class ThemeVersionService
     }
 
     /**
-     * Forgets the kept answer, so the next look asks GitHub again. Used by the "check now" link.
+     * Forgets the kept answers, so the next look asks GitHub again. Used by the "check now" link.
      */
     public function refresh(): void
     {
         $this->cache->forget(self::CACHE_KEY);
+        $this->cache->forget(self::VERSION_CACHE_KEY);
+    }
+
+    /**
+     * The installed version of the theme, from the VERSION file at the panel root (what the installer ships and updates),
+     * with the config value as a fallback. Null when neither looks like a version.
+     */
+    public function version(): ?string
+    {
+        try {
+            $path = base_path('VERSION');
+            if (is_file($path)) {
+                $value = trim((string) file_get_contents($path));
+                if ($this->looksLikeVersion($value)) {
+                    return ltrim($value, 'vV');
+                }
+            }
+        } catch (\Throwable) {
+            // fall through to the config fallback
+        }
+
+        $config = (string) config('pterodactyl.theme.version', '');
+
+        return $this->looksLikeVersion($config) ? ltrim($config, 'vV') : null;
+    }
+
+    /**
+     * The version in the VERSION file on GitHub, kept for a while. Lets the overview show the version an update brings.
+     */
+    public function latestVersion(): ?string
+    {
+        $minutes = (int) config('pterodactyl.theme.cache_time', 30);
+
+        return $this->cache->remember(self::VERSION_CACHE_KEY, CarbonImmutable::now()->addMinutes(max(1, $minutes)), function () {
+            try {
+                $response = Http::withHeaders(['User-Agent' => 'pterodactyl-panel'])
+                    ->timeout(5)
+                    ->get('https://raw.githubusercontent.com/' . $this->repo() . '/' . $this->branch() . '/VERSION');
+
+                if (!$response->successful()) {
+                    return null;
+                }
+                $value = trim($response->body());
+
+                return $this->looksLikeVersion($value) ? ltrim($value, 'vV') : null;
+            } catch (\Throwable) {
+                return null;
+            }
+        });
+    }
+
+    private function looksLikeVersion(string $value): bool
+    {
+        return preg_match('/^v?\d+(\.\d+){0,3}(-[0-9A-Za-z.]+)?$/', $value) === 1;
     }
 
     public function name(): string
@@ -156,6 +212,8 @@ class ThemeVersionService
         return [
             'name' => $this->name(),
             'author' => $this->author(),
+            'version' => $this->version(),
+            'latestVersion' => $this->latestVersion(),
             'known' => $known,
             'upToDate' => $upToDate,
             'installed' => $installed['sha'] ?? null,

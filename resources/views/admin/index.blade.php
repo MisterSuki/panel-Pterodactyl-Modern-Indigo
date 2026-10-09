@@ -44,13 +44,13 @@
         <div class="pd-version {{ $themeClass }}">
             <i class="fa {{ $themeIcon }}"></i>
             <div>
-                <strong>{{ $theme['name'] }} <span class="pd-version-by"><span>by</span> {{ $theme['author'] }}</span></strong>
+                <strong>{{ $theme['name'] }}@if (!empty($theme['version']))<span class="pd-version-num">v{{ $theme['version'] }}</span>@endif <span class="pd-version-by"><span>by</span> {{ $theme['author'] }}</span></strong>
                 @if (!$theme['known'])
                     <small><a href="{{ $theme['repoUrl'] }}" target="_blank" rel="noopener"><span>See the latest version on GitHub</span></a></small>
                 @elseif ($theme['upToDate'])
                     <small><span>Up to date with GitHub</span></small>
                 @else
-                    <small><a href="{{ $theme['repoUrl'] }}/commits/{{ $theme['branch'] }}" target="_blank" rel="noopener" @if ($theme['message']) title="{{ $theme['message'] }}" @endif><span>An update is available on GitHub</span></a></small>
+                    <small><a href="{{ $theme['repoUrl'] }}/commits/{{ $theme['branch'] }}" target="_blank" rel="noopener" @if ($theme['message']) title="{{ $theme['message'] }}" @endif><span>An update is available on GitHub</span>@if (!empty($theme['latestVersion']) && $theme['latestVersion'] !== $theme['version']) <span class="pd-version-num">v{{ $theme['latestVersion'] }}</span>@endif</a></small>
                 @endif
                 <small class="pd-version-core"><a href="{{ route('admin.index', ['check_update' => 1]) }}"><i class="fa fa-refresh"></i> <span>Check now</span></a></small>
             </div>

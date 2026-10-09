@@ -1718,6 +1718,20 @@ input[type="radio"] {
     font-size: 85%;
 }
 
+/* The theme's own version number, e.g. "v1.2.1", shown next to its name. */
+.pd-version-num {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 80%;
+    font-weight: 600;
+    color: var(--pd-primary, #818cf8);
+    background: rgba(99, 102, 241, 0.16);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    vertical-align: middle;
+}
+
 /* The "an update is available" banner with the command to run. */
 .pd-update-note {
     display: flex;
