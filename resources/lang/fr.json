@@ -1660,5 +1660,12 @@
  "Banned": "Bannis",
  "Player name": "Nom du joueur",
  "Start the server to change this list.": "Démarrez le serveur pour modifier cette liste.",
- "Empty.": "Vide."
+ "Empty.": "Vide.",
+ "The server has no memory limit": "Le serveur n'a aucune limite de mémoire",
+ "The server tried to start with a maximum memory of 0 MB, which Java refuses.": "Le serveur a tenté de démarrer avec une mémoire maximale de 0 Mo, ce que Java refuse.",
+ "Its memory limit is set to 0 (unlimited), but a Minecraft server needs a fixed amount of memory. Set a memory limit for this server (for example 2048 MB), then start it again.": "Sa limite de mémoire est à 0 (illimitée), or un serveur Minecraft a besoin d'une quantité de mémoire fixe. Définissez une limite de mémoire pour ce serveur (par exemple 2048 Mo), puis redémarrez-le.",
+ "Its memory limit is set to 0 (unlimited), but a Minecraft server needs a fixed amount of memory. Ask your host to set a memory limit for this server.": "Sa limite de mémoire est à 0 (illimitée), or un serveur Minecraft a besoin d'une quantité de mémoire fixe. Demandez à votre hébergeur de définir une limite de mémoire pour ce serveur.",
+ "The memory limit looks fine, so check the Startup tab and the egg configuration.": "La limite de mémoire semble correcte : vérifiez l'onglet Démarrage et la configuration de l'egg.",
+ "Open server settings": "Ouvrir les réglages du serveur",
+ "I understand": "J'ai compris"
 }
