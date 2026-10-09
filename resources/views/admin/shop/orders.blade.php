@@ -52,7 +52,11 @@
                         @forelse ($orders as $order)
                             <tr>
                                 <td><code>{{ $order->id }}</code></td>
-                                <td><strong>{{ $order->offer_name }}</strong>@if (!$order->offer_id) <span class="label label-info"><span>Custom</span></span>@endif@if ($order->renewals > 0)<br><small class="text-muted">{{ $order->renewals }} <span>renewal(s)</span></small>@endif</td>
+                                <td>
+                                    <strong>{{ $order->offer_name }}</strong>
+                                    @if (!$order->offer_id)<span class="label label-info"><span>Custom</span></span>@endif
+                                    @if ($order->renewals > 0)<br><small class="text-muted">{{ $order->renewals }} <span>renewal(s)</span></small>@endif
+                                </td>
                                 <td><a href="{{ route('admin.users.view', $order->user_id) }}">{{ $order->user?->username ?? '#' . $order->user_id }}</a></td>
                                 <td>@if ($order->offer_id){{ number_format($order->price_cents / 100, 2, '.', '') }} {{ $currency }} / {{ $order->duration_days }} <span>days</span>@else{{ number_format($order->resource_cents / 100, 2, '.', '') }} {{ $currency }} / <span>month</span>@endif</td>
                                 <td><span class="label label-{{ $classes[$order->status] ?? 'default' }}"><span>{{ $labels[$order->status] ?? $order->status }}</span></span></td>
