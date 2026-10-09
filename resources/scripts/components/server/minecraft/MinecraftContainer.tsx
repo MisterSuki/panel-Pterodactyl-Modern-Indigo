@@ -23,9 +23,11 @@ import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import { Button } from '@/components/elements/button/index';
 import { Link, useRouteMatch } from 'react-router-dom';
 import {
+    CATEGORIES,
     ContentType,
     LOADERS,
     ModrinthHit,
+    SORTS,
     detectStartup,
     directoryForLoader,
     levelName,
@@ -45,6 +47,16 @@ type Tab = 'content' | 'players';
 const field = tw`rounded-lg border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-neutral-50 outline-none focus:border-primary-400`;
 const cardPad = { padding: '1.25rem' } as React.CSSProperties;
 const card = tw`rounded-2xl border border-white/5 bg-neutral-800 shadow-card`;
+
+const clamp2 = {
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+} as React.CSSProperties;
+
+const fmtDownloads = (n: number): string =>
+    n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'k' : String(n);
 
 const TYPES: { id: ContentType; label: string; icon: any }[] = [
     { id: 'content', label: 'Plugins & Mods', icon: faPuzzlePiece },
@@ -90,6 +102,8 @@ const ContentTab = ({
     const usesLoader = type === 'content' || type === 'modpack';
 
     const [query, setQuery] = useState('');
+    const [sort, setSort] = useState('downloads');
+    const [category, setCategory] = useState('');
     const [results, setResults] = useState<ModrinthHit[] | null>(null);
     const [searching, setSearching] = useState(false);
     const [installing, setInstalling] = useState<string | null>(null);
@@ -103,19 +117,19 @@ const ContentTab = ({
         (q: string) => {
             setSearching(true);
             onError('');
-            searchModrinth(q, type, loader, gameVersion)
+            searchModrinth(q, type, loader, gameVersion, { sort, category })
                 .then(setResults)
                 .catch((e) => onError(e.message || 'The search failed.'))
                 .then(() => setSearching(false));
         },
-        [type, loader, gameVersion]
+        [type, loader, gameVersion, sort, category]
     );
 
-    // Browse the most popular items whenever the type/loader/version changes (a catalogue, before any search).
+    // Browse the catalogue whenever the type/loader/version/sort/category changes (before any search).
     useEffect(() => {
         setResults(null);
         runSearch('');
-    }, [type, loader, gameVersion]);
+    }, [type, loader, gameVersion, sort, category]);
 
     const refreshInstalled = useCallback(() => {
         if (type === 'resourcepack') {
@@ -221,7 +235,7 @@ const ContentTab = ({
 
     return (
         <div css={tw`grid grid-cols-1 lg:grid-cols-2 gap-4`}>
-            <div css={card} style={cardPad}>
+            <div css={card} style={{ padding: '1.5rem' }}>
                 <div css={tw`flex items-center gap-2 mb-3`}>
                     <div css={tw`relative flex-1`}>
                         <FontAwesomeIcon
@@ -240,38 +254,70 @@ const ContentTab = ({
                         {searching ? <FontAwesomeIcon icon={faCircleNotch} spin /> : <span>Search</span>}
                     </Button>
                 </div>
-                {query.trim() === '' && (
-                    <p css={tw`text-2xs uppercase tracking-wide text-neutral-500 mb-2`}>
-                        <span>Most popular</span>
-                    </p>
-                )}
+                <div css={tw`flex flex-wrap items-center gap-2 mb-4`}>
+                    <select value={sort} onChange={(e) => setSort(e.currentTarget.value)} css={[field, tw`py-1.5 text-xs`]}>
+                        {SORTS.map((s) => (
+                            <option key={s.id} value={s.id}>
+                                {s.label}
+                            </option>
+                        ))}
+                    </select>
+                    <select
+                        value={category}
+                        onChange={(e) => setCategory(e.currentTarget.value)}
+                        css={[field, tw`py-1.5 text-xs`]}
+                    >
+                        {CATEGORIES.map((c) => (
+                            <option key={c.id} value={c.id}>
+                                {c.label}
+                            </option>
+                        ))}
+                    </select>
+                    {results && (
+                        <span css={tw`ml-auto text-2xs uppercase tracking-wide text-neutral-500`}>
+                            {results.length} <span>results</span>
+                        </span>
+                    )}
+                </div>
                 {results === null ? (
-                    <p css={tw`text-sm text-neutral-400 py-6 text-center`}>
+                    <p css={tw`text-sm text-neutral-400 py-10 text-center`}>
                         <FontAwesomeIcon icon={faCircleNotch} spin />
                     </p>
                 ) : results.length === 0 ? (
-                    <p css={tw`text-sm text-neutral-400 py-6 text-center`}>Nothing found. Try other words.</p>
+                    <p css={tw`text-sm text-neutral-400 py-10 text-center`}>Nothing found. Try other words.</p>
                 ) : (
-                    <div css={tw`flex flex-col gap-2 max-h-[30rem] overflow-y-auto`}>
+                    <div css={tw`flex flex-col gap-3 max-h-[40rem] overflow-y-auto pr-1`}>
                         {results.map((hit) => (
                             <div
                                 key={hit.projectId}
-                                css={tw`flex items-center gap-3 rounded-xl border border-white/5 bg-neutral-900/50 p-3`}
+                                css={tw`flex items-start gap-4 rounded-xl border border-white/5 bg-neutral-900/50 p-4 transition-colors duration-150 hover:border-primary-500/30`}
                             >
                                 {hit.iconUrl ? (
-                                    <img src={hit.iconUrl} alt={''} css={tw`w-10 h-10 rounded-lg flex-shrink-0 object-cover`} />
+                                    <img
+                                        src={hit.iconUrl}
+                                        alt={''}
+                                        css={tw`w-14 h-14 rounded-xl flex-shrink-0 object-cover bg-neutral-800`}
+                                    />
                                 ) : (
-                                    <div css={tw`w-10 h-10 rounded-lg flex-shrink-0 bg-primary-500/20`} />
+                                    <div css={tw`w-14 h-14 rounded-xl flex-shrink-0 bg-primary-500/20`} />
                                 )}
                                 <div css={tw`min-w-0 flex-1`}>
-                                    <p css={tw`text-sm font-medium text-neutral-100 truncate`}>{hit.title}</p>
-                                    <p css={tw`text-xs text-neutral-400 truncate`}>{hit.description}</p>
+                                    <p css={tw`text-base font-semibold text-neutral-100 truncate`}>{hit.title}</p>
+                                    <p css={tw`text-xs text-neutral-400 mt-0.5`}>
+                                        <span>by</span> {hit.author}
+                                        <span css={tw`mx-1.5 text-neutral-600`}>&middot;</span>
+                                        <FontAwesomeIcon icon={faDownload} css={tw`mr-1`} />
+                                        {fmtDownloads(hit.downloads)}
+                                    </p>
+                                    <p css={tw`text-sm text-neutral-400 mt-1.5`} style={clamp2}>
+                                        {hit.description}
+                                    </p>
                                 </div>
                                 <Button
                                     type={'button'}
-                                    size={Button.Sizes.Small}
                                     onClick={() => install(hit)}
                                     disabled={installing !== null}
+                                    css={tw`flex-shrink-0`}
                                 >
                                     {installing === hit.projectId ? (
                                         <FontAwesomeIcon icon={faCircleNotch} spin />

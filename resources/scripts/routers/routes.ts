@@ -90,6 +90,13 @@ export default {
             component: FileEditContainer,
         },
         {
+            path: '/minecraft',
+            permission: 'file.*',
+            name: 'Minecraft',
+            component: MinecraftContainer,
+            minecraft: true,
+        },
+        {
             path: '/databases',
             permission: 'database.*',
             name: 'Databases',
@@ -130,13 +137,6 @@ export default {
             permission: 'startup.*',
             name: 'Startup',
             component: StartupContainer,
-        },
-        {
-            path: '/minecraft',
-            permission: 'file.*',
-            name: 'Minecraft',
-            component: MinecraftContainer,
-            minecraft: true,
         },
         {
             path: '/settings',

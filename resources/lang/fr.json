@@ -1676,5 +1676,21 @@
  "Upload a file": "Envoyer un fichier",
  "Current resource pack": "Pack de ressources actuel",
  "No resource pack is set.": "Aucun pack de ressources défini.",
- "Modpacks are downloaded to the server root as an .mrpack file. Applying one needs a modpack egg (it installs the mods and configs for you).": "Les modpacks sont téléchargés à la racine du serveur sous forme de fichier .mrpack. Pour l'appliquer, il faut un egg modpack (il installe les mods et configs pour vous)."
+ "Modpacks are downloaded to the server root as an .mrpack file. Applying one needs a modpack egg (it installs the mods and configs for you).": "Les modpacks sont téléchargés à la racine du serveur sous forme de fichier .mrpack. Pour l'appliquer, il faut un egg modpack (il installe les mods et configs pour vous).",
+ "results": "résultats",
+ "Most downloaded": "Les plus téléchargés",
+ "Most followed": "Les plus suivis",
+ "Relevance": "Pertinence",
+ "Newest": "Plus récents",
+ "Recently updated": "Mis à jour récemment",
+ "All categories": "Toutes les catégories",
+ "Utility": "Utilitaire",
+ "Management": "Gestion",
+ "Economy": "Économie",
+ "Game mechanics": "Mécaniques de jeu",
+ "Social": "Social",
+ "Adventure": "Aventure",
+ "Optimization": "Optimisation",
+ "World generation": "Génération de monde",
+ "Library": "Bibliothèque"
 }

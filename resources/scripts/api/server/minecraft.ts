@@ -44,7 +44,30 @@ export interface ModrinthHit {
 
 const MODRINTH = 'https://api.modrinth.com/v2';
 
-const facetsFor = (type: ContentType, loaderId: string, gameVersion: string): string => {
+// A few handy categories to narrow a browse. The ids are Modrinth's own category ids.
+export const CATEGORIES = [
+    { id: '', label: 'All categories' },
+    { id: 'utility', label: 'Utility' },
+    { id: 'management', label: 'Management' },
+    { id: 'economy', label: 'Economy' },
+    { id: 'game-mechanics', label: 'Game mechanics' },
+    { id: 'social', label: 'Social' },
+    { id: 'adventure', label: 'Adventure' },
+    { id: 'optimization', label: 'Optimization' },
+    { id: 'worldgen', label: 'World generation' },
+    { id: 'library', label: 'Library' },
+];
+
+// The ways to sort a browse (Modrinth's "index" values).
+export const SORTS = [
+    { id: 'downloads', label: 'Most downloaded' },
+    { id: 'follows', label: 'Most followed' },
+    { id: 'relevance', label: 'Relevance' },
+    { id: 'newest', label: 'Newest' },
+    { id: 'updated', label: 'Recently updated' },
+];
+
+const facetsFor = (type: ContentType, loaderId: string, gameVersion: string, category: string): string => {
     const groups: string[][] = [];
     if (type === 'content') {
         // On Modrinth the loader (a "category") decides plugin vs mod; filter by the loader only.
@@ -56,6 +79,9 @@ const facetsFor = (type: ContentType, loaderId: string, gameVersion: string): st
     } else if (type === 'datapack') {
         groups.push(['project_type:datapack']);
     }
+    if (category.trim() !== '') {
+        groups.push([`categories:${category.trim()}`]);
+    }
     if (gameVersion.trim() !== '') {
         groups.push([`versions:${gameVersion.trim()}`]);
     }
@@ -64,20 +90,22 @@ const facetsFor = (type: ContentType, loaderId: string, gameVersion: string): st
 };
 
 /**
- * Searches Modrinth. With no words it returns the most downloaded projects (a catalogue to browse). Runs straight from
- * the browser against Modrinth's public API — nothing is sent through the panel.
+ * Searches Modrinth. With no words it returns a catalogue to browse, ordered by the chosen sort. Runs straight from the
+ * browser against Modrinth's public API — nothing is sent through the panel.
  */
 export const searchModrinth = async (
     query: string,
     type: ContentType,
     loaderId: string,
-    gameVersion: string
+    gameVersion: string,
+    opts?: { sort?: string; category?: string }
 ): Promise<ModrinthHit[]> => {
+    const sort = opts?.sort || (query.trim() === '' ? 'downloads' : 'relevance');
     const params = new URLSearchParams({
         query: query.trim(),
-        limit: '30',
-        index: query.trim() === '' ? 'downloads' : 'relevance',
-        facets: facetsFor(type, loaderId, gameVersion),
+        limit: '50',
+        index: sort,
+        facets: facetsFor(type, loaderId, gameVersion, opts?.category || ''),
     });
     const response = await fetch(`${MODRINTH}/search?${params.toString()}`, { headers: { Accept: 'application/json' } });
     if (!response.ok) {
