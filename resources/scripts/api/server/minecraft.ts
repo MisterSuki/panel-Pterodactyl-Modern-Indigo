@@ -44,6 +44,34 @@ export interface ModrinthHit {
 
 const MODRINTH = 'https://api.modrinth.com/v2';
 
+export interface GameVersion {
+    version: string;
+    snapshot: boolean;
+}
+
+let cachedVersions: GameVersion[] | null = null;
+
+/**
+ * The list of Minecraft versions, newest first, to fill a dropdown. Fetched once from Modrinth and kept in memory.
+ */
+export const getGameVersions = async (): Promise<GameVersion[]> => {
+    if (cachedVersions) {
+        return cachedVersions;
+    }
+    try {
+        const res = await fetch(`${MODRINTH}/tag/game_version`, { headers: { Accept: 'application/json' } });
+        if (!res.ok) {
+            return [];
+        }
+        const data = await res.json();
+        cachedVersions = (data || []).map((v: any) => ({ version: v.version, snapshot: v.version_type !== 'release' }));
+
+        return cachedVersions || [];
+    } catch {
+        return [];
+    }
+};
+
 // A few handy categories to narrow a browse. The ids are Modrinth's own category ids.
 export const CATEGORIES = [
     { id: '', label: 'All categories' },

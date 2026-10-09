@@ -25,10 +25,12 @@ import { Link, useRouteMatch } from 'react-router-dom';
 import {
     CATEGORIES,
     ContentType,
+    GameVersion,
     LOADERS,
     ModrinthHit,
     SORTS,
     detectStartup,
+    getGameVersions,
     directoryForLoader,
     levelName,
     pullFile,
@@ -562,8 +564,15 @@ export default () => {
     const [type, setType] = useState<ContentType>(saved.type || 'content');
     const [loader, setLoader] = useState<string>(saved.loader || 'paper');
     const [gameVersion, setGameVersion] = useState<string>(saved.gameVersion ?? '');
+    const [versions, setVersions] = useState<GameVersion[]>([]);
+    const [showSnapshots, setShowSnapshots] = useState(false);
     const [error, setError] = useState('');
     const [notice, setNotice] = useState('');
+
+    // The list of Minecraft versions for the dropdown (fetched once).
+    useEffect(() => {
+        getGameVersions().then(setVersions);
+    }, []);
 
     // On first visit (no saved choice), read the egg's startup to pre-fill the loader and version.
     useEffect(() => {
@@ -655,12 +664,35 @@ export default () => {
                         )}
                         <div>
                             <label css={tw`block text-2xs uppercase text-neutral-400 mb-1`}>Version</label>
-                            <input
-                                value={gameVersion}
-                                onChange={(e) => setGameVersion(e.currentTarget.value)}
-                                placeholder={'any'}
-                                css={[field, tw`w-24`]}
-                            />
+                            <div css={tw`flex items-center gap-2`}>
+                                <select
+                                    value={gameVersion}
+                                    onChange={(e) => setGameVersion(e.currentTarget.value)}
+                                    css={[field, tw`w-36`]}
+                                >
+                                    <option value={''}>Any version</option>
+                                    {gameVersion !== '' && !versions.some((v) => v.version === gameVersion) && (
+                                        <option value={gameVersion}>{gameVersion}</option>
+                                    )}
+                                    {versions
+                                        .filter((v) => showSnapshots || !v.snapshot)
+                                        .map((v) => (
+                                            <option key={v.version} value={v.version}>
+                                                {v.version}
+                                            </option>
+                                        ))}
+                                </select>
+                                <label
+                                    css={tw`flex items-center gap-1.5 text-2xs text-neutral-400 whitespace-nowrap cursor-pointer`}
+                                >
+                                    <input
+                                        type={'checkbox'}
+                                        checked={showSnapshots}
+                                        onChange={(e) => setShowSnapshots(e.currentTarget.checked)}
+                                    />
+                                    <span>Snapshots</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
