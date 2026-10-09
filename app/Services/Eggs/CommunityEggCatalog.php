@@ -193,22 +193,67 @@ class CommunityEggCatalog
                 continue;
             }
 
-            $title = $xpath->query('.//h2', $link)->item(0);
-            $description = $xpath->query('.//p', $link)->item(0);
-            $name = $title ? $this->clean($title->textContent) : '';
+            // The site's card markup changes over time (it used <h2>/<p>, now a <span class="font-display"> title and a
+            // <span class="line-clamp-..."> description). Try the known shapes in turn, then fall back to the card text
+            // before the "→" separator, and finally to a name derived from the slug, so the catalog never comes back empty.
+            $name = $this->firstText($xpath, $link, [
+                ".//*[contains(concat(' ', normalize-space(@class), ' '), ' font-display ')]",
+                './/h2',
+                './/h3',
+            ]);
             if ($name === '') {
-                continue;
+                $parts = preg_split('/\x{2192}/u', $this->clean($link->textContent)) ?: [];
+                $name = $this->clean($parts[0] ?? '');
             }
+            if ($name === '') {
+                $name = $this->nameFromSlug($slug);
+            }
+
+            $description = $this->firstText($xpath, $link, [
+                ".//*[contains(@class, 'line-clamp')]",
+                ".//*[contains(@class, 'text-note')]",
+                './/p',
+            ]);
 
             $eggs[$slug] = [
                 'slug' => $slug,
                 'name' => $name,
-                'description' => $description ? $this->clean($description->textContent) : '',
+                'description' => $description,
                 'category' => $m[1],
             ];
         }
 
         return array_values($eggs);
+    }
+
+    /**
+     * The text of the first node matching one of the XPath queries, cleaned; '' when none match.
+     *
+     * @param string[] $queries
+     */
+    private function firstText(\DOMXPath $xpath, \DOMElement $context, array $queries): string
+    {
+        foreach ($queries as $query) {
+            $node = $xpath->query($query, $context)?->item(0);
+            if ($node !== null) {
+                $text = $this->clean($node->textContent);
+                if ($text !== '') {
+                    return $text;
+                }
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * A readable name from a slug, e.g. "games-7-days-to-die" -> "7 Days To Die". Only used when the page gives none.
+     */
+    private function nameFromSlug(string $slug): string
+    {
+        $withoutCategory = preg_replace('/^(?:games|applications|generic)-/', '', $slug) ?? $slug;
+
+        return Str::title(str_replace('-', ' ', $withoutCategory));
     }
 
     /**
