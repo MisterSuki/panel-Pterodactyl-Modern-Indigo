@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import tw from 'twin.macro';
 import classNames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faBan,
     faBoxOpen,
+    faCheck,
     faDownload,
     faImage,
     faPlus,
@@ -59,6 +60,29 @@ const clamp2 = {
 
 const fmtDownloads = (n: number): string =>
     n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'k' : String(n);
+
+// Letters and digits only, to compare a project to a file name ("Xaero's Minimap" vs "xaerominimap-fabric-...jar").
+const norm = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+// We remember which project each installed file came from, per server + folder, so an installed item cannot be
+// installed twice. The link is kept only while the file is still there (deleting it frees the button again).
+const installStoreKey = (uuid: string, dir: string) => `mc:inst:${uuid}:${dir}`;
+const loadInstallStore = (uuid: string, dir: string): Record<string, string> => {
+    try {
+        return JSON.parse(localStorage.getItem(installStoreKey(uuid, dir)) || '{}') || {};
+    } catch {
+        return {};
+    }
+};
+const recordInstall = (uuid: string, dir: string, projectId: string, filename: string) => {
+    try {
+        const map = loadInstallStore(uuid, dir);
+        map[projectId] = filename;
+        localStorage.setItem(installStoreKey(uuid, dir), JSON.stringify(map));
+    } catch {
+        /* private mode: just skip remembering it */
+    }
+};
 
 const TYPES: { id: ContentType; label: string; icon: any }[] = [
     { id: 'content', label: 'Plugins & Mods', icon: faPuzzlePiece },
@@ -173,6 +197,27 @@ const ContentTab = ({
         refreshInstalled();
     }, [refreshInstalled]);
 
+    // Which catalogue items are already on the server (remembered installs whose file is still there, plus a file-name
+    // match). Only for the types that put a file in a folder.
+    const installedSet = useMemo(() => {
+        const map = loadInstallStore(uuid, dataDir);
+        const files = (installed || []).map((f) => f.name.replace(/\.disabled$/, ''));
+        const ids = new Set<string>();
+        Object.entries(map).forEach(([id, fn]) => {
+            if (files.includes(fn)) ids.add(id);
+        });
+
+        return { ids, fileNorms: files.map(norm) };
+    }, [installed, uuid, dataDir]);
+
+    const isInstalled = (hit: ModrinthHit): boolean => {
+        if (type !== 'content' && type !== 'datapack') return false;
+        if (installedSet.ids.has(hit.projectId)) return true;
+        const slug = norm(hit.slug);
+
+        return slug.length >= 4 && installedSet.fileNorms.some((n) => n.includes(slug));
+    };
+
     const install = (hit: ModrinthHit) => {
         setInstalling(hit.projectId);
         onError('');
@@ -197,10 +242,12 @@ const ContentTab = ({
                 if (type === 'datapack') {
                     const dir = `/${await levelName(uuid)}/datapacks`;
                     await pullFile(uuid, file.url, dir, file.filename);
+                    recordInstall(uuid, dir, hit.projectId, file.filename);
                     return `${file.filename} was installed into ${dir}. Run /reload or restart the server.`;
                 }
                 const dir = directoryForLoader(loader);
                 await pullFile(uuid, file.url, dir, file.filename);
+                recordInstall(uuid, dir, hit.projectId, file.filename);
                 return `${file.filename} was installed into ${dir}. Restart the server to load it.`;
             })
             .then((message) => {
@@ -315,20 +362,31 @@ const ContentTab = ({
                                         {hit.description}
                                     </p>
                                 </div>
-                                <Button
-                                    type={'button'}
-                                    onClick={() => install(hit)}
-                                    disabled={installing !== null}
-                                    css={tw`flex-shrink-0`}
-                                >
-                                    {installing === hit.projectId ? (
-                                        <FontAwesomeIcon icon={faCircleNotch} spin />
-                                    ) : (
-                                        <>
-                                            <FontAwesomeIcon icon={faDownload} css={tw`mr-1`} /> <span>Install</span>
-                                        </>
-                                    )}
-                                </Button>
+                                {isInstalled(hit) ? (
+                                    <Button
+                                        type={'button'}
+                                        variant={Button.Variants.Secondary}
+                                        disabled
+                                        css={tw`flex-shrink-0`}
+                                    >
+                                        <FontAwesomeIcon icon={faCheck} css={tw`mr-1 text-green-400`} /> <span>Installed</span>
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        type={'button'}
+                                        onClick={() => install(hit)}
+                                        disabled={installing !== null}
+                                        css={tw`flex-shrink-0`}
+                                    >
+                                        {installing === hit.projectId ? (
+                                            <FontAwesomeIcon icon={faCircleNotch} spin />
+                                        ) : (
+                                            <>
+                                                <FontAwesomeIcon icon={faDownload} css={tw`mr-1`} /> <span>Install</span>
+                                            </>
+                                        )}
+                                    </Button>
+                                )}
                             </div>
                         ))}
                     </div>
