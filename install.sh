@@ -454,7 +454,7 @@ restore_from() {
         }
     fi
 
-    if artisan down >/dev/null 2>&1; then DOWN=true; fi
+    if artisan down --render="errors::503" --retry=120 >/dev/null 2>&1; then DOWN=true; fi
 
     local entry
     while IFS= read -r entry; do
@@ -614,7 +614,7 @@ run_update() {
     INSTALLING=true
     trap 'on_update_error $LINENO' ERR
 
-    if artisan down >/dev/null 2>&1; then
+    if artisan down --render="errors::503" --retry=120 >/dev/null 2>&1; then
         DOWN=true
         ok "Panel in maintenance mode"
     fi
@@ -835,7 +835,7 @@ run_uninstall() {
     INSTALLING=true
     trap 'on_update_error $LINENO' ERR
 
-    if artisan down >/dev/null 2>&1; then
+    if artisan down --render="errors::503" --retry=120 >/dev/null 2>&1; then
         DOWN=true
         ok "Panel in maintenance mode"
     fi
