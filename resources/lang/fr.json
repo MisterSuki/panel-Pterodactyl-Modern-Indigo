@@ -1704,5 +1704,9 @@
  "Kick": "Expulser",
  "Ban": "Bannir",
  "Op": "Op",
- "Turn the whitelist on or off": "Activer/désactiver la whitelist"
+ "Turn the whitelist on or off": "Activer/désactiver la whitelist",
+ "Please confirm": "Confirmation",
+ "Cancel this order? The server is suspended and no longer billed.": "Annuler cette commande ? Le serveur est suspendu et n'est plus facturé.",
+ "Refund the buyer as credit and cancel the order?": "Rembourser l'acheteur en crédit et annuler la commande ?",
+ "Delete this order AND its server? The server is removed from the node. This cannot be undone.": "Supprimer cette commande ET son serveur ? Le serveur est retiré du node. Cette action est irréversible."
 }

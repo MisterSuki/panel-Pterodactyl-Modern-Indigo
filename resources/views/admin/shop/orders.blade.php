@@ -66,10 +66,10 @@
                                     <td class="text-right" style="white-space:nowrap">
                                         @if (in_array($order->status, ['active', 'expired']))
                                             <form action="{{ route('admin.shop.orders.action', $order->id) }}" method="POST" style="display:inline">{!! csrf_field() !!}<input type="hidden" name="action" value="renew"><button class="btn btn-xs btn-success" title="Renew / extend"><i class="fa fa-refresh"></i></button></form>
-                                            <form action="{{ route('admin.shop.orders.action', $order->id) }}" method="POST" style="display:inline" onsubmit="return confirm('Cancel this order? The server is suspended and no longer billed.')">{!! csrf_field() !!}<input type="hidden" name="action" value="cancel"><button class="btn btn-xs btn-warning" title="Cancel"><i class="fa fa-ban"></i></button></form>
-                                            <form action="{{ route('admin.shop.orders.action', $order->id) }}" method="POST" style="display:inline" onsubmit="return confirm('Refund the buyer as credit and cancel the order?')">{!! csrf_field() !!}<input type="hidden" name="action" value="refund"><button class="btn btn-xs btn-primary" title="Refund as credit"><i class="fa fa-money"></i></button></form>
+                                            <form action="{{ route('admin.shop.orders.action', $order->id) }}" method="POST" style="display:inline" class="pd-confirm">{!! csrf_field() !!}<input type="hidden" name="action" value="cancel"><button class="btn btn-xs btn-warning" title="Cancel"><i class="fa fa-ban"></i></button><span class="pd-cfm" style="display:none">Cancel this order? The server is suspended and no longer billed.</span></form>
+                                            <form action="{{ route('admin.shop.orders.action', $order->id) }}" method="POST" style="display:inline" class="pd-confirm">{!! csrf_field() !!}<input type="hidden" name="action" value="refund"><button class="btn btn-xs btn-primary" title="Refund as credit"><i class="fa fa-money"></i></button><span class="pd-cfm" style="display:none">Refund the buyer as credit and cancel the order?</span></form>
                                         @endif
-                                        <button type="submit" form="pd-del-order-{{ $order->id }}" class="btn btn-xs btn-danger" title="Delete the order and its server" onclick="return confirm('Delete this order AND its server? The server is removed from the node. This cannot be undone.')"><i class="fa fa-trash"></i></button>
+                                        <button type="submit" form="pd-del-order-{{ $order->id }}" class="btn btn-xs btn-danger" title="Delete the order and its server"><i class="fa fa-trash"></i></button>
                                     </td>
                                 @endif
                             </tr>
@@ -87,7 +87,43 @@
 </div>
 @if ($canManage)
     @foreach ($orders as $order)
-        <form id="pd-del-order-{{ $order->id }}" action="{{ route('admin.shop.orders.delete', $order->id) }}" method="POST">{!! csrf_field() !!}{!! method_field('DELETE') !!}</form>
+        <form id="pd-del-order-{{ $order->id }}" action="{{ route('admin.shop.orders.delete', $order->id) }}" method="POST" class="pd-confirm" data-pd-danger>{!! csrf_field() !!}{!! method_field('DELETE') !!}<span class="pd-cfm" style="display:none">Delete this order AND its server? The server is removed from the node. This cannot be undone.</span></form>
     @endforeach
+
+    <div id="pd-confirm-overlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(5,8,15,.65);backdrop-filter:blur(3px);align-items:center;justify-content:center;">
+        <div style="width:100%;max-width:440px;margin:0 16px;background:#161c2b;border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.55);padding:24px;">
+            <h3 style="margin:0 0 10px;font-size:18px;font-weight:700;color:#f3f4f6;"><span>Please confirm</span></h3>
+            <p id="pd-confirm-msg" style="margin:0 0 22px;color:#9aa3b2;font-size:14px;line-height:1.6;"></p>
+            <div style="display:flex;justify-content:flex-end;gap:10px;">
+                <button type="button" id="pd-confirm-cancel" style="border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#cbd5e1;border-radius:10px;padding:8px 16px;font-weight:600;cursor:pointer;"><span>Cancel</span></button>
+                <button type="button" id="pd-confirm-ok" style="border:0;background:#6366f1;color:#fff;border-radius:10px;padding:8px 16px;font-weight:600;cursor:pointer;"><span>Confirm</span></button>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function () {
+            var overlay = document.getElementById('pd-confirm-overlay');
+            if (!overlay) return;
+            var msg = document.getElementById('pd-confirm-msg');
+            var ok = document.getElementById('pd-confirm-ok');
+            var cancel = document.getElementById('pd-confirm-cancel');
+            var pending = null;
+            function hide() { overlay.style.display = 'none'; pending = null; }
+            cancel.addEventListener('click', hide);
+            overlay.addEventListener('click', function (e) { if (e.target === overlay) hide(); });
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && overlay.style.display !== 'none') hide(); });
+            ok.addEventListener('click', function () { var f = pending; hide(); if (f) f.submit(); });
+            document.querySelectorAll('form.pd-confirm').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var s = form.querySelector('.pd-cfm');
+                    msg.textContent = s ? s.textContent.replace(/\s+/g, ' ').trim() : 'Are you sure?';
+                    ok.style.background = form.hasAttribute('data-pd-danger') ? '#ef4444' : '#6366f1';
+                    pending = form;
+                    overlay.style.display = 'flex';
+                });
+            });
+        })();
+    </script>
 @endif
 @endsection
