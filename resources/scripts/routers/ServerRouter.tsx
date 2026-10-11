@@ -20,6 +20,7 @@ import { useLocation } from 'react-router';
 import ConflictStateRenderer from '@/components/server/ConflictStateRenderer';
 import PermissionRoute from '@/components/elements/PermissionRoute';
 import routes from '@/routers/routes';
+import { detectEts2 } from '@/api/server/ets2';
 
 export default () => {
     const match = useRouteMatch<{ id: string }>();
@@ -33,6 +34,8 @@ export default () => {
     const eggFeatures = ServerContext.useStoreState((state) => state.server.data?.eggFeatures || []);
     // Minecraft (Java) eggs carry the EULA / Java-version features; the Minecraft tab is only for them.
     const isMinecraft = eggFeatures.includes('eula') || eggFeatures.includes('java_version');
+    // Euro/American Truck dedicated servers are spotted from their startup (no egg feature for them).
+    const [isEts2, setIsEts2] = useState(false);
     const inConflictState = ServerContext.useStoreState((state) => state.server.inConflictState);
     const serverId = ServerContext.useStoreState((state) => state.server.data?.internalId);
     const getServer = ServerContext.useStoreActions((actions) => actions.server.getServer);
@@ -65,6 +68,13 @@ export default () => {
         };
     }, [match.params.id]);
 
+    // Look up whether this is a truck-simulator server once it is loaded (Minecraft servers are known from their egg).
+    useEffect(() => {
+        setIsEts2(false);
+        if (!uuid || isMinecraft) return;
+        detectEts2(uuid).then(setIsEts2);
+    }, [uuid, isMinecraft]);
+
     return (
         <React.Fragment key={'server-router'}>
             <NavigationBar />
@@ -80,7 +90,12 @@ export default () => {
                         <SubNavigation>
                             <div>
                                 {routes.server
-                                    .filter((route) => !!route.name && (!route.minecraft || isMinecraft))
+                                    .filter(
+                                        (route) =>
+                                            !!route.name &&
+                                            (!route.minecraft || isMinecraft) &&
+                                            (route.game !== 'ets2' || isEts2)
+                                    )
                                     .map((route) =>
                                         route.permission ? (
                                             <Can key={route.path} action={route.permission} matchAny>
@@ -113,7 +128,10 @@ export default () => {
                             <TransitionRouter>
                                 <Switch location={location}>
                                     {routes.server
-                                        .filter((route) => !route.minecraft || isMinecraft)
+                                        .filter(
+                                            (route) =>
+                                                (!route.minecraft || isMinecraft) && (route.game !== 'ets2' || isEts2)
+                                        )
                                         .map(({ path, permission, component: Component }) => (
                                         <PermissionRoute key={path} permission={permission} path={to(path)} exact>
                                             <Spinner.Suspense>

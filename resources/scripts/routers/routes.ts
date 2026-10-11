@@ -22,6 +22,7 @@ import ServerActivityLogContainer from '@/components/server/ServerActivityLogCon
 const FileEditContainer = lazy(() => import('@/components/server/files/FileEditContainer'));
 const ScheduleEditContainer = lazy(() => import('@/components/server/schedules/ScheduleEditContainer'));
 const MinecraftContainer = lazy(() => import('@/components/server/minecraft/MinecraftContainer'));
+const Ets2Container = lazy(() => import('@/components/server/ets2/Ets2Container'));
 
 interface RouteDefinition {
     path: string;
@@ -36,6 +37,8 @@ interface ServerRouteDefinition extends RouteDefinition {
     permission: string | string[] | null;
     // Only shown (and routed) for Minecraft servers, detected from the server's egg features.
     minecraft?: boolean;
+    // Only shown for a specific game detected from the server's startup (e.g. 'ets2' for Euro/American Truck).
+    game?: 'ets2';
 }
 
 interface Routes {
@@ -95,6 +98,13 @@ export default {
             name: 'Minecraft',
             component: MinecraftContainer,
             minecraft: true,
+        },
+        {
+            path: '/ets2',
+            permission: 'file.*',
+            name: 'Euro Truck',
+            component: Ets2Container,
+            game: 'ets2',
         },
         {
             path: '/databases',
