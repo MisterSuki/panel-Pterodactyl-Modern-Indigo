@@ -1736,5 +1736,13 @@
  "Name tags": "Étiquettes de nom",
  "No collision at services": "Pas de collision aux stations",
  "Ghost mode in menu": "Mode fantôme dans le menu",
- "Turn on \"Allow mods\" above. A dedicated server also needs the matching server_packages generated in the game for these mods to load.": "Activez « Autoriser les mods » ci-dessus. Un serveur dédié a aussi besoin du server_packages correspondant, généré dans le jeu, pour charger ces mods."
+ "Turn on \"Allow mods\" above. A dedicated server also needs the matching server_packages generated in the game for these mods to load.": "Activez « Autoriser les mods » ci-dessus. Un serveur dédié a aussi besoin du server_packages correspondant, généré dans le jeu, pour charger ces mods.",
+ "How to add mods": "Comment ajouter des mods",
+ "In Euro Truck Simulator 2, enable the mods you want in the Mod Manager and load a profile.": "Dans Euro Truck Simulator 2, activez les mods voulus dans le gestionnaire de mods et chargez un profil.",
+ "Open the in-game console with the ~ key, then run this command:": "Ouvrez la console en jeu avec la touche ~, puis lancez cette commande :",
+ "If the console does not open, set": "Si la console ne s’ouvre pas, mettez",
+ "in config.cfg first.": "dans config.cfg d’abord.",
+ "It creates two files in your Documents/Euro Truck Simulator 2 folder: server_packages.sii and server_packages.dat.": "Cela crée deux fichiers dans votre dossier Documents/Euro Truck Simulator 2 : server_packages.sii et server_packages.dat.",
+ "Upload those two files to the server root (next to server_config.sii), and put your mod .scs files in the mod folder.": "Envoyez ces deux fichiers à la racine du serveur (à côté de server_config.sii), et placez vos .scs dans le dossier mod.",
+ "Turn on \"Allow mods\" above, then restart the server.": "Activez « Autoriser les mods » ci-dessus, puis redémarrez le serveur."
 }

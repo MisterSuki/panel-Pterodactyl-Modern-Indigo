@@ -1,7 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import tw from 'twin.macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPowerOff, faTrash, faTruck, faUpload, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import {
+    faCheck,
+    faCopy,
+    faPowerOff,
+    faTrash,
+    faTruck,
+    faUpload,
+    faCircleNotch,
+} from '@fortawesome/free-solid-svg-icons';
 import { ServerContext } from '@/state/server';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import { Button } from '@/components/elements/button/index';
@@ -48,6 +56,70 @@ const GAMEPLAY: Field[] = [
 const card = tw`rounded-2xl border border-white/5 bg-neutral-800 shadow-card`;
 const cardPad = { padding: '1.5rem' } as React.CSSProperties;
 const field = tw`w-full rounded-lg border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-neutral-50 outline-none focus:border-primary-400`;
+
+// A command shown with a one-click "copy" button.
+const CommandLine = ({ command }: { command: string }) => {
+    const [copied, setCopied] = useState(false);
+    const copy = () => {
+        try {
+            navigator.clipboard.writeText(command).then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1500);
+            });
+        } catch {
+            /* clipboard blocked: the person can still select the text */
+        }
+    };
+
+    return (
+        <div css={tw`flex items-center gap-2 rounded-lg border border-white/10 bg-neutral-900 px-3 py-2`}>
+            <code css={tw`flex-1 text-sm text-primary-300 break-all`}>{command}</code>
+            <button type={'button'} onClick={copy} css={tw`flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-100 flex-shrink-0`}>
+                <FontAwesomeIcon icon={copied ? faCheck : faCopy} /> <span>{copied ? 'Copied' : 'Copy'}</span>
+            </button>
+        </div>
+    );
+};
+
+// Explains how to get a mod pack working on a dedicated server.
+const ModsHelp = () => (
+    <div css={tw`mt-4 rounded-xl border border-white/5 bg-neutral-900/40 p-4`}>
+        <p css={tw`text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-3`}>
+            <span>How to add mods</span>
+        </p>
+        <ol css={tw`list-decimal pl-5 text-sm text-neutral-300 space-y-2`}>
+            <li>
+                <span>In Euro Truck Simulator 2, enable the mods you want in the Mod Manager and load a profile.</span>
+            </li>
+            <li>
+                <span>Open the in-game console with the ~ key, then run this command:</span>
+                <div css={tw`mt-2`}>
+                    <CommandLine command={'export_server_packages'} />
+                </div>
+                <p css={tw`mt-1 text-2xs text-neutral-500`}>
+                    <span>If the console does not open, set</span>{' '}
+                    <code css={tw`text-neutral-400`}>uset g_console "1"</code>{' '}
+                    <span>in config.cfg first.</span>
+                </p>
+            </li>
+            <li>
+                <span>
+                    It creates two files in your Documents/Euro Truck Simulator 2 folder: server_packages.sii and
+                    server_packages.dat.
+                </span>
+            </li>
+            <li>
+                <span>
+                    Upload those two files to the server root (next to server_config.sii), and put your mod .scs files
+                    in the mod folder.
+                </span>
+            </li>
+            <li>
+                <span>Turn on &quot;Allow mods&quot; above, then restart the server.</span>
+            </li>
+        </ol>
+    </div>
+);
 
 export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
@@ -278,12 +350,7 @@ export default () => {
                                     })}
                                 </div>
                             )}
-                            <p css={tw`mt-3 text-2xs text-neutral-500`}>
-                                <span>
-                                    Turn on &quot;Allow mods&quot; above. A dedicated server also needs the matching
-                                    server_packages generated in the game for these mods to load.
-                                </span>
-                            </p>
+                            <ModsHelp />
                         </div>
                     </div>
                 </div>
