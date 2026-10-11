@@ -4,17 +4,28 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faCheck,
     faCopy,
+    faPlus,
     faPowerOff,
     faTrash,
     faTruck,
     faUpload,
+    faUserShield,
     faCircleNotch,
 } from '@fortawesome/free-solid-svg-icons';
 import { ServerContext } from '@/state/server';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import { Button } from '@/components/elements/button/index';
 import { Link, useRouteMatch } from 'react-router-dom';
-import { findConfig, findMods, getSii, readConfig, setSii, writeConfig } from '@/api/server/ets2';
+import {
+    findConfig,
+    findMods,
+    getModerators,
+    getSii,
+    readConfig,
+    setModerators as applyModerators,
+    setSii,
+    writeConfig,
+} from '@/api/server/ets2';
 import { FileObject } from '@/api/server/files/loadDirectory';
 import renameFiles from '@/api/server/files/renameFiles';
 import deleteFiles from '@/api/server/files/deleteFiles';
@@ -135,6 +146,8 @@ export default () => {
     const [notice, setNotice] = useState('');
 
     const [mods, setMods] = useState<{ dir: string; files: FileObject[] } | null>(null);
+    const [moderators, setModeratorsState] = useState<string[]>([]);
+    const [modInput, setModInput] = useState('');
 
     const load = useCallback(() => {
         setLoading(true);
@@ -155,6 +168,7 @@ export default () => {
                 });
                 setValues(v);
                 setPresent(have);
+                setModeratorsState(getModerators(text));
                 findMods(found, uuid).then(setMods);
             })
             .catch((e) => setError(e.message || 'The config could not be read.'))
@@ -174,6 +188,7 @@ export default () => {
             if (!present.has(f.key)) return;
             out = setSii(out, f.key, values[f.key] ?? '', f.type === 'text');
         });
+        out = applyModerators(out, moderators);
         writeConfig(uuid, path!, out)
             .then(() => {
                 setRaw(out);
@@ -184,6 +199,22 @@ export default () => {
     };
 
     const set = (key: string, value: string) => setValues((s) => ({ ...s, [key]: value }));
+
+    const addModerator = () => {
+        const value = modInput.trim();
+        if (!/^\d{17}$/.test(value)) {
+            setError('Enter a valid SteamID64 (17 digits).');
+
+            return;
+        }
+        setError('');
+        if (!moderators.includes(value)) {
+            setModeratorsState([...moderators, value]);
+        }
+        setModInput('');
+    };
+
+    const removeModerator = (id: string) => setModeratorsState(moderators.filter((x) => x !== id));
 
     const toggleMod = (file: FileObject) => {
         if (!mods) return;
@@ -294,6 +325,49 @@ export default () => {
                                 <span>Gameplay rules</span>
                             </h3>
                             <div css={tw`divide-y divide-white/5`}>{GAMEPLAY.map(renderField)}</div>
+                        </div>
+
+                        <div css={card} style={cardPad}>
+                            <h3 css={tw`flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-neutral-300 mb-3`}>
+                                <FontAwesomeIcon icon={faUserShield} css={tw`text-primary-300`} /> <span>Moderators</span>
+                            </h3>
+                            <div css={tw`flex gap-2 mb-3`}>
+                                <input
+                                    value={modInput}
+                                    onChange={(e) => setModInput(e.currentTarget.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && addModerator()}
+                                    placeholder={'SteamID64 (17 digits)'}
+                                    css={field}
+                                />
+                                <Button type={'button'} onClick={addModerator} css={tw`flex-shrink-0`}>
+                                    <FontAwesomeIcon icon={faPlus} />
+                                </Button>
+                            </div>
+                            {moderators.length === 0 ? (
+                                <p css={tw`text-sm text-neutral-400`}>No moderator.</p>
+                            ) : (
+                                <div css={tw`flex flex-col gap-2`}>
+                                    {moderators.map((id) => (
+                                        <div
+                                            key={id}
+                                            css={tw`flex items-center gap-2 rounded-xl border border-white/5 bg-neutral-900/50 px-3 py-1.5`}
+                                        >
+                                            <code css={tw`text-sm text-neutral-100 flex-1 truncate`}>{id}</code>
+                                            <button
+                                                type={'button'}
+                                                title={'Remove'}
+                                                onClick={() => removeModerator(id)}
+                                                css={tw`p-1 rounded text-red-400 hover:bg-white/10`}
+                                            >
+                                                <FontAwesomeIcon icon={faTrash} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <p css={tw`mt-3 text-2xs text-neutral-500`}>
+                                <span>Use each moderator&apos;s SteamID64 (17 digits). Click Save to apply.</span>
+                            </p>
                         </div>
 
                         <div css={card} style={cardPad}>

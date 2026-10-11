@@ -1744,5 +1744,10 @@
  "in config.cfg first.": "dans config.cfg d’abord.",
  "It creates two files in your Documents/Euro Truck Simulator 2 folder: server_packages.sii and server_packages.dat.": "Cela crée deux fichiers dans votre dossier Documents/Euro Truck Simulator 2 : server_packages.sii et server_packages.dat.",
  "Upload those two files to the server root (next to server_config.sii), and put your mod .scs files in the mod folder.": "Envoyez ces deux fichiers à la racine du serveur (à côté de server_config.sii), et placez vos .scs dans le dossier mod.",
- "Turn on \"Allow mods\" above, then restart the server.": "Activez « Autoriser les mods » ci-dessus, puis redémarrez le serveur."
+ "Turn on \"Allow mods\" above, then restart the server.": "Activez « Autoriser les mods » ci-dessus, puis redémarrez le serveur.",
+ "Moderators": "Modérateurs",
+ "SteamID64 (17 digits)": "SteamID64 (17 chiffres)",
+ "No moderator.": "Aucun modérateur.",
+ "Use each moderator's SteamID64 (17 digits). Click Save to apply.": "Utilisez le SteamID64 (17 chiffres) de chaque modérateur. Cliquez sur Enregistrer pour appliquer.",
+ "Enter a valid SteamID64 (17 digits).": "Entrez un SteamID64 valide (17 chiffres)."
 }

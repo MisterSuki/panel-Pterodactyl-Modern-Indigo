@@ -45,6 +45,36 @@ export const setSii = (text: string, key: string, value: string, quoted: boolean
     return re.test(text) ? text.replace(re, (_m, indent) => indent + line) : text;
 };
 
+// The moderators are stored as an .sii array: "moderator_list: N" then "moderator_list[0]: <steamid64>", etc.
+export const getModerators = (text: string): string[] => {
+    const map: Record<number, string> = {};
+    const re = /^\s*moderator_list\[(\d+)\]:\s*(.*?)\s*$/gm;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text)) !== null) {
+        map[parseInt(m[1], 10)] = m[2].replace(/^"|"$/g, '');
+    }
+
+    return Object.keys(map)
+        .map(Number)
+        .sort((a, b) => a - b)
+        .map((i) => map[i])
+        .filter((v) => v !== '');
+};
+
+export const setModerators = (text: string, ids: string[]): string => {
+    const lines = text.split('\n').filter((l) => !/^\s*moderator_list\[\d+\]:/.test(l));
+    const index = lines.findIndex((l) => /^\s*moderator_list:\s*/.test(l));
+    if (index === -1) {
+        return lines.join('\n');
+    }
+    const indent = lines[index].match(/^(\s*)/)?.[1] ?? ' ';
+    lines[index] = `${indent}moderator_list: ${ids.length}`;
+    const entries = ids.map((id, i) => `${indent}moderator_list[${i}]: ${id}`);
+    lines.splice(index + 1, 0, ...entries);
+
+    return lines.join('\n');
+};
+
 const CONFIG_CANDIDATES = [
     '/server_config.sii',
     '/.local/share/Euro Truck Simulator 2/server_config.sii',
