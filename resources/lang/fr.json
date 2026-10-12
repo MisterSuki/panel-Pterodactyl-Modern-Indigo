@@ -1749,5 +1749,6 @@
  "SteamID64 (17 digits)": "SteamID64 (17 chiffres)",
  "No moderator.": "Aucun modérateur.",
  "Use each moderator's SteamID64 (17 digits). Click Save to apply.": "Utilisez le SteamID64 (17 chiffres) de chaque modérateur. Cliquez sur Enregistrer pour appliquer.",
- "Enter a valid SteamID64 (17 digits).": "Entrez un SteamID64 valide (17 chiffres)."
+ "Enter a valid SteamID64 (17 digits).": "Entrez un SteamID64 valide (17 chiffres).",
+ "The official ETS2/ATS server is limited to 8 players; a higher value is ignored by the game.": "Le serveur officiel ETS2/ATS est limité à 8 joueurs ; une valeur plus élevée est ignorée par le jeu."
 }

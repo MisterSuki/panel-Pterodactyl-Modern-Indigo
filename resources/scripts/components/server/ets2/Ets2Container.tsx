@@ -35,6 +35,7 @@ interface Field {
     key: string;
     label: string;
     type: FieldType;
+    help?: string;
 }
 
 const GENERAL: Field[] = [
@@ -44,7 +45,12 @@ const GENERAL: Field[] = [
     { key: 'password', label: 'Password (empty = public)', type: 'text' },
 ];
 const LIMITS: Field[] = [
-    { key: 'max_players', label: 'Max players', type: 'number' },
+    {
+        key: 'max_players',
+        label: 'Max players',
+        type: 'number',
+        help: 'The official ETS2/ATS server is limited to 8 players; a higher value is ignored by the game.',
+    },
     { key: 'max_vehicles_total', label: 'Max vehicles', type: 'number' },
     { key: 'max_ai_vehicles_player', label: 'Max AI per player', type: 'number' },
     { key: 'connection_dedicated_port', label: 'Game port', type: 'number' },
@@ -267,6 +273,11 @@ export default () => {
                     onChange={(e) => set(f.key, e.currentTarget.value)}
                     css={field}
                 />
+                {f.help && (
+                    <p css={tw`mt-1 text-2xs text-yellow-500/80`}>
+                        <span>{f.help}</span>
+                    </p>
+                )}
             </div>
         );
     };
