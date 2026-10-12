@@ -49,7 +49,7 @@ const LIMITS: Field[] = [
         key: 'max_players',
         label: 'Max players',
         type: 'number',
-        help: 'The official ETS2/ATS server is limited to 8 players; a higher value is ignored by the game.',
+        help: 'Stop the server before changing this, then restart (a running server can overwrite the file). Some game builds still cap at 8. More players need more CPU and bandwidth.',
     },
     { key: 'max_vehicles_total', label: 'Max vehicles', type: 'number' },
     { key: 'max_ai_vehicles_player', label: 'Max AI per player', type: 'number' },
@@ -140,6 +140,7 @@ const ModsHelp = () => (
 
 export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
+    const running = ServerContext.useStoreState((state) => state.status.value) === 'running';
     const match = useRouteMatch();
 
     const [loading, setLoading] = useState(true);
@@ -303,6 +304,11 @@ export default () => {
             )}
             {error && (
                 <p css={tw`mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200`}>{error}</p>
+            )}
+            {running && path && (
+                <p css={tw`mb-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-200`}>
+                    <span>The server is running. Stop it before saving, or the game may overwrite your changes.</span>
+                </p>
             )}
 
             {loading ? (

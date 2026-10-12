@@ -1750,5 +1750,7 @@
  "No moderator.": "Aucun modérateur.",
  "Use each moderator's SteamID64 (17 digits). Click Save to apply.": "Utilisez le SteamID64 (17 chiffres) de chaque modérateur. Cliquez sur Enregistrer pour appliquer.",
  "Enter a valid SteamID64 (17 digits).": "Entrez un SteamID64 valide (17 chiffres).",
- "The official ETS2/ATS server is limited to 8 players; a higher value is ignored by the game.": "Le serveur officiel ETS2/ATS est limité à 8 joueurs ; une valeur plus élevée est ignorée par le jeu."
+ "The official ETS2/ATS server is limited to 8 players; a higher value is ignored by the game.": "Le serveur officiel ETS2/ATS est limité à 8 joueurs ; une valeur plus élevée est ignorée par le jeu.",
+ "Stop the server before changing this, then restart (a running server can overwrite the file). Some game builds still cap at 8. More players need more CPU and bandwidth.": "Arrêtez le serveur avant de changer ceci, puis redémarrez (un serveur en marche peut écraser le fichier). Certaines versions du jeu plafonnent encore à 8. Plus de joueurs = plus de CPU et de bande passante.",
+ "The server is running. Stop it before saving, or the game may overwrite your changes.": "Le serveur tourne. Arrêtez-le avant d’enregistrer, sinon le jeu risque d’écraser vos changements."
 }
