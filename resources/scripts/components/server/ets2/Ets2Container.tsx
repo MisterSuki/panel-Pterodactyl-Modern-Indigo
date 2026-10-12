@@ -22,7 +22,6 @@ import {
     getModerators,
     getSii,
     readConfig,
-    setConvoySize,
     setModerators as applyModerators,
     setSii,
     writeConfig,
@@ -46,12 +45,6 @@ const GENERAL: Field[] = [
     { key: 'password', label: 'Password (empty = public)', type: 'text' },
 ];
 const LIMITS: Field[] = [
-    {
-        key: 'max_players',
-        label: 'Max players',
-        type: 'number',
-        help: 'Edit while the server is stopped. The panel also updates g_max_convoy_size on the server, but EACH player must set the same g_max_convoy_size in their own config.cfg, or the server will not appear for them.',
-    },
     { key: 'max_vehicles_total', label: 'Max vehicles', type: 'number' },
     { key: 'max_ai_vehicles_player', label: 'Max AI per player', type: 'number' },
     { key: 'connection_dedicated_port', label: 'Game port', type: 'number' },
@@ -198,7 +191,6 @@ export default () => {
         });
         out = applyModerators(out, moderators);
         writeConfig(uuid, path!, out)
-            .then(() => (present.has('max_players') ? setConvoySize(uuid, path!, values['max_players'] ?? '8') : undefined))
             .then(() => {
                 setRaw(out);
                 setNotice('Saved. Restart the server to apply the changes.');
