@@ -131,3 +131,26 @@ export const findMods = async (configPath: string, uuid: string): Promise<{ dir:
         return { dir, files: [] };
     }
 };
+
+/**
+ * The server also clamps the player count with g_max_convoy_size in its own config.cfg, so we keep it in step with
+ * max_players. Does nothing when there is no config.cfg yet (the server writes it on first start).
+ */
+export const setConvoySize = async (uuid: string, configPath: string, size: string): Promise<void> => {
+    const cfgPath = `${dirName(configPath)}/config.cfg`.replace('//', '/');
+    let raw: string;
+    try {
+        raw = await getFileContents(uuid, cfgPath);
+    } catch {
+        return;
+    }
+    const lines = raw.split('\n');
+    const index = lines.findIndex((l) => /uset\s+g_max_convoy_size\b/.test(l));
+    const line = `uset g_max_convoy_size "${size}"`;
+    if (index === -1) {
+        lines.push(line);
+    } else {
+        lines[index] = line;
+    }
+    await saveFileContents(uuid, cfgPath, lines.join('\n'));
+};
