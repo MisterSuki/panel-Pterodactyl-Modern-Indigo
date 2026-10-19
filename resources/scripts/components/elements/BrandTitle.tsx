@@ -20,7 +20,7 @@ const Title = styled.span<{ $size: 'nav' | 'hero' }>`
     letter-spacing: ${({ $size }) => ($size === 'hero' ? '-0.02em' : '-0.01em')};
     text-align: center;
     user-select: none;
-    background-image: linear-gradient(180deg, #c7d2fe 0%, #818cf8 38%, #a78bfa 68%, #22d3ee 125%);
+    background-image: linear-gradient(180deg, #c7d2fe 0%, #66adff 38%, #a78bfa 68%, #22d3ee 125%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -28,8 +28,8 @@ const Title = styled.span<{ $size: 'nav' | 'hero' }>`
     transition: filter 200ms ease, transform 200ms ease;
     filter: ${({ $size }) =>
         $size === 'hero'
-            ? 'drop-shadow(0 1px 0 #4f46e5) drop-shadow(0 2px 0 #4338ca) drop-shadow(0 3px 0 #3730a3) drop-shadow(0 4px 0 #312e81) drop-shadow(0 5px 0 #272566) drop-shadow(0 14px 14px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 26px rgba(99, 102, 241, 0.4))'
-            : 'drop-shadow(0 1px 0 #4f46e5) drop-shadow(0 2px 0 #3730a3) drop-shadow(0 5px 5px rgba(0, 0, 0, 0.5))'};
+            ? 'drop-shadow(0 1px 0 #0071e3) drop-shadow(0 2px 0 #4338ca) drop-shadow(0 3px 0 #3730a3) drop-shadow(0 4px 0 #312e81) drop-shadow(0 5px 0 #272566) drop-shadow(0 14px 14px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 26px rgba(10, 132, 255, 0.4))'
+            : 'drop-shadow(0 1px 0 #0071e3) drop-shadow(0 2px 0 #3730a3) drop-shadow(0 5px 5px rgba(0, 0, 0, 0.5))'};
 `;
 
 export default ({ size = 'nav', className }: Props) => {

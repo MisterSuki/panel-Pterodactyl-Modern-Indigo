@@ -3,7 +3,7 @@
 }
 
 .panel {
-    @apply relative bg-gray-800 rounded-2xl max-w-xl w-full mx-auto shadow-card text-left;
+    @apply relative bg-gray-800/80 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 rounded-2xl max-w-xl w-full mx-auto shadow-card text-left;
     @apply border border-white/10;
 }
 

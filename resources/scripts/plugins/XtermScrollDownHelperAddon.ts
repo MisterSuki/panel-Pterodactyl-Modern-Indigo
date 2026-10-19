@@ -52,8 +52,8 @@ export class ScrollDownHelperAddon implements ITerminalAddon {
         this.element.style.color = '#fff';
         this.element.style.borderRadius = '9999px';
         this.element.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-        this.element.style.boxShadow = '0 8px 20px -6px rgba(99, 102, 241, 0.8)';
-        this.element.style.backgroundColor = '#6366f1';
+        this.element.style.boxShadow = '0 8px 20px -6px rgba(10, 132, 255, 0.8)';
+        this.element.style.backgroundColor = '#0a84ff';
         this.element.style.zIndex = '999';
         this.element.style.cursor = 'pointer';
 

@@ -1,25 +1,15 @@
 import tw from 'twin.macro';
 import { createGlobalStyle } from 'styled-components/macro';
-// @ts-expect-error untyped font file
-import font from '@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2';
 
 export default createGlobalStyle`
-    @font-face {
-        font-family: 'IBM Plex Sans';
-        font-style: normal;
-        font-display: swap;
-        font-weight: 100 700;
-        src: url(${font}) format('woff2-variations');
-        unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
-    }
-
     html {
-        background: #05070d;
+        background: #000;
+        scroll-behavior: smooth;
     }
 
     /*
-     * The list of a drop-down is drawn by the browser, on a white background, and the text of the fields is light:
-     * without this the choices could not be read. The dark scheme also darkens date pickers and scrollbars in fields.
+     * The list of a drop-down is drawn by the browser and cannot be translucent: it gets a solid iOS dark grey so the
+     * choices can be read. The dark scheme also darkens date pickers and scrollbars in fields.
      */
     select,
     input,
@@ -29,46 +19,74 @@ export default createGlobalStyle`
 
     select option,
     select optgroup {
-        background-color: #131826;
-        color: #e5e7eb;
+        background-color: #1c1c1e;
+        color: #f5f5f7;
     }
 
     select option:checked {
-        background-color: #4f46e5;
+        background-color: #0a84ff;
         color: #ffffff;
     }
 
     select option:disabled {
-        color: #6b7280;
+        color: #636366;
     }
 
     body {
-        ${tw`font-sans bg-neutral-900 text-neutral-200 antialiased`};
-        letter-spacing: 0.015em;
+        ${tw`font-sans text-neutral-200 antialiased`};
         min-height: 100vh;
-        background-color: #05070d;
+        background: transparent;
+        -webkit-font-smoothing: antialiased;
     }
 
     /*
-     * The glow behind the page lives on its own fixed layer. With "background-attachment: fixed"
-     * the browser repaints the whole gradient on every scroll frame, which is what made the
-     * console page feel heavy.
+     * The wallpaper: two big, heavily blurred colour blobs that drift slowly behind everything, like the iOS
+     * backgrounds. Every translucent surface lets them glow through, which gives the frosted-glass look. They live on
+     * fixed layers and only move with "transform", so the browser animates them without repainting the page.
      */
-    body::before {
+    body::before,
+    body::after {
         content: '';
         position: fixed;
-        inset: 0;
         z-index: -1;
+        width: 88vmax;
+        height: 88vmax;
+        border-radius: 50%;
         pointer-events: none;
-        background-image:
-            radial-gradient(1100px circle at 8% -10%, rgba(99, 102, 241, 0.16), transparent 55%),
-            radial-gradient(900px circle at 100% 0%, rgba(6, 182, 212, 0.10), transparent 50%),
-            radial-gradient(1200px circle at 50% 120%, rgba(139, 92, 246, 0.08), transparent 55%);
-        transform: translateZ(0);
+        filter: blur(90px);
+        will-change: transform;
     }
 
-    html {
-        scroll-behavior: smooth;
+    body::before {
+        top: -28vmax;
+        left: -18vmax;
+        opacity: 0.7;
+        background:
+            radial-gradient(circle at 32% 32%, #0a84ff 0%, rgba(10, 132, 255, 0) 58%),
+            radial-gradient(circle at 70% 68%, #5e5ce6 0%, rgba(94, 92, 230, 0) 60%);
+        animation: pd-blob-a 30s ease-in-out infinite alternate;
+    }
+
+    body::after {
+        bottom: -32vmax;
+        right: -22vmax;
+        opacity: 0.55;
+        background:
+            radial-gradient(circle at 38% 40%, #ff375f 0%, rgba(255, 55, 95, 0) 55%),
+            radial-gradient(circle at 66% 62%, #64d2ff 0%, rgba(100, 210, 255, 0) 60%);
+        animation: pd-blob-b 36s ease-in-out infinite alternate;
+    }
+
+    @keyframes pd-blob-a {
+        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        50% { transform: translate(18vw, 12vh) scale(1.15) rotate(40deg); }
+        100% { transform: translate(-6vw, 26vh) scale(0.95) rotate(-20deg); }
+    }
+
+    @keyframes pd-blob-b {
+        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        50% { transform: translate(-16vw, -14vh) scale(1.2) rotate(-35deg); }
+        100% { transform: translate(10vw, -24vh) scale(0.9) rotate(25deg); }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -84,12 +102,13 @@ export default createGlobalStyle`
     }
 
     ::selection {
-        background: rgba(99, 102, 241, 0.45);
+        background: rgba(10, 132, 255, 0.45);
         color: #fff;
     }
 
     h1, h2, h3, h4, h5, h6 {
-        ${tw`font-medium tracking-normal font-header`};
+        ${tw`font-semibold font-header`};
+        letter-spacing: -0.01em;
     }
 
     p {
@@ -118,23 +137,23 @@ export default createGlobalStyle`
         -moz-appearance: textfield !important;
     }
 
-    /* Scroll Bar Style */
+    /* Thin, rounded, translucent scroll bars, like iOS. */
     ::-webkit-scrollbar {
         background: none;
-        width: 12px;
-        height: 12px;
+        width: 10px;
+        height: 10px;
     }
 
     ::-webkit-scrollbar-thumb {
         border: solid 3px transparent;
         border-radius: 9999px;
         background-clip: padding-box;
-        background-color: hsl(222, 18%, 32%);
+        background-color: rgba(255, 255, 255, 0.18);
         transition: background-color 150ms ease;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        background-color: hsl(238, 65%, 62%);
+        background-color: rgba(10, 132, 255, 0.7);
     }
 
     ::-webkit-scrollbar-track-piece {

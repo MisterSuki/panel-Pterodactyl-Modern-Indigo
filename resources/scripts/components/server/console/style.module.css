@@ -12,7 +12,7 @@
         @apply hidden flex-shrink-0 items-center justify-center rounded-lg shadow-glow w-11 h-11;
         @apply transition-colors duration-500;
         @apply sm:flex sm:mr-4;
-        background-image: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        background-image: linear-gradient(135deg, #0a84ff 0%, #0071e3 100%);
 
         & > svg {
             @apply w-5 h-5 m-auto text-white;
@@ -22,8 +22,11 @@
 
 .terminal {
     @apply relative flex flex-col w-full overflow-hidden rounded-2xl border border-white/10 shadow-card;
-    background: radial-gradient(900px circle at 0% 0%, rgba(99, 102, 241, 0.07), transparent 55%),
-        linear-gradient(180deg, #080b14 0%, #05070d 100%);
+    /* Smoked glass: dark enough for the log to stay readable, light enough for the wallpaper to tint through. */
+    background: radial-gradient(900px circle at 0% 0%, rgba(10, 132, 255, 0.08), transparent 55%),
+        linear-gradient(180deg, rgba(14, 14, 18, 0.78) 0%, rgba(6, 6, 9, 0.84) 100%);
+    backdrop-filter: saturate(160%) blur(24px);
+    -webkit-backdrop-filter: saturate(160%) blur(24px);
 
     & .header {
         @apply flex items-center justify-between gap-3 px-4 py-2.5 bg-white/[0.03] border-b border-white/5;

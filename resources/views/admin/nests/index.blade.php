@@ -136,14 +136,14 @@
         .ce-status { min-height: 20px; margin: 10px 0 6px; }
         .ce-status.bad { color: #f87171; }
         .ce-item { display: flex; align-items: center; gap: 14px; padding: 10px 12px; margin-top: 8px; border-radius: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); transition: border-color 0.15s ease; }
-        .ce-item:hover { border-color: rgba(99, 102, 241, 0.45); }
+        .ce-item:hover { border-color: rgba(10, 132, 255, 0.45); }
         .ce-item .ce-main { flex: 1; min-width: 0; }
         .ce-item .ce-name { font-weight: 600; }
         .ce-item .ce-desc { font-size: 12px; color: #8a94ad; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .ce-item .ce-note { font-size: 12px; margin-top: 2px; }
         .ce-item .ce-note.ok { color: #4ade80; }
         .ce-item .ce-note.bad { color: #f87171; }
-        .ce-badge { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; background: rgba(99, 102, 241, 0.18); color: #a5b4fc; vertical-align: 1px; }
+        .ce-badge { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; background: rgba(10, 132, 255, 0.18); color: #a5b4fc; vertical-align: 1px; }
         .ce-badge.applications { background: rgba(34, 211, 238, 0.15); color: #67e8f9; }
         .ce-badge.generic { background: rgba(250, 204, 21, 0.15); color: #fde047; }
     </style>

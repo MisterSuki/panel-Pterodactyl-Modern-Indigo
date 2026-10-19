@@ -8,17 +8,21 @@
     <title>Maintenance</title>
     <style>
         :root {
-            --bg: #0b0f17;
-            --card: #141a26;
+            --bg: #000000;
+            --card: rgba(28, 28, 32, 0.6);
             --border: rgba(255, 255, 255, 0.06);
-            --primary: #818cf8;
+            --primary: #66adff;
             --text: #e8eaf0;
             --muted: #9aa3b2;
         }
         * { box-sizing: border-box; }
         html, body { height: 100%; margin: 0; }
         body {
-            background: radial-gradient(1100px 560px at 50% -10%, rgba(99, 102, 241, 0.18), transparent 60%), var(--bg);
+            background:
+                radial-gradient(60vmax circle at 10% 0%, rgba(10, 132, 255, 0.45), transparent 60%),
+                radial-gradient(50vmax circle at 90% 20%, rgba(94, 92, 230, 0.4), transparent 60%),
+                radial-gradient(60vmax circle at 70% 110%, rgba(255, 55, 95, 0.3), transparent 60%),
+                var(--bg);
             color: var(--text);
             font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
@@ -29,7 +33,9 @@
         .card {
             width: 100%;
             max-width: 460px;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent), var(--card);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent), var(--card);
+            -webkit-backdrop-filter: saturate(180%) blur(30px);
+            backdrop-filter: saturate(180%) blur(30px);
             border: 1px solid var(--border);
             border-radius: 22px;
             padding: 44px 32px;
@@ -44,8 +50,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(99, 102, 241, 0.14);
-            border: 1px solid rgba(99, 102, 241, 0.3);
+            background: rgba(10, 132, 255, 0.14);
+            border: 1px solid rgba(10, 132, 255, 0.3);
             color: var(--primary);
         }
         .gear { width: 38px; height: 38px; animation: spin 5s linear infinite; }

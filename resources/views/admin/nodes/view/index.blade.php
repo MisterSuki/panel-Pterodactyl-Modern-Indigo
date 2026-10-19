@@ -219,13 +219,13 @@
         .node-live-value { margin-top: 4px; font-size: 24px; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
         .node-live-sub { min-height: 18px; font-size: 12px; color: #8a94ad; font-variant-numeric: tabular-nums; }
         .node-live-bar { height: 5px; margin: 8px 0 0; border-radius: 3px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
-        .node-live-bar > span { display: block; height: 100%; width: 0; border-radius: 3px; background: #6366f1; transition: width 0.6s ease, background-color 0.3s ease; }
+        .node-live-bar > span { display: block; height: 100%; width: 0; border-radius: 3px; background: #0a84ff; transition: width 0.6s ease, background-color 0.3s ease; }
         .node-live-bar > span.warn { background: #f59e0b; }
         .node-live-bar > span.danger { background: #ef4444; }
         .node-live-bar-static { opacity: 0; }
         .node-live-spark { display: block; width: calc(100% + 32px); height: 42px; margin: 6px -16px 0; }
-        .node-live-spark path.area { fill: rgba(99, 102, 241, 0.18); }
-        .node-live-spark path.line { fill: none; stroke: #818cf8; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+        .node-live-spark path.area { fill: rgba(10, 132, 255, 0.18); }
+        .node-live-spark path.line { fill: none; stroke: #66adff; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
         .node-live-spark path.line.b { stroke: #22d3ee; }
         .node-live-state { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: #6b7280; }
         .node-live-state.running { background: #4ade80; }

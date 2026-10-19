@@ -77,7 +77,7 @@ export default () => {
             <ScreenShare />
             <div
                 className={
-                    'sticky top-0 z-40 w-full bg-neutral-900/95 border-b border-white/5 shadow-nav overflow-x-auto'
+                    'sticky top-0 z-40 w-full bg-neutral-900/60 backdrop-blur-2xl backdrop-saturate-150 border-b border-white/10 shadow-nav overflow-x-auto'
                 }
             >
                 <SpinnerOverlay visible={isLoggingOut} />

@@ -91,12 +91,12 @@
     @endforeach
 
     <div id="pd-confirm-overlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(5,8,15,.65);backdrop-filter:blur(3px);align-items:center;justify-content:center;">
-        <div style="width:100%;max-width:440px;margin:0 16px;background:#161c2b;border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.55);padding:24px;">
+        <div style="width:100%;max-width:440px;margin:0 16px;background:rgba(28,28,32,0.85);border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.55);padding:24px;">
             <h3 style="margin:0 0 10px;font-size:18px;font-weight:700;color:#f3f4f6;"><span>Please confirm</span></h3>
             <p id="pd-confirm-msg" style="margin:0 0 22px;color:#9aa3b2;font-size:14px;line-height:1.6;"></p>
             <div style="display:flex;justify-content:flex-end;gap:10px;">
                 <button type="button" id="pd-confirm-cancel" style="border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#cbd5e1;border-radius:10px;padding:8px 16px;font-weight:600;cursor:pointer;"><span>Cancel</span></button>
-                <button type="button" id="pd-confirm-ok" style="border:0;background:#6366f1;color:#fff;border-radius:10px;padding:8px 16px;font-weight:600;cursor:pointer;"><span>Confirm</span></button>
+                <button type="button" id="pd-confirm-ok" style="border:0;background:#0a84ff;color:#fff;border-radius:10px;padding:8px 16px;font-weight:600;cursor:pointer;"><span>Confirm</span></button>
             </div>
         </div>
     </div>
@@ -118,7 +118,7 @@
                     e.preventDefault();
                     var s = form.querySelector('.pd-cfm');
                     msg.textContent = s ? s.textContent.replace(/\s+/g, ' ').trim() : 'Are you sure?';
-                    ok.style.background = form.hasAttribute('data-pd-danger') ? '#ef4444' : '#6366f1';
+                    ok.style.background = form.hasAttribute('data-pd-danger') ? '#ef4444' : '#0a84ff';
                     pending = form;
                     overlay.style.display = 'flex';
                 });

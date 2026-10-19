@@ -53,7 +53,7 @@ export default ({ total, servers, usage }: Props) => {
 
     return (
         <div css={tw`grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5`}>
-            <Tile icon={faServer} label={'Servers'} value={total} color={'#818cf8'} />
+            <Tile icon={faServer} label={'Servers'} value={total} color={'#66adff'} />
             <Tile
                 icon={faBolt}
                 label={'Online'}

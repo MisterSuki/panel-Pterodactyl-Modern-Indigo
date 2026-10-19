@@ -17,18 +17,18 @@
     <script src="/js/translator.js?v={{ @filemtime(public_path('js/translator.js')) }}"></script>
 
     <style>
-        :root { --bg: #0b1020; --card: #121a2f; --line: rgba(255,255,255,.08); --text: #e2e8f0; --muted: #94a3b8; --accent: #6366f1; --accent2: #818cf8; --cyan: #22d3ee; }
+        :root { --bg: #0b1020; --card: #121a2f; --line: rgba(255,255,255,.08); --text: #e2e8f0; --muted: #94a3b8; --accent: #0a84ff; --accent2: #66adff; --cyan: #22d3ee; }
         * { box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
         a { color: inherit; }
-        .ld-glow { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(700px circle at 15% -5%, rgba(99,102,241,.28), transparent 60%), radial-gradient(600px circle at 90% 10%, rgba(34,211,238,.14), transparent 60%); }
+        .ld-glow { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(700px circle at 15% -5%, rgba(10,132,255,.28), transparent 60%), radial-gradient(600px circle at 90% 10%, rgba(34,211,238,.14), transparent 60%); }
         .ld-wrap { position: relative; width: min(1100px, 100% - 40px); margin: 0 auto; }
         .ld-nav { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
-        .ld-brand { font-size: 22px; font-weight: 800; text-decoration: none; letter-spacing: .01em; background: linear-gradient(90deg, #a5b4fc, #67e8f9); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 3px 0 rgba(99,102,241,.25); }
+        .ld-brand { font-size: 22px; font-weight: 800; text-decoration: none; letter-spacing: .01em; background: linear-gradient(90deg, #a5b4fc, #67e8f9); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 3px 0 rgba(10,132,255,.25); }
         .ld-btn { display: inline-flex; align-items: center; justify-content: center; padding: 11px 22px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.05); color: var(--text); font-weight: 600; font-size: 15px; text-decoration: none; transition: transform .15s ease, background .15s ease, box-shadow .15s ease; }
         .ld-btn:hover { background: rgba(255,255,255,.1); transform: translateY(-1px); }
-        .ld-btn--primary { background: linear-gradient(135deg, var(--accent), #4f46e5); border-color: rgba(129,140,248,.6); color: #fff; box-shadow: 0 10px 30px -10px rgba(99,102,241,.8); }
+        .ld-btn--primary { background: linear-gradient(135deg, var(--accent), #0071e3); border-color: rgba(129,140,248,.6); color: #fff; box-shadow: 0 10px 30px -10px rgba(10,132,255,.8); }
         .ld-btn--primary:hover { background: linear-gradient(135deg, #7477f5, #5b52ee); }
         .ld-hero { position: relative; padding: 90px 0 70px; text-align: center; }
         .ld-hero h1 { margin: 0 auto; max-width: 820px; font-size: clamp(34px, 6vw, 62px); line-height: 1.08; font-weight: 800; letter-spacing: -.02em; background: linear-gradient(180deg, #fff, #a5b4fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -45,7 +45,7 @@
         .ld-card:hover { transform: translateY(-3px); border-color: rgba(129,140,248,.45); }
         .ld-card h3 { margin: 14px 0 6px; font-size: 18px; }
         .ld-card p { margin: 0; color: var(--muted); font-size: 15px; white-space: pre-line; }
-        .ld-icon-box { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 14px; color: #c7d2fe; background: rgba(99,102,241,.18); border: 1px solid rgba(129,140,248,.3); }
+        .ld-icon-box { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 14px; color: #c7d2fe; background: rgba(10,132,255,.18); border: 1px solid rgba(129,140,248,.3); }
         .ld-about { max-width: 760px; margin: 0 auto; text-align: center; color: var(--muted); font-size: 17px; white-space: pre-line; }
         .ld-price { margin: 8px 0 2px; font-size: 30px; font-weight: 800; color: #c7d2fe; }
         .ld-price small { font-size: 14px; font-weight: 500; color: var(--muted); }

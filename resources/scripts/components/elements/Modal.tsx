@@ -130,7 +130,13 @@ const Modal: React.FC<ModalProps> = ({
                         </Fade>
                     )}
                     <div
-                        css={tw`bg-neutral-800 border border-white/10 p-3 sm:p-4 md:p-6 rounded-2xl shadow-card overflow-y-scroll transition-all duration-150`}
+                        css={tw`bg-neutral-800/80 border border-white/10 p-3 sm:p-4 md:p-6 rounded-2xl shadow-card overflow-y-scroll transition-all duration-150`}
+                        style={
+                            {
+                                backdropFilter: 'saturate(180%) blur(28px)',
+                                WebkitBackdropFilter: 'saturate(180%) blur(28px)',
+                            } as React.CSSProperties
+                        }
                     >
                         {children}
                     </div>

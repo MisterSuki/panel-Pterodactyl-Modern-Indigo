@@ -23,7 +23,7 @@
   }
 
   & .items_container {
-    @apply absolute right-0 mt-2 origin-top-right bg-neutral-900 rounded z-10;
+    @apply absolute right-0 mt-2 origin-top-right bg-neutral-900/80 backdrop-blur-xl backdrop-saturate-150 border border-white/10 rounded-xl z-10;
   }
 }
 

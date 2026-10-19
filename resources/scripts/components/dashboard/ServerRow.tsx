@@ -49,7 +49,7 @@ const ServerCard = styled(GreyRowBox)<{ $tint: string }>`
     ${tw`grid grid-cols-12 gap-x-4 gap-y-4 relative p-4 sm:p-5 rounded-2xl`};
     animation: ${slideIn} 360ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
     background-image: radial-gradient(520px circle at 0% 0%, rgba(${(props) => props.$tint}, 0.1), transparent 60%),
-        linear-gradient(180deg, hsl(224, 28%, 15%) 0%, hsl(224, 28%, 12%) 100%);
+        linear-gradient(180deg, rgba(44, 44, 50, 0.6) 0%, rgba(28, 28, 32, 0.55) 100%);
 
     &::before {
         content: '';
@@ -255,7 +255,7 @@ const ServerRow = ({
                             <Gauge
                                 icon={faMicrochip}
                                 label={'CPU'}
-                                color={'#818cf8'}
+                                color={'#66adff'}
                                 value={`${stats.cpuUsagePercent.toFixed(1)} %`}
                                 limit={cpuLimit}
                                 ratio={server.limits.cpu > 0 ? stats.cpuUsagePercent / server.limits.cpu : null}
