@@ -6,19 +6,19 @@
 
 ### Le panel de jeu qui a enfin l'air d'un vrai hébergeur
 
-Thème sombre bleu-nuit, accent indigo, cartes arrondies et animations douces pour le dashboard client **et** l'administration.<br>
-Avec en plus : **inscription**, **connexion Discord**, **rôles de staff**, **eggs en un clic**, **phpMyAdmin intégré**, **stats en temps réel**<br>
-et **un seul script** qui installe tout.
+Un look **iOS 26/27 « Liquid Glass »** (verre transparent, bleu iOS, fond dégradé) pour le dashboard client **et** l'administration.<br>
+Avec en plus : **inscription**, **connexion Discord**, **boutique**, **onglet Minecraft** (plugins, mods, joueurs), **onglet Euro Truck**,<br>
+**rôles de staff**, **eggs en un clic**, **phpMyAdmin intégré**, **stats en temps réel** et **un seul script** qui installe tout.
 
 <br>
 
-![Pterodactyl](https://img.shields.io/badge/Pterodactyl-1.15.1-6366f1?style=for-the-badge)
+![Pterodactyl](https://img.shields.io/badge/Pterodactyl-1.15.1-0a84ff?style=for-the-badge)
 ![Installation](https://img.shields.io/badge/installation-1%20commande-22c55e?style=for-the-badge)
 ![Systèmes](https://img.shields.io/badge/Ubuntu%2022.04%2F24.04%20·%20Debian%2011%2F12-0ea5e9?style=for-the-badge)
 ![Licence](https://img.shields.io/badge/licence-MIT-a855f7?style=for-the-badge)
 
 [![Étoiles](https://img.shields.io/github/stars/MisterSuki/panel-Pterodactyl-Modern-Indigo?style=for-the-badge&color=facc15&logo=github)](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/stargazers)
-[![Dernière mise à jour](https://img.shields.io/github/last-commit/MisterSuki/panel-Pterodactyl-Modern-Indigo?style=for-the-badge&color=6366f1)](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/commits/main)
+[![Dernière mise à jour](https://img.shields.io/github/last-commit/MisterSuki/panel-Pterodactyl-Modern-Indigo?style=for-the-badge&color=0a84ff)](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/commits/main)
 [![Problèmes](https://img.shields.io/github/issues/MisterSuki/panel-Pterodactyl-Modern-Indigo?style=for-the-badge&color=f43f5e)](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/issues)
 
 <br>
@@ -31,7 +31,7 @@ et **un seul script** qui installe tout.
 
 <br>
 
-<a href="docs/images/panel1.jpg"><img src="docs/images/panel1.jpg" alt="Dashboard : la liste des serveurs" width="92%"></a>
+<a href="docs/images/dashboard.jpg"><img src="docs/images/dashboard.jpg" alt="Dashboard : la liste des serveurs" width="92%"></a>
 
 </div>
 
@@ -73,9 +73,9 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 <tr>
 <td width="33%" valign="top">
 
-### 🎨 Design d'hébergeur
+### 🎨 Look iOS Liquid Glass
 
-Sidebar et en-tête bleu-nuit, cartes arrondies, boutons et formulaires modernes, page de connexion en verre dépoli, statuts lumineux. Refait pour le dashboard **et** l'administration.
+Barre en capsule de verre, cartes transparentes, boutons en pilule, couleurs système iOS, console façon terminal macOS, connexion en verre. Fluide : le fond est fixe, seuls les éléments flottants sont floutés. Dashboard **et** administration.
 
 </td>
 <td width="33%" valign="top">
@@ -139,6 +139,29 @@ Panel de A à Z, Wings, mise à jour avec **sauvegarde et retour en arrière**, 
 
 </td>
 </tr>
+<tr>
+<td width="33%" valign="top">
+
+### ⛏️ Onglet Minecraft
+
+Catalogue **Modrinth** : plugins, mods, modpacks, packs de ressources et datapacks, installés en un clic. Loader et version **détectés tout seuls**. Joueurs connectés, **whitelist on/off**, ops et bannis.
+
+</td>
+<td width="33%" valign="top">
+
+### 🚚 Onglet Euro Truck
+
+Pour les serveurs dédiés **ETS2 / ATS** : `server_config.sii` en formulaire, **modérateurs** par SteamID, mods `.scs` à activer ou couper, et le guide pour exporter ses mods depuis le jeu.
+
+</td>
+<td width="33%" valign="top">
+
+### 🛒 Boutique & entretien
+
+Boutique avec crédit (**Stripe, PayPal, SumUp**), serveurs créés tout seuls. Jolie **page de maintenance** pendant les mises à jour, **version du thème** et alerte de mise à jour dans l'administration.
+
+</td>
+</tr>
 </table>
 
 <br>
@@ -150,46 +173,50 @@ Panel de A à Z, Wings, mise à jour avec **sauvegarde et retour en arrière**, 
 <table>
   <tr>
     <td width="50%" valign="top">
-      <a href="docs/images/panel2.jpg"><img src="docs/images/panel2.jpg" alt="Console d'un serveur"></a><br>
-      <sub><b>🎮 Console d'un serveur</b> — console, statistiques et graphiques en direct</sub>
+      <a href="docs/images/login.jpg"><img src="docs/images/login.jpg" alt="Connexion"></a><br>
+      <sub><b>🔐 Connexion</b> — carte en verre, connexion Discord</sub>
     </td>
     <td width="50%" valign="top">
-      <a href="docs/images/panel3.jpg"><img src="docs/images/panel3.jpg" alt="Bases de données"></a><br>
-      <sub><b>🗄️ Bases de données</b> — le bouton phpMyAdmin ouvre la base déjà connecté</sub>
+      <a href="docs/images/register.jpg"><img src="docs/images/register.jpg" alt="Inscription"></a><br>
+      <sub><b>📝 Inscription</b> — les visiteurs créent leur compte eux-mêmes</sub>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <a href="docs/images/panel4.jpg"><img src="docs/images/panel4.jpg" alt="Administration"></a><br>
-      <sub><b>🧭 Administration</b> — vue d'ensemble</sub>
+      <a href="docs/images/console.jpg"><img src="docs/images/console.jpg" alt="Console d'un serveur"></a><br>
+      <sub><b>🎮 Console</b> — terminal coloré, recherche, copie, pause et statistiques en direct</sub>
     </td>
     <td width="50%" valign="top">
-      <a href="docs/images/panel5.jpg"><img src="docs/images/panel5.jpg" alt="Réglages du panel"></a><br>
-      <sub><b>⚙️ Réglages du panel</b> — inscription et connexion Discord</sub>
+      <a href="docs/images/shop.jpg"><img src="docs/images/shop.jpg" alt="Boutique"></a><br>
+      <sub><b>🛒 Boutique</b> — offres par catégorie, crédit, serveur sur mesure</sub>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <a href="docs/images/panel6.jpg"><img src="docs/images/panel6.jpg" alt="Node"></a><br>
-      <sub><b>📊 Node</b> — consommation en direct des serveurs du node</sub>
+      <a href="docs/images/minecraft.jpg"><img src="docs/images/minecraft.jpg" alt="Onglet Minecraft : catalogue"></a><br>
+      <sub><b>⛏️ Minecraft</b> — catalogue Modrinth, déjà installés grisés, gestion des plugins</sub>
     </td>
     <td width="50%" valign="top">
-      <a href="docs/images/panel7.jpg"><img src="docs/images/panel7.jpg" alt="Rôles de staff"></a><br>
-      <sub><b>🛡️ Rôles de staff</b> — la liste des rôles</sub>
+      <a href="docs/images/minecraft-players.jpg"><img src="docs/images/minecraft-players.jpg" alt="Onglet Minecraft : joueurs"></a><br>
+      <sub><b>👥 Joueurs Minecraft</b> — connectés, whitelist on/off, ops et bannis</sub>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <a href="docs/images/panel8.jpg"><img src="docs/images/panel8.jpg" alt="Nouveau rôle"></a><br>
-      <sub><b>✅ Nouveau rôle</b> — permissions section par section</sub>
+      <a href="docs/images/ets2.jpg"><img src="docs/images/ets2.jpg" alt="Onglet Euro Truck"></a><br>
+      <sub><b>🚚 Euro Truck</b> — réglages du serveur, modérateurs et mods</sub>
     </td>
-    <td width="50%" valign="top" align="center">
-      <br><br><br>
-      <b>Et bien plus…</b><br>
-      <sub>eggs de la communauté, FiveM, installateur,<br>sous-utilisateurs par ID Discord, GB…</sub>
+    <td width="50%" valign="top">
+      <a href="docs/images/admin.jpg"><img src="docs/images/admin.jpg" alt="Administration"></a><br>
+      <sub><b>🧭 Administration</b> — le même verre, barre latérale et cartes</sub>
+      <br><br>
+      <a href="docs/images/maintenance.jpg"><img src="docs/images/maintenance.jpg" alt="Page de maintenance"></a><br>
+      <sub><b>🛠️ Maintenance</b> — affichée pendant une mise à jour, revient toute seule</sub>
     </td>
   </tr>
 </table>
+
+<sub>Captures faites avec des données d'exemple.</sub>
 
 <br>
 
@@ -206,6 +233,9 @@ Panel de A à Z, Wings, mise à jour avec **sauvegarde et retour en arrière**, 
 [phpMyAdmin](#-phpmyadmin) ·
 [Eggs](#-eggs-de-la-communauté) ·
 [FiveM](#-serveurs-fivem) ·
+[Minecraft](#-serveurs-minecraft) ·
+[Euro Truck](#-euro-truck-simulator-2--american-truck-simulator) ·
+[Boutique](#-boutique-stripe-paypal-sumup) ·
 [Console](#-console-et-petits-plus) ·
 [Discord](#-inscription-et-connexion-discord) ·
 [Rôles](#-rôles-de-staff)
@@ -544,6 +574,37 @@ configurer : il faut seulement que le port du serveur soit joignable depuis la m
 > [!NOTE]
 > Le lien devient jaune avec un avertissement si le port de txAdmin n'est pas l'une des allocations du serveur
 > (onglet *Network*) : il ne serait alors pas joignable de l'extérieur.
+
+### ⛏️ Serveurs Minecraft
+
+Sur un serveur Minecraft, un onglet **Minecraft** apparaît à côté de *Fichiers*. Rien à configurer.
+
+- **Catalogue Modrinth** : plugins & mods, modpacks, packs de ressources et datapacks. Recherche, tri (les plus téléchargés,
+  pertinence, nouveautés…) et catégories. Le bouton *Installer* télécharge le bon fichier pour **ta** version, directement sur le
+  serveur.
+- **Détection automatique** : le loader (Paper, Purpur, Spigot, Fabric, Forge, NeoForge, Quilt…) et la version de Minecraft sont lus
+  dans l'egg. Une liste permet de les corriger, et le choix est retenu.
+- **Déjà installé** : ce qui est déjà là est marqué *Installé* et ne peut pas être réinstallé tant qu'il n'est pas supprimé. À droite,
+  la liste des fichiers installés, à activer, désactiver ou supprimer, et un bouton pour envoyer son propre `.jar`.
+- **Joueurs** : les joueurs connectés (avec whitelist, op, kick et ban en un clic), la **whitelist** activable d'un interrupteur,
+  les opérateurs et les bannis.
+
+> [!TIP]
+> Si le serveur plante au démarrage avec `-Xmx0M`, le panel l'explique dans la console : la mémoire du serveur est sur 0 (illimitée),
+> il faut lui donner une vraie valeur.
+
+### 🚚 Euro Truck Simulator 2 / American Truck Simulator
+
+Sur un serveur dédié ETS2 ou ATS, un onglet **Euro Truck** permet de régler le serveur **sans ouvrir de fichier** :
+
+- le `server_config.sii` en formulaire : nom, description, message d'accueil, mot de passe, véhicules, ports, et les règles de jeu
+  en interrupteurs (dégâts, trafic, collisions, limiteur, mods…) ;
+- les **modérateurs**, par leur SteamID64 (17 chiffres) ;
+- les **mods** `.scs` du serveur, à activer, couper ou supprimer, avec un guide pas à pas : activer les mods dans le jeu, lancer
+  `export_server_packages` dans la console du jeu, puis envoyer les fichiers `server_packages.sii` et `server_packages.dat` au serveur.
+
+> [!IMPORTANT]
+> Arrête le serveur avant d'enregistrer : sinon le jeu peut réécrire le fichier par-dessus tes changements.
 
 ### 🌍 Langues
 
