@@ -20,7 +20,7 @@ const RightNavigation = styled.div`
     & > a,
     & > button,
     & > .navigation-link {
-        ${tw`relative flex items-center justify-center h-9 w-9 mx-1 rounded-lg no-underline text-neutral-400 cursor-pointer transition-all duration-150`};
+        ${tw`relative flex flex-shrink-0 items-center justify-center h-9 w-8 sm:w-9 mx-0 sm:mx-1 rounded-lg no-underline text-neutral-400 cursor-pointer transition-all duration-150`};
 
         &:active,
         &:hover {
@@ -81,15 +81,15 @@ export default () => {
                 }
             >
                 <SpinnerOverlay visible={isLoggingOut} />
-                <div className={'lg-glass rounded-full mx-auto w-full flex items-center h-14 max-w-[1200px] px-3 sm:px-5 overflow-x-auto'}>
-                    <div id={'logo'} className={'flex-1'}>
+                <div className={'lg-glass rounded-full mx-auto w-full flex items-center h-14 max-w-[1200px] px-2 sm:px-5'}>
+                    <div id={'logo'} className={'flex-1 min-w-0'}>
                         <Link
                             to={'/'}
                             className={
-                                'inline-flex items-center px-2 no-underline hover:brightness-110 transition-[filter] duration-150'
+                                'flex items-center min-w-0 px-1 sm:px-2 no-underline hover:brightness-110 transition-[filter] duration-150'
                             }
                         >
-                            <BrandTitle />
+                            <BrandTitle className={'truncate'} />
                         </Link>
                     </div>
                     <RightNavigation className={'flex h-full items-center justify-center'}>

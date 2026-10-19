@@ -18,6 +18,8 @@ const Title = styled.span<{ $size: 'nav' | 'hero' }>`
     font-size: ${({ $size }) => ($size === 'hero' ? '2.75rem' : '1.25rem')};
     line-height: 1.15;
     letter-spacing: ${({ $size }) => ($size === 'hero' ? '-0.035em' : '-0.02em')};
+    max-width: 100%;
+    white-space: ${({ $size }) => ($size === 'nav' ? 'nowrap' : 'normal')};
     text-align: center;
     user-select: none;
     background-image: linear-gradient(180deg, #ffffff 0%, #ffffff 35%, #b9dcff 100%);

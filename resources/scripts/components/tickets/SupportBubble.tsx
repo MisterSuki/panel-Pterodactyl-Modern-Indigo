@@ -519,7 +519,7 @@ export default () => {
     const list = () => setView({ name: 'list' });
 
     return (
-        <div className={'fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3'}>
+        <div className={'fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-50 flex flex-col items-end gap-3'}>
             {open && (
                 <div
                     role={'dialog'}
@@ -552,7 +552,7 @@ export default () => {
                     aria-expanded={open}
                     onClick={() => setOpen(!open)}
                     className={
-                        'relative flex items-center justify-center h-14 w-14 rounded-full text-white text-xl bg-gradient-to-br from-primary-400 to-primary-600 shadow-glow border border-white/20 transition-transform duration-150 hover:scale-110 active:scale-95'
+                        'relative flex items-center justify-center h-11 w-11 sm:h-14 sm:w-14 rounded-full text-white text-base sm:text-xl bg-gradient-to-br from-primary-400 to-primary-600 shadow-glow border border-white/20 transition-transform duration-150 hover:scale-110 active:scale-95'
                     }
                 >
                     {!!unread && !open && (

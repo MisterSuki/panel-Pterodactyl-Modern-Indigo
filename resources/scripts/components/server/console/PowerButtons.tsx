@@ -47,7 +47,7 @@ const PowerButton = ({ label, icon, tone, emphasis, disabled, pending, onClick }
         disabled={disabled || pending}
         onClick={onClick}
         className={classNames(
-            'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg border text-sm font-semibold tracking-wide select-none',
+            'min-w-0 sm:flex-none inline-flex items-center justify-center gap-1.5 sm:gap-2 h-10 px-2 sm:px-4 rounded-lg border text-xs sm:text-sm font-semibold tracking-wide select-none',
             'transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900',
             'active:scale-95 disabled:active:scale-100',
             disabled && !pending
@@ -61,9 +61,9 @@ const PowerButton = ({ label, icon, tone, emphasis, disabled, pending, onClick }
         {pending ? (
             <span className={'w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin'} />
         ) : (
-            <span className={'w-4 h-4'}>{icon}</span>
+            <span className={'w-4 h-4 flex-shrink-0'}>{icon}</span>
         )}
-        {label}
+        <span className={'truncate'}>{label}</span>
     </button>
 );
 

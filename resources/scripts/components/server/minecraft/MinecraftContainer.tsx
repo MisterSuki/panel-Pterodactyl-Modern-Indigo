@@ -347,16 +347,16 @@ const ContentTab = ({
                         {results.map((hit) => (
                             <div
                                 key={hit.projectId}
-                                css={tw`flex items-start gap-4 rounded-xl border border-white/5 bg-neutral-900/50 p-4 transition-colors duration-150 hover:border-primary-500/30`}
+                                css={tw`flex items-start gap-3 sm:gap-4 rounded-xl border border-white/5 bg-neutral-900/50 p-3 sm:p-4 transition-colors duration-150 hover:border-primary-500/30`}
                             >
                                 {hit.iconUrl ? (
                                     <img
                                         src={hit.iconUrl}
                                         alt={''}
-                                        css={tw`w-14 h-14 rounded-xl flex-shrink-0 object-cover bg-neutral-800`}
+                                        css={tw`w-11 h-11 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 object-cover bg-neutral-800`}
                                     />
                                 ) : (
-                                    <div css={tw`w-14 h-14 rounded-xl flex-shrink-0 bg-primary-500/20`} />
+                                    <div css={tw`w-11 h-11 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 bg-primary-500/20`} />
                                 )}
                                 <div css={tw`min-w-0 flex-1`}>
                                     <p css={tw`text-base font-semibold text-neutral-100 truncate`}>{hit.title}</p>
@@ -377,7 +377,7 @@ const ContentTab = ({
                                         disabled
                                         css={tw`flex-shrink-0`}
                                     >
-                                        <FontAwesomeIcon icon={faCheck} css={tw`mr-1 text-green-400`} /> <span>Installed</span>
+                                        <FontAwesomeIcon icon={faCheck} css={tw`sm:mr-1 text-green-400`} /> <span css={tw`hidden sm:inline`}>Installed</span>
                                     </Button>
                                 ) : (
                                     <Button
@@ -390,7 +390,7 @@ const ContentTab = ({
                                             <FontAwesomeIcon icon={faCircleNotch} spin />
                                         ) : (
                                             <>
-                                                <FontAwesomeIcon icon={faDownload} css={tw`mr-1`} /> <span>Install</span>
+                                                <FontAwesomeIcon icon={faDownload} css={tw`sm:mr-1`} /> <span css={tw`hidden sm:inline`}>Install</span>
                                             </>
                                         )}
                                     </Button>

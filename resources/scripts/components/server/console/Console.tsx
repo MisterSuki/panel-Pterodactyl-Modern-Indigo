@@ -124,13 +124,16 @@ const ToolButton = ({
 // The most lines kept aside while the console is paused.
 const MAX_HELD_LINES = 5000;
 
+// On a phone the log gets a smaller font, so more of each line fits before it wraps.
+const narrow = typeof window !== 'undefined' && window.innerWidth < 640;
+
 const terminalProps: ITerminalOptions = {
     disableStdin: true,
     cursorStyle: 'underline',
     allowTransparency: true,
-    fontSize: 13,
-    lineHeight: 1.4,
-    letterSpacing: 0.2,
+    fontSize: narrow ? 11 : 13,
+    lineHeight: narrow ? 1.3 : 1.4,
+    letterSpacing: narrow ? 0 : 0.2,
     scrollback: 2000,
     fontFamily: '"SF Mono", "JetBrains Mono", "Cascadia Code", "Fira Code", Menlo, Consolas, monospace',
     rows: 30,
@@ -464,7 +467,7 @@ export default () => {
                             <span className={'hidden md:inline'}>Clear</span>
                         </ToolButton>
                     </span>
-                    <StatusPill status={status} />
+                    <StatusPill status={status} className={'hidden sm:inline-flex'} />
                 </span>
             </div>
             <div className={styles.container}>

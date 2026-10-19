@@ -47,11 +47,15 @@ const ServerConsoleContainer = () => {
                     <p className={'text-sm text-gray-400 line-clamp-2'}>{description}</p>
                 </div>
                 <div className={'col-span-4 sm:col-span-2 lg:col-span-1 self-end'}>
-                    <div className={'sm:hidden mb-2'}>
-                        <TxAdminLink />
+                    <div className={'sm:hidden mb-3'}>
+                        <div className={'flex items-center gap-2 min-w-0'}>
+                            <h1 className={'font-header font-semibold text-xl text-gray-50 truncate'}>{name}</h1>
+                            <StatusPill status={status} className={'flex-shrink-0'} />
+                        </div>
+                        <TxAdminLink className={'mt-1'} />
                     </div>
                     <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
-                        <PowerButtons className={'flex sm:justify-end space-x-2'} />
+                        <PowerButtons className={'grid grid-cols-3 gap-2 sm:flex sm:justify-end'} />
                     </Can>
                 </div>
             </div>
