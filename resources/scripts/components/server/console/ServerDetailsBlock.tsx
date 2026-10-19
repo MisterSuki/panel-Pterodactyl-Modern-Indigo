@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { accentHex } from '@/lib/helpers';
 import { faClock, faHdd, faMemory, faMicrochip, faSignal, faUsers, faWifi } from '@fortawesome/free-solid-svg-icons';
 import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
 import { ServerContext } from '@/state/server';
@@ -196,7 +197,7 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                 color={getBackgroundColor(stats.cpu, limits.cpu)}
                 sparkline={
                     status !== 'offline' && (
-                        <Sparkline points={history.cpu} max={limits.cpu || null} color={theme('colors.primary.400')} />
+                        <Sparkline points={history.cpu} max={limits.cpu || null} color={accentHex(400)} />
                     )
                 }
             >

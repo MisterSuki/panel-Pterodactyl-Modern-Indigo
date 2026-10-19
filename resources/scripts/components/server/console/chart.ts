@@ -13,7 +13,7 @@ import { DeepPartial } from 'ts-essentials';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { deepmerge } from 'deepmerge-ts';
 import { theme } from 'twin.macro';
-import { hexToRgba } from '@/lib/helpers';
+import { accentHex, hexToRgba } from '@/lib/helpers';
 
 ChartJS.register(LineElement, PointElement, Filler, LinearScale);
 
@@ -277,8 +277,8 @@ function getEmptyData(label: string, sets = 1, callback?: ChartDatasetCallback |
                         fill: true,
                         label,
                         data: [],
-                        borderColor: theme('colors.primary.400'),
-                        backgroundColor: gradientFill(theme('colors.primary.400')),
+                        borderColor: accentHex(400),
+                        backgroundColor: gradientFill(accentHex(400)),
                     },
                     index
                 )

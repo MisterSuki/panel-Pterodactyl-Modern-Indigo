@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { accentHex } from '@/lib/helpers';
 import { ServerContext } from '@/state/server';
 import { SocketEvent } from '@/components/server/events';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
@@ -19,7 +20,7 @@ export default () => {
     const previous = useRef<Record<'tx' | 'rx', number>>({ tx: -1, rx: -1 });
     const lastDisk = useRef<{ bytes: number; at: number; rate: number } | null>(null);
 
-    const cpu = useChartTickLabel('CPU', limits.cpu, '%', 0, theme('colors.primary.400'));
+    const cpu = useChartTickLabel('CPU', limits.cpu, '%', 0, accentHex(400));
     const memory = useChartTickLabel(
         'Memory',
         limits.memory,
@@ -124,7 +125,7 @@ export default () => {
         <>
             <ChartBlock
                 title={'CPU Load'}
-                color={theme('colors.primary.400')}
+                color={accentHex(400)}
                 value={offline ? null : formatValue(cpu.latest(), (value) => `${value.toFixed(1)}%`)}
             >
                 <Line {...cpu.props} plugins={plugins} />
