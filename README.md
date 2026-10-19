@@ -4,22 +4,21 @@
 
 # 🦖 Pterodactyl · Modern Indigo
 
-### Le panel de jeu qui a enfin l'air d'un vrai hébergeur
+### Ton panel de jeu, façon iOS « Liquid Glass »
 
-Un look **iOS 26/27 « Liquid Glass »** (verre transparent, bleu iOS, fond dégradé) pour le dashboard client **et** l'administration.<br>
-Avec en plus : **inscription**, **connexion Discord**, **boutique**, **onglet Minecraft** (plugins, mods, joueurs), **onglet Euro Truck**,<br>
-**rôles de staff**, **eggs en un clic**, **phpMyAdmin intégré**, **stats en temps réel** et **un seul script** qui installe tout.
+Verre transparent, fonds animés, couleurs au choix, onglets **Minecraft** et **Euro Truck**, **boutique**, **inscription Discord**…<br>
+pour le dashboard client **et** l'administration, installé avec **une seule commande**.
 
 <br>
 
 ![Pterodactyl](https://img.shields.io/badge/Pterodactyl-1.15.1-0a84ff?style=for-the-badge)
-![Installation](https://img.shields.io/badge/installation-1%20commande-22c55e?style=for-the-badge)
-![Systèmes](https://img.shields.io/badge/Ubuntu%2022.04%2F24.04%20·%20Debian%2011%2F12-0ea5e9?style=for-the-badge)
-![Licence](https://img.shields.io/badge/licence-MIT-a855f7?style=for-the-badge)
+![Installation](https://img.shields.io/badge/installation-1%20commande-30d158?style=for-the-badge)
+![Systèmes](https://img.shields.io/badge/Ubuntu%2022.04%2F24.04%20·%20Debian%2011%2F12-64d2ff?style=for-the-badge)
+![Licence](https://img.shields.io/badge/licence-MIT-bf5af2?style=for-the-badge)
 
-[![Étoiles](https://img.shields.io/github/stars/MisterSuki/panel-Pterodactyl-Modern-Indigo?style=for-the-badge&color=facc15&logo=github)](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/stargazers)
+[![Étoiles](https://img.shields.io/github/stars/MisterSuki/panel-Pterodactyl-Modern-Indigo?style=for-the-badge&color=ffd60a&logo=github)](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/stargazers)
 [![Dernière mise à jour](https://img.shields.io/github/last-commit/MisterSuki/panel-Pterodactyl-Modern-Indigo?style=for-the-badge&color=0a84ff)](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/commits/main)
-[![Problèmes](https://img.shields.io/github/issues/MisterSuki/panel-Pterodactyl-Modern-Indigo?style=for-the-badge&color=f43f5e)](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/issues)
+[![Problèmes](https://img.shields.io/github/issues/MisterSuki/panel-Pterodactyl-Modern-Indigo?style=for-the-badge&color=ff375f)](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/issues)
 
 <br>
 
@@ -31,7 +30,20 @@ Avec en plus : **inscription**, **connexion Discord**, **boutique**, **onglet Mi
 
 <br>
 
-<a href="docs/images/dashboard.jpg"><img src="docs/images/dashboard.jpg" alt="Dashboard : la liste des serveurs" width="92%"></a>
+<a href="docs/images/hero.jpg"><img src="docs/images/hero.jpg" alt="Le dashboard avec le fond animé Aurore" width="100%"></a>
+
+<sub>Le dashboard, avec le fond animé « Aurore ». Captures faites avec des données d'exemple.</sub>
+
+<br><br>
+
+<table>
+<tr>
+<td align="center" width="25%">🎨<br><b>Liquid Glass</b><br><sub>9 fonds animés, dégradés ou ta propre image</sub></td>
+<td align="center" width="25%">⛏️<br><b>Minecraft</b><br><sub>plugins, mods et modpacks Modrinth en un clic</sub></td>
+<td align="center" width="25%">🛒<br><b>Boutique</b><br><sub>crédit Stripe, PayPal, SumUp, serveurs créés seuls</sub></td>
+<td align="center" width="25%">📱<br><b>Téléphone</b><br><sub>tout le panel tient sur un écran de mobile</sub></td>
+</tr>
+</table>
 
 </div>
 
@@ -62,6 +74,7 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 > [!TIP]
 > S'il détecte déjà un panel dans `/var/www/pterodactyl`, le script passe directement à la mise à jour.
 > Ajoute `--dry-run` à n'importe quelle commande pour voir ce qui sera fait **sans rien changer**.
+> Après une mise à jour, fais **Ctrl + Maj + R** dans ton navigateur pour charger le nouveau design.
 
 <br>
 
@@ -71,94 +84,114 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 
 <table>
 <tr>
+<td width="55%"><a href="docs/images/appearance.jpg"><img src="docs/images/appearance.jpg" alt="La page Apparence"></a></td>
+<td width="45%" valign="middle">
+
+### 🎨 Un panel à ton image
+
+- **Fond animé** dessiné par la carte graphique : Aurore, Soie, Plasma, Vagues, Lignes, Halo, Faisceaux, Étoiles, Bulles
+- ou un **dégradé**, ou **ta propre image** (avec flou et assombrissement)
+- **9 couleurs d'accent** : chaque utilisateur choisit la sienne
+- l'admin décide si les utilisateurs peuvent aussi choisir leur fond
+- léger : demi-résolution, 30 images/s max, pause quand l'onglet est caché
+
+</td>
+</tr>
+<tr>
+<td width="45%" valign="middle">
+
+### 🎮 Une console qui donne envie
+
+- terminal coloré façon **macOS**, recherche, copie, **pause** et **vider**
+- CPU, mémoire, disque, réseau et ping **en direct**, avec graphiques
+- boutons Démarrer / Redémarrer / Arrêter qui répondent tout de suite
+- **FiveM** : joueurs connectés et lien **txAdmin** ; jeux **Steam** : joueurs via la requête A2S
+- explique les plantages courants (comme `-Xmx0M`) en français
+
+</td>
+<td width="55%"><a href="docs/images/console.jpg"><img src="docs/images/console.jpg" alt="La console d'un serveur"></a></td>
+</tr>
+<tr>
+<td width="55%"><a href="docs/images/minecraft.jpg"><img src="docs/images/minecraft.jpg" alt="L'onglet Minecraft"></a></td>
+<td width="45%" valign="middle">
+
+### ⛏️ Minecraft clé en main
+
+- catalogue **Modrinth** : plugins, mods, modpacks, packs de ressources, datapacks
+- loader (Paper, Fabric, Forge…) et version **détectés tout seuls**
+- ce qui est déjà installé est marqué, à activer, couper ou supprimer
+- **joueurs connectés**, **whitelist** on/off, ops et bannis en un clic
+
+</td>
+</tr>
+<tr>
+<td width="45%" valign="middle">
+
+### 🚚 Euro Truck Simulator 2
+
+- `server_config.sii` en **formulaire** : nom, mot de passe, règles du jeu…
+- **modérateurs** par SteamID64
+- mods `.scs` à activer ou couper
+- le guide pas à pas pour **exporter ses mods** depuis le jeu
+
+</td>
+<td width="55%"><a href="docs/images/ets2.jpg"><img src="docs/images/ets2.jpg" alt="L'onglet Euro Truck"></a></td>
+</tr>
+<tr>
+<td width="55%"><a href="docs/images/shop.jpg"><img src="docs/images/shop.jpg" alt="La boutique"></a></td>
+<td width="45%" valign="middle">
+
+### 🛒 Une vraie boutique
+
+- offres par **catégorie**, ou serveur **sur mesure**
+- crédit rechargé par **Stripe, PayPal ou SumUp**
+- le serveur est **créé tout seul** après paiement, suspendu à l'échéance
+- remboursement automatique si la création échoue
+
+</td>
+</tr>
+</table>
+
+### Et aussi
+
+<table>
+<tr>
 <td width="33%" valign="top">
 
-### 🎨 Look iOS Liquid Glass
-
-Barre en capsule de verre, cartes transparentes, boutons en pilule, console façon terminal macOS. L'admin choisit le fond : **dégradé**, **fond animé** (aurore, soie, vagues, étoiles…) ou **sa propre image**. Chaque utilisateur choisit sa **couleur d'accent**.
+**🔐 Inscription & Discord**<br>
+Les visiteurs créent un compte ou se connectent avec **Discord** ; les comptes existants sont liés tout seuls.
 
 </td>
 <td width="33%" valign="top">
 
-### ⚡ Temps réel
-
-Consommation de tes serveurs sur le dashboard, usage des nodes et joueurs FiveM : tout se met à jour **toutes les 3 secondes**, sans recharger la page.
+**🛡️ Rôles de staff**<br>
+Modérateur, support… avec des permissions **section par section**, sans donner l'admin complet.
 
 </td>
 <td width="33%" valign="top">
 
-### 🔐 Inscription & Discord
-
-Les visiteurs créent un compte ou se connectent avec **Discord**. Les comptes existants sont **liés automatiquement**. Invite aussi un sous-utilisateur avec son **ID Discord**.
+**🥚 Eggs en un clic**<br>
+Tape le nom d'un egg (Valheim, Palworld…) et il est importé depuis **eggs.pterodactyl.io**.
 
 </td>
 </tr>
 <tr>
 <td width="33%" valign="top">
 
-### 🛡️ Rôles de staff
-
-Crée des rôles (modérateur, support…), coche leurs permissions **section par section** et donne-les à des personnes, sans en faire des administrateurs complets.
-
-</td>
-<td width="33%" valign="top">
-
-### 🥚 Eggs en un clic
-
-Tape le nom d'un egg (Valheim, Palworld, Node.js…), choisis le nest, et il est importé depuis **eggs.pterodactyl.io**. Plus de fichier à télécharger.
+**🗄️ phpMyAdmin intégré**<br>
+Un bouton ouvre la base **déjà connecté**, avec un lien à usage unique.
 
 </td>
 <td width="33%" valign="top">
 
-### 🗄️ phpMyAdmin intégré
-
-Un bouton sur la page *Databases* ouvre la base **déjà connecté**, sans mot de passe à copier. Lien à usage unique, valable une minute.
-
-</td>
-</tr>
-<tr>
-<td width="33%" valign="top">
-
-### 🎮 Console & FiveM
-
-Console avec **Pause** et **Clear**. Sur un serveur FiveM : **joueurs connectés** en direct et lien **txAdmin** à côté du nom.
+**🧰 Installateur tout-en-un**<br>
+Panel, Wings, mise à jour avec **sauvegarde et retour en arrière**, désinstallation qui garde tes données.
 
 </td>
 <td width="33%" valign="top">
 
-### 🧰 Installateur tout-en-un
-
-Panel de A à Z, Wings, mise à jour avec **sauvegarde et retour en arrière**, désinstallation qui **garde tes données**. Un seul script, testé.
-
-</td>
-<td width="33%" valign="top">
-
-### 🕶️ Discrétion & confort
-
-**IP floutée** par défaut (un clic pour l'afficher), mémoire et disque saisis en **GB**, comptes Discord visibles dans la liste des utilisateurs.
-
-</td>
-</tr>
-<tr>
-<td width="33%" valign="top">
-
-### ⛏️ Onglet Minecraft
-
-Catalogue **Modrinth** : plugins, mods, modpacks, packs de ressources et datapacks, installés en un clic. Loader et version **détectés tout seuls**. Joueurs connectés, **whitelist on/off**, ops et bannis.
-
-</td>
-<td width="33%" valign="top">
-
-### 🚚 Onglet Euro Truck
-
-Pour les serveurs dédiés **ETS2 / ATS** : `server_config.sii` en formulaire, **modérateurs** par SteamID, mods `.scs` à activer ou couper, et le guide pour exporter ses mods depuis le jeu.
-
-</td>
-<td width="33%" valign="top">
-
-### 🛒 Boutique & entretien
-
-Boutique avec crédit (**Stripe, PayPal, SumUp**), serveurs créés tout seuls. Jolie **page de maintenance** pendant les mises à jour, **version du thème** et alerte de mise à jour dans l'administration.
+**🕶️ Discrétion & confort**<br>
+**IP floutée** par défaut, mémoire et disque en **GB**, tickets de support, page d'accueil, FR / EN.
 
 </td>
 </tr>
@@ -170,63 +203,50 @@ Boutique avec crédit (**Stripe, PayPal, SumUp**), serveurs créés tout seuls. 
 
 ## 📸 Aperçu
 
+### 🔐 Connexion et inscription
+
 <table>
-  <tr>
-    <td width="50%" valign="top">
-      <a href="docs/images/login.jpg"><img src="docs/images/login.jpg" alt="Connexion"></a><br>
-      <sub><b>🔐 Connexion</b> — carte en verre, connexion Discord</sub>
-    </td>
-    <td width="50%" valign="top">
-      <a href="docs/images/register.jpg"><img src="docs/images/register.jpg" alt="Inscription"></a><br>
-      <sub><b>📝 Inscription</b> — les visiteurs créent leur compte eux-mêmes</sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <a href="docs/images/console.jpg"><img src="docs/images/console.jpg" alt="Console d'un serveur"></a><br>
-      <sub><b>🎮 Console</b> — terminal coloré, recherche, copie, pause et statistiques en direct</sub>
-    </td>
-    <td width="50%" valign="top">
-      <a href="docs/images/shop.jpg"><img src="docs/images/shop.jpg" alt="Boutique"></a><br>
-      <sub><b>🛒 Boutique</b> — offres par catégorie, crédit, serveur sur mesure</sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <a href="docs/images/minecraft.jpg"><img src="docs/images/minecraft.jpg" alt="Onglet Minecraft : catalogue"></a><br>
-      <sub><b>⛏️ Minecraft</b> — catalogue Modrinth, déjà installés grisés, gestion des plugins</sub>
-    </td>
-    <td width="50%" valign="top">
-      <a href="docs/images/minecraft-players.jpg"><img src="docs/images/minecraft-players.jpg" alt="Onglet Minecraft : joueurs"></a><br>
-      <sub><b>👥 Joueurs Minecraft</b> — connectés, whitelist on/off, ops et bannis</sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <a href="docs/images/appearance.jpg"><img src="docs/images/appearance.jpg" alt="Apparence"></a><br>
-      <sub><b>🎨 Apparence</b> — couleur d'accent et fond, choisis par chaque utilisateur</sub>
-    </td>
-    <td width="50%" valign="top">
-      <a href="docs/images/animated-background.jpg"><img src="docs/images/animated-background.jpg" alt="Fond animé"></a><br>
-      <sub><b>✨ Fond animé</b> — ici « Soie » avec l'accent violet</sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <a href="docs/images/ets2.jpg"><img src="docs/images/ets2.jpg" alt="Onglet Euro Truck"></a><br>
-      <sub><b>🚚 Euro Truck</b> — réglages du serveur, modérateurs et mods</sub>
-    </td>
-    <td width="50%" valign="top">
-      <a href="docs/images/admin.jpg"><img src="docs/images/admin.jpg" alt="Administration"></a><br>
-      <sub><b>🧭 Administration</b> — le même verre, barre latérale et cartes</sub>
-      <br><br>
-      <a href="docs/images/maintenance.jpg"><img src="docs/images/maintenance.jpg" alt="Page de maintenance"></a><br>
-      <sub><b>🛠️ Maintenance</b> — affichée pendant une mise à jour, revient toute seule</sub>
-    </td>
-  </tr>
+<tr>
+<td width="50%"><a href="docs/images/login.jpg"><img src="docs/images/login.jpg" alt="Connexion"></a></td>
+<td width="50%"><a href="docs/images/register.jpg"><img src="docs/images/register.jpg" alt="Inscription"></a></td>
+</tr>
+<tr>
+<td align="center"><sub>Connexion, fond « Soie » et accent violet</sub></td>
+<td align="center"><sub>Inscription, fond « Bulles » et accent rose</sub></td>
+</tr>
 </table>
 
-<sub>Captures faites avec des données d'exemple.</sub>
+### 📱 Sur téléphone
+
+<a href="docs/images/mobile.jpg"><img src="docs/images/mobile.jpg" alt="Le panel sur téléphone" width="100%"></a>
+
+### 👥 Joueurs Minecraft et dégradé « Océan »
+
+<table>
+<tr>
+<td width="50%"><a href="docs/images/minecraft-players.jpg"><img src="docs/images/minecraft-players.jpg" alt="Joueurs Minecraft"></a></td>
+<td width="50%"><a href="docs/images/dashboard-ocean.jpg"><img src="docs/images/dashboard-ocean.jpg" alt="Dashboard avec le dégradé Océan"></a></td>
+</tr>
+<tr>
+<td align="center"><sub>Joueurs connectés, whitelist, opérateurs et bannis</sub></td>
+<td align="center"><sub>Le dégradé « Océan » avec l'accent sarcelle</sub></td>
+</tr>
+</table>
+
+### 🧭 Administration
+
+<a href="docs/images/admin-appearance.jpg"><img src="docs/images/admin-appearance.jpg" alt="Administration : Apparence" width="100%"></a>
+
+<table>
+<tr>
+<td width="50%"><a href="docs/images/admin.jpg"><img src="docs/images/admin.jpg" alt="Administration"></a></td>
+<td width="50%"><a href="docs/images/maintenance.jpg"><img src="docs/images/maintenance.jpg" alt="Page de maintenance"></a></td>
+</tr>
+<tr>
+<td align="center"><sub>L'administration, dans le même verre</sub></td>
+<td align="center"><sub>La page affichée pendant une mise à jour</sub></td>
+</tr>
+</table>
 
 <br>
 

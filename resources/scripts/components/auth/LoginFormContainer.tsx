@@ -34,7 +34,8 @@ const Glow = styled.div`
 // The card: thick Liquid Glass with a bright specular rim on the top edge, like an iOS sheet.
 const GlassCard = styled.div`
     ${tw`relative w-full rounded-3xl p-6 sm:p-8 overflow-hidden`};
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.06) 100%);
+    /* A dark base under the light tint, so the texts stay readable over a bright background (animated or picture). */
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%), rgba(12, 12, 20, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.16);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(255, 255, 255, 0.05),
         0 30px 70px -24px rgba(0, 0, 0, 0.75);
@@ -80,7 +81,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
             <Form {...props} ref={ref}>
                 <GlassCard>{props.children}</GlassCard>
             </Form>
-            <p css={tw`relative text-center text-neutral-500 text-xs mt-6`}>
+            <p css={tw`relative text-center text-neutral-300 text-xs mt-6`} style={{ textShadow: '0 1px 8px rgba(0, 0, 0, 0.8)' }}>
                 <CopyrightLine
                     fallback={
                         <>
@@ -97,7 +98,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                     }
                 />
             </p>
-            <div css={tw`relative`}>
+            <div css={tw`relative`} style={{ textShadow: '0 1px 8px rgba(0, 0, 0, 0.8)' }}>
                 <LanguageLinks />
             </div>
         </Container>

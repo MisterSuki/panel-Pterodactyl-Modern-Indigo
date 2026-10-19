@@ -155,7 +155,7 @@ const RegisterContainer = () => {
                         <React.Fragment>
                             <div css={tw`mt-6 flex items-center`}>
                                 <div css={tw`flex-1 border-t border-white/10`} />
-                                <span css={tw`px-3 text-xs uppercase text-neutral-500`}>or</span>
+                                <span css={tw`px-3 text-xs uppercase text-neutral-400`}>or</span>
                                 <div css={tw`flex-1 border-t border-white/10`} />
                             </div>
                             <div css={tw`mt-6`}>
@@ -178,7 +178,7 @@ const RegisterContainer = () => {
                             }}
                         />
                     )}
-                    <div css={tw`mt-6 text-center text-sm text-neutral-400`}>
+                    <div css={tw`mt-6 text-center text-sm text-neutral-300`}>
                         Already have an account?{' '}
                         <Link
                             to={'/auth/login'}

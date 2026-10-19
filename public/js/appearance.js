@@ -147,7 +147,7 @@
             '  float w = sin(p.x * 1.5 + p.y * 2.2 + sin(p.y * 1.4 - k * 1.6) * 1.6 + k * 2.0);',
             '  float fold = 0.5 + 0.5 * w; float shine = pow(fold, 6.0);',
             '  float grain = (hash(gl_FragCoord.xy + fract(t)) - 0.5) * 0.035;',
-            '  vec3 col = mix(bg(uv), c1 * 0.5, fold * 0.9) + mix(c3, vec3(1.0), 0.3) * shine * 0.28 + grain;',
+            '  vec3 col = mix(bg(uv), c1 * 0.42, fold * 0.85) + mix(c3, vec3(1.0), 0.3) * shine * 0.2 + grain;',
             '  gl_FragColor = vec4(col, 1.0); }',
         ],
         plasma: [

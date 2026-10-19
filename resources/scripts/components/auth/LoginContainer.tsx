@@ -101,7 +101,7 @@ const LoginContainer = ({ history, location }: RouteComponentProps) => {
                         <React.Fragment>
                             <div css={tw`mt-6 flex items-center`}>
                                 <div css={tw`flex-1 border-t border-white/10`} />
-                                <span css={tw`px-3 text-xs uppercase text-neutral-500`}>or</span>
+                                <span css={tw`px-3 text-xs uppercase text-neutral-400`}>or</span>
                                 <div css={tw`flex-1 border-t border-white/10`} />
                             </div>
                             <div css={tw`mt-6`}>
@@ -127,13 +127,13 @@ const LoginContainer = ({ history, location }: RouteComponentProps) => {
                     <div css={tw`mt-6 text-center`}>
                         <Link
                             to={'/auth/password'}
-                            css={tw`text-sm text-neutral-400 no-underline hover:text-primary-400 transition-colors duration-150`}
+                            css={tw`text-sm text-neutral-300 no-underline hover:text-primary-400 transition-colors duration-150`}
                         >
                             Forgot password?
                         </Link>
                     </div>
                     {registration && (
-                        <div css={tw`mt-4 text-center text-sm text-neutral-400`}>
+                        <div css={tw`mt-4 text-center text-sm text-neutral-300`}>
                             Don&apos;t have an account?{' '}
                             <Link
                                 to={'/auth/register'}
