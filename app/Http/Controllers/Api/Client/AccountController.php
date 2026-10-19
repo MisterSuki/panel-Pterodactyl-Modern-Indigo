@@ -9,6 +9,7 @@ use Illuminate\Auth\AuthManager;
 use Illuminate\Http\JsonResponse;
 use Pterodactyl\Facades\Activity;
 use Illuminate\Support\Facades\RateLimiter;
+use Pterodactyl\Services\Helpers\Appearance;
 use Pterodactyl\Services\Users\UserUpdateService;
 use Pterodactyl\Transformers\Api\Client\AccountTransformer;
 use Pterodactyl\Http\Requests\Api\Client\Account\UpdateEmailRequest;
@@ -100,6 +101,22 @@ class AccountController extends ClientApiController
         User::query()->whereKey($request->user()->id)->update(['language' => $request->validated('language')]);
 
         return new JsonResponse([], Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Saves the look the person chose for the panel: accent colour, background, animations.
+     */
+    public function updateAppearance(Request $request, Appearance $appearance): JsonResponse
+    {
+        $data = $request->validate([
+            'accent' => ['sometimes', 'string', 'in:default,' . implode(',', Appearance::ACCENTS)],
+            'mode' => ['sometimes', 'string', 'in:default,' . implode(',', Appearance::MODES)],
+            'gradient' => ['sometimes', 'string', 'in:' . implode(',', Appearance::GRADIENTS)],
+            'effect' => ['sometimes', 'string', 'in:' . implode(',', Appearance::EFFECTS)],
+            'motion' => ['sometimes', 'boolean'],
+        ]);
+
+        return new JsonResponse(['appearance' => $appearance->saveUser($request->user(), $data)]);
     }
 
     /**

@@ -164,7 +164,7 @@ class User extends Model implements
     /**
      * The attributes excluded from the model's JSON form.
      */
-    protected $hidden = ['password', 'remember_token', 'totp_secret', 'totp_authenticated_at', 'discord_id', 'discord_username', 'admin_role_id', 'avatar', 'avatar_updated_at'];
+    protected $hidden = ['password', 'remember_token', 'totp_secret', 'totp_authenticated_at', 'discord_id', 'discord_username', 'admin_role_id', 'avatar', 'avatar_updated_at', 'appearance'];
 
     /**
      * Default values for specific fields in the database.
@@ -232,6 +232,7 @@ class User extends Model implements
                 'discord_username' => $this->discord_username,
                 'admin_access' => $this->isStaff(),
                 'avatar_url' => $this->avatarUrl(),
+                'appearance' => app(\Pterodactyl\Services\Helpers\Appearance::class)->forUser($this),
             ])
             ->toArray();
     }

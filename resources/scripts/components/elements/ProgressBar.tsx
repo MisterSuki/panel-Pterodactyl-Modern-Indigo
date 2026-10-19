@@ -8,7 +8,7 @@ import tw from 'twin.macro';
 const BarFill = styled.div`
     ${tw`h-full bg-gradient-brand`};
     transition: 250ms ease-in-out;
-    box-shadow: 0 -1px 12px 1px rgba(10, 132, 255, 0.6);
+    box-shadow: 0 -1px 12px 1px rgb(var(--pd-accent-500) / 0.6);
 `;
 
 type Timer = ReturnType<typeof setTimeout>;

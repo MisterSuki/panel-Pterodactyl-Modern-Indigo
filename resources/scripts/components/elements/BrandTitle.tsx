@@ -28,7 +28,7 @@ const Title = styled.span<{ $size: 'nav' | 'hero' }>`
     -webkit-text-fill-color: transparent;
     color: transparent;
     filter: ${({ $size }) =>
-        $size === 'hero' ? 'drop-shadow(0 6px 24px rgba(10, 132, 255, 0.45))' : 'drop-shadow(0 2px 8px rgba(10, 132, 255, 0.35))'};
+        $size === 'hero' ? 'drop-shadow(0 6px 24px rgb(var(--pd-accent-500) / 0.45))' : 'drop-shadow(0 2px 8px rgb(var(--pd-accent-500) / 0.35))'};
 `;
 
 export default ({ size = 'nav', className }: Props) => {

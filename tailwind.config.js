@@ -15,19 +15,17 @@ const gray = {
     900: 'rgba(0, 0, 0, 0.32)',
 };
 
-// iOS system blue, used for CTAs, links, focus states and glows.
-const primary = {
-    50: '#E5F1FF',
-    100: '#CCE4FF',
-    200: '#99C9FF',
-    300: '#66ADFF',
-    400: '#3D9BFF',
-    500: '#0A84FF',
-    600: '#0071E3',
-    700: '#005BBF',
-    800: '#00479A',
-    900: '#003374',
-};
+// The accent colour (iOS blue unless the person picked another one), used for CTAs, links, focus states and glows. Each
+// shade is a CSS variable holding "r g b", set by public/js/appearance.js (defaults in GlobalStylesheet).
+const accent = (shade) => ({ opacityValue }) =>
+    opacityValue === undefined
+        ? `rgb(var(--pd-accent-${shade}))`
+        : `rgb(var(--pd-accent-${shade}) / ${opacityValue})`;
+
+const primary = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900].reduce(
+    (shades, shade) => ({ ...shades, [shade]: accent(shade) }),
+    {}
+);
 
 const systemFont = [
     '-apple-system',
@@ -84,12 +82,12 @@ module.exports = {
             boxShadow: {
                 card: 'inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 14px 34px -16px rgba(0, 0, 0, 0.6)',
                 'card-hover': 'inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 20px 44px -16px rgba(0, 0, 0, 0.65)',
-                glow: '0 0 0 1px rgba(10, 132, 255, 0.45), 0 8px 30px -6px rgba(10, 132, 255, 0.5)',
+                glow: '0 0 0 1px rgb(var(--pd-accent-500) / 0.45), 0 8px 30px -6px rgb(var(--pd-accent-500) / 0.5)',
                 nav: 'inset 0 -1px 0 rgba(255, 255, 255, 0.06), 0 8px 30px -10px rgba(0, 0, 0, 0.6)',
             },
             backgroundImage: {
-                'gradient-brand': 'linear-gradient(135deg, #0A84FF 0%, #5E5CE6 55%, #64D2FF 100%)',
-                'gradient-brand-flat': 'linear-gradient(135deg, #3D9BFF 0%, #0A84FF 100%)',
+                'gradient-brand': 'linear-gradient(135deg, rgb(var(--pd-accent-500)) 0%, rgb(var(--pd-accent-700)) 100%)',
+                'gradient-brand-flat': 'linear-gradient(135deg, rgb(var(--pd-accent-400)) 0%, rgb(var(--pd-accent-500)) 100%)',
                 'gradient-surface': 'linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
             },
         },

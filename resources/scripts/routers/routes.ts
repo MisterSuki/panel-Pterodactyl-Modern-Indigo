@@ -8,6 +8,7 @@ import NetworkContainer from '@/components/server/network/NetworkContainer';
 import StartupContainer from '@/components/server/startup/StartupContainer';
 import FileManagerContainer from '@/components/server/files/FileManagerContainer';
 import SettingsContainer from '@/components/server/settings/SettingsContainer';
+import AppearanceContainer from '@/components/dashboard/AppearanceContainer';
 import AccountOverviewContainer from '@/components/dashboard/AccountOverviewContainer';
 import AccountApiContainer from '@/components/dashboard/AccountApiContainer';
 import AccountSSHContainer from '@/components/dashboard/ssh/AccountSSHContainer';
@@ -55,6 +56,11 @@ export default {
             name: 'Account',
             component: AccountOverviewContainer,
             exact: true,
+        },
+        {
+            path: '/appearance',
+            name: 'Appearance',
+            component: AppearanceContainer,
         },
         {
             path: '/api',

@@ -11,7 +11,14 @@ Route::group(['prefix' => 'home-page', 'middleware' => 'admin.can:settings,manag
     Route::post('/', [Admin\LandingController::class, 'update']);
 });
 
-Route::get('/presence', [Admin\BaseController::class, 'presence'])->name('admin.presence');
+// The look of the panel: background and default accent colour.
+Route::group(['prefix' => 'appearance', 'middleware' => 'admin.can:settings,manage'], function () {
+    Route::get('/', [Admin\AppearanceController::class, 'index'])->name('admin.appearance');
+    Route::post('/', [Admin\AppearanceController::class, 'update']);
+    Route::post('/remove-image', [Admin\AppearanceController::class, 'removeImage'])->name('admin.appearance.remove-image');
+});
+
+Route::get('/presence',[Admin\BaseController::class, 'presence'])->name('admin.presence');
 Route::get('/presence/{id}', [Admin\BaseController::class, 'person'])->whereNumber('id')->name('admin.presence.person');
 
 /*

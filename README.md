@@ -75,7 +75,7 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 
 ### 🎨 Look iOS Liquid Glass
 
-Barre en capsule de verre, cartes transparentes, boutons en pilule, couleurs système iOS, console façon terminal macOS, connexion en verre. Fluide : le fond est fixe, seuls les éléments flottants sont floutés. Dashboard **et** administration.
+Barre en capsule de verre, cartes transparentes, boutons en pilule, console façon terminal macOS. L'admin choisit le fond : **dégradé**, **fond animé** (aurore, soie, vagues, étoiles…) ou **sa propre image**. Chaque utilisateur choisit sa **couleur d'accent**.
 
 </td>
 <td width="33%" valign="top">
@@ -203,6 +203,16 @@ Boutique avec crédit (**Stripe, PayPal, SumUp**), serveurs créés tout seuls. 
   </tr>
   <tr>
     <td width="50%" valign="top">
+      <a href="docs/images/appearance.jpg"><img src="docs/images/appearance.jpg" alt="Apparence"></a><br>
+      <sub><b>🎨 Apparence</b> — couleur d'accent et fond, choisis par chaque utilisateur</sub>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/images/animated-background.jpg"><img src="docs/images/animated-background.jpg" alt="Fond animé"></a><br>
+      <sub><b>✨ Fond animé</b> — ici « Soie » avec l'accent violet</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
       <a href="docs/images/ets2.jpg"><img src="docs/images/ets2.jpg" alt="Onglet Euro Truck"></a><br>
       <sub><b>🚚 Euro Truck</b> — réglages du serveur, modérateurs et mods</sub>
     </td>
@@ -236,6 +246,7 @@ Boutique avec crédit (**Stripe, PayPal, SumUp**), serveurs créés tout seuls. 
 [Minecraft](#-serveurs-minecraft) ·
 [Euro Truck](#-euro-truck-simulator-2--american-truck-simulator) ·
 [Boutique](#-boutique-stripe-paypal-sumup) ·
+[Apparence](#-apparence--fond-animé-image-et-couleurs) ·
 [Console](#-console-et-petits-plus) ·
 [Discord](#-inscription-et-connexion-discord) ·
 [Rôles](#-rôles-de-staff)
@@ -605,6 +616,27 @@ Sur un serveur dédié ETS2 ou ATS, un onglet **Euro Truck** permet de régler l
 
 > [!IMPORTANT]
 > Arrête le serveur avant d'enregistrer : sinon le jeu peut réécrire le fichier par-dessus tes changements.
+
+### 🎨 Apparence : fond animé, image et couleurs
+
+Dans *Administration → Apparence* (droit de gérer les réglages), l'admin choisit ce qu'il y a **derrière tout le panel** (dashboard,
+administration, connexion et page d'accueil) :
+
+- un **dégradé** : Liquid Glass (celui d'origine), Minuit, Océan, Coucher de soleil, Forêt ;
+- un **fond animé** : Aurore, Soie, Plasma, Vagues, Lignes, Halo, Faisceaux, Étoiles, Bulles. Il est dessiné par la carte graphique
+  (WebGL) à la moitié de la taille de l'écran et à 30 images par seconde au plus, s'arrête quand l'onglet est caché et reste figé pour
+  ceux qui ont demandé moins d'animations ;
+- **sa propre image** (png, jpeg, webp ou gif, 8 Mo maximum), avec un réglage de **flou**.
+
+Un curseur **assombrit** le fond pour garder le texte lisible, et l'admin choisit la **couleur d'accent par défaut**. Tout s'affiche en
+direct sur la page avant d'enregistrer.
+
+Chaque utilisateur a une page *Compte → Apparence* : il choisit sa **couleur d'accent** (bleu, indigo, violet, rose, rouge, orange,
+vert, sarcelle, graphite), et **son propre fond** si l'admin le permet (interrupteur « Laisser les utilisateurs choisir leur fond »).
+Il peut aussi **figer les animations** pour économiser la batterie. Ses choix sont gardés sur son compte, donc sur tous ses appareils.
+
+> [!NOTE]
+> L'image de fond est servie à tout le monde (la page de connexion l'affiche aussi) : n'y mettez rien de privé.
 
 ### 🌍 Langues
 

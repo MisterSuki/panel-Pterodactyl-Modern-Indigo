@@ -15,9 +15,10 @@
     <script>window.PterodactylSiteLocale = @json(\Pterodactyl\Services\Helpers\Locales::default());</script>
     <script>window.PterodactylDictionaryVersion = @json(\Pterodactyl\Services\Helpers\Locales::dictionaryVersion());</script>
     <script src="/js/translator.js?v={{ @filemtime(public_path('js/translator.js')) }}"></script>
+    @include('partials.appearance')
 
     <style>
-        :root { --bg: #0b1020; --card: #121a2f; --line: rgba(255,255,255,.08); --text: #e2e8f0; --muted: #94a3b8; --accent: #0a84ff; --accent2: #66adff; --cyan: #22d3ee; }
+        :root { --bg: #0b1020; --card: #121a2f; --line: rgba(255,255,255,.08); --text: #e2e8f0; --muted: #94a3b8; --accent: var(--pd-accent, #0a84ff); --accent2: #66adff; --cyan: #22d3ee; }
         * { box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }

@@ -26,7 +26,7 @@ const Container = styled.div`
 const Glow = styled.div`
     ${tw`absolute pointer-events-none`};
     inset: -18% -45%;
-    background: radial-gradient(38% 34% at 30% 32%, rgba(10, 132, 255, 0.34) 0%, rgba(10, 132, 255, 0) 100%),
+    background: radial-gradient(38% 34% at 30% 32%, rgb(var(--pd-accent-500) / 0.34) 0%, rgb(var(--pd-accent-500) / 0) 100%),
         radial-gradient(34% 32% at 72% 58%, rgba(191, 90, 242, 0.26) 0%, rgba(191, 90, 242, 0) 100%),
         radial-gradient(30% 26% at 42% 86%, rgba(255, 55, 95, 0.16) 0%, rgba(255, 55, 95, 0) 100%);
 `;
@@ -61,8 +61,8 @@ const GlassCard = styled.div`
 
     & input:not([type='checkbox']):not([type='radio']):focus {
         background: rgba(0, 0, 0, 0.3) !important;
-        border-color: rgba(10, 132, 255, 0.8) !important;
-        box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25) !important;
+        border-color: rgb(var(--pd-accent-500) / 0.8) !important;
+        box-shadow: 0 0 0 3px rgb(var(--pd-accent-500) / 0.25) !important;
     }
 `;
 

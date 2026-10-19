@@ -2,6 +2,21 @@ import tw from 'twin.macro';
 import { createGlobalStyle } from 'styled-components/macro';
 
 export default createGlobalStyle`
+    /* The accent colour, iOS blue by default. /js/appearance.js replaces it with the one the person picked. */
+    :root {
+        --pd-accent-50: 230 243 255;
+        --pd-accent-100: 206 230 255;
+        --pd-accent-200: 157 206 255;
+        --pd-accent-300: 108 181 255;
+        --pd-accent-400: 59 157 255;
+        --pd-accent-500: 10 132 255;
+        --pd-accent-600: 9 116 224;
+        --pd-accent-700: 7 98 189;
+        --pd-accent-800: 6 77 148;
+        --pd-accent-900: 4 55 107;
+        --pd-a: 10, 132, 255;
+    }
+
     html {
         background: #070816;
         scroll-behavior: smooth;
@@ -24,7 +39,7 @@ export default createGlobalStyle`
     }
 
     select option:checked {
-        background-color: #0a84ff;
+        background-color: rgb(var(--pd-accent-500));
         color: #ffffff;
     }
 
@@ -51,7 +66,7 @@ export default createGlobalStyle`
         z-index: -1;
         pointer-events: none;
         background:
-            radial-gradient(55% 45% at 12% 8%, rgba(10, 132, 255, 0.55), transparent 70%),
+            radial-gradient(55% 45% at 12% 8%, rgb(var(--pd-accent-500) / 0.55), transparent 70%),
             radial-gradient(45% 40% at 88% 12%, rgba(191, 90, 242, 0.45), transparent 70%),
             radial-gradient(50% 45% at 82% 92%, rgba(255, 55, 95, 0.38), transparent 70%),
             radial-gradient(45% 45% at 8% 88%, rgba(100, 210, 255, 0.32), transparent 70%),
@@ -102,7 +117,7 @@ export default createGlobalStyle`
     }
 
     ::selection {
-        background: rgba(10, 132, 255, 0.45);
+        background: rgb(var(--pd-accent-500) / 0.45);
         color: #fff;
     }
 
@@ -153,7 +168,7 @@ export default createGlobalStyle`
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        background-color: rgba(10, 132, 255, 0.7);
+        background-color: rgb(var(--pd-accent-500) / 0.7);
     }
 
     ::-webkit-scrollbar-track-piece {

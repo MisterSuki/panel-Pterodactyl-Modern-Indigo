@@ -21,7 +21,7 @@ const tones: Record<Tone, { solid: string; soft: string }> = {
         soft: 'bg-green-500/10 border-green-500/30 text-green-200 hover:bg-green-500/20 hover:border-green-400/50',
     },
     primary: {
-        solid: 'bg-gradient-to-b from-primary-500 to-primary-600 border-primary-400/40 text-white shadow-[0_8px_24px_-8px_rgba(10,132,255,0.7)] hover:brightness-110',
+        solid: 'bg-gradient-to-b from-primary-500 to-primary-600 border-primary-400/40 text-white shadow-[0_8px_24px_-8px_rgb(var(--pd-accent-500)/0.7)] hover:brightness-110',
         soft: 'bg-primary-500/10 border-primary-500/30 text-primary-200 hover:bg-primary-500/20 hover:border-primary-400/50',
     },
     red: {

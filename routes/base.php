@@ -24,6 +24,11 @@ Route::get('/avatars/{uuid}', [Base\AvatarController::class, 'show'])
     ->where('uuid', '[0-9a-fA-F-]{36}')
     ->name('avatar');
 
+// The background picture of the panel, for everybody (the sign-in page shows it too).
+Route::get('/appearance/background', [Base\AppearanceController::class, 'background'])
+    ->withoutMiddleware(['auth', RequireTwoFactorAuthentication::class])
+    ->name('appearance.background');
+
 // Where a person lands after paying (or giving up) at a payment provider.
 Route::get('/shop/return/{provider}', [Base\ShopReturnController::class, 'return'])
     ->where('provider', 'stripe|paypal|sumup')

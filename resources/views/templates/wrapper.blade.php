@@ -36,6 +36,7 @@
         <script>window.PterodactylDictionaryVersion = @json(\Pterodactyl\Services\Helpers\Locales::dictionaryVersion());</script>
         <script>window.PterodactylCopyright = @json(\Pterodactyl\Services\Helpers\Copyright::custom());</script>
         <script src="/js/translator.js?v={{ @filemtime(public_path('js/translator.js')) }}"></script>
+        @include('partials.appearance')
 
         @yield('assets')
 

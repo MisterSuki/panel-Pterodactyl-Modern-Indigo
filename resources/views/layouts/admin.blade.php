@@ -21,6 +21,7 @@
         <script>window.PterodactylUiLocale = @json(Auth::user()->language ?? \Pterodactyl\Services\Helpers\Locales::default());</script>
         <script>window.PterodactylDictionaryVersion = @json(\Pterodactyl\Services\Helpers\Locales::dictionaryVersion());</script>
         <script src="/js/translator.js?v={{ @filemtime(public_path('js/translator.js')) }}"></script>
+        @include('partials.appearance')
 
         @section('scripts')
             {!! Theme::css('vendor/select2/select2.min.css?t={cache-version}') !!}
@@ -80,6 +81,7 @@
                                 ['Overview', 'admin.index', 'fa-home', '=admin.index', true, null],
                                 ['Settings', 'admin.settings', 'fa-wrench', 'admin.settings', $can('settings'), null],
                                 ['Home page', 'admin.home-page', 'fa-columns', 'admin.home-page', $can('settings'), null],
+                                ['Appearance', 'admin.appearance', 'fa-paint-brush', 'admin.appearance', $can('settings'), null],
                                 ['Application API', 'admin.api.index', 'fa-gamepad', 'admin.api', $isRoot, null],
                             ],
                             'MANAGEMENT' => [

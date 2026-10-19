@@ -490,7 +490,7 @@ const SliderRow = ({
             value={value}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(Number(e.currentTarget.value))}
             css={tw`mt-2 w-full h-1.5 rounded-full appearance-none bg-neutral-700 cursor-pointer`}
-            style={{ accentColor: '#0a84ff' } as React.CSSProperties}
+            style={{ accentColor: 'rgb(var(--pd-accent-500))' } as React.CSSProperties}
         />
         <p css={tw`mt-1 text-2xs text-neutral-500`}>{unitLabel}</p>
     </div>
