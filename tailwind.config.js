@@ -90,7 +90,7 @@ module.exports = {
             backgroundImage: {
                 'gradient-brand': 'linear-gradient(135deg, #0A84FF 0%, #5E5CE6 55%, #64D2FF 100%)',
                 'gradient-brand-flat': 'linear-gradient(135deg, #3D9BFF 0%, #0A84FF 100%)',
-                'gradient-surface': 'linear-gradient(180deg, rgba(44, 44, 50, 0.6) 0%, rgba(28, 28, 32, 0.55) 100%)',
+                'gradient-surface': 'linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
             },
         },
     },

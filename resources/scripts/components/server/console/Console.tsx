@@ -19,7 +19,7 @@ import {
     CheckIcon,
     ChevronDoubleRightIcon,
     ClipboardCopyIcon,
-    PaperAirplaneIcon,
+    ArrowUpIcon,
     PauseIcon,
     PlayIcon,
     SearchIcon,
@@ -31,26 +31,27 @@ import 'xterm/css/xterm.css';
 import styles from './style.module.css';
 
 const theme = {
-    // Transparent, so the gradient of the console box shows through.
+    // Transparent, so the glass of the console box shows through. Colours are the iOS system palette.
     background: 'rgba(0, 0, 0, 0)',
+    foreground: '#e5e5ea',
     cursor: 'transparent',
     black: th`colors.black`.toString(),
-    red: '#E54B4B',
-    green: '#9ECE58',
-    yellow: '#FAED70',
-    blue: '#396FE2',
-    magenta: '#BB80B3',
-    cyan: '#2DDAFD',
-    white: '#d0d0d0',
-    brightBlack: 'rgba(255, 255, 255, 0.2)',
-    brightRed: '#FF5370',
-    brightGreen: '#C3E88D',
-    brightYellow: '#FFCB6B',
-    brightBlue: '#82AAFF',
-    brightMagenta: '#C792EA',
-    brightCyan: '#89DDFF',
+    red: '#ff453a',
+    green: '#30d158',
+    yellow: '#ffd60a',
+    blue: '#0a84ff',
+    magenta: '#bf5af2',
+    cyan: '#64d2ff',
+    white: '#e5e5ea',
+    brightBlack: 'rgba(255, 255, 255, 0.35)',
+    brightRed: '#ff6961',
+    brightGreen: '#5ee17c',
+    brightYellow: '#ffe066',
+    brightBlue: '#409cff',
+    brightMagenta: '#da8fff',
+    brightCyan: '#8ae1ff',
     brightWhite: '#ffffff',
-    selection: 'rgba(129, 140, 248, 0.4)',
+    selection: 'rgba(10, 132, 255, 0.35)',
 };
 
 // Lines that carry no colour of their own are tinted by what they say, so a problem stands out in a long log.
@@ -64,8 +65,9 @@ const SUCCESS_LINE = /\b(started|ready|success(ful(ly)?)?|connected|listening|lo
 const LEADING_TAG = /^(\[[^\]\r\n]{1,40}\])(.*)$/;
 const TIME_TAG = /^\[\d{1,2}:\d{2}/;
 
-const DIM = '\u001b[38;5;244m';
-const TAG = '\u001b[38;5;110m';
+// True colour (24-bit) escapes in the iOS palette: a soft grey for stack frames and times, system cyan for "[tags]".
+const DIM = '\u001b[38;2;110;110;118m';
+const TAG = '\u001b[38;2;100;210;255m';
 const RESET = '\u001b[0m';
 
 const tint = (line: string): string => {
@@ -77,11 +79,11 @@ const tint = (line: string): string => {
     }
 
     const color = ERROR_LINE.test(line)
-        ? '\u001b[38;5;203m'
+        ? '\u001b[38;2;255;105;97m'
         : WARNING_LINE.test(line)
-        ? '\u001b[38;5;221m'
+        ? '\u001b[38;2;255;214;10m'
         : SUCCESS_LINE.test(line)
-        ? '\u001b[38;5;114m'
+        ? '\u001b[38;2;48;209;88m'
         : '';
 
     const tag = LEADING_TAG.exec(line);
@@ -109,9 +111,9 @@ const ToolButton = ({
         title={title}
         aria-label={title}
         className={classNames(
-            'inline-flex items-center gap-1.5 h-7 rounded-md px-2 text-xs font-medium transition-colors duration-150',
+            'inline-flex items-center gap-1.5 h-7 rounded-full px-2.5 text-xs font-medium transition-colors duration-150',
             active
-                ? 'bg-yellow-400/15 text-yellow-300 hover:bg-yellow-400/25'
+                ? 'bg-yellow-400/20 text-yellow-200 hover:bg-yellow-400/30'
                 : 'text-gray-300 hover:text-white hover:bg-white/10'
         )}
     >
@@ -127,9 +129,10 @@ const terminalProps: ITerminalOptions = {
     cursorStyle: 'underline',
     allowTransparency: true,
     fontSize: 13,
-    lineHeight: 1.25,
+    lineHeight: 1.4,
+    letterSpacing: 0.2,
     scrollback: 2000,
-    fontFamily: th('fontFamily.mono'),
+    fontFamily: '"SF Mono", "JetBrains Mono", "Cascadia Code", "Fira Code", Menlo, Consolas, monospace',
     rows: 30,
     theme: theme,
 };
@@ -418,14 +421,14 @@ export default () => {
             <div className={styles.header}>
                 <span className={'flex items-center gap-3'}>
                     <span className={'flex items-center gap-1.5'} aria-hidden>
-                        <span className={'w-2.5 h-2.5 rounded-full bg-red-400/70'} />
-                        <span className={'w-2.5 h-2.5 rounded-full bg-yellow-300/70'} />
-                        <span className={'w-2.5 h-2.5 rounded-full bg-green-400/70'} />
+                        <span className={styles.light} style={{ background: '#ff5f57' }} />
+                        <span className={styles.light} style={{ background: '#febc2e' }} />
+                        <span className={styles.light} style={{ background: '#28c840' }} />
                     </span>
-                    <span className={'text-xs font-medium text-gray-400 select-none'}>Console</span>
+                    <span className={'text-sm font-semibold text-gray-100 select-none'}>Console</span>
                 </span>
                 <span className={'flex items-center gap-2'}>
-                    <span className={'flex items-center gap-0.5 rounded-lg bg-white/5 p-0.5'}>
+                    <span className={styles.tools}>
                         <ToolButton title={'Search in the console'} onClick={() => loadedSearchBar.current?.show()}>
                             <SearchIcon className={'w-3.5 h-3.5'} />
                             <span className={'hidden md:inline'}>Search</span>
@@ -498,7 +501,7 @@ export default () => {
                         onClick={() => sendCommand(commandInput.current)}
                         className={styles.command_send}
                     >
-                        <PaperAirplaneIcon className={'w-4 h-4 rotate-90'} />
+                        <ArrowUpIcon className={'w-4 h-4'} />
                     </button>
                 </div>
             )}
