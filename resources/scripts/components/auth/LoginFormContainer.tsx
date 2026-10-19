@@ -13,57 +13,74 @@ type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, 
 };
 
 const Container = styled.div`
-    ${tw`w-full mx-auto px-4`};
-    max-width: 26rem;
+    ${tw`relative w-full mx-auto px-4`};
+    max-width: 27rem;
 
     ${breakpoint('sm')`
-        max-width: 28rem;
+        max-width: 29rem;
     `};
 `;
 
-// Coloured shapes sitting behind the card. Seen through the frosted glass they turn soft, which is what makes the
-// transparency visible. Static gradients only (no blur filter, no animation), so the page stays light.
-const Orb = styled.span<{ $color: string; $size: number }>`
-    ${tw`absolute rounded-full pointer-events-none`};
-    width: ${(p) => p.$size}px;
-    height: ${(p) => p.$size}px;
-    background: radial-gradient(circle, ${(p) => p.$color} 0%, ${(p) => p.$color} 52%, transparent 72%);
+// A soft light behind the card, fading out with no visible edge, so the glass has something to diffuse. Painted once
+// (no blur filter, no animation).
+const Glow = styled.div`
+    ${tw`absolute pointer-events-none`};
+    inset: -18% -45%;
+    background: radial-gradient(38% 34% at 30% 32%, rgba(10, 132, 255, 0.34) 0%, rgba(10, 132, 255, 0) 100%),
+        radial-gradient(34% 32% at 72% 58%, rgba(191, 90, 242, 0.26) 0%, rgba(191, 90, 242, 0) 100%),
+        radial-gradient(30% 26% at 42% 86%, rgba(255, 55, 95, 0.16) 0%, rgba(255, 55, 95, 0) 100%);
 `;
 
-// The card: clear Liquid Glass. Its fields are glass too, lighter than the dark wells used elsewhere.
+// The card: thick Liquid Glass with a bright specular rim on the top edge, like an iOS sheet.
 const GlassCard = styled.div`
-    ${tw`relative z-10 w-full rounded-3xl p-6 sm:p-8`};
+    ${tw`relative w-full rounded-3xl p-6 sm:p-8 overflow-hidden`};
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.06) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+        0 30px 70px -24px rgba(0, 0, 0, 0.75);
+    -webkit-backdrop-filter: saturate(180%) blur(30px);
+    backdrop-filter: saturate(180%) blur(30px);
+
+    /* The light sheen across the top of the glass. */
+    &::before {
+        content: '';
+        ${tw`absolute inset-x-0 top-0 pointer-events-none`};
+        height: 45%;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+    }
+
+    & > * {
+        ${tw`relative`};
+    }
 
     & input:not([type='checkbox']):not([type='radio']) {
-        background: rgba(255, 255, 255, 0.08) !important;
-        border-color: rgba(255, 255, 255, 0.16) !important;
+        background: rgba(0, 0, 0, 0.22) !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
         border-radius: 14px !important;
     }
 
     & input:not([type='checkbox']):not([type='radio']):focus {
-        background: rgba(255, 255, 255, 0.12) !important;
-        border-color: rgba(10, 132, 255, 0.7) !important;
+        background: rgba(0, 0, 0, 0.3) !important;
+        border-color: rgba(10, 132, 255, 0.8) !important;
         box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25) !important;
     }
 `;
 
 export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => (
-    <div css={tw`min-h-screen w-full flex items-center justify-center py-12 overflow-x-hidden`}>
+    <div css={tw`min-h-screen w-full flex items-center justify-center py-12 overflow-hidden`}>
         <Container>
-            <div css={tw`flex flex-col items-center mb-8 select-none`}>
+            <Glow />
+            <div css={tw`relative flex flex-col items-center mb-6 select-none`}>
                 <BrandTitle size={'hero'} />
             </div>
-            {title && <h2 css={tw`text-2xl text-center text-neutral-50 font-semibold mb-6 tracking-tight`}>{title}</h2>}
-            <FlashMessageRender css={tw`mb-4`} />
+            {title && (
+                <h2 css={tw`relative text-xl text-center text-neutral-200 font-medium mb-6 tracking-tight`}>{title}</h2>
+            )}
+            <FlashMessageRender css={tw`relative mb-4`} />
             <Form {...props} ref={ref}>
-                <div css={tw`relative`}>
-                    <Orb $color={'rgba(10, 132, 255, 0.85)'} $size={230} style={{ top: -70, left: -90 }} />
-                    <Orb $color={'rgba(191, 90, 242, 0.75)'} $size={190} style={{ top: '38%', right: -100 }} />
-                    <Orb $color={'rgba(255, 55, 95, 0.7)'} $size={240} style={{ bottom: -150, left: -90 }} />
-                    <GlassCard className={'lg-glass'}>{props.children}</GlassCard>
-                </div>
+                <GlassCard>{props.children}</GlassCard>
             </Form>
-            <p css={tw`text-center text-neutral-500 text-xs mt-6`}>
+            <p css={tw`relative text-center text-neutral-500 text-xs mt-6`}>
                 <CopyrightLine
                     fallback={
                         <>
@@ -80,7 +97,9 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                     }
                 />
             </p>
-            <LanguageLinks />
+            <div css={tw`relative`}>
+                <LanguageLinks />
+            </div>
         </Container>
     </div>
 ));
