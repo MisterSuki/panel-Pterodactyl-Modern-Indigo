@@ -3,7 +3,7 @@ import { createGlobalStyle } from 'styled-components/macro';
 
 export default createGlobalStyle`
     html {
-        background: #000;
+        background: #070816;
         scroll-behavior: smooth;
     }
 
@@ -40,53 +40,53 @@ export default createGlobalStyle`
     }
 
     /*
-     * The wallpaper: two big, heavily blurred colour blobs that drift slowly behind everything, like the iOS
-     * backgrounds. Every translucent surface lets them glow through, which gives the frosted-glass look. They live on
-     * fixed layers and only move with "transform", so the browser animates them without repainting the page.
+     * The wallpaper: soft, saturated colour glows on a deep base, like the iOS 26/27 wallpapers. It is made only of
+     * gradients on one fixed layer, painted once: no "filter: blur" and no animation, so it costs nothing while
+     * scrolling. The glows are already soft, so a translucent card over them looks frosted without blurring anything.
      */
-    body::before,
-    body::after {
+    body::before {
         content: '';
         position: fixed;
+        inset: 0;
         z-index: -1;
-        width: 88vmax;
-        height: 88vmax;
-        border-radius: 50%;
         pointer-events: none;
-        filter: blur(90px);
-        will-change: transform;
-    }
-
-    body::before {
-        top: -28vmax;
-        left: -18vmax;
-        opacity: 0.7;
         background:
-            radial-gradient(circle at 32% 32%, #0a84ff 0%, rgba(10, 132, 255, 0) 58%),
-            radial-gradient(circle at 70% 68%, #5e5ce6 0%, rgba(94, 92, 230, 0) 60%);
-        animation: pd-blob-a 30s ease-in-out infinite alternate;
+            radial-gradient(55% 45% at 12% 8%, rgba(10, 132, 255, 0.55), transparent 70%),
+            radial-gradient(45% 40% at 88% 12%, rgba(191, 90, 242, 0.45), transparent 70%),
+            radial-gradient(50% 45% at 82% 92%, rgba(255, 55, 95, 0.38), transparent 70%),
+            radial-gradient(45% 45% at 8% 88%, rgba(100, 210, 255, 0.32), transparent 70%),
+            linear-gradient(160deg, #0b1030 0%, #160c2c 48%, #05060f 100%);
     }
 
-    body::after {
-        bottom: -32vmax;
-        right: -22vmax;
-        opacity: 0.55;
-        background:
-            radial-gradient(circle at 38% 40%, #ff375f 0%, rgba(255, 55, 95, 0) 55%),
-            radial-gradient(circle at 66% 62%, #64d2ff 0%, rgba(100, 210, 255, 0) 60%);
-        animation: pd-blob-b 36s ease-in-out infinite alternate;
+    /*
+     * Liquid Glass, used by everything that floats over the page (navigation, menus, sheets). A light tint, a blur of
+     * what is behind, a bright rim on the top edge (the "specular" highlight) and a soft drop shadow.
+     */
+    .lg-glass {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.06) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+            0 12px 36px -12px rgba(0, 0, 0, 0.55);
+        -webkit-backdrop-filter: saturate(180%) blur(22px);
+        backdrop-filter: saturate(180%) blur(22px);
     }
 
-    @keyframes pd-blob-a {
-        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
-        50% { transform: translate(18vw, 12vh) scale(1.15) rotate(40deg); }
-        100% { transform: translate(-6vw, 26vh) scale(0.95) rotate(-20deg); }
+    /* The capsules can scroll sideways on small screens: no scroll bar inside the glass. */
+    .lg-glass {
+        scrollbar-width: none;
     }
 
-    @keyframes pd-blob-b {
-        0% { transform: translate(0, 0) scale(1) rotate(0deg); }
-        50% { transform: translate(-16vw, -14vh) scale(1.2) rotate(-35deg); }
-        100% { transform: translate(10vw, -24vh) scale(0.9) rotate(25deg); }
+    .lg-glass::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Thicker glass for sheets and menus that hold text over the page. */
+    .lg-glass-thick {
+        background: linear-gradient(180deg, rgba(58, 58, 68, 0.78) 0%, rgba(34, 34, 42, 0.82) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 24px 60px -16px rgba(0, 0, 0, 0.7);
+        -webkit-backdrop-filter: saturate(180%) blur(28px);
+        backdrop-filter: saturate(180%) blur(28px);
     }
 
     @media (prefers-reduced-motion: reduce) {

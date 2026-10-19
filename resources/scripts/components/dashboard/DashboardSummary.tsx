@@ -21,7 +21,7 @@ const Tile = ({
     color: string;
 }) => (
     <div
-        css={tw`flex items-center gap-3 rounded-2xl border border-white/5 bg-neutral-800/70 px-4 py-3 shadow-card min-w-0`}
+        css={tw`flex items-center gap-3 rounded-2xl border border-white/5 bg-neutral-800 px-4 py-3 shadow-card min-w-0`}
     >
         <span
             css={tw`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center`}

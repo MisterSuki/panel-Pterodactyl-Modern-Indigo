@@ -155,7 +155,7 @@ export default () => {
                     {[0, 1, 2].map((i) => (
                         <div
                             key={i}
-                            css={tw`h-[5.5rem] mb-2 rounded-xl border border-white/5 bg-neutral-800/60 animate-pulse`}
+                            css={tw`h-[5.5rem] mb-2 rounded-xl border border-white/5 bg-neutral-800 animate-pulse`}
                             style={{ animationDelay: `${i * 120}ms` }}
                         />
                     ))}

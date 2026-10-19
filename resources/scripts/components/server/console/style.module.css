@@ -25,8 +25,6 @@
     /* Smoked glass: dark enough for the log to stay readable, light enough for the wallpaper to tint through. */
     background: radial-gradient(900px circle at 0% 0%, rgba(10, 132, 255, 0.08), transparent 55%),
         linear-gradient(180deg, rgba(14, 14, 18, 0.78) 0%, rgba(6, 6, 9, 0.84) 100%);
-    backdrop-filter: saturate(160%) blur(24px);
-    -webkit-backdrop-filter: saturate(160%) blur(24px);
 
     & .header {
         @apply flex items-center justify-between gap-3 px-4 py-2.5 bg-white/[0.03] border-b border-white/5;

@@ -93,14 +93,9 @@ class DropdownMenu extends React.PureComponent<Props, State> {
                             e.stopPropagation();
                             this.setState({ visible: false });
                         }}
-                        style={
-                            {
-                                width: '12rem',
-                                backdropFilter: 'saturate(180%) blur(24px)',
-                                WebkitBackdropFilter: 'saturate(180%) blur(24px)',
-                            } as React.CSSProperties
-                        }
-                        css={tw`absolute bg-neutral-800/80 p-2 rounded-xl border border-white/10 shadow-card text-neutral-300 z-50`}
+                        style={{ width: '12rem' }}
+                        className={'lg-glass-thick'}
+                        css={tw`absolute p-2 rounded-xl text-neutral-300 z-50`}
                     >
                         {this.props.children}
                     </div>

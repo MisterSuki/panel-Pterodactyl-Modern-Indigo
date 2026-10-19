@@ -1,7 +1,7 @@
 const colors = require('tailwindcss/colors');
 
-// iOS dark palette. 50-600 are the opaque "label" greys used for text and icons. 700-900 are translucent "materials":
-// surfaces let the blurred wallpaper behind them glow through, which is what gives the frosted-glass look.
+// iOS dark palette. 50-600 are the opaque "label" greys used for text and icons. 700 is Apple's fill grey, 800 is the
+// clear Liquid Glass material used by cards (a light tint over the wallpaper) and 900 is a darker inset for content inside it.
 const gray = {
     50: '#F5F5F7',
     100: '#EBEBF0',
@@ -11,8 +11,8 @@ const gray = {
     500: '#636366',
     600: '#48484A',
     700: 'rgba(118, 118, 128, 0.24)',
-    800: 'rgba(28, 28, 32, 0.55)',
-    900: 'rgba(10, 10, 14, 0.62)',
+    800: 'rgba(255, 255, 255, 0.08)',
+    900: 'rgba(0, 0, 0, 0.32)',
 };
 
 // iOS system blue, used for CTAs, links, focus states and glows.
@@ -70,10 +70,10 @@ module.exports = {
             borderRadius: {
                 DEFAULT: '0.5rem',
                 md: '0.625rem',
-                lg: '0.75rem',
-                xl: '1rem',
-                '2xl': '1.375rem',
-                '3xl': '1.75rem',
+                lg: '0.875rem',
+                xl: '1.25rem',
+                '2xl': '1.75rem',
+                '3xl': '2.25rem',
             },
             transitionDuration: {
                 250: '250ms',
@@ -82,8 +82,8 @@ module.exports = {
                 default: 'rgba(255, 255, 255, 0.12)',
             }),
             boxShadow: {
-                card: 'inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 30px -12px rgba(0, 0, 0, 0.55)',
-                'card-hover': 'inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 40px -14px rgba(0, 0, 0, 0.65)',
+                card: 'inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 14px 34px -16px rgba(0, 0, 0, 0.6)',
+                'card-hover': 'inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 20px 44px -16px rgba(0, 0, 0, 0.65)',
                 glow: '0 0 0 1px rgba(10, 132, 255, 0.45), 0 8px 30px -6px rgba(10, 132, 255, 0.5)',
                 nav: 'inset 0 -1px 0 rgba(255, 255, 255, 0.06), 0 8px 30px -10px rgba(0, 0, 0, 0.6)',
             },

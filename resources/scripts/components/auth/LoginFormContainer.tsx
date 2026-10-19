@@ -31,7 +31,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
             <FlashMessageRender css={tw`mb-4`} />
             <Form {...props} ref={ref}>
                 <div
-                    css={tw`w-full bg-neutral-800/70 backdrop-blur-xl border border-white/10 shadow-card rounded-2xl p-6 sm:p-8`}
+                    css={tw`w-full bg-neutral-800 backdrop-blur-xl border border-white/10 shadow-card rounded-2xl p-6 sm:p-8`}
                 >
                     {props.children}
                 </div>
