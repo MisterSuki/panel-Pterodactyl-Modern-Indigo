@@ -174,3 +174,15 @@ resources/views/landing/
 resources/views/admin/landing.blade.php
 resources/lang/en/landing.php
 resources/lang/fr/landing.php
+
+# The maintenance page shown during an update.
+resources/views/errors/503.blade.php
+
+# Appearance: animated backgrounds, background picture and accent colour of each person.
+app/Services/Helpers/Appearance.php
+app/Http/Controllers/Admin/AppearanceController.php
+app/Http/Controllers/Base/AppearanceController.php
+database/migrations/2026_10_20_000000_add_appearance_to_users_table.php
+public/js/appearance.js
+resources/views/admin/appearance.blade.php
+resources/views/partials/appearance.blade.php
