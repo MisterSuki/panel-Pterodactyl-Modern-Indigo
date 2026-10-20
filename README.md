@@ -270,21 +270,21 @@ Panel, Wings, mise à jour avec **sauvegarde et retour en arrière**, désinstal
 
 **Sommaire** &nbsp;
 [Nouveau serveur](#-nouveau-serveur--le-panel-de-a-à-z) ·
-[Wings](#-wings) ·
+[Wings](#️-wings) ·
 [Mise à jour](#-mettre-à-jour-un-panel-existant) ·
 [Désinstaller](#-désinstaller-le-thème) ·
-[Options](#-toutes-les-options) ·
-[phpMyAdmin](#-phpmyadmin) ·
+[Options](#️-toutes-les-options) ·
+[phpMyAdmin](#️-phpmyadmin) ·
 [Eggs](#-eggs-de-la-communauté) ·
 [FiveM](#-serveurs-fivem) ·
-[Minecraft](#-serveurs-minecraft) ·
+[Minecraft](#️-serveurs-minecraft) ·
 [Euro Truck](#-euro-truck-simulator-2--american-truck-simulator) ·
 [Boutique](#-boutique-stripe-paypal-sumup) ·
-[Bases SQLite](#-bases-sqlite-db-dans-le-gestionnaire-de-fichiers) ·
+[Bases SQLite](#️-bases-sqlite-db-dans-le-gestionnaire-de-fichiers) ·
 [Apparence](#-apparence--fond-animé-image-et-couleurs) ·
 [Console](#-console-et-petits-plus) ·
 [Discord](#-inscription-et-connexion-discord) ·
-[Rôles](#-rôles-de-staff)
+[Rôles](#️-rôles-de-staff)
 
 ### 🆕 Nouveau serveur : le panel, de A à Z
 
@@ -306,7 +306,7 @@ Il pose quelques questions (domaine, email, compte administrateur) puis fait tou
 | 5 | compile le dashboard (avec un peu de swap temporaire si le serveur a peu de mémoire) |
 | 6 | obtient un **certificat SSL** gratuit Let's Encrypt |
 | 7 | installe la **file d'attente** (`pteroq`) et la **tâche planifiée** (cron) |
-| 8 | installe **[phpMyAdmin](#-phpmyadmin)**, relié au panel (`--no-phpmyadmin` pour l'éviter) |
+| 8 | installe **[phpMyAdmin](#️-phpmyadmin)**, relié au panel (`--no-phpmyadmin` pour l'éviter) |
 | 9 | ouvre les ports 80 et 443 si le pare-feu `ufw` est actif |
 
 À la fin, il affiche l'adresse du panel et tes identifiants, et les enregistre dans
