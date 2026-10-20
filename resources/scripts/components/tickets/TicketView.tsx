@@ -34,7 +34,7 @@ const Bubble = ({ message }: { message: TicketMessage }) => (
         className={classNames(
             'max-w-[85%] rounded-2xl border px-4 py-2.5',
             message.mine
-                ? 'self-end rounded-br-md bg-gradient-to-br from-primary-500/30 to-primary-600/20 border-primary-500/40'
+                ? 'self-end rounded-br-md bg-gradient-to-br from-primary-500/30 to-primary-600/20 border-primary-500 border-opacity-40'
                 : 'self-start rounded-bl-md bg-white/[0.04] border-white/10'
         )}
         style={{ animation: 'none' }}
@@ -43,7 +43,7 @@ const Bubble = ({ message }: { message: TicketMessage }) => (
             <img src={message.avatar} alt={''} css={tw`w-5 h-5 rounded-full object-cover`} />
             <strong css={tw`text-neutral-100`}>{message.author}</strong>
             {message.staff && (
-                <span css={tw`rounded-full bg-primary-500/25 px-2 text-2xs uppercase tracking-wider text-primary-200`}>
+                <span css={tw`rounded-full bg-primary-500 bg-opacity-25 px-2 text-2xs uppercase tracking-wider text-primary-200`}>
                     Staff
                 </span>
             )}

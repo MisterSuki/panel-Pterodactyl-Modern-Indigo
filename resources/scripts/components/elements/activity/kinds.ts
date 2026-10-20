@@ -31,12 +31,12 @@ const kind = (icon: EventKind['icon'], className: string): EventKind => ({ icon,
 const red = 'bg-red-500/15 text-red-300 ring-red-500/30';
 const green = 'bg-green-500/15 text-green-300 ring-green-500/30';
 const amber = 'bg-yellow-500/15 text-yellow-300 ring-yellow-500/30';
-const blue = 'bg-blue-500/15 text-blue-300 ring-blue-500/30';
+const blue = 'bg-blue-500 bg-opacity-15 text-blue-300 ring-blue-500 ring-opacity-30';
 const purple = 'bg-purple-500/15 text-purple-300 ring-purple-500/30';
 const cyan = 'bg-cyan-500/15 text-cyan-300 ring-cyan-500/30';
 const pink = 'bg-pink-500/15 text-pink-300 ring-pink-500/30';
 const gray = 'bg-gray-500/20 text-gray-300 ring-gray-500/30';
-const primary = 'bg-primary-500/15 text-primary-300 ring-primary-500/30';
+const primary = 'bg-primary-500 bg-opacity-15 text-primary-300 ring-primary-500 ring-opacity-30';
 
 // The icon and colour of an event, from its name (server:power.stop, server:file.write, auth:success...).
 export const eventKind = (event: string): EventKind => {

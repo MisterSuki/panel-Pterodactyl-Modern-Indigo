@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFileAlt, faFileArchive, faFileImport, faFolder } from '@fortawesome/free-solid-svg-icons';
+import { faDatabase, faFileAlt, faFileArchive, faFileImport, faFolder } from '@fortawesome/free-solid-svg-icons';
+import { isSqliteFile } from '@/api/server/files/sqlite';
 import { encodePathSegments } from '@/helpers';
 import { differenceInHours, format, formatDistanceToNow } from 'date-fns';
 import React, { memo } from 'react';
@@ -22,12 +23,15 @@ const Clickable: React.FC<{ file: FileObject }> = memo(({ file, children }) => {
 
     const match = useRouteMatch();
 
-    return (file.isFile && (!file.isEditable() || !canReadContents)) || (!file.isFile && !canRead) ? (
+    // SQLite databases open in their own viewer, the other files in the text editor.
+    const sqlite = file.isFile && isSqliteFile(file.name);
+
+    return (file.isFile && ((!file.isEditable() && !sqlite) || !canReadContents)) || (!file.isFile && !canRead) ? (
         <div className={styles.details}>{children}</div>
     ) : (
         <NavLink
             className={styles.details}
-            to={`${match.url}${file.isFile ? '/edit' : ''}#${encodePathSegments(join(directory, file.name))}`}
+            to={`${match.url}${file.isFile ? (sqlite ? '/sqlite' : '/edit') : ''}#${encodePathSegments(join(directory, file.name))}`}
         >
             {children}
         </NavLink>
@@ -48,7 +52,15 @@ const FileObjectRow = ({ file }: { file: FileObject }) => (
             <div css={tw`flex-none text-neutral-400 ml-6 mr-4 text-lg pl-3`}>
                 {file.isFile ? (
                     <FontAwesomeIcon
-                        icon={file.isSymlink ? faFileImport : file.isArchiveType() ? faFileArchive : faFileAlt}
+                        icon={
+                            file.isSymlink
+                                ? faFileImport
+                                : file.isArchiveType()
+                                ? faFileArchive
+                                : isSqliteFile(file.name)
+                                ? faDatabase
+                                : faFileAlt
+                        }
                     />
                 ) : (
                     <FontAwesomeIcon icon={faFolder} />

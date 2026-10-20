@@ -34,7 +34,7 @@ const RightNavigation = styled.div`
         }
 
         &.active {
-            ${tw`bg-primary-500/10`};
+            ${tw`bg-primary-500 bg-opacity-10`};
         }
     }
 `;

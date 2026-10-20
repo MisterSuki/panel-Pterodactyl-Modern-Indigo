@@ -16,7 +16,7 @@ const Chip = ({ icon, children }: { icon: any; children: React.ReactNode }) => (
 export default ({ schedule }: { schedule: Schedule }) => {
     const taskCount = schedule.tasks.length;
     const statusClass = schedule.isProcessing
-        ? tw`bg-blue-500/20 text-blue-300 border-blue-500/30`
+        ? tw`bg-blue-500 bg-opacity-20 text-blue-300 border-blue-500 border-opacity-30`
         : schedule.isActive
         ? tw`bg-green-500/20 text-green-300 border-green-500/30`
         : tw`bg-neutral-500/20 text-neutral-300 border-neutral-500/30`;
@@ -26,7 +26,7 @@ export default ({ schedule }: { schedule: Schedule }) => {
         <>
             <div css={tw`flex items-center min-w-0 flex-1`}>
                 <div
-                    css={tw`hidden sm:flex w-11 h-11 rounded-xl bg-primary-500/20 text-primary-300 items-center justify-center flex-shrink-0`}
+                    css={tw`hidden sm:flex w-11 h-11 rounded-xl bg-primary-500 bg-opacity-20 text-primary-300 items-center justify-center flex-shrink-0`}
                 >
                     <FontAwesomeIcon icon={faCalendarAlt} />
                 </div>

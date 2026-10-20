@@ -28,7 +28,7 @@ export default ({ className }: { className?: string }) => {
                 'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium no-underline transition-colors duration-150',
                 unreachable
                     ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/20'
-                    : 'bg-primary-500/10 border-primary-500/30 text-primary-300 hover:bg-primary-500/20',
+                    : 'bg-primary-500 bg-opacity-10 border-primary-500 border-opacity-30 text-primary-300 hover:bg-primary-500 hover:bg-opacity-20',
                 className
             )}
         >

@@ -79,7 +79,7 @@ const CronBuilder = () => {
                         className={classNames(
                             'rounded-full border px-3 py-1.5 text-xs font-medium transition-colors duration-150',
                             match && match.label === preset.label
-                                ? 'border-primary-400 bg-primary-500/20 text-primary-100'
+                                ? 'border-primary-400 bg-primary-500 bg-opacity-20 text-primary-100'
                                 : 'border-white/10 bg-white/5 text-neutral-300 hover:bg-white/10'
                         )}
                     >

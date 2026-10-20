@@ -201,7 +201,7 @@ export default () => {
                     >
                         <div
                             className={
-                                'mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary-500/20 text-2xl text-primary-300'
+                                'mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary-500 bg-opacity-20 text-2xl text-primary-300'
                             }
                         >
                             <FontAwesomeIcon icon={faDesktop} />

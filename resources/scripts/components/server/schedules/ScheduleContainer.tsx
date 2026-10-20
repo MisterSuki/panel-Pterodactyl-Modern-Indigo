@@ -54,7 +54,7 @@ export default () => {
                         Schedules
                         {schedules.length > 0 && (
                             <span
-                                css={tw`rounded-full bg-primary-500/20 border border-primary-500/30 px-2.5 py-0.5 text-xs font-medium text-primary-300`}
+                                css={tw`rounded-full bg-primary-500 bg-opacity-20 border border-primary-500 border-opacity-30 px-2.5 py-0.5 text-xs font-medium text-primary-300`}
                             >
                                 {active}/{schedules.length} <span>active</span>
                             </span>
@@ -81,7 +81,7 @@ export default () => {
                     css={tw`rounded-2xl border border-white/5 bg-neutral-800 shadow-card px-6 py-12 flex flex-col items-center text-center`}
                 >
                     <div
-                        css={tw`w-16 h-16 rounded-2xl bg-primary-500/20 text-primary-300 flex items-center justify-center mb-4`}
+                        css={tw`w-16 h-16 rounded-2xl bg-primary-500 bg-opacity-20 text-primary-300 flex items-center justify-center mb-4`}
                     >
                         <FontAwesomeIcon icon={faCalendarAlt} size={'lg'} />
                     </div>

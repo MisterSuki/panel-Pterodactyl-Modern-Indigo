@@ -73,7 +73,7 @@ export default ({ backup, className }: Props) => {
                         <p css={tw`break-words truncate`}>{backup.name}</p>
                         {backup.name.startsWith('Automatic backup') && (
                             <span
-                                css={tw`ml-2 flex-none bg-primary-500/20 py-px px-2 rounded-full text-primary-200 text-2xs uppercase tracking-wider border border-primary-500/30`}
+                                css={tw`ml-2 flex-none bg-primary-500 bg-opacity-20 py-px px-2 rounded-full text-primary-200 text-2xs uppercase tracking-wider border border-primary-500 border-opacity-30`}
                             >
                                 Auto
                             </span>

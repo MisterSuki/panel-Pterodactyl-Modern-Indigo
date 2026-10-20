@@ -186,3 +186,6 @@ database/migrations/2026_10_20_000000_add_appearance_to_users_table.php
 public/js/appearance.js
 resources/views/admin/appearance.blade.php
 resources/views/partials/appearance.blade.php
+
+# The SQLite reader used to open .db files from the file manager (sql.js, MIT).
+public/js/vendor/sql.js/

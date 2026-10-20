@@ -54,7 +54,7 @@ const quietButtonStyle =
     'rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm font-semibold text-neutral-200 transition-colors duration-150 disabled:opacity-50';
 
 const statusLabels: Record<OrderStatus, { label: string; className: string }> = {
-    provisioning: { label: 'Being made', className: 'bg-blue-500/10 border-blue-500/30 text-blue-300' },
+    provisioning: { label: 'Being made', className: 'bg-blue-500 bg-opacity-10 border-blue-500 border-opacity-30 text-blue-300' },
     active: { label: 'Paid', className: 'bg-green-500/10 border-green-500/30 text-green-300' },
     expired: { label: 'Ran out', className: 'bg-red-500/10 border-red-500/30 text-red-300' },
     failed: { label: 'Not delivered', className: 'bg-gray-500/10 border-gray-500/30 text-gray-300' },
@@ -807,7 +807,7 @@ export default () => {
                             className={classNames(
                                 'rounded-full border px-4 py-1.5 text-sm font-medium transition-colors duration-150',
                                 category === item.id
-                                    ? 'border-primary-400 bg-primary-500/20 text-primary-100'
+                                    ? 'border-primary-400 bg-primary-500 bg-opacity-20 text-primary-100'
                                     : 'border-white/10 bg-white/5 text-neutral-300 hover:bg-white/10'
                             )}
                         >

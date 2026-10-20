@@ -15,7 +15,7 @@ const Select = styled.select<Props>`
     }
 
     &:focus {
-        ${tw`border-primary-400 ring-2 ring-primary-500/40`};
+        ${tw`border-primary-400 ring-2 ring-primary-500 ring-opacity-40`};
     }
 
     -webkit-appearance: none;

@@ -100,7 +100,7 @@ const AllocationRow = ({ allocation }: Props) => {
                 {allocation.isDefault ? (
                     <span
                         className={
-                            'inline-flex items-center gap-1.5 h-8 rounded-lg border border-primary-500/30 bg-primary-500/10 px-3 text-sm font-medium text-primary-200 select-none'
+                            'inline-flex items-center gap-1.5 h-8 rounded-lg border border-primary-500 border-opacity-30 bg-primary-500 bg-opacity-10 px-3 text-sm font-medium text-primary-200 select-none'
                         }
                     >
                         <FontAwesomeIcon icon={faStar} className={'text-xs text-primary-300'} />

@@ -21,6 +21,7 @@ import ServerActivityLogContainer from '@/components/server/ServerActivityLogCon
 // These specific lazy loaded routes are to avoid loading in heavy screens
 // for the server dashboard when they're only needed for specific instances.
 const FileEditContainer = lazy(() => import('@/components/server/files/FileEditContainer'));
+const SqliteViewerContainer = lazy(() => import('@/components/server/files/SqliteViewerContainer'));
 const ScheduleEditContainer = lazy(() => import('@/components/server/schedules/ScheduleEditContainer'));
 const MinecraftContainer = lazy(() => import('@/components/server/minecraft/MinecraftContainer'));
 const Ets2Container = lazy(() => import('@/components/server/ets2/Ets2Container'));
@@ -91,6 +92,12 @@ export default {
             permission: 'file.*',
             name: 'Files',
             component: FileManagerContainer,
+        },
+        {
+            path: '/files/sqlite',
+            permission: 'file.read-content',
+            name: undefined,
+            component: SqliteViewerContainer,
         },
         {
             path: '/files/:action(edit|new)',

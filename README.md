@@ -178,8 +178,8 @@ Tape le nom d'un egg (Valheim, Palworld…) et il est importé depuis **eggs.pte
 <tr>
 <td width="33%" valign="top">
 
-**🗄️ phpMyAdmin intégré**<br>
-Un bouton ouvre la base **déjà connecté**, avec un lien à usage unique.
+**🗄️ phpMyAdmin & SQLite**<br>
+Un bouton ouvre la base MySQL **déjà connecté** ; les fichiers **.db** s'ouvrent dans le gestionnaire de fichiers.
 
 </td>
 <td width="33%" valign="top">
@@ -266,6 +266,7 @@ Panel, Wings, mise à jour avec **sauvegarde et retour en arrière**, désinstal
 [Minecraft](#-serveurs-minecraft) ·
 [Euro Truck](#-euro-truck-simulator-2--american-truck-simulator) ·
 [Boutique](#-boutique-stripe-paypal-sumup) ·
+[Bases SQLite](#-bases-sqlite-db-dans-le-gestionnaire-de-fichiers) ·
 [Apparence](#-apparence--fond-animé-image-et-couleurs) ·
 [Console](#-console-et-petits-plus) ·
 [Discord](#-inscription-et-connexion-discord) ·
@@ -636,6 +637,23 @@ Sur un serveur dédié ETS2 ou ATS, un onglet **Euro Truck** permet de régler l
 
 > [!IMPORTANT]
 > Arrête le serveur avant d'enregistrer : sinon le jeu peut réécrire le fichier par-dessus tes changements.
+
+### 🗃️ Bases SQLite (.db) dans le gestionnaire de fichiers
+
+Un clic sur un fichier `.db`, `.sqlite`, `.sqlite3` ou `.db3` l'ouvre dans un **lecteur de base de données**, sans rien installer :
+
+- la liste des **tables** et des vues, avec leur nombre de lignes ;
+- les **données**, 100 lignes par page : **double-clic** sur une case pour la modifier (ou la mettre à NULL), corbeille pour
+  supprimer une ligne, bouton pour en ajouter une ;
+- la **structure** de chaque table (colonnes, types, clés) et sa requête `CREATE` ;
+- un onglet **SQL** pour lancer ses propres requêtes (Ctrl + Entrée).
+
+Les changements restent dans le navigateur jusqu'au bouton **Enregistrer**, qui renvoie le fichier sur le serveur. La base est ouverte
+par SQLite compilé en WebAssembly ([sql.js](https://github.com/sql-js/sql.js), licence MIT), jusqu'à 150 Mo.
+
+> [!IMPORTANT]
+> Arrête le serveur avant d'enregistrer : un jeu qui tourne garde sa base ouverte et peut écraser tes changements. Si un fichier
+> `-wal` est à côté de la base, les derniers changements du jeu n'y sont peut-être pas encore : le lecteur le signale.
 
 ### 🎨 Apparence : fond animé, image et couleurs
 

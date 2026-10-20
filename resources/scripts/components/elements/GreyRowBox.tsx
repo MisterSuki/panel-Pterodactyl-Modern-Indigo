@@ -6,7 +6,7 @@ export default styled.div<{ $hoverable?: boolean }>`
 
     ${(props) =>
         props.$hoverable !== false &&
-        tw`hover:border-primary-500/40 hover:shadow-card-hover hover:-translate-y-0.5`};
+        tw`hover:border-primary-500 hover:border-opacity-40 hover:shadow-card-hover hover:-translate-y-0.5`};
 
     & .icon {
         ${tw`rounded-lg w-11 h-11 flex items-center justify-center bg-gradient-brand-flat text-white p-3 shadow-glow`};

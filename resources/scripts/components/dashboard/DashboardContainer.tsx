@@ -91,7 +91,7 @@ export default () => {
                         {showOnlyAdmin ? 'All servers' : 'Your servers'}
                         {servers && (
                             <span
-                                css={tw`rounded-full bg-primary-500/20 border border-primary-500/30 px-2.5 py-0.5 text-xs font-medium text-primary-300`}
+                                css={tw`rounded-full bg-primary-500 bg-opacity-20 border border-primary-500 border-opacity-30 px-2.5 py-0.5 text-xs font-medium text-primary-300`}
                             >
                                 {servers.pagination.total}
                             </span>
@@ -128,7 +128,7 @@ export default () => {
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder={'Search a server...'}
                             aria-label={'Search a server...'}
-                            css={tw`w-full rounded-xl border border-white/10 bg-neutral-900/60 py-2.5 pl-9 pr-3 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/40`}
+                            css={tw`w-full rounded-xl border border-white/10 bg-neutral-900/60 py-2.5 pl-9 pr-3 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-40`}
                         />
                     </div>
                     <div css={tw`flex items-center gap-1 rounded-xl border border-white/10 bg-neutral-900/60 p-1`}>
@@ -140,7 +140,7 @@ export default () => {
                                 className={classNames(
                                     'rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-150',
                                     filter === value
-                                        ? 'bg-primary-500/20 text-primary-200'
+                                        ? 'bg-primary-500 bg-opacity-20 text-primary-200'
                                         : 'text-neutral-400 hover:text-neutral-100'
                                 )}
                             >

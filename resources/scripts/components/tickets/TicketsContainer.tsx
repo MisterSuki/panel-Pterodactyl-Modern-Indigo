@@ -191,7 +191,7 @@ export default () => {
                     <Link
                         key={ticket.id}
                         to={`/tickets/${ticket.id}`}
-                        css={tw`flex items-center gap-4 mb-2 rounded-xl border border-white/5 bg-neutral-800 px-4 py-3 no-underline shadow-card transition-all duration-150 hover:border-primary-500/40`}
+                        css={tw`flex items-center gap-4 mb-2 rounded-xl border border-white/5 bg-neutral-800 px-4 py-3 no-underline shadow-card transition-all duration-150 hover:border-primary-500 hover:border-opacity-40`}
                     >
                         <span css={tw`text-xs text-neutral-500 tabular-nums w-10 flex-shrink-0`}>#{ticket.id}</span>
                         <div css={tw`min-w-0 flex-1`}>

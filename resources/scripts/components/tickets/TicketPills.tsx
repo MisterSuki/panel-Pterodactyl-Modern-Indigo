@@ -10,7 +10,7 @@ const statuses: Record<TicketStatus, { label: string; className: string }> = {
 
 const priorities: Record<TicketPriority, { label: string; className: string }> = {
     low: { label: 'Low', className: 'bg-gray-500/10 border-gray-500/30 text-gray-300' },
-    normal: { label: 'Normal', className: 'bg-primary-500/10 border-primary-500/30 text-primary-200' },
+    normal: { label: 'Normal', className: 'bg-primary-500 bg-opacity-10 border-primary-500 border-opacity-30 text-primary-200' },
     high: { label: 'High', className: 'bg-orange-500/10 border-orange-500/30 text-orange-300' },
     urgent: { label: 'Urgent', className: 'bg-red-500/10 border-red-500/30 text-red-300' },
 };

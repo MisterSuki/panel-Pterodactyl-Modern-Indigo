@@ -51,7 +51,7 @@ const Section = ({ icon, title, text, children }: { icon: any; title: string; te
     <div css={tw`rounded-2xl bg-neutral-800 border border-white/10 shadow-card p-5 sm:p-6 mb-6`}>
         <div css={tw`flex items-start gap-3 mb-5`}>
             <span
-                css={tw`flex items-center justify-center w-9 h-9 rounded-xl bg-primary-500/20 text-primary-300 flex-shrink-0`}
+                css={tw`flex items-center justify-center w-9 h-9 rounded-xl bg-primary-500 bg-opacity-20 text-primary-300 flex-shrink-0`}
             >
                 <FontAwesomeIcon icon={icon} />
             </span>
@@ -85,7 +85,7 @@ const Choice = ({
         css={[
             tw`relative block w-full text-left rounded-xl overflow-hidden border transition-all duration-150 focus:outline-none`,
             selected
-                ? tw`border-primary-400 ring-2 ring-primary-500/60`
+                ? tw`border-primary-400 ring-2 ring-primary-500 ring-opacity-60`
                 : tw`border-white/10 hover:border-white/30 transform hover:-translate-y-0.5`,
         ]}
     >
@@ -190,7 +190,7 @@ export default () => {
             <div css={tw`max-w-5xl mx-auto mt-8 sm:mt-10`}>
                 <div css={tw`flex items-center gap-4 mb-6`}>
                     <span
-                        css={tw`flex flex-shrink-0 items-center justify-center w-12 h-12 rounded-2xl bg-primary-500/20 text-primary-300 text-xl border border-white/10`}
+                        css={tw`flex flex-shrink-0 items-center justify-center w-12 h-12 rounded-2xl bg-primary-500 bg-opacity-20 text-primary-300 text-xl border border-white/10`}
                     >
                         <FontAwesomeIcon icon={faPalette} />
                     </span>

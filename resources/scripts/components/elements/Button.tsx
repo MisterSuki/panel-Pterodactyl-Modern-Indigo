@@ -19,7 +19,7 @@ const ButtonStyle = styled.button<Omit<Props, 'isLoading'>>`
             ${(props) =>
                 !props.isSecondary &&
                 css`
-                    ${tw`bg-gradient-brand-flat border-primary-500/50 border text-white shadow-glow`};
+                    ${tw`bg-gradient-brand-flat border-primary-500 border-opacity-50 border text-white shadow-glow`};
                 `};
 
             &:hover:not(:disabled) {

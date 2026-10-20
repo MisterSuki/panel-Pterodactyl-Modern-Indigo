@@ -433,7 +433,7 @@ const Thread = ({ id, onBack, onClose }: { id: number; onBack: () => void; onClo
                         className={classNames(
                             'max-w-[88%] rounded-2xl border px-3 py-2',
                             m.mine
-                                ? 'self-end rounded-br-md bg-gradient-to-br from-primary-500/30 to-primary-600/20 border-primary-500/40'
+                                ? 'self-end rounded-br-md bg-gradient-to-br from-primary-500/30 to-primary-600/20 border-primary-500 border-opacity-40'
                                 : 'self-start rounded-bl-md bg-white/[0.05] border-white/10'
                         )}
                     >
@@ -443,7 +443,7 @@ const Thread = ({ id, onBack, onClose }: { id: number; onBack: () => void; onClo
                             {m.staff && (
                                 <span
                                     className={
-                                        'rounded-full bg-primary-500/25 px-1.5 uppercase tracking-wider text-primary-200'
+                                        'rounded-full bg-primary-500 bg-opacity-25 px-1.5 uppercase tracking-wider text-primary-200'
                                     }
                                 >
                                     Staff
@@ -556,7 +556,7 @@ export default () => {
                     }
                 >
                     {!!unread && !open && (
-                        <span className={'absolute inset-0 rounded-full bg-primary-400/40 animate-ping'} />
+                        <span className={'absolute inset-0 rounded-full bg-primary-400 bg-opacity-40 animate-ping'} />
                     )}
                     <FontAwesomeIcon icon={open ? faTimes : faLifeRing} className={'relative'} />
                     {!!unread && (

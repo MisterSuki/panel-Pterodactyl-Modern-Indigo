@@ -347,7 +347,7 @@ const ContentTab = ({
                         {results.map((hit) => (
                             <div
                                 key={hit.projectId}
-                                css={tw`flex items-start gap-3 sm:gap-4 rounded-xl border border-white/5 bg-neutral-900/50 p-3 sm:p-4 transition-colors duration-150 hover:border-primary-500/30`}
+                                css={tw`flex items-start gap-3 sm:gap-4 rounded-xl border border-white/5 bg-neutral-900/50 p-3 sm:p-4 transition-colors duration-150 hover:border-primary-500 hover:border-opacity-30`}
                             >
                                 {hit.iconUrl ? (
                                     <img
@@ -356,7 +356,7 @@ const ContentTab = ({
                                         css={tw`w-11 h-11 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 object-cover bg-neutral-800`}
                                     />
                                 ) : (
-                                    <div css={tw`w-11 h-11 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 bg-primary-500/20`} />
+                                    <div css={tw`w-11 h-11 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 bg-primary-500 bg-opacity-20`} />
                                 )}
                                 <div css={tw`min-w-0 flex-1`}>
                                     <p css={tw`text-base font-semibold text-neutral-100 truncate`}>{hit.title}</p>
@@ -865,7 +865,7 @@ export default () => {
                                 className={classNames(
                                     'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors duration-150',
                                     type === t.id
-                                        ? 'border-primary-400 bg-primary-500/20 text-primary-100'
+                                        ? 'border-primary-400 bg-primary-500 bg-opacity-20 text-primary-100'
                                         : 'border-white/10 bg-white/5 text-neutral-300 hover:bg-white/10'
                                 )}
                             >
