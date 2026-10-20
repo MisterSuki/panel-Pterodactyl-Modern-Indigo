@@ -38,10 +38,11 @@ pour le dashboard client **et** l'administration, installé avec **une seule com
 
 <table>
 <tr>
-<td align="center" width="25%">🎨<br><b>Liquid Glass</b><br><sub>9 fonds animés, dégradés ou ta propre image</sub></td>
-<td align="center" width="25%">⛏️<br><b>Minecraft</b><br><sub>plugins, mods et modpacks Modrinth en un clic</sub></td>
-<td align="center" width="25%">🛒<br><b>Boutique</b><br><sub>crédit Stripe, PayPal, SumUp, serveurs créés seuls</sub></td>
-<td align="center" width="25%">📱<br><b>Téléphone</b><br><sub>tout le panel tient sur un écran de mobile</sub></td>
+<td align="center" width="20%">🎨<br><b>Liquid Glass</b><br><sub>9 fonds animés, dégradés ou ta propre image</sub></td>
+<td align="center" width="20%">⛏️<br><b>Minecraft</b><br><sub>plugins, mods et modpacks Modrinth en un clic</sub></td>
+<td align="center" width="20%">🛒<br><b>Boutique</b><br><sub>crédit Stripe, PayPal, SumUp, serveurs créés seuls</sub></td>
+<td align="center" width="20%">📱<br><b>Téléphone</b><br><sub>tout le panel tient sur un écran de mobile</sub></td>
+<td align="center" width="20%">🗃️<br><b>Fichiers .db</b><br><sub>bases SQLite ouvertes et modifiées dans le panel</sub></td>
 </tr>
 </table>
 
@@ -149,6 +150,19 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 - remboursement automatique si la création échoue
 
 </td>
+</tr>
+<tr>
+<td width="45%" valign="middle">
+
+### 🗃️ Les bases SQLite s'ouvrent
+
+- un clic sur un fichier **.db** dans *Fichiers* ouvre un vrai lecteur
+- tables, vues et nombre de lignes
+- **double-clic** pour modifier une case, ajout et suppression de lignes
+- onglet **SQL** pour tes propres requêtes, puis **Enregistrer**
+
+</td>
+<td width="55%"><a href="docs/images/sqlite.jpg"><img src="docs/images/sqlite.jpg" alt="Le lecteur de bases SQLite"></a></td>
 </tr>
 </table>
 
@@ -639,6 +653,17 @@ Sur un serveur dédié ETS2 ou ATS, un onglet **Euro Truck** permet de régler l
 > Arrête le serveur avant d'enregistrer : sinon le jeu peut réécrire le fichier par-dessus tes changements.
 
 ### 🗃️ Bases SQLite (.db) dans le gestionnaire de fichiers
+
+<table>
+<tr>
+<td width="50%"><a href="docs/images/sqlite.jpg"><img src="docs/images/sqlite.jpg" alt="Les données d'une table"></a></td>
+<td width="50%"><a href="docs/images/sqlite-sql.jpg"><img src="docs/images/sqlite-sql.jpg" alt="Une requête SQL"></a></td>
+</tr>
+<tr>
+<td align="center"><sub>Les données d'une table, modifiables au double-clic</sub></td>
+<td align="center"><sub>Une requête SQL et ses résultats</sub></td>
+</tr>
+</table>
 
 Un clic sur un fichier `.db`, `.sqlite`, `.sqlite3` ou `.db3` l'ouvre dans un **lecteur de base de données**, sans rien installer :
 
