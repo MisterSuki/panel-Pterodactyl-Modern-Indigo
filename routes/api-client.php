@@ -176,6 +176,10 @@ Route::group([
         Route::post('/', [Client\Servers\SubdomainController::class, 'store'])->middleware('throttle:subdomains');
         Route::post('/{subdomain}', [Client\Servers\SubdomainController::class, 'update'])->whereNumber('subdomain');
         Route::delete('/{subdomain}', [Client\Servers\SubdomainController::class, 'delete'])->whereNumber('subdomain');
+        Route::post('/custom', [Client\Servers\SubdomainController::class, 'storeCustom'])->middleware('throttle:subdomains');
+        Route::post('/custom/{custom}', [Client\Servers\SubdomainController::class, 'updateCustom'])->whereNumber('custom');
+        Route::post('/custom/{custom}/verify', [Client\Servers\SubdomainController::class, 'verifyCustom'])->whereNumber('custom')->middleware('throttle:subdomains');
+        Route::delete('/custom/{custom}', [Client\Servers\SubdomainController::class, 'deleteCustom'])->whereNumber('custom');
     });
 
     Route::group(['prefix' => '/users'], function () {

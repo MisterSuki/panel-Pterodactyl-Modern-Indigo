@@ -103,6 +103,8 @@
                         <input type="number" min="0" max="100" class="form-control" id="pdSdDefaultLimit" name="default_limit" value="{{ old('default_limit', $defaultLimit) }}">
                         <p class="pd-sd-help"><span>0 = no subdomains. A server can have its own number, on its Build page.</span></p>
                     </div>
+                    <label class="pd-switch"><input type="checkbox" name="user_domains" value="1" @checked(old('user_domains', $userDomains))><i class="pd-switch-track"></i><span>Let users add their own domains</span></label>
+                    <p class="pd-sd-help"><span>In the Subdomains tab of a server, users can then add their own name (such as play.their-domain.com). They create the record in their own DNS, pointing at your IP: the panel shows them what to create and checks it. No key is asked, and nothing of their DNS is changed by the panel.</span></p>
                 </div>
             </div>
             <div class="box box-primary">
@@ -196,6 +198,61 @@
     </div>
 </div>
 
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box box-primary">
+            <div class="box-header with-border"><h3 class="box-title">Own domains of the users</h3></div>
+            <div class="box-body table-responsive no-padding">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Domain</th>
+                            <th>Server</th>
+                            <th>Points at</th>
+                            <th>DNS</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($customDomains as $custom)
+                            <tr>
+                                <td><code>{{ $custom->hostname }}</code></td>
+                                <td>
+                                    @if ($custom->server)
+                                        <a href="{{ route('admin.servers.view', $custom->server->id) }}">{{ $custom->server->name }}</a>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($custom->allocation)
+                                        <code>{{ $custom->allocation->ip_alias ?: $custom->allocation->ip }}:{{ $custom->allocation->port }}</code>
+                                    @else
+                                        <span class="pd-sd-unassigned">Unassigned</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($custom->verified_at)
+                                        <span class="label label-success">Verified</span>
+                                    @else
+                                        <span class="label label-warning">Waiting</span>
+                                    @endif
+                                </td>
+                                <td class="pd-sd-actions">
+                                    <form action="{{ route('admin.subdomains.custom.delete', $custom->id) }}" method="POST" class="pd-sd-confirm" data-kind="custom" data-name="{{ $custom->hostname }}">
+                                        {!! csrf_field() !!}
+                                        <button type="submit" class="btn btn-xs btn-danger"><i class="fa fa-trash"></i> <span>Remove</span></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="5" class="text-center text-muted"><span>No own domain yet.</span></td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="pdSdDomainModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <form class="modal-content" method="POST" id="pdSdDomainForm" data-store="{{ route('admin.subdomains.domains.store') }}" data-update="{{ route('admin.subdomains.domains.update', ['domain' => '__ID__']) }}" autocomplete="off">
@@ -274,6 +331,7 @@
 <span hidden id="pdSdT-confirm-domain">Remove this domain? Its subdomains must be removed first.</span>
 <span hidden id="pdSdT-confirm-sub">Remove this subdomain and its DNS records?</span>
 <span hidden id="pdSdT-confirm-force">Remove this subdomain from the panel, even if its DNS records cannot be removed?</span>
+<span hidden id="pdSdT-confirm-custom">Remove this own domain from the server? Its DNS is not touched.</span>
 <span hidden id="pdSdT-address">Address (A, AAAA or CNAME)</span>
 <span hidden id="pdSdT-type">Type</span>
 <span hidden id="pdSdT-name">Name</span>

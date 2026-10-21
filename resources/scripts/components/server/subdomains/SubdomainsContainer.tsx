@@ -7,6 +7,7 @@ import FlashMessageRender from '@/components/FlashMessageRender';
 import { Button } from '@/components/elements/button/index';
 import { Dialog } from '@/components/elements/dialog';
 import Can from '@/components/elements/Can';
+import CustomDomains from '@/components/server/subdomains/CustomDomains';
 import { ServerContext } from '@/state/server';
 import { useFlashKey } from '@/plugins/useFlash';
 import {
@@ -211,6 +212,8 @@ export default () => {
                             ))
                         )}
                     </div>
+
+                    <CustomDomains uuid={uuid} page={page} busy={busy} run={run} />
 
                     <Dialog open={creating} onClose={() => setCreating(false)} title={'Create subdomain'}>
                         <div css={tw`space-y-4`}>

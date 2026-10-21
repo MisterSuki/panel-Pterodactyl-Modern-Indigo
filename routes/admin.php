@@ -28,6 +28,7 @@ Route::group(['prefix' => 'subdomains', 'middleware' => 'admin.can:settings,mana
     Route::post('/domains/{domain}/delete', [Admin\SubdomainController::class, 'deleteDomain'])->whereNumber('domain')->name('admin.subdomains.domains.delete');
     Route::post('/settings', [Admin\SubdomainController::class, 'saveSettings'])->name('admin.subdomains.settings');
     Route::post('/{subdomain}/delete', [Admin\SubdomainController::class, 'deleteSubdomain'])->whereNumber('subdomain')->name('admin.subdomains.delete');
+    Route::post('/custom/{custom}/delete', [Admin\SubdomainController::class, 'deleteCustom'])->whereNumber('custom')->name('admin.subdomains.custom.delete');
 });
 
 // The theme update with one button (full administrators only, checked in the controller).

@@ -684,6 +684,12 @@ Chaque serveur peut avoir ses propres adresses, comme `play.ton-domaine.fr`, san
 - le **nombre de sous-domaines par serveur** par défaut, et celui de chaque serveur sur sa page *Build* ;
 - la liste de **tous les sous-domaines**, avec un bouton pour en retirer un.
 
+**Domaines des utilisateurs** (interrupteur *Laisser les utilisateurs ajouter leurs propres domaines*) : dans l'onglet
+*Sous-domaines*, un utilisateur ajoute son propre nom, par exemple `play.son-domaine.fr`. Le panel lui affiche les
+enregistrements à créer **dans son propre DNS** (A, AAAA ou CNAME vers ton IP, et le SRV), à copier d'un clic, puis **vérifie**
+par une requête DNS que le nom mène bien au serveur. Aucune clé n'est demandée et le panel ne modifie rien chez lui. Un nom sous
+un de tes domaines est refusé (il doit passer par les sous-domaines), comme le domaine du panel.
+
 **Côté serveur** (onglet *Sous-domaines*, avec les droits de l'onglet Réseau) : créer un sous-domaine (nom, domaine, allocation,
 notes), le faire **pointer vers une autre allocation** (les enregistrements DNS sont refaits) ou le supprimer. Quand un serveur est
 supprimé, ses sous-domaines et leurs enregistrements le sont aussi.

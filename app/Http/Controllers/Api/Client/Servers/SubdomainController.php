@@ -12,6 +12,8 @@ use Pterodactyl\Models\Permission;
 use Pterodactyl\Models\Server;
 use Pterodactyl\Models\ServerSubdomain;
 use Pterodactyl\Models\SubdomainDomain;
+use Pterodactyl\Models\ServerCustomDomain;
+use Pterodactyl\Services\Subdomains\CustomDomainService;
 use Pterodactyl\Services\Subdomains\SubdomainService;
 
 /**
@@ -20,7 +22,7 @@ use Pterodactyl\Services\Subdomains\SubdomainService;
  */
 class SubdomainController extends ClientApiController
 {
-    public function __construct(private SubdomainService $service)
+    public function __construct(private SubdomainService $service, private CustomDomainService $custom)
     {
         parent::__construct();
     }
@@ -80,6 +82,63 @@ class SubdomainController extends ClientApiController
         return new JsonResponse($this->payload($server, $request));
     }
 
+    /**
+     * Adds an own domain: a name the user points at the server in their own DNS.
+     */
+    public function storeCustom(Request $request, Server $server): JsonResponse
+    {
+        $this->authorizeFor($request, $server, Permission::ACTION_ALLOCATION_CREATE);
+        $data = $request->validate([
+            'hostname' => ['required', 'string', 'max:191'],
+            'allocation_id' => ['nullable', 'integer'],
+            'notes' => ['nullable', 'string', 'max:191'],
+        ]);
+        $domain = $this->custom->create($server, $data['hostname'], $this->allocation($server, $data['allocation_id'] ?? null), $data['notes'] ?? null);
+        Activity::event('server:subdomain.custom-add')->property(['domain' => $domain->hostname])->log();
+
+        return new JsonResponse($this->payload($server, $request));
+    }
+
+    public function updateCustom(Request $request, Server $server, int $custom): JsonResponse
+    {
+        $this->authorizeFor($request, $server, Permission::ACTION_ALLOCATION_UPDATE);
+        $data = $request->validate([
+            'allocation_id' => ['sometimes', 'nullable', 'integer'],
+            'notes' => ['sometimes', 'nullable', 'string', 'max:191'],
+        ]);
+        $model = ServerCustomDomain::query()->where('server_id', $server->id)->findOrFail($custom);
+        if (array_key_exists('allocation_id', $data)) {
+            $model->allocation_id = $this->allocation($server, $data['allocation_id'])?->id;
+            $model->save();
+            $model->load('allocation.node');
+            $this->custom->verify($model);
+        }
+        if (array_key_exists('notes', $data)) {
+            $model->forceFill(['notes' => $data['notes']])->save();
+        }
+
+        return new JsonResponse($this->payload($server, $request));
+    }
+
+    public function verifyCustom(Request $request, Server $server, int $custom): JsonResponse
+    {
+        $this->authorizeFor($request, $server, Permission::ACTION_ALLOCATION_READ);
+        $model = ServerCustomDomain::query()->with('allocation.node')->where('server_id', $server->id)->findOrFail($custom);
+        $this->custom->verify($model);
+
+        return new JsonResponse($this->payload($server, $request));
+    }
+
+    public function deleteCustom(Request $request, Server $server, int $custom): JsonResponse
+    {
+        $this->authorizeFor($request, $server, Permission::ACTION_ALLOCATION_DELETE);
+        $model = ServerCustomDomain::query()->where('server_id', $server->id)->findOrFail($custom);
+        $model->delete();
+        Activity::event('server:subdomain.custom-remove')->property(['domain' => $model->hostname])->log();
+
+        return new JsonResponse($this->payload($server, $request));
+    }
+
     private function authorizeFor(Request $request, Server $server, string $permission): void
     {
         abort_unless($request->user()->can($permission, $server), 403);
@@ -123,6 +182,20 @@ class SubdomainController extends ClientApiController
                     'address' => ($a->ip_alias ?: $a->ip) . ':' . $a->port,
                     'primary' => $a->id === $server->allocation_id,
                 ])->values(),
+            // The own domains of the server: what to create in the DNS, and whether it already leads to the server.
+            'custom' => [
+                'enabled' => $this->custom->enabled(),
+                'max' => CustomDomainService::MAX_PER_SERVER,
+                'data' => ServerCustomDomain::query()->with('allocation.node')->where('server_id', $server->id)->orderBy('id')->get()
+                    ->map(fn (ServerCustomDomain $d) => [
+                        'id' => $d->id,
+                        'hostname' => $d->hostname,
+                        'allocation_id' => $d->allocation_id,
+                        'notes' => $d->notes,
+                        'verified' => $d->verified_at !== null,
+                        'records' => $this->custom->records($d),
+                    ])->values(),
+            ],
             'data' => $subdomains->map(fn (ServerSubdomain $s) => [
                 'id' => $s->id,
                 'name' => $s->name,

@@ -13,6 +13,8 @@ use Pterodactyl\Models\Server;
 use Pterodactyl\Models\ServerSubdomain;
 use Pterodactyl\Models\SubdomainDomain;
 use Pterodactyl\Services\Subdomains\DnsClient;
+use Pterodactyl\Models\ServerCustomDomain;
+use Pterodactyl\Services\Subdomains\CustomDomainService;
 use Pterodactyl\Services\Subdomains\SubdomainService;
 
 /**
@@ -21,8 +23,11 @@ use Pterodactyl\Services\Subdomains\SubdomainService;
  */
 class SubdomainController extends Controller
 {
-    public function __construct(private SubdomainService $service, private AlertsMessageBag $alert)
-    {
+    public function __construct(
+        private SubdomainService $service,
+        private CustomDomainService $custom,
+        private AlertsMessageBag $alert,
+    ) {
     }
 
     public function index(): View
@@ -34,6 +39,8 @@ class SubdomainController extends Controller
             'templates' => $this->service->templates(),
             'defaultLimit' => $this->service->defaultLimit(),
             'subdomains' => ServerSubdomain::query()->with(['domain', 'server', 'allocation'])->latest()->limit(200)->get(),
+            'userDomains' => $this->custom->enabled(),
+            'customDomains' => ServerCustomDomain::query()->with(['server', 'allocation'])->latest()->limit(200)->get(),
         ]);
     }
 
@@ -120,6 +127,7 @@ class SubdomainController extends Controller
         ]);
         $templates = json_decode((string) $request->input('records'), true);
         $this->service->saveSettings((string) $request->input('blacklist', ''), is_array($templates) ? $templates : [], (int) $request->input('default_limit'));
+        $this->custom->setEnabled($request->boolean('user_domains'));
         $this->alert->success('The settings of the subdomains were saved.')->flash();
 
         return redirect()->route('admin.subdomains');
@@ -133,6 +141,14 @@ class SubdomainController extends Controller
         } catch (DisplayException $exception) {
             $this->alert->danger($exception->getMessage() . ' Use "Remove anyway" to remove it from the panel only.')->flash();
         }
+
+        return redirect()->route('admin.subdomains');
+    }
+
+    public function deleteCustom(ServerCustomDomain $custom): RedirectResponse
+    {
+        $custom->delete();
+        $this->alert->success('The domain was removed.')->flash();
 
         return redirect()->route('admin.subdomains');
     }

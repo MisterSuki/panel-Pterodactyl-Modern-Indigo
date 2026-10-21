@@ -293,7 +293,7 @@ class SubdomainService
      *
      * @throws DisplayException
      */
-    private function address(Allocation $allocation): array
+    public function address(Allocation $allocation): array
     {
         $public = FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE;
         foreach ([$allocation->ip_alias, $allocation->ip, $allocation->node?->fqdn] as $candidate) {

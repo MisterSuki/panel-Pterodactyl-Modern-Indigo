@@ -199,3 +199,5 @@ app/Services/Subdomains/
 app/Http/Controllers/Admin/SubdomainController.php
 app/Http/Controllers/Api/Client/Servers/SubdomainController.php
 resources/views/admin/subdomains/
+database/migrations/2026_10_23_000000_create_server_custom_domains_table.php
+app/Models/ServerCustomDomain.php
