@@ -18,6 +18,10 @@
 #
 set -Eeuo pipefail
 
+# Started by systemd (the "Update now" button), there is no HOME: Composer and Yarn refuse to run without one.
+export HOME="${HOME:-/root}"
+export COMPOSER_HOME="${COMPOSER_HOME:-$HOME/.config/composer}"
+
 REPO="${THEME_REPO:-MisterSuki/panel-Pterodactyl-Modern-Indigo}"
 BRANCH="${THEME_BRANCH:-main}"
 PANEL_PATH="${PANEL_PATH:-/var/www/pterodactyl}"
@@ -585,6 +589,8 @@ PANEL_PATH='$PANEL_PATH'
 REPO='$REPO'
 BRANCH='$BRANCH'
 STATE='$state'
+export HOME=/root
+export COMPOSER_HOME=/root/.config/composer
 REQUEST="\$PANEL_PATH/storage/app/theme-update.request"
 
 [[ -e "\$REQUEST" || -L "\$REQUEST" ]] || exit 0
@@ -626,6 +632,7 @@ Description=Update of the Pterodactyl theme asked from the admin area
 
 [Service]
 Type=oneshot
+Environment=HOME=/root
 ExecStart=$script
 TimeoutStartSec=3600
 EOF
