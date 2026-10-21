@@ -174,8 +174,18 @@ export default () => {
                     {page.limit === 0 && (
                         <p css={tw`text-sm text-neutral-400 mb-4`}>This server cannot make subdomains.</p>
                     )}
-                    {page.limit > 0 && page.domains.length === 0 && (
-                        <p css={tw`text-sm text-neutral-400 mb-4`}>No domain is available for subdomains right now.</p>
+                    {page.domains.length === 0 && (
+                        <div css={tw`rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-200 mb-4`}>
+                            <span>No domain is available for subdomains right now.</span>
+                            {page.manageUrl && (
+                                <>
+                                    {' '}
+                                    <a href={page.manageUrl} css={tw`font-semibold text-yellow-100 underline`}>
+                                        Add a domain in the administration
+                                    </a>
+                                </>
+                            )}
+                        </div>
                     )}
 
                     <div css={tw`rounded-2xl bg-neutral-800 border border-white/10 shadow-card overflow-hidden`}>

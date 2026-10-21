@@ -11,6 +11,7 @@ export interface SubdomainRow {
 }
 
 export interface SubdomainPage {
+    manageUrl: string | null;
     limit: number;
     used: number;
     domains: { id: number; domain: string }[];
@@ -20,6 +21,7 @@ export interface SubdomainPage {
 
 /* eslint-disable camelcase */
 const map = (data: any): SubdomainPage => ({
+    manageUrl: data.manage_url || null,
     limit: data.limit,
     used: data.used,
     domains: data.domains || [],

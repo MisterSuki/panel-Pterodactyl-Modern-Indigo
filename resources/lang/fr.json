@@ -1944,5 +1944,6 @@
  "This server has reached its limit of subdomains.": "Ce serveur a atteint sa limite de sous-domaines.",
  "The DNS provider could not be reached.": "Le fournisseur DNS est injoignable.",
  "This allocation has no public address (give it an alias, or a domain name to its node).": "Cette allocation n’a pas d’adresse publique (donnez-lui un alias, ou un nom de domaine à son node).",
- "This allocation does not belong to the server.": "Cette allocation n’appartient pas au serveur."
+ "This allocation does not belong to the server.": "Cette allocation n’appartient pas au serveur.",
+ "Add a domain in the administration": "Ajouter un domaine dans l’administration"
 }

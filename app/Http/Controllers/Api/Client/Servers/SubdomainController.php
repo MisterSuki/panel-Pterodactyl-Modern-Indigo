@@ -29,7 +29,7 @@ class SubdomainController extends ClientApiController
     {
         $this->authorizeFor($request, $server, Permission::ACTION_ALLOCATION_READ);
 
-        return new JsonResponse($this->payload($server));
+        return new JsonResponse($this->payload($server, $request));
     }
 
     public function store(Request $request, Server $server): JsonResponse
@@ -47,7 +47,7 @@ class SubdomainController extends ClientApiController
 
         Activity::event('server:subdomain.create')->property(['subdomain' => $subdomain->fqdn()])->log();
 
-        return new JsonResponse($this->payload($server));
+        return new JsonResponse($this->payload($server, $request));
     }
 
     public function update(Request $request, Server $server, int $subdomain): JsonResponse
@@ -67,7 +67,7 @@ class SubdomainController extends ClientApiController
             $model->forceFill(['notes' => $data['notes']])->save();
         }
 
-        return new JsonResponse($this->payload($server));
+        return new JsonResponse($this->payload($server, $request));
     }
 
     public function delete(Request $request, Server $server, int $subdomain): JsonResponse
@@ -77,7 +77,7 @@ class SubdomainController extends ClientApiController
         $this->service->delete($model);
         Activity::event('server:subdomain.delete')->property(['subdomain' => $model->fqdn()])->log();
 
-        return new JsonResponse($this->payload($server));
+        return new JsonResponse($this->payload($server, $request));
     }
 
     private function authorizeFor(Request $request, Server $server, string $permission): void
@@ -106,11 +106,13 @@ class SubdomainController extends ClientApiController
         return $allocation;
     }
 
-    private function payload(Server $server): array
+    private function payload(Server $server, Request $request): array
     {
         $subdomains = ServerSubdomain::query()->with('domain')->where('server_id', $server->id)->orderBy('id')->get();
 
         return [
+            // For the staff who can add domains: where to do it, shown when none is available yet.
+            'manage_url' => $request->user()->canAccessAdminSection('settings') ? route('admin.subdomains') : null,
             'limit' => $this->service->limitFor($server),
             'used' => $subdomains->count(),
             'domains' => SubdomainDomain::query()->where('available', true)->orderBy('domain')->get()
