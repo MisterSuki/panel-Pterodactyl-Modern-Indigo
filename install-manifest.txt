@@ -190,3 +190,12 @@ resources/views/partials/appearance.blade.php
 
 # The SQLite reader used to open .db files from the file manager (sql.js, MIT).
 public/js/vendor/sql.js/
+
+# Subdomains: domains offered to the servers (Cloudflare, Bunny.net DNS, PowerDNS) and the subdomains they make.
+database/migrations/2026_10_22_000000_create_subdomain_tables.php
+app/Models/SubdomainDomain.php
+app/Models/ServerSubdomain.php
+app/Services/Subdomains/
+app/Http/Controllers/Admin/SubdomainController.php
+app/Http/Controllers/Api/Client/Servers/SubdomainController.php
+resources/views/admin/subdomains/

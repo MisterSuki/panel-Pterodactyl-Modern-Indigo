@@ -21,6 +21,7 @@ import ServerActivityLogContainer from '@/components/server/ServerActivityLogCon
 // These specific lazy loaded routes are to avoid loading in heavy screens
 // for the server dashboard when they're only needed for specific instances.
 const FileEditContainer = lazy(() => import('@/components/server/files/FileEditContainer'));
+const SubdomainsContainer = lazy(() => import('@/components/server/subdomains/SubdomainsContainer'));
 const SqliteViewerContainer = lazy(() => import('@/components/server/files/SqliteViewerContainer'));
 const ScheduleEditContainer = lazy(() => import('@/components/server/schedules/ScheduleEditContainer'));
 const MinecraftContainer = lazy(() => import('@/components/server/minecraft/MinecraftContainer'));
@@ -136,6 +137,12 @@ export default {
             permission: 'schedule.*',
             name: undefined,
             component: ScheduleEditContainer,
+        },
+        {
+            path: '/subdomains',
+            permission: 'allocation.*',
+            name: 'Subdomains',
+            component: SubdomainsContainer,
         },
         {
             path: '/users',

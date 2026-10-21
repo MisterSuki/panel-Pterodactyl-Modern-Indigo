@@ -171,6 +171,13 @@ Route::group([
         Route::delete('/allocations/{allocation}', [Client\Servers\NetworkAllocationController::class, 'delete']);
     });
 
+    Route::group(['prefix' => '/subdomains'], function () {
+        Route::get('/', [Client\Servers\SubdomainController::class, 'index']);
+        Route::post('/', [Client\Servers\SubdomainController::class, 'store'])->middleware('throttle:subdomains');
+        Route::post('/{subdomain}', [Client\Servers\SubdomainController::class, 'update'])->whereNumber('subdomain');
+        Route::delete('/{subdomain}', [Client\Servers\SubdomainController::class, 'delete'])->whereNumber('subdomain');
+    });
+
     Route::group(['prefix' => '/users'], function () {
         Route::get('/', [Client\Servers\SubuserController::class, 'index']);
         Route::middleware([ResourceLimit::Subuser->middleware()])

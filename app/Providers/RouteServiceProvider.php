@@ -114,6 +114,16 @@ class RouteServiceProvider extends ServiceProvider
             )->by($key);
         });
 
+        // Making subdomains calls the DNS provider: 20 a minute per person, counted apart from every other limit.
+        RateLimiter::for('subdomains', function (Request $request) {
+            return Limit::perMinute(20)->by('subdomains:' . (optional($request->user())->uuid ?: $request->ip()));
+        });
+
+        // The "Update now" button of the admin area: a few clicks a minute, counted apart from every other limit.
+        RateLimiter::for('theme-update', function (Request $request) {
+            return Limit::perMinute(10)->by('theme-update:' . (optional($request->user())->uuid ?: $request->ip()));
+        });
+
         RateLimiter::for('api.application', function (Request $request) {
             $key = optional($request->user())->uuid ?: $request->ip();
 

@@ -18,8 +18,20 @@ Route::group(['prefix' => 'appearance', 'middleware' => 'admin.can:settings,mana
     Route::post('/remove-image', [Admin\AppearanceController::class, 'removeImage'])->name('admin.appearance.remove-image');
 });
 
+// Subdomains: the domains offered to the servers, their DNS providers and the records made (settings rights needed).
+Route::group(['prefix' => 'subdomains', 'middleware' => 'admin.can:settings,manage'], function () {
+    Route::get('/', [Admin\SubdomainController::class, 'index'])->name('admin.subdomains');
+    Route::post('/domains', [Admin\SubdomainController::class, 'storeDomain'])->name('admin.subdomains.domains.store');
+    Route::post('/domains/{domain}', [Admin\SubdomainController::class, 'updateDomain'])->whereNumber('domain')->name('admin.subdomains.domains.update');
+    Route::post('/domains/{domain}/toggle', [Admin\SubdomainController::class, 'toggleDomain'])->whereNumber('domain')->name('admin.subdomains.domains.toggle');
+    Route::post('/domains/{domain}/test', [Admin\SubdomainController::class, 'testDomain'])->whereNumber('domain')->name('admin.subdomains.domains.test');
+    Route::post('/domains/{domain}/delete', [Admin\SubdomainController::class, 'deleteDomain'])->whereNumber('domain')->name('admin.subdomains.domains.delete');
+    Route::post('/settings', [Admin\SubdomainController::class, 'saveSettings'])->name('admin.subdomains.settings');
+    Route::post('/{subdomain}/delete', [Admin\SubdomainController::class, 'deleteSubdomain'])->whereNumber('subdomain')->name('admin.subdomains.delete');
+});
+
 // The theme update with one button (full administrators only, checked in the controller).
-Route::post('/theme-update', [Admin\BaseController::class, 'themeUpdate'])->name('admin.theme-update');
+Route::post('/theme-update', [Admin\BaseController::class, 'themeUpdate'])->middleware('throttle:theme-update')->name('admin.theme-update');
 Route::get('/theme-update/status', [Admin\BaseController::class, 'themeUpdateStatus'])->name('admin.theme-update.status');
 
 Route::get('/presence', [Admin\BaseController::class, 'presence'])->name('admin.presence');
@@ -200,6 +212,7 @@ Route::group(['prefix' => 'servers', 'middleware' => 'admin.can:servers'], funct
 
     Route::post('/new', [Admin\Servers\CreateServerController::class, 'store']);
     Route::post('/view/{server:id}/build', [Admin\ServersController::class, 'updateBuild']);
+    Route::post('/view/{server:id}/subdomains', [Admin\SubdomainController::class, 'serverLimit'])->name('admin.servers.view.subdomains');
     Route::post('/view/{server:id}/startup', [Admin\ServersController::class, 'saveStartup']);
     Route::post('/view/{server:id}/database', [Admin\ServersController::class, 'newDatabase']);
     Route::post('/view/{server:id}/mounts', [Admin\ServersController::class, 'addMount'])->name('admin.servers.view.mounts.store');

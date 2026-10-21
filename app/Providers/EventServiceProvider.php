@@ -46,5 +46,17 @@ class EventServiceProvider extends ServiceProvider
         Server::observe(ServerObserver::class);
         Subuser::observe(SubuserObserver::class);
         EggVariable::observe(EggVariableObserver::class);
+
+        // A server that is deleted takes its subdomains with it: their DNS records are removed too (best effort).
+        Server::deleting(function (Server $server) {
+            try {
+                $service = app(\Pterodactyl\Services\Subdomains\SubdomainService::class);
+                foreach (\Pterodactyl\Models\ServerSubdomain::query()->with('domain')->where('server_id', $server->id)->get() as $subdomain) {
+                    $service->delete($subdomain, true);
+                }
+            } catch (\Throwable) {
+                // The tables may not exist yet (before the migration): nothing to clean.
+            }
+        });
     }
 }

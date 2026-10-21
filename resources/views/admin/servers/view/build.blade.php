@@ -174,6 +174,27 @@
             </div>
         </div>
     </form>
+    @php($pdSubdomains = app(\Pterodactyl\Services\Subdomains\SubdomainService::class))
+    <div class="col-sm-5">
+        <form action="{{ route('admin.servers.view.subdomains', $server->id) }}" method="POST">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Subdomains</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group">
+                        <label for="pSubdomainLimit" class="control-label">Subdomain limit</label>
+                        <input type="number" min="0" max="100" id="pSubdomainLimit" name="subdomain_limit" class="form-control" value="{{ old('subdomain_limit', $server->subdomain_limit) }}" placeholder="{{ $pdSubdomains->defaultLimit() }}">
+                        <p class="text-muted small"><span>How many subdomains this server can make (in its Subdomains tab). Leave empty to use the default of the panel</span> ({{ $pdSubdomains->defaultLimit() }}).</p>
+                    </div>
+                </div>
+                <div class="box-footer">
+                    {!! csrf_field() !!}
+                    <button type="submit" class="btn btn-primary pull-right"><span>Save</span></button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection
 

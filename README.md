@@ -280,6 +280,7 @@ Panel, Wings, mise à jour avec **sauvegarde et retour en arrière**, désinstal
 [Minecraft](#️-serveurs-minecraft) ·
 [Euro Truck](#-euro-truck-simulator-2--american-truck-simulator) ·
 [Boutique](#-boutique-stripe-paypal-sumup) ·
+[Sous-domaines](#-sous-domaines-cloudflare-bunnynet-powerdns) ·
 [Bases SQLite](#️-bases-sqlite-db-dans-le-gestionnaire-de-fichiers) ·
 [Apparence](#-apparence--fond-animé-image-et-couleurs) ·
 [Console](#-console-et-petits-plus) ·
@@ -666,6 +667,26 @@ Sur un serveur dédié ETS2 ou ATS, un onglet **Euro Truck** permet de régler l
 
 > [!IMPORTANT]
 > Arrête le serveur avant d'enregistrer : sinon le jeu peut réécrire le fichier par-dessus tes changements.
+
+### 🌐 Sous-domaines (Cloudflare, Bunny.net, PowerDNS)
+
+Chaque serveur peut avoir ses propres adresses, comme `play.ton-domaine.fr`, sans que tu touches au DNS.
+
+**Côté admin** (*Administration → Sous-domaines*, droit de gérer les réglages) :
+
+- ajoute tes **domaines** avec leur fournisseur DNS : **Cloudflare** (jeton d'API *Zone → DNS → Edit*), **Bunny.net DNS** (clé
+  d'API) ou **PowerDNS** (adresse et clé de l'API). La connexion est testée avant d'enregistrer (bouton bouclier pour la
+  retester), les clés sont **chiffrées** et jamais réaffichées, et chaque domaine peut être rendu indisponible d'un clic ;
+- les **noms interdits** : une expression régulière par ligne (`^admin$`, `^www$`…) ;
+- les **enregistrements créés** pour chaque sous-domaine : *Adresse* (A, AAAA ou CNAME, choisi tout seul selon l'adresse de
+  l'allocation : IP publique, alias ou nom du node), CNAME, TXT et **SRV** (par exemple `_minecraft._tcp` pour que les joueurs
+  n'aient pas à taper le port). Variables : `{name}` `{domain}` `{fqdn}` `{ip}` `{port}` `{server}` `{server_name}` ;
+- le **nombre de sous-domaines par serveur** par défaut, et celui de chaque serveur sur sa page *Build* ;
+- la liste de **tous les sous-domaines**, avec un bouton pour en retirer un.
+
+**Côté serveur** (onglet *Sous-domaines*, avec les droits de l'onglet Réseau) : créer un sous-domaine (nom, domaine, allocation,
+notes), le faire **pointer vers une autre allocation** (les enregistrements DNS sont refaits) ou le supprimer. Quand un serveur est
+supprimé, ses sous-domaines et leurs enregistrements le sont aussi.
 
 ### 🗃️ Bases SQLite (.db) dans le gestionnaire de fichiers
 
