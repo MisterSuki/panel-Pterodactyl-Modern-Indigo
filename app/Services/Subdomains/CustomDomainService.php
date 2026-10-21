@@ -2,6 +2,9 @@
 
 namespace Pterodactyl\Services\Subdomains;
 
+use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
 use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
 use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Models\Allocation;
@@ -144,13 +147,41 @@ class CustomDomainService
      */
     private function addressesOf(string $hostname): array
     {
-        $ips = @gethostbynamel($hostname) ?: [];
-        foreach (@dns_get_record($hostname, DNS_AAAA) ?: [] as $record) {
-            if (!empty($record['ipv6'])) {
-                $ips[] = $record['ipv6'];
+        // Asked straight to public resolvers over HTTPS (A and AAAA at the same time, 3 seconds at most): the resolver of
+        // the machine can wait a long time on a name that does not exist yet, and keeps old answers, so a record that was
+        // just created would not be seen.
+        foreach (['https://cloudflare-dns.com/dns-query', 'https://dns.google/resolve'] as $resolver) {
+            try {
+                $responses = Http::pool(fn (Pool $pool) => [
+                    $pool->as('A')->acceptJson()->withHeaders(['Accept' => 'application/dns-json'])
+                        ->connectTimeout(2)->timeout(3)->get($resolver, ['name' => $hostname, 'type' => 'A']),
+                    $pool->as('AAAA')->acceptJson()->withHeaders(['Accept' => 'application/dns-json'])
+                        ->connectTimeout(2)->timeout(3)->get($resolver, ['name' => $hostname, 'type' => 'AAAA']),
+                ]);
+            } catch (\Throwable) {
+                continue;
+            }
+
+            $ips = [];
+            $answered = false;
+            foreach ($responses as $response) {
+                if (!$response instanceof Response || !$response->successful()) {
+                    continue;
+                }
+                $answered = true;
+                // The answer holds the CNAME chain and the final addresses: type 1 is A, type 28 is AAAA.
+                foreach ((array) $response->json('Answer', []) as $answer) {
+                    if (in_array((int) ($answer['type'] ?? 0), [1, 28], true) && filter_var($answer['data'] ?? '', FILTER_VALIDATE_IP)) {
+                        $ips[] = $answer['data'];
+                    }
+                }
+            }
+            if ($answered) {
+                return array_values(array_unique($ips));
             }
         }
 
-        return array_values(array_unique($ips));
+        // No public resolver could be reached: the resolver of the machine, as a last resort.
+        return @gethostbynamel($hostname) ?: [];
     }
 }
