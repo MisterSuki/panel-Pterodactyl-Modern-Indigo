@@ -6,7 +6,9 @@ import { ServerContext } from '@/state/server';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
 import UptimeDuration from '@/components/server/UptimeDuration';
 import StatBlock from '@/components/server/console/StatBlock';
+import tw from 'twin.macro';
 import HiddenAddress from '@/components/elements/HiddenAddress';
+import { getSubdomains } from '@/api/server/subdomains';
 import useFiveM from '@/components/server/console/useFiveM';
 import useGameStatus from '@/components/server/console/useGameStatus';
 import useConnectionCount from '@/components/server/console/useConnectionCount';
@@ -85,9 +87,34 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
     const allocationPort = ServerContext.useStoreState(
         (state) => state.server.data!.allocations.find((allocation) => allocation.isDefault)?.port
     );
+    const allocationId = ServerContext.useStoreState(
+        (state) => state.server.data!.allocations.find((allocation) => allocation.isDefault)?.id
+    );
+    const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
+
+    // A name that leads to the main address (an own domain that points at the server, or a subdomain of the panel):
+    // shown instead of the IP, since it is what players type.
+    const [hostname, setHostname] = useState<string | null>(null);
+    useEffect(() => {
+        let alive = true;
+        getSubdomains(uuid)
+            .then((page) => {
+                if (!alive) return;
+                const own = page.custom.data.find((d) => d.verified && d.allocationId === allocationId);
+                const sub = page.data.find((d) => d.allocationId === allocationId);
+                setHostname(own?.hostname || sub?.fqdn || null);
+            })
+            .catch(() => alive && setHostname(null));
+
+        return () => {
+            alive = false;
+        };
+    }, [uuid, allocationId]);
+    const named = hostname && allocationPort !== undefined ? (allocationPort === 25565 ? hostname : `${hostname}:${allocationPort}`) : null;
+
     // What gets copied is always the real address, even while it is hidden on screen.
     const allocation =
-        allocationHost === null || allocationPort === undefined ? 'n/a' : `${allocationHost}:${allocationPort}`;
+        named ?? (allocationHost === null || allocationPort === undefined ? 'n/a' : `${allocationHost}:${allocationPort}`);
 
     useEffect(() => {
         if (!connected || !instance) {
@@ -128,7 +155,9 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
     return (
         <div className={classNames('grid grid-cols-6 gap-2 md:gap-4', className)}>
             <StatBlock icon={faWifi} title={'Address'} copyOnClick={allocation}>
-                {allocationHost === null || allocationPort === undefined ? (
+                {named ? (
+                    <span css={tw`block whitespace-normal break-all text-sm sm:text-base leading-snug`} title={allocationHost ? `${allocationHost}:${allocationPort}` : undefined}>{named}</span>
+                ) : allocationHost === null || allocationPort === undefined ? (
                     allocation
                 ) : (
                     <HiddenAddress host={allocationHost} port={allocationPort} />
