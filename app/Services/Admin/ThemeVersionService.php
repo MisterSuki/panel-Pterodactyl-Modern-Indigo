@@ -60,12 +60,11 @@ class ThemeVersionService
      */
     public function latestVersion(): ?string
     {
-        $minutes = (int) config('pterodactyl.theme.cache_time', 30);
-
-        return $this->cache->remember(self::VERSION_CACHE_KEY, CarbonImmutable::now()->addMinutes(max(1, $minutes)), function () {
+        return $this->rememberAnswer(self::VERSION_CACHE_KEY, function () {
             try {
                 $response = Http::withHeaders(['User-Agent' => 'pterodactyl-panel'])
-                    ->timeout(5)
+                    ->connectTimeout(2)
+                    ->timeout(3)
                     ->get('https://raw.githubusercontent.com/' . $this->repo() . '/' . $this->branch() . '/VERSION');
 
                 if (!$response->successful()) {
@@ -78,6 +77,24 @@ class ThemeVersionService
                 return null;
             }
         });
+    }
+
+    /**
+     * Keeps the answer of GitHub for a while, the failed ones too: without that, a GitHub that does not answer (or the
+     * free limit of its API reached) made every visit of the overview wait for it again.
+     */
+    private function rememberAnswer(string $key, \Closure $fetch): mixed
+    {
+        $kept = $this->cache->get($key);
+        if (is_array($kept) && array_key_exists('answer', $kept)) {
+            return $kept['answer'];
+        }
+
+        $answer = $fetch();
+        $minutes = $answer === null ? 5 : max(1, (int) config('pterodactyl.theme.cache_time', 30));
+        $this->cache->put($key, ['answer' => $answer], CarbonImmutable::now()->addMinutes($minutes));
+
+        return $answer;
     }
 
     private function looksLikeVersion(string $value): bool
@@ -157,12 +174,11 @@ class ThemeVersionService
      */
     public function latest(): ?array
     {
-        $minutes = (int) config('pterodactyl.theme.cache_time', 30);
-
-        return $this->cache->remember(self::CACHE_KEY, CarbonImmutable::now()->addMinutes(max(1, $minutes)), function () {
+        return $this->rememberAnswer(self::CACHE_KEY, function () {
             try {
                 $response = Http::withHeaders(['Accept' => 'application/vnd.github+json', 'User-Agent' => 'pterodactyl-panel'])
-                    ->timeout(5)
+                    ->connectTimeout(2)
+                    ->timeout(3)
                     ->get('https://api.github.com/repos/' . $this->repo() . '/commits/' . $this->branch());
 
                 if (!$response->successful()) {

@@ -73,7 +73,13 @@ class ThemeUpdater
      */
     private function log(): string
     {
-        $raw = @file_get_contents(self::STATE_DIR . '/update.log');
+        // Only the end of the file: the output of Yarn can make it several megabytes.
+        $path = self::STATE_DIR . '/update.log';
+        $size = @filesize($path);
+        if (!$size) {
+            return '';
+        }
+        $raw = @file_get_contents($path, false, null, max(0, $size - 32768));
         if (!is_string($raw) || $raw === '') {
             return '';
         }
