@@ -144,6 +144,9 @@
 <span hidden id="pdThemeUpdateT-restarting">The panel is restarting…</span>
 <span hidden id="pdThemeUpdateT-done">The update is finished.</span>
 <span hidden id="pdThemeUpdateT-failed">The update failed. The previous files were put back: the panel still works.</span>
+<span hidden id="pdThemeUpdateT-forbidden">Only full administrators can update the panel.</span>
+<span hidden id="pdThemeUpdateT-expired">The page has expired. Reload it and try again.</span>
+<span hidden id="pdThemeUpdateT-busy">Too many requests. Wait a minute and try again.</span>
 <span hidden id="pdThemeUpdateT-stuck">The update service does not answer. On the server, check: systemctl status pterodactyl-theme-update.path</span>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -242,7 +245,10 @@
             })
                 .then(function (response) {
                     return response.json().catch(function () { return {}; }).then(function (body) {
-                        if (!response.ok) { throw new Error(body.error || String(response.status)); }
+                        if (!response.ok) {
+                            var known = { 403: 'forbidden', 419: 'expired', 429: 'busy' };
+                            throw new Error(body.error || (known[response.status] ? text(known[response.status]) : String(response.status)));
+                        }
 
                         return body;
                     });

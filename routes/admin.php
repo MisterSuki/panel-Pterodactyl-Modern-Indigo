@@ -19,7 +19,7 @@ Route::group(['prefix' => 'appearance', 'middleware' => 'admin.can:settings,mana
 });
 
 // The theme update with one button (full administrators only, checked in the controller).
-Route::post('/theme-update', [Admin\BaseController::class, 'themeUpdate'])->middleware('throttle:6,1')->name('admin.theme-update');
+Route::post('/theme-update', [Admin\BaseController::class, 'themeUpdate'])->name('admin.theme-update');
 Route::get('/theme-update/status', [Admin\BaseController::class, 'themeUpdateStatus'])->name('admin.theme-update.status');
 
 Route::get('/presence', [Admin\BaseController::class, 'presence'])->name('admin.presence');
