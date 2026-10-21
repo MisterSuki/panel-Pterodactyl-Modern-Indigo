@@ -28,6 +28,8 @@
         $adminUser->hasAdminPermission('settings.manage') ? ['route' => route('admin.settings'), 'icon' => 'fa-wrench', 'label' => 'Panel settings'] : null,
         $adminUser->root_admin ? ['route' => route('admin.api.index'), 'icon' => 'fa-gamepad', 'label' => 'Application API'] : null,
     ]));
+    // The "Update now" button (theme and Pterodactyl): for full administrators, once the update service is installed.
+    $canUpdate = $adminUser->root_admin && $updater['available'];
 @endphp
 
 <div class="pd-hero">
@@ -63,6 +65,9 @@
                     <small><span>Up to date</span></small>
                 @else
                     <small><a href="https://github.com/pterodactyl/panel/releases/tag/v{{ $version->getPanel() }}" target="_blank" rel="noopener"><span>Update available:</span> {{ $version->getPanel() }}</a></small>
+                    @if ($canUpdate)
+                        <small class="pd-version-core"><a href="#" class="pd-update-open"><i class="fa fa-cloud-download"></i> <span>Update now</span></a></small>
+                    @endif
                 @endif
             </div>
         </div>
@@ -70,8 +75,6 @@
 </div>
 
 @php
-    // The "Update now" button: for full administrators, once the installer has set up the update service.
-    $canUpdate = $adminUser->root_admin && $updater['available'];
     $updateBusy = $canUpdate && ($updater['pending'] || $updater['state'] === 'running');
 @endphp
 @if (($theme['known'] && !$theme['upToDate']) || $updateBusy)
@@ -118,6 +121,7 @@
                     <ul class="pd-update-steps">
                         <li><span>The files that change are saved first: an update can always be undone.</span></li>
                         <li><span>The panel shows its maintenance page for a few minutes, while the dashboard is compiled.</span></li>
+                        <li><span>If Pterodactyl is older than the version the theme is made for, it is updated first with the official release (the whole panel is saved before).</span></li>
                         <li><span>Game servers keep running: Wings is not touched.</span></li>
                     </ul>
                 </div>
@@ -219,10 +223,13 @@
             if (!polling) { polling = true; poll(); }
         }
 
-        var open = document.getElementById('pdThemeUpdateOpen');
-        if (open) {
-            open.addEventListener('click', function () { if (modal) { modal.modal('show'); } });
-        }
+        var openers = document.querySelectorAll('#pdThemeUpdateOpen, .pd-update-open');
+        Array.prototype.forEach.call(openers, function (opener) {
+            opener.addEventListener('click', function (event) {
+                event.preventDefault();
+                if (modal) { modal.modal('show'); }
+            });
+        });
 
         document.getElementById('pdThemeUpdateStart').addEventListener('click', function () {
             var button = this;

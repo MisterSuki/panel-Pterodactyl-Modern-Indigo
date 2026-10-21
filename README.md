@@ -11,7 +11,7 @@ pour le dashboard client **et** l'administration, installé avec **une seule com
 
 <br>
 
-![Pterodactyl](https://img.shields.io/badge/Pterodactyl-1.15.1-0a84ff?style=for-the-badge)
+![Pterodactyl](https://img.shields.io/badge/Pterodactyl-1.15.2-0a84ff?style=for-the-badge)
 ![Installation](https://img.shields.io/badge/installation-1%20commande-30d158?style=for-the-badge)
 ![Systèmes](https://img.shields.io/badge/Ubuntu%2022.04%2F24.04%20·%20Debian%2011%2F12-64d2ff?style=for-the-badge)
 ![Licence](https://img.shields.io/badge/licence-MIT-bf5af2?style=for-the-badge)
@@ -365,8 +365,9 @@ bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Mo
 
 > [!TIP]
 > **Mise à jour en un clic.** Après cette commande, la page *Administration → Vue d'ensemble* affiche un bouton
-> **Mettre à jour maintenant** dès qu'une nouvelle version sort sur GitHub (pour les administrateurs complets). Il lance la
-> même mise à jour et montre son avancement en direct ; le panel passe en maintenance quelques minutes puis revient tout seul.
+> **Mettre à jour maintenant** dès qu'une nouvelle version du thème sort sur GitHub, et sur la carte **Pterodactyl** quand
+> le panel est en retard (pour les administrateurs complets). Il lance la même mise à jour (Pterodactyl compris) et montre
+> son avancement en direct ; le panel passe en maintenance quelques minutes puis revient tout seul.
 >
 > Comment ça marche : le site web n'a pas le droit de modifier le panel, donc l'installateur ajoute un petit service
 > systemd (`pterodactyl-theme-update.path`) qui tourne en root. Le bouton dépose seulement un fichier signal ; le service
@@ -377,19 +378,22 @@ bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Mo
 > [!IMPORTANT]
 > **Le projet a changé de dépôt.** Il vit maintenant sur [`MisterSuki/panel-Pterodactyl-Modern-Indigo`](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo). L'ancienne adresse `MisterSuki/panel-ptero-terra` n'est plus mise à jour : si tu l'utilises encore, ton panel reste sur une ancienne version. Change l'adresse dans ta commande comme ci-dessus, une seule fois : le nouvel installateur pointe déjà sur le bon dépôt.
 
-Il installe tout le contenu de ce dépôt sur ton panel **1.15.1** : le design, l'inscription, Discord, les rôles et
+Il installe tout le contenu de ce dépôt sur ton panel **1.15.2** : le design, l'inscription, Discord, les rôles et
 toutes les fonctionnalités ci-dessus. Il :
 
 1. télécharge le dépôt et vérifie qu'il est complet, sans rien modifier tant que tout n'est pas en règle ;
-2. **sauvegarde** chaque fichier qu'il va remplacer (dans `/var/backups/pterodactyl-theme/`) ;
-3. met le panel en maintenance et copie les fichiers ;
-4. lance les migrations de la base de données ;
-5. installe les dépendances et compile le dashboard ;
-6. vide les caches, redémarre la file d'attente et remet le panel en ligne.
+2. si ton Pterodactyl est **plus ancien** que la version prévue par le thème, il le **met à jour d'abord** avec la version
+   officielle (comme le guide de Pterodactyl), après avoir sauvegardé **tout le panel** ;
+3. **sauvegarde** chaque fichier qu'il va remplacer (dans `/var/backups/pterodactyl-theme/`) ;
+4. met le panel en maintenance et copie les fichiers ;
+5. lance les migrations de la base de données ;
+6. installe les dépendances et compile le dashboard ;
+7. vide les caches, redémarre la file d'attente et remet le panel en ligne.
 
 Si la migration échoue, il remet les fichiers d'origine. Si la compilation échoue, il remet l'ancien dashboard
 compilé pour que le panel continue de fonctionner, et t'indique quoi faire. Dans les deux cas, il te dit pourquoi.
-Il refuse une version de panel différente de 1.15.1 (sauf avec `--force`).
+Si la mise à jour de Pterodactyl échoue, tout le panel est remis comme avant. Il refuse un panel **plus récent** que la
+version prévue par le thème (sauf avec `--force`).
 
 > [!WARNING]
 > Fais une **sauvegarde de ta base de données** avant : les migrations ajoutent des colonnes à la table `users` et une
@@ -960,8 +964,8 @@ indique la ligne et la cause.
 
 ## 🧩 Compatibilité
 
-- Conçu et testé sur **Pterodactyl Panel 1.15.1**. La mise à jour refuse une autre version : elle remplace des fichiers
-  du cœur (routes, modèle utilisateur, middlewares).
+- Conçu pour **Pterodactyl Panel 1.15.2**. Un panel plus ancien (1.15.1…) est mis à jour tout seul vers cette version ;
+  un panel plus récent est refusé, car le thème remplace des fichiers du cœur (routes, modèle utilisateur, middlewares).
 - Nouvelle installation : **Ubuntu 22.04 / 24.04** et **Debian 11 / 12**. Utilise `bash <(curl ...)` et non
   `curl ... | bash`, sinon le script ne peut pas te poser ses questions.
 - Si tu as déjà personnalisé ton panel, compare d'abord les fichiers listés dans

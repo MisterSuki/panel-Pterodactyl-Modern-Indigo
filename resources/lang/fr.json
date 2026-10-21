@@ -1871,5 +1871,6 @@
  "The update failed. The previous files were put back: the panel still works.": "La mise à jour a échoué. Les anciens fichiers ont été remis : le panel fonctionne toujours.",
  "The update service does not answer. On the server, check: systemctl status pterodactyl-theme-update.path": "Le service de mise à jour ne répond pas. Sur le serveur, vérifiez : systemctl status pterodactyl-theme-update.path",
  "The update service is not installed on this server yet.": "Le service de mise à jour n’est pas encore installé sur ce serveur.",
- "An update is already running.": "Une mise à jour est déjà en cours."
+ "An update is already running.": "Une mise à jour est déjà en cours.",
+ "If Pterodactyl is older than the version the theme is made for, it is updated first with the official release (the whole panel is saved before).": "Si Pterodactyl est plus ancien que la version prévue par le thème, il est d’abord mis à jour avec la version officielle (tout le panel est sauvegardé avant)."
 }

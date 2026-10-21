@@ -491,6 +491,11 @@ run_restore() {
 rollback() {
     warn "Putting the previous files back..."
     local entry
+    if [[ -s "$BACKUP_DIR/panel-core.tar.gz" ]]; then
+        tar -xzf "$BACKUP_DIR/panel-core.tar.gz" -C "$PANEL_PATH" || true
+        chown -R "$OWNER" "$PANEL_PATH" 2>/dev/null || true
+        warn "Pterodactyl was put back to the version it had before."
+    fi
     while IFS= read -r entry; do
         [[ -n "$entry" ]] && rm -rf "${PANEL_PATH:?}/${entry%/}"
     done < <(cat "$BACKUP_DIR/added.txt" "$BACKUP_DIR/existing.txt")
@@ -510,6 +515,40 @@ on_update_error() {
         rollback
         err "The previous files were put back."
     fi
+}
+
+# ---------------------------------------------------------------------------------------------
+# Pterodactyl itself: when the theme is made for a newer version than the panel, the official release of that version
+# is installed first (the steps of the official upgrade guide), then the theme on top of it.
+# ---------------------------------------------------------------------------------------------
+version_lt() {
+    [[ "$1" != "$2" && "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" == "$1" ]]
+}
+
+upgrade_core() {
+    local version="$1"
+    local archive="$TMP/panel-${version}.tar.gz"
+    local url="https://github.com/pterodactyl/panel/releases/download/v${version}/panel.tar.gz"
+
+    step "Updating Pterodactyl to ${version}"
+    info "Downloading the official release ${version}"
+    curl -fsSL --retry 3 "$url" -o "$archive" || { err "Could not download $url"; return 1; }
+    tar -tzf "$archive" >/dev/null 2>&1 || { err "The downloaded archive is not valid."; return 1; }
+
+    info "Saving the whole panel first (in $BACKUP_DIR/panel-core.tar.gz)"
+    tar -czf "$BACKUP_DIR/panel-core.tar.gz" --exclude=./node_modules --exclude=./storage/logs -C "$PANEL_PATH" . \
+        || { err "Could not save the panel."; return 1; }
+
+    tar -xzf "$archive" -C "$PANEL_PATH" || { err "Could not unpack the release."; return 1; }
+    chmod -R 755 "$PANEL_PATH/storage" "$PANEL_PATH/bootstrap/cache" 2>/dev/null || true
+
+    command -v composer >/dev/null 2>&1 || { err "Composer is needed to update Pterodactyl."; return 1; }
+    if ! (cd "$PANEL_PATH" && COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction); then
+        err "Installing the PHP dependencies of Pterodactyl ${version} failed."
+        return 1
+    fi
+    chown -R "$OWNER" "$PANEL_PATH" 2>/dev/null || true
+    ok "Pterodactyl ${version} installed, the theme goes on top of it now"
 }
 
 # ---------------------------------------------------------------------------------------------
@@ -650,7 +689,12 @@ run_update() {
     local src_version panel_version_found
     src_version="$(panel_version "$SRC/config/app.php" 2>/dev/null || true)"
     panel_version_found="$(panel_version "$PANEL_PATH/config/app.php" 2>/dev/null || true)"
-    if [[ "$CSS_ONLY" != true && -n "$src_version" && -n "$panel_version_found" && "$src_version" != "$panel_version_found" ]]; then
+    UPGRADE_CORE_TO=""
+    if [[ "$CSS_ONLY" != true && -n "$src_version" && -n "$panel_version_found" && "$src_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+        && [[ "$panel_version_found" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && version_lt "$panel_version_found" "$src_version"; then
+        UPGRADE_CORE_TO="$src_version"
+        info "Pterodactyl $panel_version_found will be updated to $src_version (official release), then the theme installed on it."
+    elif [[ "$CSS_ONLY" != true && -n "$src_version" && -n "$panel_version_found" && "$src_version" != "$panel_version_found" ]]; then
         warn "This theme was made for Pterodactyl $src_version and your panel is $panel_version_found."
         warn "It replaces core files (routes, models, middleware). On another version the panel could break."
         if [[ "$FORCE" != true ]]; then
@@ -669,6 +713,7 @@ run_update() {
     step "What will happen"
     info "Back up the files that will be replaced (in $BACKUP_ROOT/$TS)"
     info "Put the panel in maintenance mode while the files are replaced"
+    [[ -n "$UPGRADE_CORE_TO" ]] && info "Update Pterodactyl to $UPGRADE_CORE_TO with the official release (the whole panel is saved first)"
     info "Copy ${#ENTRIES[@]} entries onto $PANEL_PATH"
     [[ "$do_migrate" == true ]] && info "Run the database migrations (adds columns to users, and the admin_roles table)"
     [[ "$do_build" == true ]] && info "Install the dependencies and compile the dashboard (a few minutes)"
@@ -718,6 +763,15 @@ run_update() {
     if artisan down --render="errors::503" --retry=120 >/dev/null 2>&1; then
         DOWN=true
         ok "Panel in maintenance mode"
+    fi
+
+    if [[ -n "$UPGRADE_CORE_TO" ]]; then
+        if ! upgrade_core "$UPGRADE_CORE_TO"; then
+            INSTALLING=false
+            rollback
+            artisan up >/dev/null 2>&1 || true
+            die "Pterodactyl could not be updated. Everything was put back as it was."
+        fi
     fi
 
     for entry in "${ENTRIES[@]}"; do
@@ -859,7 +913,7 @@ run_uninstall() {
 
     local current
     current="$(panel_version "$PANEL_PATH/config/app.php" 2>/dev/null || true)"
-    [[ -n "$STOCK_VERSION" ]] || STOCK_VERSION="${current:-1.15.1}"
+    [[ -n "$STOCK_VERSION" ]] || STOCK_VERSION="${current:-1.15.2}"
     [[ "$STOCK_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "\"$STOCK_VERSION\" is not a version number like 1.15.1."
 
     step "Getting the files"
