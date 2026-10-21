@@ -115,6 +115,7 @@ app/Services/Helpers/Locales.php
 app/Services/Helpers/Copyright.php
 app/Services/Admin/OverviewService.php
 app/Services/Admin/ThemeVersionService.php
+app/Services/Admin/ThemeUpdater.php
 app/Http/Controllers/Admin/BaseController.php
 resources/views/admin/index.blade.php
 app/Http/Controllers/Base/UiLocaleController.php

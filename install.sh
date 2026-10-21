@@ -512,6 +512,107 @@ on_update_error() {
     fi
 }
 
+# ---------------------------------------------------------------------------------------------
+# The "Update now" button of the admin area
+# ---------------------------------------------------------------------------------------------
+# The web server cannot update the panel itself (it needs root). A small systemd service does it: the admin area
+# drops the file storage/app/theme-update.request, systemd sees it and starts the service as root, which deletes the
+# file and runs this installer with --update --yes. The file is only a signal, its content is never read. Progress and
+# log go to /var/lib/pterodactyl-theme-update, which the web server can read but not write.
+install_auto_updater() {
+    if ! command -v systemctl >/dev/null 2>&1 || [[ ! -d /run/systemd/system ]]; then
+        warn "systemd was not found: the \"Update now\" button of the admin area stays off."
+        return 0
+    fi
+    if [[ ! "$REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ || ! "$BRANCH" =~ ^[A-Za-z0-9_./-]+$ || "$PANEL_PATH" == *"'"* ]]; then
+        warn "Unusual repository, branch or path: the \"Update now\" button is not installed."
+        return 0
+    fi
+
+    local state=/var/lib/pterodactyl-theme-update
+    local script=/usr/local/sbin/pterodactyl-theme-update
+    local tmp_script
+    mkdir -p "$state" /usr/local/sbin
+    chown root:root "$state"
+    chmod 755 "$state"
+
+    tmp_script="$(mktemp)"
+    cat >"$tmp_script" <<EOF
+#!/bin/bash
+# Updates the Pterodactyl theme when the admin area asks for it (button "Update now").
+# Started by systemd (pterodactyl-theme-update.path) as root. Written by install.sh: changes here are replaced.
+set -u
+PANEL_PATH='$PANEL_PATH'
+REPO='$REPO'
+BRANCH='$BRANCH'
+STATE='$state'
+REQUEST="\$PANEL_PATH/storage/app/theme-update.request"
+
+[[ -e "\$REQUEST" || -L "\$REQUEST" ]] || exit 0
+rm -f "\$REQUEST"
+
+exec 9>"\$STATE/lock"
+flock -n 9 || exit 0
+
+LOG="\$STATE/update.log"
+started="\$(date +%s)"
+: >"\$LOG"
+chmod 644 "\$LOG"
+printf '{"state":"running","started_at":%s}\n' "\$started" >"\$STATE/status.json"
+chmod 644 "\$STATE/status.json"
+
+installer="\$(mktemp)"
+code=0
+echo "Downloading the installer of \$REPO (\$BRANCH)..." >>"\$LOG"
+if curl -fsSL --retry 3 "https://raw.githubusercontent.com/\$REPO/\$BRANCH/install.sh" -o "\$installer"; then
+    bash "\$installer" --update --yes --path="\$PANEL_PATH" --repo="\$REPO" --branch="\$BRANCH" >>"\$LOG" 2>&1 </dev/null || code=\$?
+else
+    echo "Could not download the installer from GitHub." >>"\$LOG"
+    code=1
+fi
+rm -f "\$installer"
+
+result=done
+[[ "\$code" -eq 0 ]] || result=failed
+printf '{"state":"%s","code":%d,"started_at":%s,"finished_at":%s}\n' "\$result" "\$code" "\$started" "\$(date +%s)" >"\$STATE/status.json"
+chmod 644 "\$STATE/status.json" "\$LOG"
+EOF
+    chmod 755 "$tmp_script"
+    # Renamed into place, never written over: an update started by the button runs this very script.
+    mv -f "$tmp_script" "$script"
+
+    cat >/etc/systemd/system/pterodactyl-theme-update.service <<EOF
+[Unit]
+Description=Update of the Pterodactyl theme asked from the admin area
+
+[Service]
+Type=oneshot
+ExecStart=$script
+TimeoutStartSec=3600
+EOF
+
+    cat >/etc/systemd/system/pterodactyl-theme-update.path <<EOF
+[Unit]
+Description=Watch for a theme update asked from the admin area
+
+[Path]
+PathExists=$PANEL_PATH/storage/app/theme-update.request
+Unit=pterodactyl-theme-update.service
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    systemctl daemon-reload
+    if systemctl enable --now pterodactyl-theme-update.path >/dev/null 2>&1; then
+        touch "$state/enabled"
+        chmod 644 "$state/enabled"
+        ok "\"Update now\" button of the admin area ready"
+    else
+        warn "Could not start the update service: the \"Update now\" button stays off."
+    fi
+}
+
 run_update() {
     if [[ ! -f "$PANEL_PATH/artisan" || ! -f "$PANEL_PATH/config/app.php" || ! -d "$PANEL_PATH/public/themes/pterodactyl/css" ]]; then
         err "No Pterodactyl panel found in $PANEL_PATH."
@@ -693,6 +794,10 @@ run_update() {
         artisan up >/dev/null 2>&1 || true
         DOWN=false
         ok "Panel is back online"
+    fi
+
+    if [[ "$CSS_ONLY" != true ]]; then
+        install_auto_updater
     fi
 
     echo ""

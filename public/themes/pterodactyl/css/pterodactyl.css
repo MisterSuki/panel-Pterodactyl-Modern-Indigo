@@ -3601,3 +3601,31 @@ select optgroup {
 .sidebar-menu > li.header {
     color: rgba(255, 255, 255, 0.55) !important;
 }
+
+/* The "Update now" button of the overview and the window that follows the update. */
+.pd-update-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 8px; }
+.pd-update-manual { flex: 1 1 100%; }
+.pd-update-manual summary { cursor: pointer; color: rgba(235, 235, 240, 0.65); font-size: 12px; }
+.pd-update-manual[open] summary { margin-bottom: 8px; }
+.pd-update-hint { margin-top: 8px; font-size: 12px; color: rgba(235, 235, 240, 0.65); }
+.pd-update-steps { margin: 12px 0 0; padding-left: 18px; color: rgba(235, 235, 240, 0.8); }
+.pd-update-steps li { margin-bottom: 4px; }
+.pd-update-state { font-weight: 600; margin-bottom: 12px; }
+.pd-update-state.is-ok { color: #30d158; }
+.pd-update-state.is-bad { color: #ff6961; }
+.pd-update-log {
+    max-height: 340px;
+    overflow: auto;
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.45);
+    color: #d1d1d6;
+    font-family: "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.pd-update-log:empty { display: none; }

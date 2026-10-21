@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Pterodactyl\Models\User;
 use Pterodactyl\Services\Admin\OverviewService;
+use Pterodactyl\Services\Admin\ThemeUpdater;
 use Pterodactyl\Services\Admin\ThemeVersionService;
 use Pterodactyl\Services\Admin\UserLiveService;
 use Pterodactyl\Http\Controllers\Controller;
@@ -48,6 +49,32 @@ class BaseController extends Controller
     }
 
     /**
+     * Asks the update service of the server to update the theme (full administrators only).
+     */
+    public function themeUpdate(Request $request, ThemeUpdater $updater): JsonResponse
+    {
+        abort_unless($request->user()->root_admin, 403);
+        if (!$updater->available()) {
+            return new JsonResponse(['error' => 'The update service is not installed on this server yet.'], 409);
+        }
+        if (!$updater->request()) {
+            return new JsonResponse(['error' => 'An update is already running.'], 409);
+        }
+
+        return new JsonResponse($updater->status());
+    }
+
+    /**
+     * Where the update asked from the admin area is. The page asks for it every few seconds while it runs.
+     */
+    public function themeUpdateStatus(Request $request, ThemeUpdater $updater): JsonResponse
+    {
+        abort_unless($request->user()->root_admin, 403);
+
+        return new JsonResponse($updater->status());
+    }
+
+    /**
      * Return the admin index view.
      */
     public function index(Request $request): View
@@ -62,6 +89,7 @@ class BaseController extends Controller
         return view('admin.index', [
             'version' => $this->version,
             'theme' => $this->theme->status(),
+            'updater' => app(ThemeUpdater::class)->status(),
             'overview' => $this->overview->build(fn (string $section) => $user->canAccessAdminSection($section)),
         ]);
     }

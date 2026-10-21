@@ -363,6 +363,17 @@ bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Mo
 bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --update
 ```
 
+> [!TIP]
+> **Mise à jour en un clic.** Après cette commande, la page *Administration → Vue d'ensemble* affiche un bouton
+> **Mettre à jour maintenant** dès qu'une nouvelle version sort sur GitHub (pour les administrateurs complets). Il lance la
+> même mise à jour et montre son avancement en direct ; le panel passe en maintenance quelques minutes puis revient tout seul.
+>
+> Comment ça marche : le site web n'a pas le droit de modifier le panel, donc l'installateur ajoute un petit service
+> systemd (`pterodactyl-theme-update.path`) qui tourne en root. Le bouton dépose seulement un fichier signal ; le service
+> le voit, télécharge `install.sh` depuis ce dépôt et lance `--update --yes`. Le contenu du fichier n'est jamais lu, et le
+> journal est écrit dans `/var/lib/pterodactyl-theme-update`. Pour retirer ce service :
+> `systemctl disable --now pterodactyl-theme-update.path`.
+
 > [!IMPORTANT]
 > **Le projet a changé de dépôt.** Il vit maintenant sur [`MisterSuki/panel-Pterodactyl-Modern-Indigo`](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo). L'ancienne adresse `MisterSuki/panel-ptero-terra` n'est plus mise à jour : si tu l'utilises encore, ton panel reste sur une ancienne version. Change l'adresse dans ta commande comme ci-dessus, une seule fois : le nouvel installateur pointe déjà sur le bon dépôt.
 

@@ -18,7 +18,11 @@ Route::group(['prefix' => 'appearance', 'middleware' => 'admin.can:settings,mana
     Route::post('/remove-image', [Admin\AppearanceController::class, 'removeImage'])->name('admin.appearance.remove-image');
 });
 
-Route::get('/presence',[Admin\BaseController::class, 'presence'])->name('admin.presence');
+// The theme update with one button (full administrators only, checked in the controller).
+Route::post('/theme-update', [Admin\BaseController::class, 'themeUpdate'])->middleware('throttle:6,1')->name('admin.theme-update');
+Route::get('/theme-update/status', [Admin\BaseController::class, 'themeUpdateStatus'])->name('admin.theme-update.status');
+
+Route::get('/presence', [Admin\BaseController::class, 'presence'])->name('admin.presence');
 Route::get('/presence/{id}', [Admin\BaseController::class, 'person'])->whereNumber('id')->name('admin.presence.person');
 
 /*

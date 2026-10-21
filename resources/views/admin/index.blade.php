@@ -69,18 +69,194 @@
     </div>
 </div>
 
-@if ($theme['known'] && !$theme['upToDate'])
+@php
+    // The "Update now" button: for full administrators, once the installer has set up the update service.
+    $canUpdate = $adminUser->root_admin && $updater['available'];
+    $updateBusy = $canUpdate && ($updater['pending'] || $updater['state'] === 'running');
+@endphp
+@if (($theme['known'] && !$theme['upToDate']) || $updateBusy)
 <div class="pd-update-note">
     <i class="fa fa-arrow-circle-up"></i>
     <div class="pd-update-note-body">
         <strong><span>An update of the theme is available.</span></strong>
-        <p><span>Please update your panel with this command (as root, on the panel server):</span></p>
-        <div class="pd-update-cmd">
-            <code id="pd-update-command">{{ $theme['command'] }}</code>
-            <button type="button" class="pd-copy-btn" onclick="pdCopyUpdate(this)"><i class="fa fa-clipboard"></i> <span>Copy</span></button>
+        @if ($canUpdate)
+            <p><span>Update with one click: the panel goes into maintenance for a few minutes, then comes back by itself.</span></p>
+            <div class="pd-update-actions">
+                <button type="button" class="btn btn-primary btn-sm" id="pdThemeUpdateOpen"><i class="fa fa-cloud-download"></i> <span>Update now</span></button>
+                <details class="pd-update-manual">
+                    <summary><span>Or with the command</span></summary>
+                    <div class="pd-update-cmd">
+                        <code id="pd-update-command">{{ $theme['command'] }}</code>
+                        <button type="button" class="pd-copy-btn" onclick="pdCopyUpdate(this)"><i class="fa fa-clipboard"></i> <span>Copy</span></button>
+                    </div>
+                </details>
+            </div>
+        @else
+            <p><span>Please update your panel with this command (as root, on the panel server):</span></p>
+            <div class="pd-update-cmd">
+                <code id="pd-update-command">{{ $theme['command'] }}</code>
+                <button type="button" class="pd-copy-btn" onclick="pdCopyUpdate(this)"><i class="fa fa-clipboard"></i> <span>Copy</span></button>
+            </div>
+            @if ($adminUser->root_admin)
+                <p class="pd-update-hint"><i class="fa fa-info-circle"></i> <span>Run it once more: it also turns on the "Update now" button, so the next updates are done from here with one click.</span></p>
+            @endif
+        @endif
+    </div>
+</div>
+@endif
+
+@if ($canUpdate)
+<div class="modal fade" id="pdThemeUpdateModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><i class="fa fa-cloud-download"></i> <span>Update the theme</span></h4>
+            </div>
+            <div class="modal-body">
+                <div id="pdThemeUpdateAsk">
+                    <p><span>The latest version of the theme will be downloaded from GitHub and installed on this server, exactly like the command.</span></p>
+                    <ul class="pd-update-steps">
+                        <li><span>The files that change are saved first: an update can always be undone.</span></li>
+                        <li><span>The panel shows its maintenance page for a few minutes, while the dashboard is compiled.</span></li>
+                        <li><span>Game servers keep running: Wings is not touched.</span></li>
+                    </ul>
+                </div>
+                <div id="pdThemeUpdateProgress" style="display: none;">
+                    <p class="pd-update-state" id="pdThemeUpdateState"><i class="fa fa-circle-o-notch fa-spin"></i> <span>Starting the update…</span></p>
+                    <pre class="pd-update-log" id="pdThemeUpdateLog"></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" id="pdThemeUpdateCancel" data-dismiss="modal"><span>Cancel</span></button>
+                <button type="button" class="btn btn-primary" id="pdThemeUpdateStart"><i class="fa fa-play"></i> <span>Start the update</span></button>
+                <button type="button" class="btn btn-success" id="pdThemeUpdateReload" style="display: none;" onclick="window.location.reload(true)"><i class="fa fa-refresh"></i> <span>Reload the page</span></button>
+            </div>
         </div>
     </div>
 </div>
+{{-- Texts used by the script, in elements so the translator of the page puts them in the right language. --}}
+<span hidden id="pdThemeUpdateT-pending">Waiting for the update service…</span>
+<span hidden id="pdThemeUpdateT-running">Updating… do not close this page.</span>
+<span hidden id="pdThemeUpdateT-restarting">The panel is restarting…</span>
+<span hidden id="pdThemeUpdateT-done">The update is finished.</span>
+<span hidden id="pdThemeUpdateT-failed">The update failed. The previous files were put back: the panel still works.</span>
+<span hidden id="pdThemeUpdateT-stuck">The update service does not answer. On the server, check: systemctl status pterodactyl-theme-update.path</span>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var startUrl = @json(route('admin.theme-update'));
+        var statusUrl = @json(route('admin.theme-update.status'));
+        var token = (document.querySelector('meta[name="_token"]') || {}).content || '';
+        var modal = window.jQuery ? window.jQuery('#pdThemeUpdateModal') : null;
+        var stateEl = document.getElementById('pdThemeUpdateState');
+        var logEl = document.getElementById('pdThemeUpdateLog');
+        var asked = 0;
+        var finished = false;
+        var polling = false;
+
+        function text(key) {
+            var el = document.getElementById('pdThemeUpdateT-' + key);
+
+            return el ? el.textContent : key;
+        }
+
+        function show(key, icon, cls) {
+            stateEl.className = 'pd-update-state' + (cls ? ' ' + cls : '');
+            stateEl.innerHTML = '';
+            var i = document.createElement('i');
+            i.className = 'fa ' + icon;
+            var span = document.createElement('span');
+            span.textContent = text(key);
+            stateEl.appendChild(i);
+            stateEl.appendChild(document.createTextNode(' '));
+            stateEl.appendChild(span);
+        }
+
+        function progressView() {
+            document.getElementById('pdThemeUpdateAsk').style.display = 'none';
+            document.getElementById('pdThemeUpdateProgress').style.display = '';
+            document.getElementById('pdThemeUpdateStart').style.display = 'none';
+            document.getElementById('pdThemeUpdateCancel').style.display = 'none';
+        }
+
+        function end(ok) {
+            finished = true;
+            show(ok ? 'done' : 'failed', ok ? 'fa-check-circle' : 'fa-times-circle', ok ? 'is-ok' : 'is-bad');
+            document.getElementById('pdThemeUpdateReload').style.display = '';
+        }
+
+        function render(status) {
+            if (status.log) {
+                var atBottom = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 20;
+                logEl.textContent = status.log;
+                if (atBottom) { logEl.scrollTop = logEl.scrollHeight; }
+            }
+            var late = Date.now() - asked > 45000;
+            if (status.state === 'running') {
+                show('running', 'fa-circle-o-notch fa-spin');
+            } else if (status.pending) {
+                show(late ? 'stuck' : 'pending', 'fa-hourglass-half', late ? 'is-bad' : '');
+            } else if ((status.state === 'done' || status.state === 'failed') && status.startedAt && status.startedAt * 1000 >= asked - 5000) {
+                end(status.state === 'done');
+            }
+        }
+
+        function poll() {
+            if (finished) { return; }
+            fetch(statusUrl, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+                .then(function (response) {
+                    if (!response.ok) { throw new Error(String(response.status)); }
+
+                    return response.json();
+                })
+                .then(render)
+                // During the update the panel answers with its maintenance page: it is restarting.
+                .catch(function () { if (!finished) { show('restarting', 'fa-circle-o-notch fa-spin'); } })
+                .then(function () { if (!finished) { window.setTimeout(poll, 2500); } });
+        }
+
+        function follow() {
+            progressView();
+            if (!polling) { polling = true; poll(); }
+        }
+
+        var open = document.getElementById('pdThemeUpdateOpen');
+        if (open) {
+            open.addEventListener('click', function () { if (modal) { modal.modal('show'); } });
+        }
+
+        document.getElementById('pdThemeUpdateStart').addEventListener('click', function () {
+            var button = this;
+            button.disabled = true;
+            asked = Date.now();
+            fetch(startUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' },
+            })
+                .then(function (response) {
+                    return response.json().catch(function () { return {}; }).then(function (body) {
+                        if (!response.ok) { throw new Error(body.error || String(response.status)); }
+
+                        return body;
+                    });
+                })
+                .then(function (status) { follow(); render(status); })
+                .catch(function (error) {
+                    button.disabled = false;
+                    progressView();
+                    stateEl.className = 'pd-update-state is-bad';
+                    stateEl.textContent = error.message;
+                });
+        });
+
+        // An update already asked or running when the page opens: follow it.
+        @if ($updateBusy)
+            asked = {{ (int) (($updater['startedAt'] ?? time()) * 1000) }};
+            if (modal) { modal.modal('show'); }
+            follow();
+        @endif
+    });
+</script>
 @endif
 
 @if (!empty($counts))
