@@ -29,7 +29,7 @@ class EggConfigurationService
         return [
             'startup' => $this->withStartDetection(
                 $this->convertStartupToNewFormat(json_decode($server->egg->inherit_config_startup, true) ?? []),
-                (string) $server->image
+                $server
             ),
             'stop' => $this->convertStopToNewFormat($server->egg->inherit_config_stop),
             'configs' => $configs,
@@ -55,22 +55,33 @@ class EggConfigurationService
      * (Node.js, Python bots...) often keep a placeholder there ("change this part") or a line the app never prints, so
      * the server stays "starting" forever. Here:
      *  - placeholders and empty lines are removed; if nothing is left, the first line of output means it started;
-     *  - for Node.js, Python, Bun and Deno images (bots and apps, which often print nothing special once ready), the
-     *    first line of output always means it started.
+     *  - for JavaScript, TypeScript and Python apps (bots, which often print nothing special once ready), the first line
+     *    of output always means it started. They are spotted from the image (Node.js, Python, Bun, Deno), the startup
+     *    command or a variable naming the file to run (index.js, bot.mjs, main.py...), whatever the file is called.
      */
-    protected function withStartDetection(array $startup, string $image): array
+    protected function withStartDetection(array $startup, Server $server): array
     {
         $done = array_values(array_filter(
             array_map('strval', (array) ($startup['done'] ?? [])),
             fn (string $line) => trim($line) !== '' && !preg_match('/change\s+this/i', $line)
         ));
 
-        if (!$done || preg_match('~(^|[/:_-])(node|python|bun|deno)~i', $image)) {
+        if (!$done || $this->isScriptApp($server)) {
             $done = ['regex:.'];
         }
         $startup['done'] = $done;
 
         return $startup;
+    }
+
+    private function isScriptApp(Server $server): bool
+    {
+        if (preg_match('~(^|[/:_-])(node|python|bun|deno)~i', (string) $server->image)) {
+            return true;
+        }
+        $text = (string) $server->startup . ' ' . $server->variables->pluck('server_value')->implode(' ');
+
+        return (bool) preg_match('~(node|nodejs|npm|npx|yarn|pnpm|ts-node|tsx|bun|deno|python3?|pip3?)|\.(m?js|cjs|ts|mts|py)~i', $text);
     }
 
     /**
