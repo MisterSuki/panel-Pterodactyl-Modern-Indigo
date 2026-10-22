@@ -88,69 +88,80 @@ export default () => {
             ) : (
                 <>
                     <CSSTransition timeout={150} classNames={'fade'} appear in>
-                        <SubNavigation>
-                            <div>
-                                {routes.server
-                                    .filter(
-                                        (route) =>
-                                            !!route.name &&
-                                            (!route.minecraft || isMinecraft) &&
-                                            (route.game !== 'ets2' || isEts2)
-                                    )
-                                    .map((route) =>
-                                        route.permission ? (
-                                            <Can key={route.path} action={route.permission} matchAny>
-                                                <NavLink to={to(route.path, true)} exact={route.exact}>
+                        <SubNavigation
+                            tabs={
+                                <div>
+                                    {routes.server
+                                        .filter(
+                                            (route) =>
+                                                !!route.name &&
+                                                (!route.minecraft || isMinecraft) &&
+                                                (route.game !== 'ets2' || isEts2)
+                                        )
+                                        .map((route) =>
+                                            route.permission ? (
+                                                <Can key={route.path} action={route.permission} matchAny>
+                                                    <NavLink to={to(route.path, true)} exact={route.exact}>
+                                                        {serverTabIcons[route.path] && (
+                                                            <FontAwesomeIcon icon={serverTabIcons[route.path]} />
+                                                        )}
+                                                        <span>{route.name}</span>
+                                                    </NavLink>
+                                                </Can>
+                                            ) : (
+                                                <NavLink key={route.path} to={to(route.path, true)} exact={route.exact}>
                                                     {serverTabIcons[route.path] && (
                                                         <FontAwesomeIcon icon={serverTabIcons[route.path]} />
                                                     )}
                                                     <span>{route.name}</span>
                                                 </NavLink>
-                                            </Can>
-                                        ) : (
-                                            <NavLink key={route.path} to={to(route.path, true)} exact={route.exact}>
-                                                {serverTabIcons[route.path] && (
-                                                    <FontAwesomeIcon icon={serverTabIcons[route.path]} />
-                                                )}
-                                                <span>{route.name}</span>
-                                            </NavLink>
-                                        )
+                                            )
+                                        )}
+                                    {rootAdmin && (
+                                        // eslint-disable-next-line react/jsx-no-target-blank
+                                        <a href={`/admin/servers/view/${serverId}`} target={'_blank'} title={'Admin'}>
+                                            <FontAwesomeIcon icon={faExternalLinkAlt} />
+                                            <span>Admin</span>
+                                        </a>
                                     )}
-                                {rootAdmin && (
-                                    // eslint-disable-next-line react/jsx-no-target-blank
-                                    <a href={`/admin/servers/view/${serverId}`} target={'_blank'} title={'Admin'}>
-                                        <FontAwesomeIcon icon={faExternalLinkAlt} />
-                                    </a>
-                                )}
-                            </div>
+                                </div>
+                            }
+                        >
+                            <InstallListener />
+                            <TransferListener />
+                            <WebsocketHandler />
+                            {inConflictState &&
+                            (!rootAdmin || (rootAdmin && !location.pathname.endsWith(`/server/${id}`))) ? (
+                                <ConflictStateRenderer />
+                            ) : (
+                                <ErrorBoundary>
+                                    <TransitionRouter>
+                                        <Switch location={location}>
+                                            {routes.server
+                                                .filter(
+                                                    (route) =>
+                                                        (!route.minecraft || isMinecraft) &&
+                                                        (route.game !== 'ets2' || isEts2)
+                                                )
+                                                .map(({ path, permission, component: Component }) => (
+                                                    <PermissionRoute
+                                                        key={path}
+                                                        permission={permission}
+                                                        path={to(path)}
+                                                        exact
+                                                    >
+                                                        <Spinner.Suspense>
+                                                            <Component />
+                                                        </Spinner.Suspense>
+                                                    </PermissionRoute>
+                                                ))}
+                                            <Route path={'*'} component={NotFound} />
+                                        </Switch>
+                                    </TransitionRouter>
+                                </ErrorBoundary>
+                            )}
                         </SubNavigation>
                     </CSSTransition>
-                    <InstallListener />
-                    <TransferListener />
-                    <WebsocketHandler />
-                    {inConflictState && (!rootAdmin || (rootAdmin && !location.pathname.endsWith(`/server/${id}`))) ? (
-                        <ConflictStateRenderer />
-                    ) : (
-                        <ErrorBoundary>
-                            <TransitionRouter>
-                                <Switch location={location}>
-                                    {routes.server
-                                        .filter(
-                                            (route) =>
-                                                (!route.minecraft || isMinecraft) && (route.game !== 'ets2' || isEts2)
-                                        )
-                                        .map(({ path, permission, component: Component }) => (
-                                        <PermissionRoute key={path} permission={permission} path={to(path)} exact>
-                                            <Spinner.Suspense>
-                                                <Component />
-                                            </Spinner.Suspense>
-                                        </PermissionRoute>
-                                    ))}
-                                    <Route path={'*'} component={NotFound} />
-                                </Switch>
-                            </TransitionRouter>
-                        </ErrorBoundary>
-                    )}
                 </>
             )}
         </React.Fragment>
