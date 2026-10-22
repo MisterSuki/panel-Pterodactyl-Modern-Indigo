@@ -79,9 +79,10 @@ class EggConfigurationService
         if (preg_match('~(^|[/:_-])(node|python|bun|deno)~i', (string) $server->image)) {
             return true;
         }
-        $text = (string) $server->startup . ' ' . $server->variables->pluck('server_value')->implode(' ');
+        $values = $server->variables->map(fn ($variable) => $variable->server_value ?? $variable->default_value);
+        $text = (string) $server->startup . ' ' . $values->implode(' ');
 
-        return (bool) preg_match('~(node|nodejs|npm|npx|yarn|pnpm|ts-node|tsx|bun|deno|python3?|pip3?)|\.(m?js|cjs|ts|mts|py)~i', $text);
+        return (bool) preg_match('~\b(node|nodejs|npm|npx|yarn|pnpm|ts-node|tsx|bun|deno|python3?|pip3?)\b|\.(m?js|cjs|ts|mts|py)\b~i', $text);
     }
 
     /**
