@@ -68,7 +68,9 @@ class ServerInsightsController extends ClientApiController
             throw new DisplayException('Save a Discord webhook first.');
         }
         [$title, $body] = AlertTexts::get('test', Locales::default(), ['name' => $server->name]);
-        if (!$this->notifier->discord($webhook, $title, $body, 'success')) {
+        [$open] = AlertTexts::get('open', Locales::default());
+        $link = rtrim((string) config('app.url'), '/') . '/server/' . $server->uuidShort;
+        if (!$this->notifier->discord($webhook, $title, $body, 'success', $link, $open)) {
             throw new DisplayException('Discord did not accept the message. Check the webhook address.');
         }
 

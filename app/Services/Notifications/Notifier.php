@@ -122,24 +122,54 @@ class Notifier
     }
 
     /**
-     * Sends a message to a Discord webhook (an embed with a colour). Never throws: an alert that cannot be sent is
-     * only written in the log.
+     * Sends a message to a Discord webhook, as a Components V2 card: a container with the colour of the alert, its
+     * title and text, the time, and a button to open the server in the panel. Never throws: an alert that cannot be
+     * sent is only written in the log.
      */
-    public function discord(string $webhook, string $title, string $body, string $kind = 'info', ?string $footer = null): bool
+    public function discord(string $webhook, string $title, string $body, string $kind = 'info', ?string $link = null, ?string $linkLabel = null): bool
     {
         $colors = ['success' => 0x30D158, 'warning' => 0xFF9F0A, 'danger' => 0xFF453A, 'info' => 0x0A84FF];
+        $icons = ['success' => '🟢', 'warning' => '🟠', 'danger' => '🔴', 'info' => '🔵'];
+
+        $card = [
+            ['type' => 10, 'content' => mb_substr('### ' . ($icons[$kind] ?? $icons['info']) . ' ' . $title, 0, 300)],
+        ];
+        if ($body !== '') {
+            $card[] = ['type' => 10, 'content' => mb_substr($body, 0, 2000)];
+        }
+        $card[] = ['type' => 14, 'divider' => true, 'spacing' => 1];
+        $card[] = ['type' => 10, 'content' => '-# ' . mb_substr((string) config('app.name', 'Pterodactyl'), 0, 80) . ' · <t:' . time() . ':f>'];
+
+        $button = null;
+        if ($link && filter_var($link, FILTER_VALIDATE_URL) && preg_match('#^https?://#i', $link)) {
+            $button = ['type' => 1, 'components' => [
+                ['type' => 2, 'style' => 5, 'label' => mb_substr($linkLabel ?: 'Open in the panel', 0, 80), 'url' => $link],
+            ]];
+        }
+
+        // Webhooks that are not owned by an application need this to show components (only non-interactive ones,
+        // like link buttons).
+        $url = $webhook . (str_contains($webhook, '?') ? '&' : '?') . 'with_components=true';
+        $payload = fn (bool $withButton) => [
+            'username' => mb_substr((string) config('app.name', 'Pterodactyl'), 0, 80),
+            'flags' => 1 << 15,
+            'components' => [[
+                'type' => 17,
+                'accent_color' => $colors[$kind] ?? $colors['info'],
+                'components' => $withButton && $button ? array_merge($card, [$button]) : $card,
+            ]],
+            'allowed_mentions' => ['parse' => []],
+        ];
+
         try {
-            $response = Http::connectTimeout(3)->timeout(5)->post($webhook, [
-                'username' => mb_substr((string) config('app.name', 'Pterodactyl'), 0, 80),
-                'embeds' => [[
-                    'title' => mb_substr($title, 0, 250),
-                    'description' => mb_substr($body, 0, 2000),
-                    'color' => $colors[$kind] ?? $colors['info'],
-                    'footer' => $footer ? ['text' => mb_substr($footer, 0, 200)] : null,
-                    'timestamp' => now()->toIso8601String(),
-                ]],
-                'allowed_mentions' => ['parse' => []],
-            ]);
+            $response = Http::connectTimeout(3)->timeout(5)->post($url, $payload(true));
+            // Discord refuses the whole message when the link is not one it accepts (a local address, for example).
+            if ($response->status() === 400 && $button) {
+                $response = Http::connectTimeout(3)->timeout(5)->post($url, $payload(false));
+            }
+            if (!$response->successful()) {
+                Log::info('A Discord alert was refused.', ['status' => $response->status(), 'body' => mb_substr($response->body(), 0, 500)]);
+            }
 
             return $response->successful();
         } catch (\Throwable $exception) {

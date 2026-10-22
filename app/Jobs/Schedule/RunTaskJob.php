@@ -62,6 +62,7 @@ class RunTaskJob implements ShouldQueue
                 case Task::ACTION_POWER:
                     \Pterodactyl\Services\Servers\ServerWatcher::markPowerAction($server);
                     $powerRepository->setServer($server)->send($this->task->payload);
+                    \Pterodactyl\Services\Servers\ServerWatcher::powerAction($server, (string) $this->task->payload);
                     break;
                 case Task::ACTION_COMMAND:
                     $commandRepository->setServer($server)->send($this->task->payload);

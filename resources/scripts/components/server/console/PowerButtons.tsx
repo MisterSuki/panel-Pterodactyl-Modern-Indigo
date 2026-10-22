@@ -5,6 +5,7 @@ import Can from '@/components/elements/Can';
 import { ServerContext } from '@/state/server';
 import { PowerAction } from '@/components/server/console/ServerConsoleContainer';
 import { Dialog } from '@/components/elements/dialog';
+import http from '@/api/http';
 
 interface PowerButtonProps {
     className?: string;
@@ -72,6 +73,7 @@ export default ({ className }: PowerButtonProps) => {
     const [pending, setPending] = useState<PowerAction | null>(null);
     const status = ServerContext.useStoreState((state) => state.status.value);
     const instance = ServerContext.useStoreState((state) => state.socket.instance);
+    const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
 
     const killable = status === 'stopping';
     const onButtonClick = (
@@ -83,12 +85,14 @@ export default ({ className }: PowerButtonProps) => {
             return setOpen(true);
         }
 
-        if (instance) {
-            setOpen(false);
-            const sent = action === 'kill-confirmed' ? 'kill' : action;
-            setPending(sent);
-            instance.send('set state', sent);
-        }
+        setOpen(false);
+        const sent = action === 'kill-confirmed' ? 'kill' : action;
+        setPending(sent);
+        // Through the panel, so it knows right away (activity, Discord and bell alerts); straight to Wings if the panel
+        // does not answer.
+        http.post(`/api/client/servers/${uuid}/power`, { signal: sent }).catch(() => {
+            instance ? instance.send('set state', sent) : setPending(null);
+        });
     };
 
     useEffect(() => {

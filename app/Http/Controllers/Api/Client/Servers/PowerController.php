@@ -30,6 +30,7 @@ class PowerController extends ClientApiController
         );
 
         Activity::event(strtolower("server:power.{$request->input('signal')}"))->log();
+        \Pterodactyl\Services\Servers\ServerWatcher::powerAction($server, strtolower($request->input('signal')), $request->user()->username);
 
         return $this->returnNoContent();
     }

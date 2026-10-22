@@ -48,6 +48,38 @@ class ServerWatcher
         cache()->put('watch:power:' . $server->uuid, time(), 600);
     }
 
+    /**
+     * A power action asked from the panel (its buttons, the API or a schedule): its alert is sent right away, after the
+     * answer to the request, instead of when the watch sees the server change a minute later.
+     */
+    public static function powerAction(Server $server, string $signal, ?string $by = null): void
+    {
+        self::markPowerAction($server);
+        $event = match ($signal) {
+            'start' => 'power_start',
+            'restart' => 'power_restart',
+            'stop' => 'power_stop',
+            'kill' => 'power_kill',
+            default => null,
+        };
+        if ($event === null) {
+            return;
+        }
+
+        $send = function () use ($server, $event, $by) {
+            try {
+                $alert = ServerAlert::query()->where('server_id', $server->id)->first();
+                $vars = $by ? ['by' => $by] : [];
+                app(self::class)->fire($server, $by ? $event : $event . '_auto', ($alert ?? new ServerAlert())->settings(), $alert, $vars);
+            } catch (\Throwable $exception) {
+                Log::info('A power alert could not be sent.', ['server' => $server->uuid, 'error' => $exception->getMessage()]);
+            }
+        };
+
+        // A schedule runs in the queue worker, where there is no answer to wait for.
+        app()->runningInConsole() ? $send() : dispatch($send)->afterResponse();
+    }
+
     public function run(bool $sample): void
     {
         $alerts = ServerAlert::query()->get()->keyBy('server_id');
@@ -107,8 +139,11 @@ class ServerWatcher
         $pending = $this->cache->get('watch:offline:' . $server->uuid);
         if (is_int($pending) && time() - $pending >= 50) {
             $this->cache->forget('watch:offline:' . $server->uuid);
-            $wanted = $this->powerAskedSince($server, $pending - 180);
-            $this->fire($server, $wanted ? 'stop' : 'crash', $settings, $alert);
+            // A stop asked from the panel was already announced when it was asked.
+            if (!$this->panelAskedSince($server, $pending - 180)) {
+                $wanted = $this->powerAskedSince($server, $pending - 180);
+                $this->fire($server, $wanted ? 'stop' : 'crash', $settings, $alert);
+            }
         }
 
         if (is_array($before)) {
@@ -116,7 +151,9 @@ class ServerWatcher
             if ($now['state'] === 'offline' && in_array($was, ['running', 'starting'], true)) {
                 $this->cache->put('watch:offline:' . $server->uuid, time(), 900);
             } elseif ($now['state'] === 'running' && in_array($was, ['offline', 'starting'], true)) {
-                $this->fire($server, 'start', $settings, $alert);
+                if (!$this->panelAskedSince($server, (int) $before['at'] - 60)) {
+                    $this->fire($server, 'start', $settings, $alert);
+                }
             } elseif ($now['state'] === 'running' && $was === 'running' && $now['uptime'] > 0 && $now['uptime'] + 30000 < (int) $before['uptime']) {
                 // Still running, but it started again since last time: restarted by Wings after a crash, unless asked.
                 if (!$this->powerAskedSince($server, (int) $before['at'] - 60)) {
@@ -135,6 +172,13 @@ class ServerWatcher
         if ($diskLimit > 0 && $now['disk'] / $diskLimit >= 0.9) {
             $this->fireOnce($server, 'disk', $settings, $alert, $now['disk'], $diskLimit);
         }
+    }
+
+    private function panelAskedSince(Server $server, int $since): bool
+    {
+        $marked = $this->cache->get('watch:power:' . $server->uuid);
+
+        return is_int($marked) && $marked >= $since;
     }
 
     private function powerAskedSince(Server $server, int $since): bool
@@ -166,15 +210,20 @@ class ServerWatcher
      */
     private function fire(Server $server, string $event, array $settings, ?ServerAlert $alert, array $vars = []): void
     {
-        $setting = $event === 'crash_restart' ? 'crash' : $event;
+        $setting = match (true) {
+            $event === 'crash_restart' => 'crash',
+            str_starts_with($event, 'power_start'), str_starts_with($event, 'power_restart') => 'start',
+            str_starts_with($event, 'power_') => 'stop',
+            default => $event,
+        };
         if (empty($settings[$setting])) {
             return;
         }
         $vars['name'] = $server->name;
         $kind = match ($event) {
             'crash', 'crash_restart' => 'danger',
-            'memory', 'disk' => 'warning',
-            'start' => 'success',
+            'memory', 'disk', 'power_kill', 'power_kill_auto' => 'warning',
+            'start', 'power_start', 'power_start_auto', 'power_restart', 'power_restart_auto' => 'success',
             default => 'info',
         };
         $url = '/server/' . $server->uuidShort;
@@ -185,7 +234,8 @@ class ServerWatcher
         $webhook = $alert?->webhookUrl();
         if ($webhook) {
             [$title, $body] = AlertTexts::get($event, Locales::default(), $vars);
-            $this->notifier->discord($webhook, $title, $body, $kind, rtrim((string) config('app.url'), '/') . $url);
+            [$open] = AlertTexts::get('open', Locales::default());
+            $this->notifier->discord($webhook, $title, $body, $kind, rtrim((string) config('app.url'), '/') . $url, $open);
         }
     }
 

@@ -25,6 +25,38 @@ class AlertTexts
             'en' => ['{name} was stopped', 'The server was stopped from the panel.'],
             'fr' => ['{name} a été arrêté', 'Le serveur a été arrêté depuis le panel.'],
         ],
+        'power_start' => [
+            'en' => ['{name} is starting', 'Started by {by} from the panel.'],
+            'fr' => ['{name} démarre', 'Démarrage lancé par {by} depuis le panel.'],
+        ],
+        'power_restart' => [
+            'en' => ['{name} is restarting', 'Restarted by {by} from the panel.'],
+            'fr' => ['{name} redémarre', 'Redémarrage lancé par {by} depuis le panel.'],
+        ],
+        'power_stop' => [
+            'en' => ['{name} is stopping', 'Stopped by {by} from the panel.'],
+            'fr' => ['{name} s’arrête', 'Arrêt demandé par {by} depuis le panel.'],
+        ],
+        'power_kill' => [
+            'en' => ['{name} was forcibly stopped', 'Killed by {by} from the panel.'],
+            'fr' => ['{name} a été arrêté de force', 'Arrêt forcé par {by} depuis le panel.'],
+        ],
+        'power_start_auto' => [
+            'en' => ['{name} is starting', 'Started by a schedule.'],
+            'fr' => ['{name} démarre', 'Démarrage lancé par une tâche planifiée.'],
+        ],
+        'power_restart_auto' => [
+            'en' => ['{name} is restarting', 'Restarted by a schedule.'],
+            'fr' => ['{name} redémarre', 'Redémarrage lancé par une tâche planifiée.'],
+        ],
+        'power_stop_auto' => [
+            'en' => ['{name} is stopping', 'Stopped by a schedule.'],
+            'fr' => ['{name} s’arrête', 'Arrêt lancé par une tâche planifiée.'],
+        ],
+        'power_kill_auto' => [
+            'en' => ['{name} was forcibly stopped', 'Killed by a schedule.'],
+            'fr' => ['{name} a été arrêté de force', 'Arrêt forcé par une tâche planifiée.'],
+        ],
         'memory' => [
             'en' => ['{name} is almost out of memory', '{used} of {limit} used.'],
             'fr' => ['{name} manque bientôt de mémoire', '{used} utilisés sur {limit}.'],
@@ -36,6 +68,10 @@ class AlertTexts
         'test' => [
             'en' => ['Test of the alerts of {name}', 'The alerts of this server reach this channel.'],
             'fr' => ['Test des alertes de {name}', 'Les alertes de ce serveur arrivent bien dans ce salon.'],
+        ],
+        'open' => [
+            'en' => ['Open in the panel', ''],
+            'fr' => ['Ouvrir dans le panel', ''],
         ],
         'ticket_reply' => [
             'en' => ['New answer to your ticket', '#{id} {subject}'],
