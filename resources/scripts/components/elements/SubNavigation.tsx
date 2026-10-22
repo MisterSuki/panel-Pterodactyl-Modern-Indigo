@@ -6,7 +6,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 
 // The tabs, as a floating Liquid Glass capsule with an iOS segmented-control look: the active tab is a lighter glass
-// pill. When they do not all fit, the capsule scrolls sideways: arrows and a soft fade show that there is more.
+// pill. On a computer the tabs wrap onto a second line when they do not all fit; on a phone the capsule scrolls
+// sideways instead, with arrows and a soft fade to show that there is more.
 const Bar = styled.div`
     ${tw`w-full px-2 sm:px-4 pt-3`};
 
@@ -83,6 +84,30 @@ const Bar = styled.div`
 
         &:hover {
             background: rgba(60, 60, 72, 0.95);
+        }
+    }
+
+    /* On a computer every tab stays visible: they go on a second line instead of scrolling. */
+    @media (min-width: 768px) {
+        & > .pd-tabs,
+        & .pd-tabs-scroll {
+            border-radius: 22px;
+        }
+
+        & .pd-tabs-scroll,
+        & .pd-tabs-scroll.fade-left,
+        & .pd-tabs-scroll.fade-right {
+            ${tw`overflow-visible`};
+            -webkit-mask-image: none;
+            mask-image: none;
+        }
+
+        & .pd-tabs-scroll > div {
+            ${tw`flex-wrap justify-center w-full`};
+        }
+
+        & .pd-tabs-arrow {
+            ${tw`hidden`};
         }
     }
 `;
