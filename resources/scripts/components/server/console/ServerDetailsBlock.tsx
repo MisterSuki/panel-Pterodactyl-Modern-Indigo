@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { accentHex } from '@/lib/helpers';
-import { faClock, faHdd, faMemory, faMicrochip, faSignal, faUsers, faWifi } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faHdd, faMemory, faMicrochip, faUsers, faWifi } from '@fortawesome/free-solid-svg-icons';
 import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
 import { ServerContext } from '@/state/server';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
@@ -12,7 +12,6 @@ import { getSubdomains } from '@/api/server/subdomains';
 import useFiveM from '@/components/server/console/useFiveM';
 import useGameStatus from '@/components/server/console/useGameStatus';
 import useConnectionCount from '@/components/server/console/useConnectionCount';
-import usePing from '@/components/server/console/usePing';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import classNames from 'classnames';
 import { capitalize } from '@/lib/strings';
@@ -53,7 +52,6 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
         memory: [],
         disk: [],
     });
-    const ping = usePing();
 
     const status = ServerContext.useStoreState((state) => state.status.value);
     const fivem = useFiveM();
@@ -270,9 +268,6 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                 }
             >
                 <Limit limit={textLimits.disk}>{bytesToString(stats.disk)}</Limit>
-            </StatBlock>
-            <StatBlock icon={faSignal} title={'Ping'} color={ping === null ? undefined : getBackgroundColor(ping, 300)}>
-                {ping === null ? <span className={'text-gray-400'}>&ndash;</span> : `${ping} ms`}
             </StatBlock>
         </div>
     );
