@@ -27,7 +27,10 @@ class EggConfigurationService
         );
 
         return [
-            'startup' => $this->convertStartupToNewFormat(json_decode($server->egg->inherit_config_startup, true)),
+            'startup' => $this->withStartDetection(
+                $this->convertStartupToNewFormat(json_decode($server->egg->inherit_config_startup, true) ?? []),
+                (string) $server->image
+            ),
             'stop' => $this->convertStopToNewFormat($server->egg->inherit_config_stop),
             'configs' => $configs,
         ];
@@ -45,6 +48,28 @@ class EggConfigurationService
             'user_interaction' => [],
             'strip_ansi' => Arr::get($startup, 'strip_ansi') ?? false,
         ];
+    }
+
+    /**
+     * Wings only shows a server as running once its console prints one of the "done" lines of the egg. Generic eggs
+     * (Node.js, Python bots...) often keep a placeholder there ("change this part") or a line the app never prints, so
+     * the server stays "starting" forever. Here:
+     *  - placeholders and empty lines are removed; if nothing is left, the first line of output means it started;
+     *  - for Node.js, Python, Bun and Deno images, the usual "ready" lines of a bot or an app also count.
+     */
+    protected function withStartDetection(array $startup, string $image): array
+    {
+        $done = array_values(array_filter(
+            array_map('strval', (array) ($startup['done'] ?? [])),
+            fn (string $line) => trim($line) !== '' && !preg_match('/change\s+this/i', $line)
+        ));
+
+        if (preg_match('/node|python|bun|deno/i', $image)) {
+            $done[] = 'regex:(?i)(ready|connect|logged in|listening|started|running|online|démarr|prêt)';
+        }
+        $startup['done'] = $done ?: ['regex:.'];
+
+        return $startup;
     }
 
     /**
