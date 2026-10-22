@@ -1,4 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { bytesToString } from '@/lib/formatters';
 import { httpErrorToHuman } from '@/api/http';
 import { CSSTransition } from 'react-transition-group';
 import Spinner from '@/components/elements/Spinner';
@@ -40,11 +43,13 @@ export default () => {
 
     const setSelectedFiles = ServerContext.useStoreActions((actions) => actions.files.setSelectedFiles);
     const selectedFilesLength = ServerContext.useStoreState((state) => state.files.selectedFiles.length);
+    const [filter, setFilter] = useState('');
 
     useEffect(() => {
         clearFlashes('files');
         setSelectedFiles([]);
         setDirectory(hashToPath(hash));
+        setFilter('');
     }, [hash]);
 
     useEffect(() => {
@@ -95,16 +100,46 @@ export default () => {
                         <CSSTransition classNames={'fade'} timeout={150} appear in>
                             <div>
                                 {files.length > 250 && (
-                                    <div css={tw`rounded bg-yellow-400 mb-px p-3`}>
+                                    <div css={tw`rounded-xl bg-yellow-400 mb-3 p-3`}>
                                         <p css={tw`text-yellow-900 text-sm text-center`}>
                                             This directory is too large to display in the browser, limiting the output
                                             to the first 250 files.
                                         </p>
                                     </div>
                                 )}
-                                {sortFiles(files.slice(0, 250)).map((file) => (
-                                    <FileObjectRow key={file.key} file={file} />
-                                ))}
+                                {files.length > 8 && (
+                                    <div className={style.filter}>
+                                        <FontAwesomeIcon icon={faSearch} />
+                                        <input
+                                            value={filter}
+                                            onChange={(e) => setFilter(e.currentTarget.value)}
+                                            placeholder={'Filter the files of this folder…'}
+                                        />
+                                    </div>
+                                )}
+                                <div className={style.file_list}>
+                                    <div className={style.list_head}>
+                                        <span>Name</span>
+                                        <span className={'w-24 text-right mr-4 hidden sm:block'}>Size</span>
+                                        <span className={'w-44 text-right hidden md:block'}>Modified</span>
+                                    </div>
+                                    {sortFiles(files.slice(0, 250))
+                                        .filter((file) => !filter || file.name.toLowerCase().includes(filter.toLowerCase()))
+                                        .map((file) => (
+                                            <FileObjectRow key={file.key} file={file} />
+                                        ))}
+                                    <div className={style.list_foot}>
+                                        <span>
+                                            {files.filter((f) => !f.isFile).length} <span>folders</span>
+                                        </span>
+                                        <span>·</span>
+                                        <span>
+                                            {files.filter((f) => f.isFile).length} <span>files</span>
+                                        </span>
+                                        <span>·</span>
+                                        <span>{bytesToString(files.reduce((total, f) => total + (f.isFile ? f.size : 0), 0))}</span>
+                                    </div>
+                                </div>
                                 <MassActionsBar />
                             </div>
                         </CSSTransition>

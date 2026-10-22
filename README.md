@@ -41,7 +41,7 @@ pour le dashboard client **et** l'administration, installé avec **une seule com
 <td align="center" width="20%">🎨<br><b>Liquid Glass</b><br><sub>9 fonds animés, dégradés ou ta propre image</sub></td>
 <td align="center" width="20%">⛏️<br><b>Minecraft</b><br><sub>plugins, mods et modpacks Modrinth en un clic</sub></td>
 <td align="center" width="20%">🛒<br><b>Boutique</b><br><sub>crédit Stripe, PayPal, SumUp, serveurs créés seuls</sub></td>
-<td align="center" width="20%">📱<br><b>Téléphone</b><br><sub>tout le panel tient sur un écran de mobile</sub></td>
+<td align="center" width="20%">🔔<br><b>Alertes</b><br><sub>crash et disque plein, dans le panel et sur Discord</sub></td>
 <td align="center" width="20%">🗃️<br><b>Fichiers .db</b><br><sub>bases SQLite ouvertes et modifiées dans le panel</sub></td>
 </tr>
 </table>
@@ -164,6 +164,32 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 </td>
 <td width="55%"><a href="docs/images/sqlite.jpg"><img src="docs/images/sqlite.jpg" alt="Le lecteur de bases SQLite"></a></td>
 </tr>
+<tr>
+<td width="55%"><a href="docs/images/editor.jpg"><img src="docs/images/editor.jpg" alt="L'éditeur de code"></a></td>
+<td width="45%" valign="middle">
+
+### 🗂️ Fichiers et code soignés
+
+- une liste en verre, avec une **icône et une couleur par type** (JSON, Lua, config, logs, archives, images, .jar, .db…)
+- l'extension en plus discret, la **taille**, la date **en français**, un **filtre** rapide et le total en bas
+- un **éditeur façon macOS** : coloration aux couleurs iOS, ligne active, police SF Mono
+- une barre d'état : ligne, colonne, nombre de lignes, taille, et un badge **« Non enregistré »**
+
+</td>
+</tr>
+<tr>
+<td width="45%" valign="middle">
+
+### 🔔 Alertes, stats et cloche
+
+- **alertes** de crash, mémoire, disque, démarrage et arrêt, dans le panel et sur **Discord**
+- onglet **Statistiques** : joueurs sur 24 h / 7 jours, pic, moyenne, heures d'affluence
+- une **cloche** de notifications et des **annonces** à tous (maintenance, mises à jour)
+- une **page de statut publique** avec la disponibilité des nodes
+
+</td>
+<td width="55%"><a href="docs/images/statistics.jpg"><img src="docs/images/statistics.jpg" alt="Les statistiques des joueurs"></a></td>
+</tr>
 </table>
 
 ### Et aussi
@@ -244,6 +270,25 @@ Panel, Wings, mise à jour avec **sauvegarde et retour en arrière**, désinstal
 <tr>
 <td align="center"><sub>Joueurs connectés, whitelist, opérateurs et bannis</sub></td>
 <td align="center"><sub>Le dégradé « Océan » avec l'accent sarcelle</sub></td>
+</tr>
+</table>
+
+### 🗂️ Fichiers
+
+<a href="docs/images/files.jpg"><img src="docs/images/files.jpg" alt="Le gestionnaire de fichiers" width="100%"></a>
+
+### 🔔 Notifications, alertes et page de statut
+
+<table>
+<tr>
+<td width="33%"><a href="docs/images/notifications.jpg"><img src="docs/images/notifications.jpg" alt="La cloche de notifications"></a></td>
+<td width="33%"><a href="docs/images/alerts.jpg"><img src="docs/images/alerts.jpg" alt="Les alertes d'un serveur"></a></td>
+<td width="33%"><a href="docs/images/status.jpg"><img src="docs/images/status.jpg" alt="La page de statut"></a></td>
+</tr>
+<tr>
+<td align="center"><sub>La cloche</sub></td>
+<td align="center"><sub>Les alertes (Discord)</sub></td>
+<td align="center"><sub>La page de statut</sub></td>
 </tr>
 </table>
 

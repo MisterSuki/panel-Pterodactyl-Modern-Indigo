@@ -2043,5 +2043,16 @@
  "Some services are disrupted": "Certains services sont perturbés",
  "over 7 days": "sur 7 jours",
  "24 hours ago": "Il y a 24 heures",
- "Now": "Maintenant"
+ "Now": "Maintenant",
+ "Size": "Taille",
+ "Modified": "Modifié",
+ "Filter the files of this folder…": "Filtrer les fichiers de ce dossier…",
+ "folders": "dossiers",
+ "files": "fichiers",
+ "New file": "Nouveau fichier",
+ "Ln": "Ligne",
+ "Col": "Col",
+ "lines": "lignes",
+ "to save": "pour enregistrer",
+ "to search": "pour chercher"
 }
