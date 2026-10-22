@@ -110,7 +110,8 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             alive = false;
         };
     }, [uuid, allocationId]);
-    const named = hostname && allocationPort !== undefined ? (allocationPort === 25565 ? hostname : `${hostname}:${allocationPort}`) : null;
+    // Only the name: the SRV record (or the default port of the game) takes players to the right port.
+    const named = hostname || null;
 
     // What gets copied is always the real address, even while it is hidden on screen.
     const allocation =
