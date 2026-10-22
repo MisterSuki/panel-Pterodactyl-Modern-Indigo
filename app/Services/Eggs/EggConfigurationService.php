@@ -64,7 +64,7 @@ class EggConfigurationService
             fn (string $line) => trim($line) !== '' && !preg_match('/change\s+this/i', $line)
         ));
 
-        if (preg_match('/node|python|bun|deno/i', $image)) {
+        if (preg_match('~(^|[/:_-])(node|python|bun|deno)~i', $image)) {
             $done[] = 'regex:(?i)(ready|connect|logged in|listening|started|running|online|démarr|prêt)';
         }
         $startup['done'] = $done ?: ['regex:.'];
