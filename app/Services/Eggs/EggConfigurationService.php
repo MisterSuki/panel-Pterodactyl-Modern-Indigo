@@ -55,7 +55,8 @@ class EggConfigurationService
      * (Node.js, Python bots...) often keep a placeholder there ("change this part") or a line the app never prints, so
      * the server stays "starting" forever. Here:
      *  - placeholders and empty lines are removed; if nothing is left, the first line of output means it started;
-     *  - for Node.js, Python, Bun and Deno images, the usual "ready" lines of a bot or an app also count.
+     *  - for Node.js, Python, Bun and Deno images (bots and apps, which often print nothing special once ready), the
+     *    first line of output always means it started.
      */
     protected function withStartDetection(array $startup, string $image): array
     {
@@ -64,10 +65,10 @@ class EggConfigurationService
             fn (string $line) => trim($line) !== '' && !preg_match('/change\s+this/i', $line)
         ));
 
-        if (preg_match('~(^|[/:_-])(node|python|bun|deno)~i', $image)) {
-            $done[] = 'regex:(?i)(ready|connect|logged in|listening|started|running|online|démarr|prêt)';
+        if (!$done || preg_match('~(^|[/:_-])(node|python|bun|deno)~i', $image)) {
+            $done = ['regex:.'];
         }
-        $startup['done'] = $done ?: ['regex:.'];
+        $startup['done'] = $done;
 
         return $startup;
     }
