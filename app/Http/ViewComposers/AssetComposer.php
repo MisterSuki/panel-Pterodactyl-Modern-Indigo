@@ -39,6 +39,10 @@ class AssetComposer
                 'enabled' => AuthFeatures::discordEnabled(),
             ],
             'phpmyadmin' => PhpMyAdminSignOn::enabled(),
+            // The public status page, linked from the top bar while it is open.
+            'status' => [
+                'enabled' => app(\Pterodactyl\Services\Notifications\StatusPage::class)->enabled(),
+            ],
             'shop' => [
                 'enabled' => app(\Pterodactyl\Services\Shop\ShopSettings::class)->enabled(),
             ],

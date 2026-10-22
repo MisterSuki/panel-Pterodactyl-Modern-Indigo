@@ -74,6 +74,7 @@ const App = () => {
             recaptcha: { enabled: false, siteKey: '', ...(site.recaptcha || {}) },
             discord: { enabled: false, ...(site.discord || {}) },
             shop: { enabled: false, ...(site.shop || {}) },
+            status: { enabled: false, ...(site.status || {}) },
         });
     }
 

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCogs, faLayerGroup, faSignOutAlt, faStore } from '@fortawesome/free-solid-svg-icons';
+import { faCogs, faHeartbeat, faLayerGroup, faSignOutAlt, faStore } from '@fortawesome/free-solid-svg-icons';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
 import SearchContainer from '@/components/dashboard/search/SearchContainer';
@@ -43,6 +43,7 @@ const RightNavigation = styled.div`
 export default () => {
     const adminAccess = useStoreState((state: ApplicationStore) => state.user.data!.adminAccess);
     const shopOpen = useStoreState((state: ApplicationStore) => !!state.settings.data?.shop?.enabled);
+    const statusOpen = useStoreState((state: ApplicationStore) => !!state.settings.data?.status?.enabled);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const { pathname } = useLocation();
 
@@ -106,6 +107,13 @@ export default () => {
                                 <NavLink to={'/shop'}>
                                     <FontAwesomeIcon icon={faStore} />
                                 </NavLink>
+                            </Tooltip>
+                        )}
+                        {statusOpen && (
+                            <Tooltip placement={'bottom'} content={'Status page'}>
+                                <a href={'/status'} target={'_blank'} rel={'noopener noreferrer'}>
+                                    <FontAwesomeIcon icon={faHeartbeat} />
+                                </a>
                             </Tooltip>
                         )}
                         {adminAccess && (
