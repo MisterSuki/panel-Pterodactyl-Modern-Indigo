@@ -32,7 +32,7 @@ const GAMES: Array<ServerGame & { test: RegExp }> = [
         to: '#0369a1',
     },
     {
-        test: /minecraft|paper|spigot|forge|fabric|bungee|velocity|purpur|\.jar\b/i,
+        test: /minecraft|paper|spigot|forge|fabric|bungee|velocity|purpur/i,
         name: 'Minecraft',
         icon: faCube,
         from: '#4ade80',
