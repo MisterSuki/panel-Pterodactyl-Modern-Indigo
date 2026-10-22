@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Server } from '@/api/server/getServer';
 import getServers from '@/api/getServers';
 import ServerRow from '@/components/dashboard/ServerRow';
@@ -19,6 +19,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames';
+import serverGame from '@/components/dashboard/serverGame';
 
 type StatusFilter = 'all' | 'online' | 'offline';
 
@@ -33,6 +34,20 @@ export default () => {
     const [showOnlyAdmin, setShowOnlyAdmin] = usePersistedState(`${uuid}:show_all_servers`, false);
     const [query, setQuery] = useState('');
     const [filter, setFilter] = useState<StatusFilter>('all');
+    const searchInput = useRef<HTMLInputElement>(null);
+
+    // "/" puts the cursor in the search, like on GitHub; Escape empties it.
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            const target = e.target as HTMLElement;
+            if (e.key !== '/' || /input|textarea|select/i.test(target.tagName) || target.isContentEditable) return;
+            e.preventDefault();
+            searchInput.current?.focus();
+        };
+        document.addEventListener('keydown', onKey);
+
+        return () => document.removeEventListener('keydown', onKey);
+    }, []);
 
     const { data: servers, error } = useSWR<PaginatedResult<Server>>(
         ['/api/client/servers', showOnlyAdmin && rootAdmin, page],
@@ -123,13 +138,22 @@ export default () => {
                             css={tw`absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm`}
                         />
                         <input
+                            ref={searchInput}
                             type={'search'}
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Escape' && setQuery('')}
                             placeholder={'Search a server...'}
                             aria-label={'Search a server...'}
-                            css={tw`w-full rounded-xl border border-white/10 bg-neutral-900/60 py-2.5 pl-9 pr-3 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-40`}
+                            css={tw`w-full rounded-xl border border-white/10 bg-neutral-900/60 py-2.5 pl-9 pr-10 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-40`}
                         />
+                        {!query && (
+                            <kbd
+                                css={tw`hidden sm:block absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-white/10 bg-white/5 px-1.5 text-2xs text-neutral-500 pointer-events-none`}
+                            >
+                                /
+                            </kbd>
+                        )}
                     </div>
                     <div css={tw`flex items-center gap-1 rounded-xl border border-white/10 bg-neutral-900/60 p-1`}>
                         {(['all', 'online', 'offline'] as StatusFilter[]).map((value) => (
@@ -168,11 +192,19 @@ export default () => {
                             const running = usage?.[server.uuid]?.status === 'running';
                             const offline = usage?.[server.uuid]?.status === 'offline';
 
+                            // The name, the description, the game and the address (with its port) are searched.
+                            const text = [
+                                server.name,
+                                server.description || '',
+                                serverGame(server).name,
+                                ...server.allocations.map((a) => `${a.alias || a.ip}:${a.port}`),
+                            ]
+                                .join(' ')
+                                .toLowerCase();
+
                             return (
                                 (filter === 'all' || (filter === 'online' ? running : offline)) &&
-                                (needle === '' ||
-                                    server.name.toLowerCase().includes(needle) ||
-                                    server.description.toLowerCase().includes(needle))
+                                (needle === '' || text.includes(needle))
                             );
                         });
 

@@ -8,9 +8,10 @@ import {
     faMemory,
     faMicrochip,
     faCalendarAlt,
-    faServer,
+    faClock,
     faSlidersH,
 } from '@fortawesome/free-solid-svg-icons';
+import serverGame from '@/components/dashboard/serverGame';
 import UpgradeServerDialog from '@/components/dashboard/UpgradeServerDialog';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
@@ -58,7 +59,16 @@ const ServerCard = styled(GreyRowBox)<{ $tint: string }>`
     }
 
     & .icon {
-        ${tw`w-12 h-12 rounded-xl`};
+        ${tw`w-12 h-12 rounded-xl text-lg`};
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 20px -8px rgba(0, 0, 0, 0.6);
+    }
+
+    & .chip {
+        ${tw`inline-flex items-center gap-2 max-w-full rounded-lg border border-white/5 bg-black/30 px-2.5 py-1 text-xs text-neutral-300`};
+    }
+
+    & .resting {
+        ${tw`opacity-40`};
     }
 
     &[aria-disabled='true'] {
@@ -90,6 +100,16 @@ interface Props {
     style?: React.CSSProperties;
 }
 
+// How long the server has been running ("3 h 12 min"), from its uptime in milliseconds.
+const uptime = (ms: number): string => {
+    const minutes = Math.floor(ms / 60000);
+    if (minutes < 1) return '< 1 min';
+    if (minutes < 60) return `${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+
+    return hours < 48 ? `${hours} h ${minutes % 60} min` : `${Math.floor(hours / 24)} j ${hours % 24} h`;
+};
+
 const ServerRow = ({
     server,
     stats = null,
@@ -109,6 +129,9 @@ const ServerRow = ({
     const cpuLimit = server.limits.cpu !== 0 ? server.limits.cpu + ' %' : 'Unlimited';
 
     const address = server.allocations.filter((alloc) => alloc.isDefault);
+    const game = serverGame(server);
+    // CPU and memory say nothing while the server is stopped: they are dimmed, the disk stays.
+    const resting = stats?.status === 'offline';
 
     // A suspended server cannot be opened: the card is only there to say so, and is not a link.
     const card: Record<string, unknown> = isSuspended
@@ -126,8 +149,12 @@ const ServerRow = ({
         >
             <div css={tw`flex items-center col-span-12 lg:col-span-5 min-w-0`}>
                 <div css={tw`relative flex-shrink-0 mr-4`}>
-                    <div className={'icon'}>
-                        <FontAwesomeIcon icon={faServer} />
+                    <div
+                        className={'icon'}
+                        title={game.name || undefined}
+                        style={{ backgroundImage: `linear-gradient(135deg, ${game.from} 0%, ${game.to} 100%)` }}
+                    >
+                        <FontAwesomeIcon icon={game.icon} />
                     </div>
                     <span
                         css={tw`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-neutral-800`}
@@ -148,20 +175,27 @@ const ServerRow = ({
                             <p css={tw`text-sm text-neutral-400 break-words line-clamp-2`}>{server.description}</p>
                         )
                     )}
-                    {address.length > 0 && (
-                        <div
-                            css={tw`mt-2 inline-flex items-center gap-2 max-w-full rounded-lg border border-white/5 bg-black/30 px-2.5 py-1 text-xs text-neutral-300`}
-                        >
-                            <FontAwesomeIcon icon={faEthernet} css={tw`text-neutral-500 flex-shrink-0`} />
-                            {address.map((allocation) => (
-                                <HiddenAddress
-                                    key={allocation.ip + allocation.port.toString()}
-                                    host={allocation.alias || ip(allocation.ip)}
-                                    port={allocation.port}
-                                />
-                            ))}
-                        </div>
-                    )}
+                    <div css={tw`mt-2 flex flex-wrap items-center gap-1.5`}>
+                        {address.length > 0 && (
+                            <div className={'chip'}>
+                                <FontAwesomeIcon icon={faEthernet} css={tw`text-neutral-500 flex-shrink-0`} />
+                                {address.map((allocation) => (
+                                    <HiddenAddress
+                                        key={allocation.ip + allocation.port.toString()}
+                                        host={allocation.alias || ip(allocation.ip)}
+                                        port={allocation.port}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                        {game.name && <span className={'chip'}>{game.name}</span>}
+                        {stats?.status === 'running' && stats.uptime > 0 && (
+                            <span className={'chip'} title={'Uptime'}>
+                                <FontAwesomeIcon icon={faClock} css={tw`text-green-400/70`} />
+                                {uptime(stats.uptime)}
+                            </span>
+                        )}
+                    </div>
                     {billing && (
                         <p css={tw`mt-2 flex items-center gap-1.5 text-xs text-neutral-400`}>
                             <FontAwesomeIcon icon={faCalendarAlt} css={tw`text-neutral-500`} />
@@ -252,26 +286,34 @@ const ServerRow = ({
                         )
                     ) : (
                         <div css={tw`grid grid-cols-3 gap-4`}>
-                            <Gauge
-                                icon={faMicrochip}
-                                label={'CPU'}
-                                color={'#66adff'}
-                                value={`${stats.cpuUsagePercent.toFixed(1)} %`}
-                                limit={cpuLimit}
-                                ratio={server.limits.cpu > 0 ? stats.cpuUsagePercent / server.limits.cpu : null}
-                            />
-                            <Gauge
-                                icon={faMemory}
-                                label={'Memory'}
-                                color={'#22d3ee'}
-                                value={bytesToString(stats.memoryUsageInBytes)}
-                                limit={memoryLimit}
-                                ratio={
-                                    server.limits.memory > 0
-                                        ? stats.memoryUsageInBytes / mbToBytes(server.limits.memory)
-                                        : null
-                                }
-                            />
+                            <div className={resting ? 'resting' : undefined}>
+                                <Gauge
+                                    icon={faMicrochip}
+                                    label={'CPU'}
+                                    color={'#66adff'}
+                                    value={resting ? '—' : `${stats.cpuUsagePercent.toFixed(1)} %`}
+                                    limit={cpuLimit}
+                                    ratio={
+                                        !resting && server.limits.cpu > 0
+                                            ? stats.cpuUsagePercent / server.limits.cpu
+                                            : null
+                                    }
+                                />
+                            </div>
+                            <div className={resting ? 'resting' : undefined}>
+                                <Gauge
+                                    icon={faMemory}
+                                    label={'Memory'}
+                                    color={'#22d3ee'}
+                                    value={resting ? '—' : bytesToString(stats.memoryUsageInBytes)}
+                                    limit={memoryLimit}
+                                    ratio={
+                                        !resting && server.limits.memory > 0
+                                            ? stats.memoryUsageInBytes / mbToBytes(server.limits.memory)
+                                            : null
+                                    }
+                                />
+                            </div>
                             <Gauge
                                 icon={faHdd}
                                 label={'Disk'}
