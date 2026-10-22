@@ -56,6 +56,7 @@ app/Providers/RouteServiceProvider.php
 routes/phpmyadmin.php
 resources/lang/en/activity.php
 app/Services/Eggs/CommunityEggCatalog.php
+app/Services/Eggs/EggConfigurationService.php
 app/Http/Controllers/Admin/Nests/CommunityEggController.php
 resources/views/admin/nests/index.blade.php
 resources/views/admin/servers/new.blade.php
