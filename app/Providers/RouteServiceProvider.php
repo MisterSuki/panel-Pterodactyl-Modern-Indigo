@@ -41,6 +41,8 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')->group(function () {
                 // The home page, which anybody can open (the administration can see it even when signed in).
                 Route::get('/welcome', [LandingController::class, 'show'])->name('landing');
+                // The public status page, for everybody (when the administration opened it).
+                Route::get('/status', [\Pterodactyl\Http\Controllers\Base\StatusPageController::class, 'show'])->name('status');
 
                 Route::middleware([ShowLandingToGuests::class, 'auth.session', RequireTwoFactorAuthentication::class])
                     ->group(base_path('routes/base.php'));

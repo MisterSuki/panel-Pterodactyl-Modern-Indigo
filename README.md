@@ -280,6 +280,9 @@ Panel, Wings, mise à jour avec **sauvegarde et retour en arrière**, désinstal
 [Minecraft](#️-serveurs-minecraft) ·
 [Euro Truck](#-euro-truck-simulator-2--american-truck-simulator) ·
 [Boutique](#-boutique-stripe-paypal-sumup) ·
+[Notifications](#-notifications-alertes-et-annonces) ·
+[Statistiques](#-statistiques-des-joueurs) ·
+[Page de statut](#-page-de-statut-publique) ·
 [Sous-domaines](#-sous-domaines-cloudflare-bunnynet-powerdns) ·
 [Bases SQLite](#️-bases-sqlite-db-dans-le-gestionnaire-de-fichiers) ·
 [Apparence](#-apparence--fond-animé-image-et-couleurs) ·
@@ -667,6 +670,37 @@ Sur un serveur dédié ETS2 ou ATS, un onglet **Euro Truck** permet de régler l
 
 > [!IMPORTANT]
 > Arrête le serveur avant d'enregistrer : sinon le jeu peut réécrire le fichier par-dessus tes changements.
+
+### 🔔 Notifications, alertes et annonces
+
+**La cloche** (en haut à droite du panel) rassemble tout ce qui concerne la personne, avec un point rouge pour les non-lus :
+
+- les **alertes de ses serveurs** (voir plus bas) ;
+- les **réponses du staff** à ses tickets ;
+- la **boutique** : serveur suspendu parce que sa durée est écoulée ;
+- les **annonces de l'administration** : maintenance, mise à jour, nouveauté.
+
+*Administration → Annonces* envoie une annonce **à tous les utilisateurs** (information, maintenance, mise à jour, avertissement,
+bonne nouvelle), avec un lien si besoin. Ceux qui s'inscrivent ensuite la voient aussi pendant 30 jours. Le bouton **Mettre à
+jour maintenant** propose aussi de prévenir les utilisateurs tout seul.
+
+**Alertes des serveurs** (*Paramètres* du serveur → *Alertes*) : crash (y compris un crash redémarré automatiquement par Wings),
+mémoire ou disque remplis à 90 %, démarrage, arrêt. Elles vont dans la cloche du propriétaire et des sous-utilisateurs, et dans un
+**salon Discord** si un webhook est enregistré (bouton pour envoyer un test). Le panel regarde tous les serveurs **une fois par
+minute**, avec une seule requête par node (commande `p:servers:watch`, lancée par la tâche planifiée habituelle du panel). Un
+arrêt demandé depuis le panel, la console ou un planning n'est pas compté comme un crash.
+
+### 📈 Statistiques des joueurs
+
+Un onglet **Statistiques** sur chaque serveur : la courbe des joueurs connectés sur **24 heures** ou **7 jours**, le **pic**, la
+**moyenne** et les **heures d'affluence**. Le nombre de joueurs est relevé toutes les 5 minutes pendant que le serveur tourne :
+**Minecraft** (comme la liste des serveurs du jeu), **FiveM** et les **jeux Steam**. 30 jours sont gardés.
+
+### 🟢 Page de statut publique
+
+Activée dans *Administration → Annonces*, elle est à l'adresse `/status` de ton panel, sans compte : l'état général (tout
+fonctionne, maintenance en cours, services perturbés), les **annonces** que tu rends publiques, et chaque **node** avec ses
+dernières 24 heures et sa **disponibilité sur 7 jours**. Elle se rafraîchit toute seule chaque minute.
 
 ### 🌐 Sous-domaines (Cloudflare, Bunny.net, PowerDNS)
 

@@ -201,3 +201,22 @@ app/Http/Controllers/Api/Client/Servers/SubdomainController.php
 resources/views/admin/subdomains/
 database/migrations/2026_10_23_000000_create_server_custom_domains_table.php
 app/Models/ServerCustomDomain.php
+
+# Bell of the panel, announcements, server alerts (Discord), player statistics and the public status page.
+database/migrations/2026_10_24_000000_create_notifications_alerts_and_stats.php
+app/Models/PanelNotification.php
+app/Models/ServerAlert.php
+app/Services/Notifications/
+app/Services/Servers/ServerWatcher.php
+app/Services/Servers/MinecraftPing.php
+app/Repositories/Wings/DaemonServerListRepository.php
+app/Console/Commands/Server/WatchServersCommand.php
+app/Http/Controllers/Api/Client/NotificationController.php
+app/Http/Controllers/Api/Client/Servers/ServerInsightsController.php
+app/Http/Controllers/Api/Client/Servers/PowerController.php
+app/Http/Controllers/Admin/AnnouncementController.php
+app/Http/Controllers/Base/StatusPageController.php
+app/Jobs/Schedule/RunTaskJob.php
+app/Services/Shop/ShopService.php
+resources/views/admin/announcements.blade.php
+resources/views/status.blade.php

@@ -5,6 +5,7 @@ import { useStoreState } from 'easy-peasy';
 import RenameServerBox from '@/components/server/settings/RenameServerBox';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import Can from '@/components/elements/Can';
+import AlertsBox from '@/components/server/settings/AlertsBox';
 import ReinstallServerBox from '@/components/server/settings/ReinstallServerBox';
 import tw from 'twin.macro';
 import Input from '@/components/elements/Input';
@@ -25,6 +26,7 @@ export default () => {
     return (
         <ServerContentBlock title={'Settings'}>
             <FlashMessageRender byKey={'settings'} css={tw`mb-4`} />
+            <FlashMessageRender byKey={'settings:alerts'} css={tw`mb-4`} />
             <div css={tw`md:flex`}>
                 <div css={tw`w-full md:flex-1 md:mr-10`}>
                     <Can action={'file.sftp'}>
@@ -75,6 +77,9 @@ export default () => {
                         <div css={tw`mb-6 md:mb-10`}>
                             <RenameServerBox />
                         </div>
+                    </Can>
+                    <Can action={'settings.rename'}>
+                        <AlertsBox />
                     </Can>
                     <Can action={'settings.reinstall'}>
                         <ReinstallServerBox />

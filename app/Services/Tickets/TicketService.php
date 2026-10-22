@@ -71,7 +71,7 @@ class TicketService
             throw new DisplayException('Only the staff can write an internal note.');
         }
 
-        return DB::transaction(function () use ($ticket, $author, $body, $asStaff, $internal) {
+        $message = DB::transaction(function () use ($ticket, $author, $body, $asStaff, $internal) {
             $message = $this->write($ticket, $author, $body, $asStaff, $internal);
 
             if (!$internal) {
@@ -89,6 +89,26 @@ class TicketService
 
             return $message;
         });
+
+        // The bell of the person: an answer of the staff to their ticket.
+        if ($asStaff && !$internal && (int) $ticket->user_id !== (int) $author->id) {
+            try {
+                $owner = User::query()->find($ticket->user_id);
+                if ($owner) {
+                    app(\Pterodactyl\Services\Notifications\Notifier::class)->textToUser(
+                        $owner,
+                        'ticket_reply',
+                        ['id' => $ticket->id, 'subject' => $ticket->subject],
+                        'info',
+                        '/tickets/' . $ticket->id
+                    );
+                }
+            } catch (\Throwable) {
+                // The answer is written; a bell that cannot be rung does not stop it.
+            }
+        }
+
+        return $message;
     }
 
     public function close(Ticket $ticket, User $by): Ticket

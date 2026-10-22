@@ -467,6 +467,10 @@ class ShopService
                 if ($server && !$server->isSuspended()) {
                     $this->suspensions->toggle($server, SuspensionService::ACTION_SUSPEND, ['reason' => self::EXPIRED_REASON]);
                     ++$count;
+                    $buyer = \Pterodactyl\Models\User::query()->find($order->user_id);
+                    if ($buyer) {
+                        app(\Pterodactyl\Services\Notifications\Notifier::class)->textToUser($buyer, 'shop_expired', ['name' => $server->name], 'warning', '/shop');
+                    }
                 }
                 $order->update(['status' => ShopOrder::EXPIRED]);
             } catch (\Throwable $exception) {

@@ -31,6 +31,14 @@ Route::group(['prefix' => 'subdomains', 'middleware' => 'admin.can:settings,mana
     Route::post('/custom/{custom}/delete', [Admin\SubdomainController::class, 'deleteCustom'])->whereNumber('custom')->name('admin.subdomains.custom.delete');
 });
 
+// Announcements to every user (the bell, the status page) and the settings of the public status page.
+Route::group(['prefix' => 'announcements', 'middleware' => 'admin.can:settings,manage'], function () {
+    Route::get('/', [Admin\AnnouncementController::class, 'index'])->name('admin.announcements');
+    Route::post('/', [Admin\AnnouncementController::class, 'store']);
+    Route::post('/status', [Admin\AnnouncementController::class, 'saveStatus'])->name('admin.announcements.status');
+    Route::post('/{id}/delete', [Admin\AnnouncementController::class, 'delete'])->whereNumber('id')->name('admin.announcements.delete');
+});
+
 // The theme update with one button (full administrators only, checked in the controller).
 Route::post('/theme-update', [Admin\BaseController::class, 'themeUpdate'])->middleware('throttle:theme-update')->name('admin.theme-update');
 Route::get('/theme-update/status', [Admin\BaseController::class, 'themeUpdateStatus'])->name('admin.theme-update.status');

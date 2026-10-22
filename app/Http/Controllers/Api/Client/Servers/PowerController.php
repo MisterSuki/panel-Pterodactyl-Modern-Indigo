@@ -24,6 +24,7 @@ class PowerController extends ClientApiController
      */
     public function index(SendPowerRequest $request, Server $server): Response
     {
+        \Pterodactyl\Services\Servers\ServerWatcher::markPowerAction($server);
         $this->repository->setServer($server)->send(
             $request->input('signal')
         );

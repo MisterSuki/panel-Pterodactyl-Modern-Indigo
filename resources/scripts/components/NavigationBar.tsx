@@ -13,6 +13,7 @@ import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
 import Tooltip from '@/components/elements/tooltip/Tooltip';
 import Avatar from '@/components/Avatar';
 import BrandTitle from '@/components/elements/BrandTitle';
+import NotificationBell from '@/components/NotificationBell';
 import SupportBubble from '@/components/tickets/SupportBubble';
 import ScreenShare from '@/components/screen/ScreenShare';
 
@@ -94,6 +95,7 @@ export default () => {
                     </div>
                     <RightNavigation className={'flex h-full items-center justify-center'}>
                         <SearchContainer />
+                        <NotificationBell />
                         <Tooltip placement={'bottom'} content={'Dashboard'}>
                             <NavLink to={'/'} exact>
                                 <FontAwesomeIcon icon={faLayerGroup} />

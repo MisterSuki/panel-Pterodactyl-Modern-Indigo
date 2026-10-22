@@ -10,6 +10,7 @@ use Pterodactyl\Repositories\Eloquent\SettingsRepository;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Pterodactyl\Services\Telemetry\TelemetryCollectionService;
 use Pterodactyl\Console\Commands\Server\RunAutoBackupsCommand;
+use Pterodactyl\Console\Commands\Server\WatchServersCommand;
 use Pterodactyl\Console\Commands\Server\UnsuspendExpiredCommand;
 use Pterodactyl\Console\Commands\Shop\ExpireShopOrdersCommand;
 use Pterodactyl\Console\Commands\Shop\BillResourcesCommand;
@@ -49,6 +50,9 @@ class Kernel extends ConsoleKernel
         // and suspends servers with an overdue invoice. Runs daily; the command itself only invoices on the first.
         $schedule->command(BillResourcesCommand::class)->dailyAt('00:10')->withoutOverlapping();
 
+
+        // Alerts of the servers, player statistics and the status of the nodes (one request per node a minute).
+        $schedule->command(WatchServersCommand::class)->everyMinute()->withoutOverlapping(5)->runInBackground();
 
         // Automatic backups: makes the ones that are due and removes the old ones.
         $schedule->command(RunAutoBackupsCommand::class)->everyMinute()->withoutOverlapping();

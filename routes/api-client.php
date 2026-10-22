@@ -69,6 +69,8 @@ Route::prefix('/account')->middleware(AccountSubject::class)->group(function () 
     });
 
     Route::put('/language', [Client\AccountController::class, 'updateLanguage'])->name('api:client.account.update-language');
+    Route::get('/notifications', [Client\NotificationController::class, 'index'])->name('api:client.account.notifications');
+    Route::post('/notifications/read', [Client\NotificationController::class, 'read'])->name('api:client.account.notifications.read');
     Route::put('/appearance', [Client\AccountController::class, 'updateAppearance'])->middleware('throttle:60,1')->name('api:client.account.update-appearance');
 
     Route::post('/avatar', [Client\AvatarController::class, 'store'])->middleware('throttle:10,1')->name('api:client.account.avatar');
@@ -118,6 +120,10 @@ Route::group([
     Route::get('/activity', Client\Servers\ActivityLogController::class)->name('api:client:server.activity');
     Route::get('/fivem', Client\Servers\FiveMController::class)->name('api:client:server.fivem');
     Route::get('/game-status', Client\Servers\GameStatusController::class)->name('api:client:server.game-status');
+    Route::get('/players-history', [Client\Servers\ServerInsightsController::class, 'players']);
+    Route::get('/alerts', [Client\Servers\ServerInsightsController::class, 'alerts']);
+    Route::put('/alerts', [Client\Servers\ServerInsightsController::class, 'saveAlerts']);
+    Route::post('/alerts/test', [Client\Servers\ServerInsightsController::class, 'testAlert'])->middleware('throttle:subdomains');
 
     Route::post('/command', [Client\Servers\CommandController::class, 'index']);
     Route::post('/power', [Client\Servers\PowerController::class, 'index']);

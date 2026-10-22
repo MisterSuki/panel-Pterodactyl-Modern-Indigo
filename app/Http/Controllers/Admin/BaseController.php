@@ -60,6 +60,16 @@ class BaseController extends Controller
         if (!$updater->request()) {
             return new JsonResponse(['error' => 'An update is already running.'], 409);
         }
+        // Tells every user in the bell (and on the status page) that the panel is being updated.
+        if ($request->boolean('notify')) {
+            app(\Pterodactyl\Services\Notifications\Notifier::class)->broadcast(
+                'update',
+                'The panel is being updated',
+                'It goes into maintenance for a few minutes, then comes back by itself. Game servers keep running.',
+                null,
+                true
+            );
+        }
 
         return new JsonResponse($updater->status());
     }

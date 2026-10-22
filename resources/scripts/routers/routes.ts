@@ -21,6 +21,7 @@ import ServerActivityLogContainer from '@/components/server/ServerActivityLogCon
 // These specific lazy loaded routes are to avoid loading in heavy screens
 // for the server dashboard when they're only needed for specific instances.
 const FileEditContainer = lazy(() => import('@/components/server/files/FileEditContainer'));
+const PlayerStatsContainer = lazy(() => import('@/components/server/stats/PlayerStatsContainer'));
 const SubdomainsContainer = lazy(() => import('@/components/server/subdomains/SubdomainsContainer'));
 const SqliteViewerContainer = lazy(() => import('@/components/server/files/SqliteViewerContainer'));
 const ScheduleEditContainer = lazy(() => import('@/components/server/schedules/ScheduleEditContainer'));
@@ -137,6 +138,12 @@ export default {
             permission: 'schedule.*',
             name: undefined,
             component: ScheduleEditContainer,
+        },
+        {
+            path: '/statistics',
+            permission: 'websocket.connect',
+            name: 'Statistics',
+            component: PlayerStatsContainer,
         },
         {
             path: '/subdomains',

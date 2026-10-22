@@ -124,6 +124,7 @@
                         <li><span>If Pterodactyl is older than the version the theme is made for, it is updated first with the official release (the whole panel is saved before).</span></li>
                         <li><span>Game servers keep running: Wings is not touched.</span></li>
                     </ul>
+                    <label class="pd-switch" style="margin-top: 12px;"><input type="checkbox" id="pdThemeUpdateNotify" checked><i class="pd-switch-track"></i><span>Tell the users (bell of the panel and status page)</span></label>
                 </div>
                 <div id="pdThemeUpdateProgress" style="display: none;">
                     <p class="pd-update-state" id="pdThemeUpdateState"><i class="fa fa-circle-o-notch fa-spin"></i> <span>Starting the update…</span></p>
@@ -241,7 +242,8 @@
             fetch(startUrl, {
                 method: 'POST',
                 credentials: 'same-origin',
-                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' },
+                headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ notify: !!(document.getElementById('pdThemeUpdateNotify') || {}).checked }),
             })
                 .then(function (response) {
                     return response.json().catch(function () { return {}; }).then(function (body) {
