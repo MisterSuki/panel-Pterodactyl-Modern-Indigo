@@ -22,13 +22,85 @@ class EggParserService
             throw new InvalidFileUploadException('The selected file is not valid and cannot be imported.');
         }
 
-        /** @var array $parsed */
-        $parsed = json_decode($file->openFile()->fread($file->getSize()), true, 512, JSON_THROW_ON_ERROR);
-        if (!in_array(Arr::get($parsed, 'meta.version') ?? '', ['PTDL_v1', 'PTDL_v2'])) {
-            throw new InvalidFileUploadException('The JSON file provided is not in a format that can be recognized.');
+        $raw = (string) $file->openFile()->fread(max(1, (int) $file->getSize()));
+        // A file saved by some Windows editors starts with an invisible "byte order mark" that JSON does not allow.
+        $raw = preg_replace('/^\xEF\xBB\xBF/', '', $raw) ?? $raw;
+
+        try {
+            /** @var array $parsed */
+            $parsed = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $exception) {
+            throw new InvalidFileUploadException('This file is not valid JSON: ' . $exception->getMessage() . '. Open it in a JSON checker to find the mistake.');
+        }
+        if (!is_array($parsed)) {
+            throw new InvalidFileUploadException('This file is not an egg.');
         }
 
-        return $this->convertToV2($parsed);
+        $version = (string) (Arr::get($parsed, 'meta.version') ?? '');
+        if (str_starts_with($version, 'PLCN_')) {
+            // An egg exported from Pelican (the successor of Pterodactyl): same idea, a few fields named differently.
+            $parsed = $this->fromPelican($parsed);
+            $version = 'PTDL_v2';
+        }
+        if (!in_array($version, ['PTDL_v1', 'PTDL_v2'], true)) {
+            throw new InvalidFileUploadException($version === ''
+                ? 'This file is not an egg: it has no "meta.version". Export the egg again from its panel.'
+                : 'This egg format (' . $version . ') is not known. Pterodactyl eggs (PTDL_v1, PTDL_v2) and Pelican eggs (PLCN_…) can be imported.');
+        }
+        if (!is_string(Arr::get($parsed, 'name')) || trim((string) Arr::get($parsed, 'name')) === '') {
+            throw new InvalidFileUploadException('This egg has no name.');
+        }
+
+        $parsed = $this->convertToV2($parsed);
+        $parsed['variables'] = $this->cleanVariables($parsed['variables'] ?? []);
+
+        return $parsed;
+    }
+
+    /**
+     * Turns a Pelican egg into a Pterodactyl one.
+     */
+    protected function fromPelican(array $parsed): array
+    {
+        $parsed['meta']['version'] = 'PTDL_v2';
+        // Pelican can have several start commands: the first one is used.
+        if (!isset($parsed['startup']) && is_array($parsed['startup_commands'] ?? null)) {
+            $parsed['startup'] = (string) (array_values($parsed['startup_commands'])[0] ?? '');
+        }
+        unset($parsed['startup_commands'], $parsed['tags']);
+
+        return $parsed;
+    }
+
+    /**
+     * Keeps only what a variable of this panel has, in the right types: other panels add their own fields (sort, id,
+     * rules as a list…) that the database would refuse.
+     */
+    protected function cleanVariables(mixed $variables): array
+    {
+        $clean = [];
+        foreach (is_array($variables) ? $variables : [] as $variable) {
+            if (!is_array($variable) || empty($variable['env_variable'])) {
+                continue;
+            }
+            $rules = $variable['rules'] ?? '';
+            if (is_array($rules)) {
+                $rules = implode('|', array_filter(array_map('strval', $rules), fn ($r) => $r !== ''));
+            }
+            $default = $variable['default_value'] ?? '';
+            $clean[] = [
+                'name' => mb_substr((string) ($variable['name'] ?? $variable['env_variable']), 0, 191),
+                'description' => (string) ($variable['description'] ?? ''),
+                'env_variable' => (string) $variable['env_variable'],
+                'default_value' => is_bool($default) ? ($default ? '1' : '0') : (string) ($default ?? ''),
+                'user_viewable' => (bool) ($variable['user_viewable'] ?? false),
+                'user_editable' => (bool) ($variable['user_editable'] ?? false),
+                'rules' => (string) $rules,
+                'field_type' => 'text',
+            ];
+        }
+
+        return $clean;
     }
 
     /**
@@ -83,7 +155,7 @@ class EggParserService
 
         $parsed['variables'] = array_map(function ($value) {
             return array_merge($value, ['field_type' => 'text']);
-        }, $parsed['variables']);
+        }, is_array($parsed['variables'] ?? null) ? $parsed['variables'] : []);
 
         return $parsed;
     }

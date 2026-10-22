@@ -220,3 +220,7 @@ app/Jobs/Schedule/RunTaskJob.php
 app/Services/Shop/ShopService.php
 resources/views/admin/announcements.blade.php
 resources/views/status.blade.php
+# Egg import: tolerant of BOM, Pelican eggs and extra fields, with readable errors instead of a 500.
+app/Services/Eggs/EggParserService.php
+app/Http/Controllers/Admin/Nests/EggShareController.php
+app/Http/Requests/Admin/Egg/EggImportFormRequest.php

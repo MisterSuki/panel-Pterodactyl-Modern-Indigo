@@ -16,6 +16,7 @@ import InstallListener from '@/components/server/InstallListener';
 import ErrorBoundary from '@/components/elements/ErrorBoundary';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { serverTabIcons } from '@/routers/tabIcons';
 import { useLocation } from 'react-router';
 import ConflictStateRenderer from '@/components/server/ConflictStateRenderer';
 import PermissionRoute from '@/components/elements/PermissionRoute';
@@ -100,18 +101,24 @@ export default () => {
                                         route.permission ? (
                                             <Can key={route.path} action={route.permission} matchAny>
                                                 <NavLink to={to(route.path, true)} exact={route.exact}>
-                                                    {route.name}
+                                                    {serverTabIcons[route.path] && (
+                                                        <FontAwesomeIcon icon={serverTabIcons[route.path]} />
+                                                    )}
+                                                    <span>{route.name}</span>
                                                 </NavLink>
                                             </Can>
                                         ) : (
                                             <NavLink key={route.path} to={to(route.path, true)} exact={route.exact}>
-                                                {route.name}
+                                                {serverTabIcons[route.path] && (
+                                                    <FontAwesomeIcon icon={serverTabIcons[route.path]} />
+                                                )}
+                                                <span>{route.name}</span>
                                             </NavLink>
                                         )
                                     )}
                                 {rootAdmin && (
                                     // eslint-disable-next-line react/jsx-no-target-blank
-                                    <a href={`/admin/servers/view/${serverId}`} target={'_blank'}>
+                                    <a href={`/admin/servers/view/${serverId}`} target={'_blank'} title={'Admin'}>
                                         <FontAwesomeIcon icon={faExternalLinkAlt} />
                                     </a>
                                 )}

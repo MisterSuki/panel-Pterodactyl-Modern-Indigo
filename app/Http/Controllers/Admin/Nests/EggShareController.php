@@ -50,7 +50,19 @@ class EggShareController extends Controller
      */
     public function import(EggImportFormRequest $request): RedirectResponse
     {
-        $egg = $this->importerService->handle($request->file('import_file'), $request->input('import_to_nest'));
+        try {
+            $egg = $this->importerService->handle($request->file('import_file'), (int) $request->input('import_to_nest'));
+        } catch (\Pterodactyl\Exceptions\DisplayException $exception) {
+            $this->alert->danger($exception->getMessage())->flash();
+
+            return redirect()->route('admin.nests');
+        } catch (\Throwable $exception) {
+            // Shown instead of a "500": what went wrong, so the egg can be fixed.
+            \Illuminate\Support\Facades\Log::warning('An egg could not be imported.', ['error' => $exception->getMessage()]);
+            $this->alert->danger('The egg could not be imported: ' . \Illuminate\Support\Str::limit($exception->getMessage(), 300))->flash();
+
+            return redirect()->route('admin.nests');
+        }
         $this->alert->success(trans('admin/nests.eggs.notices.imported'))->flash();
 
         return redirect()->route('admin.nests.egg.view', ['egg' => $egg->id]);
@@ -66,7 +78,18 @@ class EggShareController extends Controller
      */
     public function update(EggImportFormRequest $request, Egg $egg): RedirectResponse
     {
-        $this->updateImporterService->handle($egg, $request->file('import_file'));
+        try {
+            $this->updateImporterService->handle($egg, $request->file('import_file'));
+        } catch (\Pterodactyl\Exceptions\DisplayException $exception) {
+            $this->alert->danger($exception->getMessage())->flash();
+
+            return redirect()->route('admin.nests.egg.view', ['egg' => $egg]);
+        } catch (\Throwable $exception) {
+            \Illuminate\Support\Facades\Log::warning('An egg could not be updated from a file.', ['error' => $exception->getMessage()]);
+            $this->alert->danger('The egg could not be updated: ' . \Illuminate\Support\Str::limit($exception->getMessage(), 300))->flash();
+
+            return redirect()->route('admin.nests.egg.view', ['egg' => $egg]);
+        }
         $this->alert->success(trans('admin/nests.eggs.notices.updated_via_import'))->flash();
 
         return redirect()->route('admin.nests.egg.view', ['egg' => $egg]);
