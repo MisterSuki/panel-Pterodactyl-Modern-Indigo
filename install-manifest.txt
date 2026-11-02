@@ -209,6 +209,7 @@ app/Models/PanelNotification.php
 app/Models/ServerAlert.php
 app/Services/Notifications/
 app/Services/Servers/ServerWatcher.php
+app/Services/Servers/PlayerCounter.php
 app/Services/Servers/MinecraftPing.php
 app/Repositories/Wings/DaemonServerListRepository.php
 app/Console/Commands/Server/WatchServersCommand.php

@@ -34,9 +34,7 @@ class ServerWatcher
         private CacheRepository $cache,
         private Notifier $notifier,
         private DaemonServerListRepository $wings,
-        private GameStatus $gameStatus,
-        private FiveMStatus $fivem,
-        private MinecraftPing $minecraft,
+        private PlayerCounter $players,
     ) {
     }
 
@@ -241,45 +239,10 @@ class ServerWatcher
 
     private function samplePlayers(Server $server): void
     {
-        $players = null;
-        $max = null;
-
-        if ($this->fivem->isFiveM($server)) {
-            $status = $this->fivem->status($server);
-            $players = $status['players'];
-            $max = $status['max_players'];
-        } elseif ($this->gameStatus->supports($server)) {
-            $status = $this->gameStatus->status($server);
-            $players = $status['online'] ? $status['players'] : null;
-            $max = $status['max_players'];
-        } elseif ($this->isMinecraft($server)) {
-            $host = $server->allocation?->ip;
-            if (!$host || in_array($host, ['0.0.0.0', '::'], true)) {
-                $host = $server->node->fqdn;
-            }
-            if ($host && $server->allocation) {
-                $answer = $this->minecraft->ask($host, (int) $server->allocation->port);
-                $players = $answer['players'] ?? null;
-                $max = $answer['max_players'] ?? null;
-            }
+        $count = $this->players->count($server);
+        if ($count !== null) {
+            $this->players->record($server, $count);
         }
-
-        if ($players === null) {
-            return;
-        }
-        DB::table('server_player_samples')->insert([
-            'server_id' => $server->id,
-            'players' => min(65535, max(0, (int) $players)),
-            'max_players' => $max !== null ? min(65535, (int) $max) : null,
-            'created_at' => now(),
-        ]);
-    }
-
-    private function isMinecraft(Server $server): bool
-    {
-        $features = (array) ($server->egg?->inherit_features ?? $server->egg?->features ?? []);
-
-        return in_array('eula', $features, true) || in_array('java_version', $features, true);
     }
 
     private function size(int $bytes): string

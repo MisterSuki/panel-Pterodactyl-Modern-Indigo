@@ -51,3 +51,20 @@ export const getPlayerHistory = (uuid: string, range: '24h' | '7d'): Promise<Pla
         points: (data.points || []).map((p: any) => ({ at: new Date(p.at), players: p.players, peak: p.peak })),
         hours: data.hours || [],
     }));
+
+export interface PlayersLive {
+    online: boolean;
+    players: number | null;
+    maxPlayers: number | null;
+    via: 'steam' | 'minecraft' | 'bedrock' | 'fivem' | null;
+    at: Date;
+}
+
+export const getPlayersLive = (uuid: string): Promise<PlayersLive> =>
+    http.get(`/api/client/servers/${uuid}/players-live`).then(({ data }) => ({
+        online: !!data.online,
+        players: data.players ?? null,
+        maxPlayers: data.max_players ?? null,
+        via: data.via ?? null,
+        at: new Date(data.at),
+    }));

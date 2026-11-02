@@ -13,13 +13,14 @@ use Pterodactyl\Models\ServerAlert;
 use Pterodactyl\Services\Helpers\Locales;
 use Pterodactyl\Services\Notifications\AlertTexts;
 use Pterodactyl\Services\Notifications\Notifier;
+use Pterodactyl\Services\Servers\PlayerCounter;
 
 /**
  * The alerts of a server (where they go and which ones) and its player statistics.
  */
 class ServerInsightsController extends ClientApiController
 {
-    public function __construct(private Notifier $notifier)
+    public function __construct(private Notifier $notifier, private PlayerCounter $counter)
     {
         parent::__construct();
     }
@@ -122,6 +123,29 @@ class ServerInsightsController extends ClientApiController
             'points' => $points,
             'hours' => array_map(fn ($list) => $list ? round(array_sum($list) / count($list), 1) : null, $hours),
             'timezone' => date_default_timezone_get(),
+        ]);
+    }
+
+    /**
+     * The players on the server right now, for the live part of the statistics (asked every few seconds while the page
+     * is open). The count is also written in the statistics every 5 minutes, so they fill even when the scheduled
+     * watch of the panel does not run.
+     */
+    public function playersLive(Request $request, Server $server): JsonResponse
+    {
+        abort_unless($request->user()->can(Permission::ACTION_WEBSOCKET_CONNECT, $server), 403);
+
+        $count = $this->counter->count($server);
+        if ($count !== null) {
+            $this->counter->record($server, $count);
+        }
+
+        return new JsonResponse([
+            'online' => $count !== null,
+            'players' => $count['players'] ?? null,
+            'max_players' => $count['max_players'] ?? null,
+            'via' => $count['via'] ?? null,
+            'at' => now()->toAtomString(),
         ]);
     }
 

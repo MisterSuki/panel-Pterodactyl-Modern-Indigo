@@ -2055,5 +2055,11 @@
  "lines": "lignes",
  "to save": "pour enregistrer",
  "to search": "pour chercher",
- "More": "Plus"
+ "More": "Plus",
+ "Players right now": "Joueurs en ce moment",
+ "Server offline": "Serveur hors ligne",
+ "Steam query": "Requête Steam",
+ "This game does not give its number of players, or it is still starting.": "Ce jeu ne donne pas son nombre de joueurs, ou il démarre encore.",
+ "Live, and counted every 5 minutes while the server runs.": "En direct, et comptés toutes les 5 minutes pendant que le serveur tourne.",
+ "The players are counted every 5 minutes while the server runs. The first point arrives in a few minutes.": "Les joueurs sont comptés toutes les 5 minutes pendant que le serveur tourne. Le premier point arrive dans quelques minutes."
 }
