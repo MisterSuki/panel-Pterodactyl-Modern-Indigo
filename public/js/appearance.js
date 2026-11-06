@@ -412,7 +412,8 @@
 
         function frame(now) {
             if (state.stopped) return;
-            if (!document.hidden && now - last >= 33) {
+            // Stands still behind a window of the administration: nobody watches it, and the window stays smooth.
+            if (!document.hidden && !document.body.classList.contains('modal-open') && now - last >= 33) {
                 last = now;
                 painter.draw(look.effect, colors, (now - start) / 1000);
             }
