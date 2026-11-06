@@ -228,10 +228,11 @@ const InstallBanner = ({ status, apps }: { status: WebInstallStatus; apps: WebAp
     );
 };
 
-// A page of the panel in HTTPS cannot show a site in plain HTTP: that one opens in a new tab.
+// A page of the panel in HTTPS cannot show a site in plain HTTP: that one opens in a new tab. The number in the address
+// of the frame makes the browser ask the site again, instead of showing the copy it keeps.
 const Preview = ({ url, temporary }: { url: string | null; temporary: string | null }) => {
     const status = ServerContext.useStoreState((state) => state.status.value);
-    const [version, setVersion] = useState(0);
+    const [version, setVersion] = useState(() => Date.now());
     const address = url || temporary;
 
     if (!address) {
@@ -255,7 +256,7 @@ const Preview = ({ url, temporary }: { url: string | null; temporary: string | n
                     </p>
                 </div>
                 {framed && (
-                    <Button.Text type={'button'} size={Button.Sizes.Small} onClick={() => setVersion((v) => v + 1)}>
+                    <Button.Text type={'button'} size={Button.Sizes.Small} onClick={() => setVersion(Date.now())}>
                         <FontAwesomeIcon icon={faSyncAlt} css={tw`mr-1.5`} /> <span>Reload</span>
                     </Button.Text>
                 )}
@@ -270,7 +271,7 @@ const Preview = ({ url, temporary }: { url: string | null; temporary: string | n
             {framed && (
                 <iframe
                     key={version}
-                    src={address}
+                    src={`${address}/?preview=${version}`}
                     title={'Preview of the site'}
                     sandbox={'allow-scripts allow-same-origin allow-forms'}
                     css={tw`block w-full border-0 border-t border-white/10 bg-white`}
