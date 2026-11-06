@@ -104,6 +104,7 @@
                 <form action="{{ route('admin.web-hosting.eggs') }}" method="POST">
                     {!! csrf_field() !!}
                     <button type="submit" class="btn btn-success btn-sm">{{ $eggsInstalled ? 'Update the eggs' : 'Install the eggs' }}</button>
+                    <a href="{{ route('admin.servers.new') }}" class="btn btn-primary btn-sm">Create a website</a>
                 </form>
             </div>
         </div>
