@@ -142,12 +142,14 @@ export default {
             permission: 'schedule.*',
             name: 'Schedules',
             component: ScheduleContainer,
+            web: false,
         },
         {
             path: '/schedules/:id',
             permission: 'schedule.*',
             name: undefined,
             component: ScheduleEditContainer,
+            web: false,
         },
         {
             path: '/statistics',
@@ -180,6 +182,7 @@ export default {
             permission: 'allocation.*',
             name: 'Network',
             component: NetworkContainer,
+            web: false,
         },
         {
             path: '/startup',
@@ -198,6 +201,7 @@ export default {
             permission: 'activity.*',
             name: 'Activity',
             component: ServerActivityLogContainer,
+            web: false,
         },
     ],
 } as Routes;
