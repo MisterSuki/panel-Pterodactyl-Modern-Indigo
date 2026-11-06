@@ -34,6 +34,7 @@ class WebInstaller
         'joomla' => ['name' => 'Joomla', 'description' => 'Complete CMS for websites and portals.', 'account' => true],
         'prestashop' => ['name' => 'PrestaShop', 'description' => 'Online shop.', 'account' => true],
         'nextcloud' => ['name' => 'Nextcloud', 'description' => 'Your own cloud: files, calendar, contacts. Needs 512 MB of PHP memory.', 'account' => true],
+        'dolibarr' => ['name' => 'Dolibarr', 'description' => 'ERP and CRM: customers, invoices, stock and accounting.', 'account' => true],
         'drupal' => ['name' => 'Drupal', 'description' => 'Powerful CMS. The last step is done on its own page, with the database shown in the Databases tab.', 'account' => false],
     ];
 

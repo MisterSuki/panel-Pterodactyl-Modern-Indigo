@@ -196,7 +196,7 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 
 - **sites PHP, HTML, JS, Node.js et Python**, chacun dans son conteneur, avec sa limite de CPU et de mémoire
 - **domaine sans port** : `https://monsite.fr`, certificat créé et renouvelé tout seul, `www` compris
-- **CMS en un clic** : WordPress, Joomla, PrestaShop, Nextcloud et Drupal, base de données comprise
+- **CMS en un clic** : WordPress, Joomla, PrestaShop, Nextcloud, Dolibarr et Drupal, base de données comprise
 - **version de PHP** au choix, sous-domaines gratuits, et vente par la boutique
 
 ### Et aussi

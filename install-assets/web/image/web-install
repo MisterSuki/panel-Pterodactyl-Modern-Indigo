@@ -66,7 +66,7 @@ PHP="php -d memory_limit=512M -d max_execution_time=0"
 # A folder that would hold the whole site, or nothing to install: stop before emptying anything.
 [[ "$ROOT" != "$HOME_DIR" ]] || fail "The folder of the site cannot be the home folder."
 case "$APP" in
-    wordpress | joomla | prestashop | nextcloud | drupal) ;;
+    wordpress | joomla | prestashop | nextcloud | dolibarr | drupal) ;;
     *) fail "Unknown application." ;;
 esac
 
@@ -170,6 +170,30 @@ install_nextcloud() {
         && $PHP occ config:system:set overwriteprotocol --value="${URL%%://*}") >"$WEB/logs/install.log" 2>&1 \
         || fail "Nextcloud could not be installed: see .web/logs/install.log"
     preset nextcloud
+    ADMIN_URL="$URL/"
+}
+
+# The address of the source of the last release of a GitHub project: Dolibarr has no file attached to its releases.
+latest_tag() {
+    curl -fsSL --retry 3 "https://api.github.com/repos/$1/releases/latest" -o "$TMP/release.json" \
+        || fail "Could not read the last version of $1"
+    php -r '$r = json_decode(file_get_contents($argv[1]), true); echo preg_replace("/[^0-9A-Za-z.\-]/", "", $r["tag_name"] ?? "");' \
+        "$TMP/release.json"
+}
+
+install_dolibarr() {
+    say "Downloading Dolibarr"
+    local tag
+    tag="$(latest_tag Dolibarr/dolibarr)"
+    [[ -n "$tag" ]] || fail "The last version of Dolibarr was not found."
+    fetch "https://github.com/Dolibarr/dolibarr/archive/refs/tags/$tag.tar.gz" "$TMP/dolibarr.tar.gz"
+    # Only htdocs is the site: the documents of the client stay out of it.
+    tar -xzf "$TMP/dolibarr.tar.gz" --strip-components=2 --wildcards -C "$ROOT" '*/htdocs/*' \
+        || fail "Could not unpack Dolibarr."
+    say "Creating the site (this takes a few minutes)"
+    $PHP /etc/web/dolibarr-setup.php "$WORK" "$ROOT" "$HOME_DIR/dolibarr-documents" "$tag" >"$WEB/logs/install.log" 2>&1 \
+        || fail "Dolibarr could not be installed: see .web/logs/install.log"
+    preset default
     ADMIN_URL="$URL/"
 }
 

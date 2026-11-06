@@ -2133,5 +2133,11 @@
  "Joomla could not be installed: see .web/logs/install.log": "Joomla n’a pas pu être installé : voir .web/logs/install.log",
  "PrestaShop could not be installed: see .web/logs/install.log": "PrestaShop n’a pas pu être installé : voir .web/logs/install.log",
  "Nextcloud could not be installed: see .web/logs/install.log": "Nextcloud n’a pas pu être installé : voir .web/logs/install.log",
- "The installation stopped: it was interrupted.": "L’installation s’est arrêtée : elle a été interrompue."
+ "The installation stopped: it was interrupted.": "L’installation s’est arrêtée : elle a été interrompue.",
+ "ERP and CRM: customers, invoices, stock and accounting.": "ERP et CRM : clients, factures, stock et comptabilité.",
+ "Downloading Dolibarr": "Téléchargement de Dolibarr",
+ "Creating the site (this takes a few minutes)": "Création du site (quelques minutes)",
+ "Could not unpack Dolibarr.": "Impossible de décompresser Dolibarr.",
+ "The last version of Dolibarr was not found.": "La dernière version de Dolibarr est introuvable.",
+ "Dolibarr could not be installed: see .web/logs/install.log": "Dolibarr n’a pas pu être installé : voir .web/logs/install.log"
 }
