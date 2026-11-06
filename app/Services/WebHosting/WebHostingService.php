@@ -180,9 +180,10 @@ class WebHostingService
         }
         $address = $this->custom->records($domain->custom)[0] ?? null;
 
+        // www is the same record as the name itself: a client finds two identical lines simpler than a CNAME.
         return $address === null ? [] : [
             $address,
-            ['type' => 'CNAME', 'name' => 'www.' . $domain->hostname, 'content' => $domain->hostname],
+            ['name' => 'www.' . $domain->hostname] + $address,
         ];
     }
 
