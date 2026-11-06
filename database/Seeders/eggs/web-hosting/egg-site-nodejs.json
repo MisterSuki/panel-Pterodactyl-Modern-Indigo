@@ -1,0 +1,46 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-11-06T12:00:00+00:00",
+    "name": "Site Node.js",
+    "author": "mistersuki@proton.me",
+    "description": "A Node.js website or application. It must listen on the PORT variable. The domain and HTTPS are set in the Website tab.",
+    "features": [
+        "web"
+    ],
+    "docker_images": {
+        "Node.js 24": "ghcr.io/ptero-eggs/yolks:nodejs_24",
+        "Node.js 22": "ghcr.io/ptero-eggs/yolks:nodejs_22",
+        "Node.js 20": "ghcr.io/ptero-eggs/yolks:nodejs_20"
+    },
+    "file_denylist": [],
+    "startup": "if [ -f package.json ]; then npm install --omit=dev; fi; export PORT={{SERVER_PORT}} HOST=0.0.0.0; {{START_COMMAND}}",
+    "config": {
+        "files": "{}",
+        "startup": "{\n    \"done\": \"Listening\"\n}",
+        "logs": "{}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\n# A small example, so the site answers before the real one is sent.\ncd /mnt/server\nif [ ! -f server.js ] && [ ! -f package.json ]; then\ncat > server.js <<'APP'\nconst http = require('http');\n\nhttp.createServer((request, response) => {\n    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });\n    response.end('<h1>Your Node.js site is ready</h1><p>Replace server.js with your application. It must listen on process.env.PORT.</p>');\n}).listen(process.env.PORT, '0.0.0.0', () => console.log('Listening on port ' + process.env.PORT));\nAPP\nfi\necho \"Done.\"\n",
+            "container": "ghcr.io/pterodactyl/installers:debian",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Start command",
+            "description": "What starts your application, for example node server.js or npm start.",
+            "env_variable": "START_COMMAND",
+            "default_value": "node server.js",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:255",
+            "field_type": "text"
+        }
+    ]
+}

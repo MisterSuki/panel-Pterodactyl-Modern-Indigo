@@ -1,0 +1,449 @@
+#!/usr/bin/env python3
+"""Connects the domains of the websites to their containers, on the machine of Wings. Written by install.sh.
+
+A container listens on a high port, and Wings knows nothing about domains. This service asks the panel which sites run
+on this node (with the token of Wings), and for each one writes an Nginx site that sends the domain to the container,
+gets its Let's Encrypt certificate, and closes the port of the container to the outside. Nothing is received from the
+outside: it only asks, every few seconds.
+
+It runs as root and edits the Nginx that also serves the panel, so it stays careful:
+ - what comes from the panel is checked again here, and nothing else is written in the Nginx files;
+ - only its own files (ptero-web-*.conf) are touched;
+ - Nginx is tested before every reload, and the previous files are put back if the test fails;
+ - if the panel does not answer, nothing changes.
+"""
+import glob
+import hashlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.request
+
+VERSION = '1'
+CONFIG = os.environ.get('WEB_AGENT_CONFIG', '/etc/pterodactyl/config.yml')
+NGINX_DIR = os.environ.get('WEB_AGENT_NGINX_DIR', '/etc/nginx')
+STATE_DIR = os.environ.get('WEB_AGENT_STATE_DIR', '/var/lib/pterodactyl-web')
+CERT_DIR = os.environ.get('WEB_AGENT_CERT_DIR', '/etc/letsencrypt/live')
+PREFIX = 'ptero-web-'
+CHAIN = 'PTERO-WEB'
+POLL_SECONDS = 15
+HEARTBEAT_SECONDS = 60
+# After a failed certificate: Let's Encrypt allows few failures, so the next tries are spaced out.
+RETRY_SECONDS = [300, 900, 3600, 21600]
+
+HOSTNAME = re.compile(r'^(?=.{4,191}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$')
+UPSTREAM = re.compile(r'^(\d{1,3}\.){3}\d{1,3}:\d{1,5}$')
+EMAIL = re.compile(r'^[^@\s"\';]+@[^@\s"\';]+\.[^@\s"\';]+$')
+
+MAP_CONF = """# Written by pterodactyl-web-agent.
+map $http_upgrade $ptero_web_connection {
+    default upgrade;
+    '' close;
+}
+"""
+
+PROXY = """    client_max_body_size {max_body}m;
+
+    location /.well-known/acme-challenge/ {{
+        root {state}/acme;
+    }}
+
+    error_page 502 503 504 /__site_down.html;
+    location = /__site_down.html {{
+        internal;
+        root {state}/html;
+    }}
+
+    location / {{
+{target}
+    }}
+"""
+
+FORWARD = """        proxy_pass http://{upstream};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $ptero_web_connection;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_request_buffering off;"""
+
+# A suspended site keeps its Nginx site and its certificate, and comes back as it was.
+SUSPENDED = """        return 503;"""
+
+HTTP_SITE = """# Written by pterodactyl-web-agent: changes here are replaced.
+server {{
+    listen 80;
+    listen [::]:80;
+    server_name {names};
+
+{proxy}}}
+"""
+
+HTTPS_SITE = """# Written by pterodactyl-web-agent: changes here are replaced.
+server {{
+    listen 80;
+    listen [::]:80;
+    server_name {names};
+
+    location /.well-known/acme-challenge/ {{
+        root {state}/acme;
+    }}
+    location / {{
+        return 301 https://$host$request_uri;
+    }}
+}}
+
+server {{
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name {names};
+
+    ssl_certificate {cert}/fullchain.pem;
+    ssl_certificate_key {cert}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_cache shared:ptero_web:10m;
+
+{proxy}}}
+"""
+
+
+def log(message):
+    print(message, flush=True)
+
+
+def run(args, timeout=60):
+    """Runs a command. Returns (worked, what it printed)."""
+    try:
+        done = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout, text=True)
+        return done.returncode == 0, done.stdout or ''
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return False, str(error)
+
+
+def read_wings_config(path=CONFIG):
+    """The address of the panel and the token of this node, from the configuration of Wings."""
+    with open(path, encoding='utf8') as file:
+        text = file.read()
+    values = {}
+    for key in ('token_id', 'token', 'remote'):
+        found = re.search(r'^' + key + r':\s*["\']?([^"\'\s]+)', text, re.M)
+        if not found:
+            raise ValueError('%s is missing from %s' % (key, path))
+        values[key] = found.group(1)
+    return values['remote'].rstrip('/'), '%s.%s' % (values['token_id'], values['token'])
+
+
+class Panel:
+    def __init__(self, remote, token):
+        self.remote = remote
+        self.token = token
+
+    def call(self, path, body=None):
+        request = urllib.request.Request(
+            self.remote + path,
+            data=json.dumps(body).encode() if body is not None else None,
+            headers={
+                'Authorization': 'Bearer ' + self.token,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'User-Agent': 'pterodactyl-web-agent/' + VERSION,
+            },
+        )
+        with urllib.request.urlopen(request, timeout=15) as response:
+            return json.loads(response.read().decode() or '{}')
+
+
+def clean_sites(raw):
+    """Keeps what is exactly what it should be, and never lets anything else near the Nginx files."""
+    sites = {}
+    for site in raw if isinstance(raw, list) else []:
+        if not isinstance(site, dict):
+            continue
+        hostname = str(site.get('hostname', ''))
+        upstream = str(site.get('upstream', ''))
+        if not HOSTNAME.fullmatch(hostname) or not UPSTREAM.fullmatch(upstream):
+            log('Refused from the panel: %r -> %r' % (hostname, upstream))
+            continue
+        aliases = [a for a in site.get('aliases') or [] if isinstance(a, str) and HOSTNAME.fullmatch(a)]
+        try:
+            max_body = max(1, min(int(site.get('max_body', 256)), 10240))
+        except (TypeError, ValueError):
+            max_body = 256
+        sites[hostname] = {'hostname': hostname, 'aliases': aliases, 'upstream': upstream, 'max_body': max_body,
+                           'suspended': site.get('suspended') is True}
+    return sites
+
+
+def clean_ports(raw):
+    return sorted({int(p) for p in (raw if isinstance(raw, list) else []) if isinstance(p, int) and 1024 <= p <= 65535})
+
+
+class Agent:
+    def __init__(self, panel, nginx_dir=NGINX_DIR, state_dir=STATE_DIR, cert_dir=CERT_DIR):
+        self.panel = panel
+        self.sites_dir = os.path.join(nginx_dir, 'sites-enabled')
+        self.conf_d = os.path.join(nginx_dir, 'conf.d')
+        self.state_dir = state_dir
+        self.cert_dir = cert_dir
+        self.state_file = os.path.join(state_dir, 'state.json')
+        self.state = self.load_state()
+        self.last_report = ''
+        self.last_report_at = 0
+        self.ports = None
+
+    # --- State ----------------------------------------------------------------------------------------------------
+    def load_state(self):
+        try:
+            with open(self.state_file, encoding='utf8') as file:
+                state = json.load(file)
+            return state if isinstance(state, dict) else {}
+        except (OSError, ValueError):
+            return {}
+
+    def save_state(self):
+        with open(self.state_file + '.new', 'w', encoding='utf8') as file:
+            json.dump(self.state, file)
+        os.replace(self.state_file + '.new', self.state_file)
+
+    def entry(self, hostname):
+        return self.state.setdefault(hostname, {'ssl': 'pending', 'error': None, 'names': [], 'failures': 0, 'next_try': 0})
+
+    # --- Files ----------------------------------------------------------------------------------------------------
+    def path_of(self, hostname):
+        return os.path.join(self.sites_dir, PREFIX + hostname + '.conf')
+
+    def own_files(self):
+        return glob.glob(os.path.join(self.sites_dir, PREFIX + '*.conf'))
+
+    def cert_path(self, hostname):
+        return os.path.join(self.cert_dir, hostname)
+
+    def has_cert(self, site):
+        """A certificate is used only when it covers every name of the site."""
+        wanted = [site['hostname']] + site['aliases']
+        if not os.path.isfile(os.path.join(self.cert_path(site['hostname']), 'fullchain.pem')):
+            return False
+        return set(wanted) <= set(self.entry(site['hostname']).get('names') or [])
+
+    def render(self, site):
+        names = ' '.join([site['hostname']] + site['aliases'])
+        target = SUSPENDED if site['suspended'] else FORWARD.format(upstream=site['upstream'])
+        proxy = PROXY.format(max_body=site['max_body'], state=self.state_dir, target=target)
+        if self.has_cert(site):
+            return HTTPS_SITE.format(names=names, state=self.state_dir, cert=self.cert_path(site['hostname']), proxy=proxy)
+        return HTTP_SITE.format(names=names, proxy=proxy)
+
+    def foreign_owner(self, site):
+        """Another Nginx site of this machine (the panel, phpMyAdmin...) that already answers for one of the names."""
+        files = [f for f in glob.glob(os.path.join(self.sites_dir, '*')) if PREFIX not in os.path.basename(f)]
+        files += glob.glob(os.path.join(self.conf_d, '*.conf'))
+        wanted = {site['hostname']} | set(site['aliases'])
+        for path in files:
+            try:
+                with open(path, encoding='utf8', errors='ignore') as file:
+                    text = file.read()
+            except OSError:
+                continue
+            for line in re.findall(r'^\s*server_name\s+([^;]+);', text, re.M):
+                if wanted & set(line.split()):
+                    return path
+        return None
+
+    def apply(self, wanted):
+        """Writes {path: text or None}. Nginx is tested first, and everything is put back if it refuses."""
+        changed = {}
+        for path, text in wanted.items():
+            old = None
+            if os.path.exists(path):
+                with open(path, encoding='utf8') as file:
+                    old = file.read()
+            if old != text:
+                changed[path] = old
+        if not changed:
+            return True
+
+        for path in changed:
+            text = wanted[path]
+            if text is None:
+                os.remove(path)
+            else:
+                with open(path, 'w', encoding='utf8') as file:
+                    file.write(text)
+
+        worked, output = run(['nginx', '-t'])
+        if not worked:
+            log('Nginx refused the new sites, the previous files are put back:\n' + output)
+            for path, old in changed.items():
+                if old is None:
+                    if os.path.exists(path):
+                        os.remove(path)
+                else:
+                    with open(path, 'w', encoding='utf8') as file:
+                        file.write(old)
+            return False
+
+        worked, output = run(['nginx', '-s', 'reload'])
+        if not worked:
+            log('Nginx could not reload: ' + output)
+        return worked
+
+    # --- Certificates ---------------------------------------------------------------------------------------------
+    def get_certificate(self, site, email):
+        hostname = site['hostname']
+        entry = self.entry(hostname)
+        names = [hostname] + site['aliases']
+        command = ['certbot', 'certonly', '--non-interactive', '--agree-tos', '--webroot', '-w', os.path.join(self.state_dir, 'acme'),
+                   '--cert-name', hostname, '--keep-until-expiring', '--expand']
+        for name in names:
+            command += ['-d', name]
+        command += ['-m', email] if email else ['--register-unsafely-without-email']
+
+        log('Asking a certificate for ' + ', '.join(names))
+        worked, output = run(command, timeout=240)
+        if worked and os.path.isfile(os.path.join(self.cert_path(hostname), 'fullchain.pem')):
+            entry.update({'ssl': 'active', 'error': None, 'names': names, 'failures': 0, 'next_try': 0})
+            return True
+
+        failures = int(entry.get('failures') or 0)
+        wait = RETRY_SECONDS[min(failures, len(RETRY_SECONDS) - 1)]
+        entry.update({'ssl': 'failed', 'error': summary_of(output), 'failures': failures + 1, 'next_try': time.time() + wait})
+        log('No certificate for %s: %s' % (hostname, entry['error']))
+        return False
+
+    # --- Firewall -------------------------------------------------------------------------------------------------
+    def close_ports(self, ports):
+        """Docker opens the ports past the usual firewall: DOCKER-USER is the place where they can be closed."""
+        if shutil.which('iptables') is None:
+            return
+        jumped, _ = run(['iptables', '-C', 'DOCKER-USER', '-j', CHAIN])
+        if self.ports == ports and jumped:
+            return
+
+        run(['iptables', '-N', CHAIN])
+        worked, output = run(['iptables', '-F', CHAIN])
+        if not worked:
+            log('The ports could not be closed: ' + output)
+            return
+        for port in ports:
+            run(['iptables', '-A', CHAIN, '-p', 'tcp', '-m', 'conntrack', '--ctorigdstport', str(port), '--ctdir', 'ORIGINAL', '-j', 'DROP'])
+        if not jumped:
+            worked, output = run(['iptables', '-I', 'DOCKER-USER', '1', '-j', CHAIN])
+            if not worked:
+                log('The ports could not be closed: ' + output)
+                return
+        self.ports = ports
+
+    # --- One round ------------------------------------------------------------------------------------------------
+    def sync(self):
+        feed = self.panel.call('/api/remote/web-sites')
+        if feed.get('ok') is not True:
+            raise ValueError('The panel did not give the list of sites.')
+        sites = clean_sites(feed.get('sites'))
+        email = str(feed.get('email') or '')
+        email = email if EMAIL.fullmatch(email) else ''
+
+        accepted = {}
+        for hostname, site in sites.items():
+            entry = self.entry(hostname)
+            owner = self.foreign_owner(site)
+            if owner:
+                entry.update({'ssl': 'failed', 'error': 'This domain is already used on this machine (%s).' % owner})
+                continue
+            if (entry.get('error') or '').startswith('This domain is already'):
+                entry.update({'ssl': 'pending', 'error': None})
+            accepted[hostname] = site
+
+        # The sites first, in plain HTTP when they have no certificate yet: it is what Let's Encrypt comes to check.
+        wanted = {self.path_of(h): self.render(s) for h, s in accepted.items()}
+        stale = [f for f in self.own_files() if f not in wanted]
+        wanted.update({f: None for f in stale})
+        if not self.apply(wanted):
+            for hostname in accepted:
+                self.entry(hostname).update({'ssl': 'failed', 'error': 'Nginx refused the configuration of the site.'})
+            self.report()
+            return
+
+        for path in stale:
+            hostname = os.path.basename(path)[len(PREFIX):-len('.conf')]
+            if HOSTNAME.fullmatch(hostname) and hostname in self.state and hostname not in sites:
+                if self.state[hostname].get('names'):
+                    run(['certbot', 'delete', '--non-interactive', '--cert-name', hostname], timeout=60)
+                del self.state[hostname]
+                log('Removed ' + hostname)
+        for hostname in list(self.state):
+            if hostname not in sites:
+                del self.state[hostname]
+
+        for hostname, site in accepted.items():
+            entry = self.entry(hostname)
+            if self.has_cert(site):
+                entry.update({'ssl': 'active', 'error': None})
+                continue
+            if entry.get('ssl') == 'active':
+                entry.update({'ssl': 'pending', 'failures': 0, 'next_try': 0})
+            if time.time() < float(entry.get('next_try') or 0):
+                continue
+            if self.get_certificate(site, email):
+                self.apply({self.path_of(hostname): self.render(site)})
+
+        self.save_state()
+        self.close_ports(clean_ports(feed.get('hidden_ports')))
+        self.report()
+
+    def report(self):
+        domains = [{'hostname': h, 'ssl': e.get('ssl'), 'error': e.get('error')} for h, e in sorted(self.state.items())]
+        body = {'version': VERSION, 'domains': domains}
+        text = hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()
+        if text == self.last_report and time.time() - self.last_report_at < HEARTBEAT_SECONDS:
+            return
+        self.panel.call('/api/remote/web-sites/status', body)
+        self.last_report = text
+        self.last_report_at = time.time()
+
+    def prepare(self):
+        for folder in (self.sites_dir, self.state_dir, os.path.join(self.state_dir, 'acme'), os.path.join(self.state_dir, 'html')):
+            os.makedirs(folder, exist_ok=True)
+        path = os.path.join(self.conf_d, 'ptero-web.conf')
+        if os.path.isdir(self.conf_d):
+            self.apply({path: MAP_CONF})
+
+
+def summary_of(output):
+    """The useful line of what certbot printed, for the panel to show."""
+    for line in output.splitlines():
+        line = line.strip()
+        if re.search(r'(Detail:|DNS problem|Timeout during connect|too many|rateLimited|unauthorized)', line, re.I):
+            return re.sub(r'^Detail:\s*', '', line)[:400]
+    lines = [line.strip() for line in output.splitlines() if line.strip()]
+    return (lines[-1] if lines else 'Let\'s Encrypt did not give a certificate.')[:400]
+
+
+def main():
+    remote, token = read_wings_config()
+    agent = Agent(Panel(remote, token))
+    agent.prepare()
+    once = '--once' in sys.argv
+    log('Started: panel %s' % remote)
+    while True:
+        try:
+            agent.sync()
+        except (urllib.error.URLError, OSError, ValueError) as error:
+            log('This round failed, nothing was changed: %s' % error)
+            if once:
+                return 1
+        if once:
+            return 0
+        time.sleep(POLL_SECONDS)
+
+
+if __name__ == '__main__':
+    sys.exit(main())

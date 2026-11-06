@@ -23,6 +23,7 @@ import ServerActivityLogContainer from '@/components/server/ServerActivityLogCon
 const FileEditContainer = lazy(() => import('@/components/server/files/FileEditContainer'));
 const PlayerStatsContainer = lazy(() => import('@/components/server/stats/PlayerStatsContainer'));
 const SubdomainsContainer = lazy(() => import('@/components/server/subdomains/SubdomainsContainer'));
+const WebHostingContainer = lazy(() => import('@/components/server/web/WebHostingContainer'));
 const SqliteViewerContainer = lazy(() => import('@/components/server/files/SqliteViewerContainer'));
 const ScheduleEditContainer = lazy(() => import('@/components/server/schedules/ScheduleEditContainer'));
 const MinecraftContainer = lazy(() => import('@/components/server/minecraft/MinecraftContainer'));
@@ -43,6 +44,8 @@ interface ServerRouteDefinition extends RouteDefinition {
     minecraft?: boolean;
     // Only shown for a specific game detected from the server's startup (e.g. 'ets2' for Euro/American Truck).
     game?: 'ets2';
+    // true: only for the websites (eggs with the "web" feature). false: never for them (their domains have their tab).
+    web?: boolean;
 }
 
 interface Routes {
@@ -88,6 +91,13 @@ export default {
             name: 'Console',
             component: ServerConsole,
             exact: true,
+        },
+        {
+            path: '/web',
+            permission: 'allocation.*',
+            name: 'Website',
+            component: WebHostingContainer,
+            web: true,
         },
         {
             path: '/files',
@@ -144,12 +154,14 @@ export default {
             permission: 'websocket.connect',
             name: 'Statistics',
             component: PlayerStatsContainer,
+            web: false,
         },
         {
             path: '/subdomains',
             permission: 'allocation.*',
             name: 'Subdomains',
             component: SubdomainsContainer,
+            web: false,
         },
         {
             path: '/users',

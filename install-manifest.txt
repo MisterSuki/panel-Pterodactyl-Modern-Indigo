@@ -40,6 +40,7 @@ app/Http/Requests/Admin/RoleFormRequest.php
 app/Http/Requests/Admin/UserFormRequest.php
 app/Http/Requests/Admin/NewUserFormRequest.php
 routes/admin.php
+routes/api-remote.php
 resources/views/admin/roles/
 resources/views/admin/users/index.blade.php
 resources/views/admin/users/new.blade.php
@@ -197,6 +198,16 @@ database/migrations/2026_10_22_000000_create_subdomain_tables.php
 app/Models/SubdomainDomain.php
 app/Models/ServerSubdomain.php
 app/Services/Subdomains/
+# Web hosting: websites with their domain and HTTPS (the agent and the image are installed from install-assets/web).
+database/migrations/2026_11_06_000000_create_server_web_domains_table.php
+database/Seeders/eggs/web-hosting/
+app/Models/ServerWebDomain.php
+app/Services/WebHosting/
+app/Console/Commands/Server/WebSetupCommand.php
+app/Http/Controllers/Admin/WebHostingController.php
+app/Http/Controllers/Api/Client/Servers/WebHostingController.php
+app/Http/Controllers/Api/Remote/WebSitesController.php
+resources/views/admin/web-hosting.blade.php
 app/Http/Controllers/Admin/SubdomainController.php
 app/Http/Controllers/Api/Client/Servers/SubdomainController.php
 resources/views/admin/subdomains/

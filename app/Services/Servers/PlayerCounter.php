@@ -6,6 +6,7 @@ use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Pterodactyl\Models\Server;
+use Pterodactyl\Services\WebHosting\WebHostingService;
 
 /**
  * How many players are on a server, whatever the game: used by the statistics (live and every 5 minutes).
@@ -42,6 +43,10 @@ class PlayerCounter
     {
         $server->loadMissing(['allocation', 'allocations', 'node', 'egg']);
         if ($server->status !== null || $server->node->maintenance_mode || !$server->allocation) {
+            return null;
+        }
+        // A website has visitors, not players.
+        if (WebHostingService::isWebsite($server)) {
             return null;
         }
 

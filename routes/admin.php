@@ -18,6 +18,13 @@ Route::group(['prefix' => 'appearance', 'middleware' => 'admin.can:settings,mana
     Route::post('/remove-image', [Admin\AppearanceController::class, 'removeImage'])->name('admin.appearance.remove-image');
 });
 
+// Web hosting: the state of the nodes, the eggs and every domain of the websites (settings rights needed).
+Route::group(['prefix' => 'web-hosting', 'middleware' => 'admin.can:settings,manage'], function () {
+    Route::get('/', [Admin\WebHostingController::class, 'index'])->name('admin.web-hosting');
+    Route::post('/eggs', [Admin\WebHostingController::class, 'eggs'])->name('admin.web-hosting.eggs');
+    Route::post('/settings', [Admin\WebHostingController::class, 'settings'])->name('admin.web-hosting.settings');
+});
+
 // Subdomains: the domains offered to the servers, their DNS providers and the records made (settings rights needed).
 Route::group(['prefix' => 'subdomains', 'middleware' => 'admin.can:settings,manage'], function () {
     Route::get('/', [Admin\SubdomainController::class, 'index'])->name('admin.subdomains');

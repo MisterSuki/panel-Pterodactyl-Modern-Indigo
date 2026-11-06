@@ -192,6 +192,13 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 </tr>
 </table>
 
+### 🌍 Hébergement web, comme Plesk
+
+- **sites PHP, HTML, JS, Node.js et Python**, chacun dans son conteneur, avec sa limite de CPU et de mémoire
+- **domaine sans port** : `https://monsite.fr`, certificat créé et renouvelé tout seul, `www` compris
+- **CMS en un clic** : WordPress, Joomla, PrestaShop, Nextcloud et Drupal, base de données comprise
+- **version de PHP** au choix, sous-domaines gratuits, et vente par la boutique
+
 ### Et aussi
 
 <table>
@@ -746,6 +753,35 @@ Un onglet **Statistiques** sur chaque serveur : la courbe des joueurs connectés
 Activée dans *Administration → Annonces*, elle est à l'adresse `/status` de ton panel, sans compte : l'état général (tout
 fonctionne, maintenance en cours, services perturbés), les **annonces** que tu rends publiques, et chaque **node** avec ses
 dernières 24 heures et sa **disponibilité sur 7 jours**. Elle se rafraîchit toute seule chaque minute.
+
+### 🌍 Hébergement web
+
+Un site est un serveur créé avec un egg du nest **Web Hosting** : **Site PHP / HTML**, **Site Node.js** ou **Site Python**.
+Le client y trouve un onglet **Site web**.
+
+**Mise en route** (*Admin → Web Hosting*) :
+
+1. La mise à jour installe tout sur la machine du panel, si Wings y tourne. Sur un **autre node**, lance en root :
+   ```bash
+   bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --web
+   ```
+   Les images PHP se construisent ensuite en arrière-plan, pendant quelques minutes (suivi dans
+   `/var/lib/pterodactyl-web/images.log`).
+2. Vérifie que le node est **Connecté** sur la page *Web Hosting*.
+3. Ajoute un **hôte de bases de données** que les conteneurs peuvent joindre : c'est là que vont les bases des CMS.
+4. Crée un serveur (ou une offre dans la boutique) avec un de ces eggs, et **au moins 1 base de données**.
+
+**Comment ça marche.** Un service, `pterodactyl-web-agent`, tourne sur chaque node. Il demande au panel quels domaines
+vont vers quels conteneurs (avec le jeton de Wings), écrit ses propres sites Nginx (`ptero-web-*.conf`), obtient les
+certificats Let's Encrypt et ferme le port du conteneur à l'extérieur. Il teste Nginx avant chaque rechargement et remet
+les anciens fichiers si le test échoue. Un site suspendu affiche une page d'indisponibilité et garde son certificat.
+
+**Domaine d'un client.** Il ajoute son domaine dans l'onglet, puis crée l'enregistrement affiché dans son DNS. Avec
+Cloudflare, le nuage doit être **gris** (« DNS only ») pour que le panel voie l'adresse du serveur.
+
+**Node.js et Python.** L'application doit écouter sur la variable `PORT`. Sa commande est dans l'onglet *Démarrage*.
+
+**Les e-mails ne sont pas inclus** : utilise un service de messagerie pour les boîtes mail des clients.
 
 ### 🌐 Sous-domaines (Cloudflare, Bunny.net, PowerDNS)
 

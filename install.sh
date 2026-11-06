@@ -53,6 +53,7 @@ RESTORE=false
 UNINSTALL=false
 DO_PMA=false
 NO_PMA=false
+DO_WEB=false
 
 # answers, asked when missing
 FQDN=""
@@ -110,6 +111,7 @@ What to do (asked in a menu when you give nothing, and no panel is found):
   --update              Update an existing panel with everything from this repository
   --restore             Put back the files saved by the last update
   --phpmyadmin          Install phpMyAdmin next to the panel: databases open from the panel, already signed in
+  --web                 Install web hosting on this machine of Wings: domains, HTTPS and the images of the websites
   --uninstall           Go back to the official panel. Your servers, users and settings are kept
 
 New panel install:
@@ -171,6 +173,7 @@ for arg in "$@"; do
         --restore) RESTORE=true ;;
         --uninstall) UNINSTALL=true ;;
         --phpmyadmin) DO_PMA=true ;;
+        --web) DO_WEB=true ;;
         --no-phpmyadmin) NO_PMA=true ;;
         --pma-source=*) PMA_SOURCE="${arg#*=}" ;;
         --stock-version=*) STOCK_VERSION="${arg#*=}" ;;
@@ -810,6 +813,7 @@ run_update() {
             exit 1
         fi
         ok "Database up to date"
+        artisan p:web:setup >/dev/null 2>&1 || warn "The eggs of the websites could not be created: use the Web Hosting page of the admin area."
     fi
     INSTALLING=false
 
@@ -859,6 +863,9 @@ run_update() {
 
     if [[ "$CSS_ONLY" != true ]]; then
         install_auto_updater
+        if ! install_web_hosting; then
+            warn "Web hosting could not be installed. The panel is updated: run this again with --web."
+        fi
     fi
 
     echo ""
@@ -1266,6 +1273,143 @@ run_phpmyadmin_install() {
         exit 0
     }
     install_phpmyadmin
+}
+
+# ---------------------------------------------------------------------------------------------
+# WEB HOSTING: the agent that connects the domains of the websites to their containers
+# ---------------------------------------------------------------------------------------------
+# On the machine of Wings. The agent (install-assets/web) asks the panel which domains go to which container, writes the
+# Nginx sites and gets the certificates. The images of the sites are built here, in the background: it takes minutes.
+install_web_hosting() {
+    local assets="${SRC:-}/install-assets/web"
+    local state=/var/lib/pterodactyl-web
+    if [[ ! -f "$assets/pterodactyl-web-agent" ]]; then
+        warn "install-assets/web is missing from the downloaded files: web hosting was not installed."
+        return 0
+    fi
+    if [[ ! -f /etc/pterodactyl/config.yml ]]; then
+        info "Wings is not configured on this machine: web hosting is installed on the machines of Wings, with --web."
+        return 0
+    fi
+    local tool
+    for tool in nginx docker systemctl python3; do
+        if ! command -v "$tool" >/dev/null 2>&1; then
+            warn "$tool was not found: web hosting was not installed on this machine."
+            return 0
+        fi
+    done
+    if [[ ! -d "$NGINX_DIR/sites-enabled" ]]; then
+        warn "$NGINX_DIR/sites-enabled was not found: web hosting needs the Nginx of Debian or Ubuntu."
+        return 0
+    fi
+
+    step "Web hosting"
+    if ! command -v certbot >/dev/null 2>&1; then
+        info "Installing certbot"
+        apt-get update -qq >/dev/null 2>&1 || true
+        if ! apt_install certbot; then
+            warn "certbot could not be installed: the sites will stay in plain HTTP."
+        fi
+    fi
+
+    mkdir -p "$state/html" "$state/acme" /etc/letsencrypt/renewal-hooks/deploy
+    install -m 755 "$assets/pterodactyl-web-agent" /usr/local/sbin/pterodactyl-web-agent
+    install -m 644 "$assets/__site_down.html" "$state/html/__site_down.html"
+    chmod 755 "$state" "$state/html" "$state/acme"
+
+    # A renewed certificate is only used by Nginx after a reload.
+    cat >/etc/letsencrypt/renewal-hooks/deploy/ptero-web-reload.sh <<'EOF'
+#!/bin/sh
+nginx -s reload
+EOF
+    chmod 755 /etc/letsencrypt/renewal-hooks/deploy/ptero-web-reload.sh
+
+    cat >/etc/systemd/system/pterodactyl-web-agent.service <<'EOF'
+[Unit]
+Description=Pterodactyl websites: domains, certificates and ports
+After=network-online.target nginx.service docker.service wings.service
+Wants=network-online.target
+ConditionPathExists=/etc/pterodactyl/config.yml
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/sbin/pterodactyl-web-agent
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    rm -rf "$state/image"
+    cp -r "$assets/image" "$state/image"
+
+    cat >/usr/local/sbin/pterodactyl-web-images <<'EOF'
+#!/usr/bin/env bash
+# Builds the images of the websites, one per PHP version. Written by install.sh: changes here are replaced.
+context=/var/lib/pterodactyl-web/image
+code=0
+for version in 8.4 8.3 8.2 8.1; do
+    echo "PHP $version"
+    docker build --pull --build-arg "PHP_VERSION=$version" -t "modern-indigo/web:php$version" "$context" || code=1
+done
+exit "$code"
+EOF
+    chmod 755 /usr/local/sbin/pterodactyl-web-images
+
+    cat >/etc/systemd/system/pterodactyl-web-images.service <<'EOF'
+[Unit]
+Description=Build the images of the Pterodactyl websites
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/pterodactyl-web-images
+StandardOutput=append:/var/lib/pterodactyl-web/images.log
+StandardError=append:/var/lib/pterodactyl-web/images.log
+EOF
+
+    systemctl daemon-reload
+    systemctl enable pterodactyl-web-agent.service >/dev/null 2>&1 || true
+    if systemctl restart pterodactyl-web-agent.service; then
+        ok "Web agent running"
+    else
+        warn "The web agent did not start. See: journalctl -u pterodactyl-web-agent"
+    fi
+
+    # Built again only when the files of the image changed, or when an image is missing.
+    local hash missing=false version
+    hash="$(cd "$state/image" && find . -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1)"
+    for version in 8.4 8.3 8.2 8.1; do
+        docker image inspect "modern-indigo/web:php$version" >/dev/null 2>&1 || missing=true
+    done
+    if [[ "$missing" == true || "$(cat "$state/image.sha" 2>/dev/null)" != "$hash" ]]; then
+        echo "$hash" >"$state/image.sha"
+        systemctl start --no-block pterodactyl-web-images.service
+        info "The images of the sites are building in the background, for a few minutes. Follow it in $state/images.log"
+    else
+        ok "Images of the sites up to date"
+    fi
+}
+
+run_web_install() {
+    step "Getting the files"
+    fetch_source
+
+    step "What will happen"
+    info "Install the web agent: it writes its own Nginx sites (ptero-web-*.conf), tested before each reload"
+    info "Install certbot if needed, and build the images of the sites in the background"
+    ok "The sites of the panel and of phpMyAdmin are not touched"
+
+    if [[ "$DRY_RUN" == true ]]; then
+        ok "Dry run finished, nothing was changed."
+        return 0
+    fi
+
+    ask "Continue?" || {
+        info "Nothing was changed."
+        exit 0
+    }
+    install_web_hosting
 }
 
 # ---------------------------------------------------------------------------------------------
@@ -1817,7 +1961,7 @@ main() {
         exit 0
     fi
 
-    if [[ "$DO_PANEL" != true && "$DO_WINGS" != true && "$DO_UPDATE" != true && "$UNINSTALL" != true && "$DO_PMA" != true ]]; then
+    if [[ "$DO_PANEL" != true && "$DO_WINGS" != true && "$DO_UPDATE" != true && "$UNINSTALL" != true && "$DO_PMA" != true && "$DO_WEB" != true ]]; then
         if panel_exists; then
             info "A panel is installed in $PANEL_PATH: updating it."
             DO_UPDATE=true
@@ -1845,6 +1989,11 @@ main() {
 
     if [[ "$DO_PMA" == true && "$DO_PANEL" != true ]]; then
         run_phpmyadmin_install
+        return 0
+    fi
+
+    if [[ "$DO_WEB" == true && "$DO_PANEL" != true && "$DO_UPDATE" != true ]]; then
+        run_web_install
         return 0
     fi
 

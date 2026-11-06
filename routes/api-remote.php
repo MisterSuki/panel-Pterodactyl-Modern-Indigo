@@ -10,6 +10,10 @@ Route::get('/servers', [Remote\Servers\ServerDetailsController::class, 'list']);
 Route::post('/servers/reset', [Remote\Servers\ServerDetailsController::class, 'resetState']);
 Route::post('/activity', Remote\ActivityProcessingController::class);
 
+// For the web agent of the node (the domains of the websites).
+Route::get('/web-sites', [Remote\WebSitesController::class, 'index']);
+Route::post('/web-sites/status', [Remote\WebSitesController::class, 'status']);
+
 Route::group(['prefix' => '/servers/{uuid}'], function () {
     Route::get('/', Remote\Servers\ServerDetailsController::class);
     Route::get('/install', [Remote\Servers\ServerInstallController::class, 'index']);

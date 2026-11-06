@@ -23,6 +23,7 @@ import {
 // The small icon in front of each tab of a server.
 export const serverTabIcons: Record<string, IconDefinition> = {
     '/': faTerminal,
+    '/web': faGlobe,
     '/files': faFolder,
     '/minecraft': faCube,
     '/ets2': faTruck,

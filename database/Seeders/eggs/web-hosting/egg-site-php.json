@@ -1,0 +1,77 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-11-06T12:00:00+00:00",
+    "name": "Site PHP / HTML",
+    "author": "mistersuki@proton.me",
+    "description": "A website with Nginx and PHP: plain HTML, JS, PHP, or a CMS installed in one click from the Website tab. The domain and HTTPS are set in the same tab.",
+    "features": [
+        "web"
+    ],
+    "docker_images": {
+        "PHP 8.4": "modern-indigo/web:php8.4",
+        "PHP 8.3": "modern-indigo/web:php8.3",
+        "PHP 8.2": "modern-indigo/web:php8.2",
+        "PHP 8.1": "modern-indigo/web:php8.1"
+    },
+    "file_denylist": [],
+    "startup": "web-start",
+    "config": {
+        "files": "{}",
+        "startup": "{\n    \"done\": \"Site ready\"\n}",
+        "logs": "{}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\n# Prepares the folder of the site. Nginx and PHP are in the image.\nmkdir -p /mnt/server/public_html\nif [ -z \"$(ls -A /mnt/server/public_html)\" ]; then\ncat > /mnt/server/public_html/index.html <<'PAGE'\n<!doctype html>\n<html>\n<head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>Your site is ready</title>\n    <style>\n        body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #0e0e16; color: #f4f4f8; font: 16px/1.6 system-ui, sans-serif; text-align: center; padding: 24px; box-sizing: border-box; }\n        h1 { margin: 0 0 8px; font-size: 28px; }\n        p { margin: 0; color: #a1a1b5; }\n    </style>\n</head>\n<body>\n    <div>\n        <h1>Your site is ready</h1>\n        <p>Replace this page, or install a CMS from the Website tab of the panel.</p>\n    </div>\n</body>\n</html>\nPAGE\nfi\necho \"Done.\"\n",
+            "container": "ghcr.io/pterodactyl/installers:debian",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Folder of the site",
+            "description": "The folder that is served, inside the home folder.",
+            "env_variable": "DOCUMENT_ROOT",
+            "default_value": "public_html",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:64|regex:/^[A-Za-z0-9._\\/-]+$/",
+            "field_type": "text"
+        },
+        {
+            "name": "PHP memory (MB)",
+            "description": "The memory one PHP page can use.",
+            "env_variable": "PHP_MEMORY_LIMIT",
+            "default_value": "256",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|between:32,8192",
+            "field_type": "text"
+        },
+        {
+            "name": "Maximum upload (MB)",
+            "description": "The largest file a visitor can send.",
+            "env_variable": "UPLOAD_MAX_MB",
+            "default_value": "64",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|between:1,10240",
+            "field_type": "text"
+        },
+        {
+            "name": "Show PHP errors",
+            "description": "yes to show the errors on the pages, while building a site. no for a site in production.",
+            "env_variable": "PHP_DISPLAY_ERRORS",
+            "default_value": "no",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:yes,no",
+            "field_type": "text"
+        }
+    ]
+}

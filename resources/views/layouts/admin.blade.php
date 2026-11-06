@@ -91,6 +91,7 @@
                                 ['Nodes', 'admin.nodes', 'fa-sitemap', 'admin.nodes', $can('nodes'), 'nodes'],
                                 ['Servers', 'admin.servers', 'fa-server', 'admin.servers', $can('servers'), 'servers'],
                                 ['Subdomains', 'admin.subdomains', 'fa-link', 'admin.subdomains', $can('settings'), null],
+                                ['Web Hosting', 'admin.web-hosting', 'fa-globe', 'admin.web-hosting', $can('settings'), null],
                                 ['Users', 'admin.users', 'fa-users', 'admin.users', $can('users'), 'users'],
                                 ['Staff Roles', 'admin.roles', 'fa-id-badge', 'admin.roles', $isRoot, null],
                             ],

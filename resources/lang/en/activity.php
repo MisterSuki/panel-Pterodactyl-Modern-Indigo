@@ -139,6 +139,9 @@ return [
             'edit' => 'Changed the :variable variable from ":old" to ":new"',
             'image' => 'Updated the Docker Image for the server from :old to :new',
         ],
+        'web' => [
+            'install' => 'Installed :app on the site',
+        ],
         'subuser' => [
             'create' => 'Added :email as a subuser',
             'update' => 'Updated the subuser permissions for :email',

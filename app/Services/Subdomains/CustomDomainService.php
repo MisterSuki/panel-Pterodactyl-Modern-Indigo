@@ -145,7 +145,7 @@ class CustomDomainService
      *
      * @return string[]
      */
-    private function addressesOf(string $hostname): array
+    public function addressesOf(string $hostname): array
     {
         // Asked straight to public resolvers over HTTPS (A and AAAA at the same time, 3 seconds at most): the resolver of
         // the machine can wait a long time on a name that does not exist yet, and keeps old answers, so a record that was

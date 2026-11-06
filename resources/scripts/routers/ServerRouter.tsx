@@ -35,6 +35,7 @@ export default () => {
     const eggFeatures = ServerContext.useStoreState((state) => state.server.data?.eggFeatures || []);
     // Minecraft (Java) eggs carry the EULA / Java-version features; the Minecraft tab is only for them.
     const isMinecraft = eggFeatures.includes('eula') || eggFeatures.includes('java_version');
+    const isWebsite = eggFeatures.includes('web');
     // Euro/American Truck dedicated servers are spotted from their startup (no egg feature for them).
     const [isEts2, setIsEts2] = useState(false);
     const inConflictState = ServerContext.useStoreState((state) => state.server.inConflictState);
@@ -96,7 +97,8 @@ export default () => {
                                             (route) =>
                                                 !!route.name &&
                                                 (!route.minecraft || isMinecraft) &&
-                                                (route.game !== 'ets2' || isEts2)
+                                                (route.game !== 'ets2' || isEts2) &&
+                                                (route.web === undefined || route.web === isWebsite)
                                         )
                                         .map((route) =>
                                             route.permission ? (
@@ -141,7 +143,8 @@ export default () => {
                                                 .filter(
                                                     (route) =>
                                                         (!route.minecraft || isMinecraft) &&
-                                                        (route.game !== 'ets2' || isEts2)
+                                                        (route.game !== 'ets2' || isEts2) &&
+                                                        (route.web === undefined || route.web === isWebsite)
                                                 )
                                                 .map(({ path, permission, component: Component }) => (
                                                     <PermissionRoute

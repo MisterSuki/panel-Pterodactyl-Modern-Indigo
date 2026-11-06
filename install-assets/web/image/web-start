@@ -1,0 +1,87 @@
+#!/bin/bash
+# Starts a site: writes the configuration of Nginx and PHP from the variables of the egg, starts them, and runs what the
+# panel asks (the installation of a CMS) while the site runs. Everything it writes is in /home/container/.web.
+set -u
+
+HOME_DIR=/home/container
+WEB="$HOME_DIR/.web"
+PORT="${SERVER_PORT:-8080}"
+PHP_V="$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')"
+
+number() { [[ "${1:-}" =~ ^[0-9]+$ ]] && [[ "$1" -gt 0 ]] && echo "$1" || echo "$2"; }
+
+# The folder of the site, inside the home folder whatever the variable says.
+DOCROOT="${DOCUMENT_ROOT:-public_html}"
+DOCROOT="$(echo "$DOCROOT" | sed -e 's#\.\.##g' -e 's#^/*##' -e 's#/*$##' -e 's#[^A-Za-z0-9._/-]##g')"
+ROOT="$HOME_DIR/${DOCROOT:-public_html}"
+
+MEMORY="$(number "${PHP_MEMORY_LIMIT:-}" 256)"
+UPLOAD="$(number "${UPLOAD_MAX_MB:-}" 64)"
+TOTAL="$(number "${SERVER_MEMORY:-}" 512)"
+CHILDREN=$((TOTAL / 64))
+[[ "$CHILDREN" -lt 3 ]] && CHILDREN=3
+[[ "$CHILDREN" -gt 30 ]] && CHILDREN=30
+ERRORS=Off
+[[ "${PHP_DISPLAY_ERRORS:-no}" == "yes" ]] && ERRORS=On
+
+mkdir -p "$ROOT" "$WEB"/run "$WEB"/logs "$WEB"/sessions "$WEB"/conf.d \
+    "$WEB"/tmp/body "$WEB"/tmp/proxy "$WEB"/tmp/fastcgi "$WEB"/tmp/uwsgi "$WEB"/tmp/scgi "$WEB"/tmp/upload
+rm -f "$WEB"/run/*
+: >"$WEB/logs/php-fpm.log"
+[[ -f "$WEB/custom.conf" ]] || echo "# Your own Nginx rules, read inside the server block." >"$WEB/custom.conf"
+
+# The rules of the CMS that was installed here, when it needs some.
+PRESET="$(cat "$WEB/preset" 2>/dev/null | tr -cd 'a-z')"
+PRESET_FILE="/etc/web/preset-${PRESET:-default}.conf"
+[[ -f "$PRESET_FILE" ]] || PRESET_FILE=/etc/web/preset-default.conf
+
+fill() {
+    sed -e "s#@WEB@#$WEB#g" -e "s#@ROOT@#$ROOT#g" -e "s#@PORT@#$PORT#g" -e "s#@UPLOAD@#$UPLOAD#g" \
+        -e "s#@MEMORY@#$MEMORY#g" -e "s#@CHILDREN@#$CHILDREN#g" -e "s#@ERRORS@#$ERRORS#g" \
+        -e "s#@PRESET@#$PRESET_FILE#g" -e "s#@TZ@#${TZ:-UTC}#g" "$1" >"$2"
+}
+fill /etc/web/nginx.conf "$WEB/nginx.conf"
+fill /etc/web/php-fpm.conf "$WEB/php-fpm.conf"
+fill /etc/web/php.ini "$WEB/conf.d/90-site.ini"
+
+export PHP_INI_SCAN_DIR="/etc/php/$PHP_V/cli/conf.d:$WEB/conf.d"
+
+stop_all() {
+    echo "Stopping the site..."
+    kill "$(cat "$WEB/run/nginx.pid" 2>/dev/null)" "$(cat "$WEB/run/php-fpm.pid" 2>/dev/null)" 2>/dev/null
+    [[ -n "${WATCH_PID:-}" ]] && kill "$WATCH_PID" 2>/dev/null
+    exit 0
+}
+trap stop_all INT TERM
+
+PHP_INI_SCAN_DIR="/etc/php/$PHP_V/fpm/conf.d:$WEB/conf.d" "php-fpm$PHP_V" --nodaemonize --fpm-config "$WEB/php-fpm.conf" &
+FPM_PID=$!
+
+nginx -e stderr -c "$WEB/nginx.conf" &
+NGINX_PID=$!
+
+# The installation of a CMS is asked by the panel with a file: it is looked for every two seconds.
+(
+    while sleep 2; do
+        if [[ -f "$WEB/install.json" ]]; then
+            web-install
+        fi
+    done
+) &
+WATCH_PID=$!
+
+sleep 1
+if ! kill -0 "$NGINX_PID" 2>/dev/null || ! kill -0 "$FPM_PID" 2>/dev/null; then
+    echo "The site could not start. Last lines of PHP:"
+    tail -n 20 "$WEB/logs/php-fpm.log"
+    exit 1
+fi
+
+echo "PHP $PHP_V, folder of the site: ${ROOT#"$HOME_DIR"/}, port $PORT"
+echo "Site ready"
+
+# Stops when Nginx or PHP stops, so the panel shows that the site is down.
+wait -n "$NGINX_PID" "$FPM_PID"
+echo "Nginx or PHP stopped. Last lines of PHP:"
+tail -n 20 "$WEB/logs/php-fpm.log"
+stop_all

@@ -178,6 +178,16 @@ Route::group([
         Route::delete('/allocations/{allocation}', [Client\Servers\NetworkAllocationController::class, 'delete']);
     });
 
+    Route::group(['prefix' => '/web'], function () {
+        Route::get('/', [Client\Servers\WebHostingController::class, 'index']);
+        Route::get('/status', [Client\Servers\WebHostingController::class, 'status']);
+        Route::post('/domains', [Client\Servers\WebHostingController::class, 'addDomain'])->middleware('throttle:subdomains');
+        Route::post('/subdomains', [Client\Servers\WebHostingController::class, 'addSubdomain'])->middleware('throttle:subdomains');
+        Route::post('/domains/{domain}/check', [Client\Servers\WebHostingController::class, 'checkDomain'])->whereNumber('domain')->middleware('throttle:subdomains');
+        Route::delete('/domains/{domain}', [Client\Servers\WebHostingController::class, 'deleteDomain'])->whereNumber('domain');
+        Route::post('/install', [Client\Servers\WebHostingController::class, 'install'])->middleware('throttle:subdomains');
+    });
+
     Route::group(['prefix' => '/subdomains'], function () {
         Route::get('/', [Client\Servers\SubdomainController::class, 'index']);
         Route::post('/', [Client\Servers\SubdomainController::class, 'store'])->middleware('throttle:subdomains');
