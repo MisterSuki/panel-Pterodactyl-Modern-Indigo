@@ -34,6 +34,8 @@ export interface WebPage {
     php: boolean;
     agent: boolean;
     url: string | null;
+    // The temporary address of the site, while no domain leads to it.
+    preview: string | null;
     max: number;
     zones: { id: number; domain: string }[];
     domains: WebDomain[];
@@ -60,6 +62,7 @@ const map = (data: any): WebPage => ({
     php: !!data.php,
     agent: !!data.agent,
     url: data.url || null,
+    preview: data.preview || null,
     max: data.max || 0,
     zones: data.zones || [],
     domains: (data.domains || []).map((row: any) => ({

@@ -2104,5 +2104,9 @@
  "Downloading Nextcloud": "Téléchargement de Nextcloud",
  "Downloading Drupal": "Téléchargement de Drupal",
  "Applying the settings of the site": "Application des réglages du site",
- "Powerful CMS. The last step is done on its own page, with the database shown in the Databases tab.": "CMS puissant. La dernière étape se fait sur sa propre page, avec la base de données visible dans l’onglet Bases de données."
+ "Powerful CMS. The last step is done on its own page, with the database shown in the Databases tab.": "CMS puissant. La dernière étape se fait sur sa propre page, avec la base de données visible dans l’onglet Bases de données.",
+ "Preview of the site": "Aperçu du site",
+ "Start the site to see it.": "Démarrez le site pour le voir.",
+ "Temporary address, until a domain leads to the site. It shows the port.": "Adresse provisoire, en attendant qu’un domaine mène au site. Elle affiche le port.",
+ "Open the preview": "Ouvrir l’aperçu"
 }

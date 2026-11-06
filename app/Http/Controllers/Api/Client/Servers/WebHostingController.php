@@ -67,7 +67,10 @@ class WebHostingController extends ClientApiController
     public function checkDomain(Request $request, Server $server, int $domain): JsonResponse
     {
         $this->authorizeFor($request, $server, Permission::ACTION_ALLOCATION_READ);
-        $this->web->check($this->find($server, $domain));
+        $model = $this->find($server, $domain);
+        if (!$this->web->check($model)) {
+            throw new DisplayException($this->web->dnsProblem($model, $request->user()->language));
+        }
 
         return new JsonResponse($this->payload($server));
     }
@@ -140,6 +143,7 @@ class WebHostingController extends ClientApiController
             'php' => $this->isPhp($server),
             'agent' => $agent !== null && $agent['online'],
             'url' => $this->web->primaryUrl($server),
+            'preview' => $this->web->previewUrl($server),
             'max' => WebHostingService::MAX_DOMAINS,
             // The domains of the panel a subdomain can be made on, while the limit of the server allows one.
             'zones' => $used < $this->subdomains->limitFor($server)

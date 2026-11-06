@@ -12,6 +12,7 @@ use Pterodactyl\Models\Server;
 use Pterodactyl\Models\ServerCustomDomain;
 use Pterodactyl\Models\ServerWebDomain;
 use Pterodactyl\Models\SubdomainDomain;
+use Pterodactyl\Services\Notifications\AlertTexts;
 use Pterodactyl\Services\Subdomains\CustomDomainService;
 use Pterodactyl\Services\Subdomains\SubdomainService;
 
@@ -116,6 +117,39 @@ class WebHostingService
         }
 
         return $ok;
+    }
+
+    /**
+     * What is wrong with the DNS of a domain that does not lead to the server, said so the client can fix it.
+     */
+    public function dnsProblem(ServerWebDomain $domain, ?string $language): string
+    {
+        $found = $this->custom->addressesOf($domain->hostname);
+        $wanted = $this->records($domain)[0]['content'] ?? '';
+        $key = empty($found) ? 'web_dns_missing' : 'web_dns_elsewhere';
+
+        return implode(' ', AlertTexts::get($key, $language, [
+            'name' => $domain->hostname,
+            'found' => implode(', ', $found),
+            'wanted' => $wanted,
+        ]));
+    }
+
+    /**
+     * The temporary address of a site, while no domain leads to it: its port is only closed once it has one.
+     */
+    public function previewUrl(Server $server): ?string
+    {
+        if ($this->primaryUrl($server) !== null || $server->allocation === null) {
+            return null;
+        }
+        try {
+            [, $address] = $this->subdomains->address($server->allocation);
+        } catch (DisplayException) {
+            return null;
+        }
+
+        return 'http://' . (str_contains($address, ':') ? "[$address]" : $address) . ':' . $server->allocation->port;
     }
 
     /**

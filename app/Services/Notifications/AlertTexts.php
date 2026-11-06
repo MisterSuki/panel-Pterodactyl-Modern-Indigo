@@ -69,6 +69,14 @@ class AlertTexts
             'en' => ['Test of the alerts of {name}', 'The alerts of this server reach this channel.'],
             'fr' => ['Test des alertes de {name}', 'Les alertes de ce serveur arrivent bien dans ce salon.'],
         ],
+        'web_dns_missing' => [
+            'en' => ['No DNS record exists for {name}.', 'Create the record shown here in the DNS of the domain, and check that it was saved.'],
+            'fr' => ['Aucun enregistrement DNS n’existe pour {name}.', 'Créez l’enregistrement affiché ici dans le DNS du domaine, et vérifiez qu’il a bien été enregistré.'],
+        ],
+        'web_dns_elsewhere' => [
+            'en' => ['{name} leads to {found}, not to {wanted}.', 'Correct the record. With Cloudflare, the cloud must be grey (DNS only).'],
+            'fr' => ['{name} mène à {found}, et non à {wanted}.', 'Corrigez l’enregistrement. Avec Cloudflare, le nuage doit être gris (DNS only).'],
+        ],
         'open' => [
             'en' => ['Open in the panel', ''],
             'fr' => ['Ouvrir dans le panel', ''],

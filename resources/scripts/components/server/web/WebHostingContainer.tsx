@@ -228,6 +228,59 @@ const InstallBanner = ({ status, apps }: { status: WebInstallStatus; apps: WebAp
     );
 };
 
+// A page of the panel in HTTPS cannot show a site in plain HTTP: that one opens in a new tab.
+const Preview = ({ url, temporary }: { url: string | null; temporary: string | null }) => {
+    const status = ServerContext.useStoreState((state) => state.status.value);
+    const [version, setVersion] = useState(0);
+    const address = url || temporary;
+
+    if (!address) {
+        return null;
+    }
+    const framed = address.startsWith('https://') && status === 'running';
+
+    return (
+        <div css={card}>
+            <div css={tw`flex flex-wrap items-center gap-3 px-4 py-3`}>
+                <div css={tw`flex-1 min-w-0`}>
+                    <h2 css={tw`text-base text-neutral-50 font-semibold`}>Preview of the site</h2>
+                    <p css={tw`text-xs text-neutral-400 break-all`}>
+                        {status !== 'running' ? (
+                            <span>Start the site to see it.</span>
+                        ) : temporary ? (
+                            <span>Temporary address, until a domain leads to the site. It shows the port.</span>
+                        ) : (
+                            address
+                        )}
+                    </p>
+                </div>
+                {framed && (
+                    <Button.Text type={'button'} size={Button.Sizes.Small} onClick={() => setVersion((v) => v + 1)}>
+                        <FontAwesomeIcon icon={faSyncAlt} css={tw`mr-1.5`} /> <span>Reload</span>
+                    </Button.Text>
+                )}
+                {status === 'running' && (
+                    <a href={address} target={'_blank'} rel={'noopener noreferrer'}>
+                        <Button.Text type={'button'} size={Button.Sizes.Small}>
+                            <FontAwesomeIcon icon={faExternalLinkAlt} css={tw`mr-1.5`} /> <span>Open the preview</span>
+                        </Button.Text>
+                    </a>
+                )}
+            </div>
+            {framed && (
+                <iframe
+                    key={version}
+                    src={address}
+                    title={'Preview of the site'}
+                    sandbox={'allow-scripts allow-same-origin allow-forms'}
+                    css={tw`block w-full border-0 border-t border-white/10 bg-white`}
+                    style={{ height: 480 }}
+                />
+            )}
+        </div>
+    );
+};
+
 const PhpVersion = ({ uuid, image }: { uuid: string; image: string }) => {
     const { data, mutate } = getServerStartup(uuid);
     const setServerFromState = ServerContext.useStoreActions((actions) => actions.server.setServerFromState);
@@ -464,6 +517,8 @@ export default () => {
                             </Can>
                         )}
                     </div>
+
+                    <Preview url={page.url} temporary={page.preview} />
 
                     {page.php && <PhpVersion uuid={uuid} image={image} />}
 

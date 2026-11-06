@@ -20,8 +20,11 @@ class CustomDomainService
 {
     public const MAX_PER_SERVER = 10;
 
-    public function __construct(private SettingsRepositoryInterface $settings, private SubdomainService $subdomains)
-    {
+    public function __construct(
+        private SettingsRepositoryInterface $settings,
+        private SubdomainService $subdomains,
+        private AuthoritativeDns $authoritative,
+    ) {
     }
 
     public function enabled(): bool
@@ -163,6 +166,7 @@ class CustomDomainService
             }
 
             $ips = [];
+            $servers = [];
             $answered = false;
             foreach ($responses as $response) {
                 if (!$response instanceof Response || !$response->successful()) {
@@ -175,8 +179,19 @@ class CustomDomainService
                         $ips[] = $answer['data'];
                     }
                 }
+                // With no address, the answer names the main name server of the zone (type 6, the first word).
+                foreach ((array) $response->json('Authority', []) as $authority) {
+                    if ((int) ($authority['type'] ?? 0) === 6) {
+                        $servers[] = strtok((string) ($authority['data'] ?? ''), ' ');
+                    }
+                }
             }
             if ($answered) {
+                // "Nothing" can be an old answer the resolver remembers: the name servers have the last word.
+                if (empty($ips) && !empty($servers)) {
+                    return $this->authoritative->addresses($hostname, array_values(array_unique($servers))) ?? [];
+                }
+
                 return array_values(array_unique($ips));
             }
         }
