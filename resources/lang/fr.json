@@ -2139,5 +2139,19 @@
  "Creating the site (this takes a few minutes)": "Création du site (quelques minutes)",
  "Could not unpack Dolibarr.": "Impossible de décompresser Dolibarr.",
  "The last version of Dolibarr was not found.": "La dernière version de Dolibarr est introuvable.",
- "Dolibarr could not be installed: see .web/logs/install.log": "Dolibarr n’a pas pu être installé : voir .web/logs/install.log"
+ "Dolibarr could not be installed: see .web/logs/install.log": "Dolibarr n’a pas pu être installé : voir .web/logs/install.log",
+ "Billing for hosting companies. Needs PHP 8.3 or newer and your ClientXCMS licence, entered on its own page at the end.": "Facturation pour hébergeurs. Demande PHP 8.3 ou plus et votre licence ClientXCMS, à saisir à la fin sur sa propre page.",
+ "Billing for hosting companies. Needs your licence: first send your WHMCS zip file to the main folder of the site, next to public_html.": "Facturation pour hébergeurs. Demande votre licence : envoyez d’abord votre fichier zip WHMCS dans le dossier principal du site, à côté de public_html.",
+ "Send your WHMCS zip file to the main folder of the site first.": "Envoyez d’abord votre fichier zip WHMCS dans le dossier principal du site.",
+ "ClientXCMS needs PHP 8.3 or newer: change the version of PHP, restart the site and try again.": "ClientXCMS demande PHP 8.3 ou plus : changez la version de PHP, redémarrez le site et réessayez.",
+ "Downloading ClientXCMS": "Téléchargement de ClientXCMS",
+ "Unpacking WHMCS": "Décompression de WHMCS",
+ "The last version of ClientXCMS was not found.": "La dernière version de ClientXCMS est introuvable.",
+ "Could not unpack ClientXCMS.": "Impossible de décompresser ClientXCMS.",
+ "Could not copy ClientXCMS.": "Impossible de copier ClientXCMS.",
+ "Could not write the configuration of ClientXCMS.": "Impossible d’écrire la configuration de ClientXCMS.",
+ "ClientXCMS could not be installed: see .web/logs/install.log": "ClientXCMS n’a pas pu être installé : voir .web/logs/install.log",
+ "Could not unpack WHMCS.": "Impossible de décompresser WHMCS.",
+ "This zip file is not WHMCS.": "Ce fichier zip n’est pas WHMCS.",
+ "Could not copy WHMCS.": "Impossible de copier WHMCS."
 }

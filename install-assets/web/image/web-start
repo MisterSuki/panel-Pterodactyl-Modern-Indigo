@@ -15,6 +15,12 @@ DOCROOT="${DOCUMENT_ROOT:-public_html}"
 DOCROOT="$(echo "$DOCROOT" | sed -e 's#\.\.##g' -e 's#^/*##' -e 's#/*$##' -e 's#[^A-Za-z0-9._/-]##g')"
 ROOT="$HOME_DIR/${DOCROOT:-public_html}"
 
+# An application can serve only one of its folders (public for Laravel): web-install writes it here.
+if [[ -f "$WEB/docroot" ]]; then
+    SERVED="$(tr -cd 'A-Za-z0-9._/-' <"$WEB/docroot" | sed -e 's#\.\.##g' -e 's#^/*##' -e 's#/*$##')"
+    [[ -n "$SERVED" ]] && ROOT="$HOME_DIR/$SERVED"
+fi
+
 MEMORY="$(number "${PHP_MEMORY_LIMIT:-}" 256)"
 UPLOAD="$(number "${UPLOAD_MAX_MB:-}" 64)"
 TOTAL="$(number "${SERVER_MEMORY:-}" 512)"
@@ -28,6 +34,7 @@ mkdir -p "$ROOT" "$WEB"/run "$WEB"/logs "$WEB"/sessions "$WEB"/conf.d \
     "$WEB"/tmp/body "$WEB"/tmp/proxy "$WEB"/tmp/fastcgi "$WEB"/tmp/uwsgi "$WEB"/tmp/scgi "$WEB"/tmp/upload
 rm -f "$WEB"/run/*
 : >"$WEB/logs/php-fpm.log"
+: >"$WEB/logs/tasks.log"
 [[ -f "$WEB/custom.conf" ]] || echo "# Your own Nginx rules, read inside the server block." >"$WEB/custom.conf"
 
 # The rules of the CMS that was installed here, when it needs some.
@@ -60,11 +67,22 @@ FPM_PID=$!
 nginx -e stderr -c "$WEB/nginx.conf" &
 NGINX_PID=$!
 
-# The installation of a CMS is asked by the panel with a file: it is looked for every two seconds.
+# The installation of a CMS is asked by the panel with a file: it is looked for every two seconds. An application can also
+# leave a command to run every minute (.web/cron) and one to keep running (.web/worker), which billing software needs.
 (
+    tick=0
+    worker=""
     while sleep 2; do
         if [[ -f "$WEB/install.json" ]]; then
             web-install
+        fi
+        tick=$((tick + 1))
+        if [[ $((tick % 30)) -eq 0 && -f "$WEB/cron" ]]; then
+            bash "$WEB/cron" >>"$WEB/logs/tasks.log" 2>&1 &
+        fi
+        if [[ -f "$WEB/worker" ]] && { [[ -z "$worker" ]] || ! kill -0 "$worker" 2>/dev/null; }; then
+            bash "$WEB/worker" >>"$WEB/logs/tasks.log" 2>&1 &
+            worker=$!
         fi
     done
 ) &

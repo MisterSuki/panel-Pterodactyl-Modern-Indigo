@@ -35,6 +35,8 @@ class WebInstaller
         'prestashop' => ['name' => 'PrestaShop', 'description' => 'Online shop.', 'account' => true],
         'nextcloud' => ['name' => 'Nextcloud', 'description' => 'Your own cloud: files, calendar, contacts. Needs 512 MB of PHP memory.', 'account' => true],
         'dolibarr' => ['name' => 'Dolibarr', 'description' => 'ERP and CRM: customers, invoices, stock and accounting.', 'account' => true],
+        'clientxcms' => ['name' => 'ClientXCMS', 'description' => 'Billing for hosting companies. Needs PHP 8.3 or newer and your ClientXCMS licence, entered on its own page at the end.', 'account' => false],
+        'whmcs' => ['name' => 'WHMCS', 'description' => 'Billing for hosting companies. Needs your licence: first send your WHMCS zip file to the main folder of the site, next to public_html.', 'account' => false],
         'drupal' => ['name' => 'Drupal', 'description' => 'Powerful CMS. The last step is done on its own page, with the database shown in the Databases tab.', 'account' => false],
     ];
 
@@ -64,6 +66,9 @@ class WebInstaller
         }
 
         $url = $this->siteUrl($server);
+        if ($data['app'] === 'whmcs') {
+            $this->requireWhmcsFile($server);
+        }
         $database = $this->database($server);
 
         $this->files->setServer($server)->putContent(self::STATUS, (string) json_encode([
@@ -107,6 +112,22 @@ class WebInstaller
             'url' => $this->link($status['url'] ?? ''),
             'admin_url' => $this->link($status['admin_url'] ?? ''),
         ];
+    }
+
+    /**
+     * WHMCS only downloads from the account of its licence: nothing is removed until the client has sent the file.
+     *
+     * @throws DisplayException
+     */
+    private function requireWhmcsFile(Server $server): void
+    {
+        foreach ($this->files->setServer($server)->getDirectory('/') as $file) {
+            if (preg_match('/^whmcs.*\.zip$/i', (string) ($file['name'] ?? '')) === 1) {
+                return;
+            }
+        }
+
+        throw new DisplayException('Send your WHMCS zip file to the main folder of the site first.');
     }
 
     /**

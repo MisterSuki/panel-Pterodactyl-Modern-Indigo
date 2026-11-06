@@ -22,6 +22,14 @@ RUN apt-get update \
         "php${PHP_VERSION}-xml" "php${PHP_VERSION}-zip" "php${PHP_VERSION}-intl" "php${PHP_VERSION}-bcmath" \
         "php${PHP_VERSION}-gmp" "php${PHP_VERSION}-soap" "php${PHP_VERSION}-imagick" "php${PHP_VERSION}-redis" \
         "php${PHP_VERSION}-apcu" "php${PHP_VERSION}-opcache" \
+    && arch="$(dpkg --print-architecture | sed -e 's/amd64/x86-64/' -e 's/arm64/aarch64/')" \
+    && mkdir -p /usr/local/lib/ioncube \
+    && curl -fsSL "https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_${arch}.tar.gz" \
+        | tar -xz -C /usr/local/lib/ioncube --strip-components=1 --wildcards "*/ioncube_loader_lin_${PHP_VERSION}.so" \
+    && for sapi in fpm cli; do \
+        echo "zend_extension=/usr/local/lib/ioncube/ioncube_loader_lin_${PHP_VERSION}.so" \
+            >"/etc/php/${PHP_VERSION}/${sapi}/conf.d/00-ioncube.ini"; \
+    done \
     && curl -fsSL https://getcomposer.org/download/latest-stable/composer.phar -o /usr/local/bin/composer \
     && curl -fsSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /usr/local/bin/wp \
     && chmod 755 /usr/local/bin/composer /usr/local/bin/wp \

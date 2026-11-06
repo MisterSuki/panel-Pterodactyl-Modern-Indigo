@@ -66,13 +66,26 @@ PHP="php -d memory_limit=512M -d max_execution_time=0"
 # A folder that would hold the whole site, or nothing to install: stop before emptying anything.
 [[ "$ROOT" != "$HOME_DIR" ]] || fail "The folder of the site cannot be the home folder."
 case "$APP" in
-    wordpress | joomla | prestashop | nextcloud | dolibarr | drupal) ;;
+    wordpress | joomla | prestashop | nextcloud | dolibarr | drupal | clientxcms | whmcs) ;;
     *) fail "Unknown application." ;;
 esac
 
-mkdir -p "$ROOT"
+# What can be refused goes first: the folder of the site is still intact.
+WHMCS_ZIP="$(find "$HOME_DIR" -maxdepth 1 -type f -iname 'whmcs*.zip' 2>/dev/null | head -n 1)"
+if [[ "$APP" == whmcs && -z "$WHMCS_ZIP" ]]; then
+    fail "Send your WHMCS zip file to the main folder of the site first."
+fi
+if [[ "$APP" == clientxcms ]] && ! php -r 'exit(PHP_VERSION_ID >= 80300 ? 0 : 1);'; then
+    fail "ClientXCMS needs PHP 8.3 or newer: change the version of PHP, restart the site and try again."
+fi
+
+mkdir -p "$ROOT" "$WEB/logs"
 rm -rf "$TMP"
 mkdir -p "$TMP"
+
+# What the last application left: another one starts clean.
+rm -f "$WEB/docroot" "$WEB/cron" "$WEB/worker"
+pkill -f 'artisan queue:work' 2>/dev/null
 
 fetch() {
     curl -fsSL --retry 3 --connect-timeout 15 "$1" -o "$2" || fail "Could not download $1"
@@ -197,6 +210,44 @@ install_dolibarr() {
     ADMIN_URL="$URL/"
 }
 
+# ClientXCMS: the release holds everything. The last step is its own page: the licence is tied to the client's account.
+install_clientxcms() {
+    say "Downloading ClientXCMS"
+    local file
+    file="$(latest_asset ClientXCMS/ClientXCMS '/^clientxcms-.*\.zip$/')"
+    [[ -n "$file" ]] || fail "The last version of ClientXCMS was not found."
+    fetch "$file" "$TMP/clientxcms.zip"
+    unzip -q -o "$TMP/clientxcms.zip" -d "$TMP" || fail "Could not unpack ClientXCMS."
+    (cd "$TMP/clientxcms" && tar -cf - .) | tar -xf - -C "$ROOT" || fail "Could not copy ClientXCMS."
+    say "Creating the site (this takes a few minutes)"
+    php /etc/web/env-file.php "$ROOT/.env.example" "$ROOT/.env" "$WORK" "$LANG2" || fail "Could not write the configuration of ClientXCMS."
+    (cd "$ROOT" && $PHP artisan key:generate --force --no-interaction \
+        && $PHP artisan migrate --force --seed --no-interaction \
+        && $PHP artisan storage:link --no-interaction \
+        && $PHP artisan optimize:clear --no-interaction) >"$WEB/logs/install.log" 2>&1 \
+        || fail "ClientXCMS could not be installed: see .web/logs/install.log"
+    echo "${ROOT#"$HOME_DIR"/}/public" >"$WEB/docroot"
+    echo "php $ROOT/artisan schedule:run" >"$WEB/cron"
+    echo "php $ROOT/artisan queue:work --sleep=3 --tries=3 --timeout=90" >"$WEB/worker"
+    preset default
+    ADMIN_URL="$URL/"
+}
+
+# WHMCS is sold with a licence and only downloads from the client's account: the client sends the file, and enters the
+# licence on its own page.
+install_whmcs() {
+    say "Unpacking WHMCS"
+    unzip -q -o "$WHMCS_ZIP" -d "$TMP/whmcs" || fail "Could not unpack WHMCS."
+    local source
+    source="$(find "$TMP/whmcs" -maxdepth 3 -type f -name init.php | head -n 1)"
+    [[ -n "$source" ]] || fail "This zip file is not WHMCS."
+    (cd "$(dirname "$source")" && tar -cf - .) | tar -xf - -C "$ROOT" || fail "Could not copy WHMCS."
+    : >"$ROOT/configuration.php"
+    echo "[ \$((\$(date +%-M) % 5)) -eq 0 ] && php -q $ROOT/crons/cron.php" >"$WEB/cron"
+    preset whmcs
+    ADMIN_URL="$URL/install/install.php"
+}
+
 # Drupal has no simple install command: its files are put in place and the last step is its own page.
 install_drupal() {
     say "Downloading Drupal"
@@ -215,7 +266,10 @@ say "Applying the settings of the site"
 if [[ -f "$WEB/nginx.conf" ]]; then
     PRESET_FILE="/etc/web/preset-$(cat "$WEB/preset").conf"
     [[ -f "$PRESET_FILE" ]] || PRESET_FILE=/etc/web/preset-default.conf
-    sed -i "s#^\(\s*\)include /etc/web/preset-.*#\1include $PRESET_FILE;#" "$WEB/nginx.conf"
+    SERVED="$ROOT"
+    [[ -f "$WEB/docroot" ]] && SERVED="$HOME_DIR/$(cat "$WEB/docroot")"
+    sed -i -e "s#^\(\s*\)include /etc/web/preset-.*#\1include $PRESET_FILE;#" \
+        -e "s#^\(\s*\)root /.*#\1root $SERVED;#" "$WEB/nginx.conf"
     nginx -e stderr -c "$WEB/nginx.conf" -s reload || true
 fi
 
