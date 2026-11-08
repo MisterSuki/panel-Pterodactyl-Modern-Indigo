@@ -27,7 +27,7 @@ const Layout = styled.div`
     }
 
     & .pd-side-panel {
-        ${tw`rounded-2xl p-1.5`};
+        ${tw`relative rounded-2xl p-1.5`};
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.04) 100%);
         border: 1px solid rgba(255, 255, 255, 0.16);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 10px 30px -12px rgba(0, 0, 0, 0.5);
@@ -135,7 +135,7 @@ const SubNavigation = ({ tabs, children, className }: Props) => {
         <Layout className={className}>
             <div className={'pd-side-inner'}>
                 <nav className={'pd-side'}>
-                    <div className={'pd-side-panel'}>
+                    <div className={'pd-side-panel lg-rim'}>
                         <button
                             type={'button'}
                             className={`pd-side-toggle${open ? ' open' : ''}`}

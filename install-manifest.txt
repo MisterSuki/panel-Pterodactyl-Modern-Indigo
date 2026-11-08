@@ -188,6 +188,7 @@ app/Http/Controllers/Base/AppearanceController.php
 database/migrations/2026_10_20_000000_add_appearance_to_users_table.php
 public/js/appearance.js
 public/js/admin-search.js
+public/js/liquid-light.js
 app/Services/Discord/
 app/Http/Controllers/Base/DiscordInteractionController.php
 app/Http/Controllers/Admin/DiscordBotController.php

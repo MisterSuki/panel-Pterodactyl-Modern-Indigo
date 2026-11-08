@@ -3817,3 +3817,26 @@ select optgroup {
 .pd-icon-btn.is-start { color: #30d158 !important; }
 .pd-icon-btn.is-stop { color: #ff6961 !important; }
 .pd-icon-btn:disabled { opacity: 0.4; }
+
+/* ---- Liquid Glass: the rim of the boxes, with the light that follows the pointer (/js/liquid-light.js) ------------- */
+.pd-tile { position: relative; }
+.box::after,
+.pd-tile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background:
+        radial-gradient(180px circle at var(--lg-x, -400px) var(--lg-y, -400px), rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 70%),
+        linear-gradient(140deg, rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0.08) 28%, rgba(255, 255, 255, 0.02) 55%, rgba(255, 255, 255, 0.12) 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+.box.lg-lit::after,
+.pd-tile.lg-lit::after { opacity: 1; }

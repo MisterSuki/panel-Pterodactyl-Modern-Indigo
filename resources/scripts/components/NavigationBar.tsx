@@ -77,13 +77,13 @@ export default () => {
         <>
             <SupportBubble />
             <ScreenShare />
-            <div
-                className={
-                    'sticky top-0 z-40 w-full px-2 sm:px-4 pt-3'
-                }
-            >
+            <div className={'sticky top-0 z-40 w-full px-2 sm:px-4 pt-3'}>
                 <SpinnerOverlay visible={isLoggingOut} />
-                <div className={'lg-glass rounded-full mx-auto w-full flex items-center h-14 max-w-[1200px] px-2 sm:px-5'}>
+                <div
+                    className={
+                        'lg-glass relative rounded-full mx-auto w-full flex items-center h-14 max-w-[1200px] px-2 sm:px-5'
+                    }
+                >
                     <div id={'logo'} className={'flex-1 min-w-0'}>
                         <Link
                             to={'/'}

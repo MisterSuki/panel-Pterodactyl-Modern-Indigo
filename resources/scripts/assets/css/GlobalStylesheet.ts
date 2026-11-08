@@ -78,12 +78,41 @@ export default createGlobalStyle`
      * what is behind, a bright rim on the top edge (the "specular" highlight) and a soft drop shadow.
      */
     .lg-glass {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.06) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(255, 255, 255, 0.06),
-            0 12px 36px -12px rgba(0, 0, 0, 0.55);
-        -webkit-backdrop-filter: saturate(180%) blur(22px);
-        backdrop-filter: saturate(180%) blur(22px);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.05) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38), inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+            inset 0 0 24px rgba(255, 255, 255, 0.04), 0 12px 36px -12px rgba(0, 0, 0, 0.55);
+        -webkit-backdrop-filter: saturate(190%) blur(22px) brightness(1.06);
+        backdrop-filter: saturate(190%) blur(22px) brightness(1.06);
+    }
+
+    /*
+     * The rim of the glass: a thin line of light, brighter on the top left edge where the light comes from, and a
+     * reflection that follows the pointer along it (its place is set by /js/liquid-light.js). It is drawn on the
+     * border only (the inside is masked out), so nothing under it is blurred again.
+     */
+    .lg-glass::after,
+    .lg-rim::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        border-radius: inherit;
+        padding: 1px;
+        pointer-events: none;
+        background:
+            radial-gradient(180px circle at var(--lg-x, -400px) var(--lg-y, -400px), rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 70%),
+            linear-gradient(140deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.1) 28%, rgba(255, 255, 255, 0.03) 55%, rgba(255, 255, 255, 0.14) 100%);
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0.75;
+        transition: opacity 0.3s ease;
+    }
+
+    .lg-glass.lg-lit::after,
+    .lg-rim.lg-lit::after {
+        opacity: 1;
     }
 
     /* The capsules can scroll sideways on small screens: no scroll bar inside the glass. */

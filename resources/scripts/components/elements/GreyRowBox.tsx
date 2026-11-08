@@ -1,8 +1,8 @@
 import styled from 'styled-components/macro';
 import tw from 'twin.macro';
 
-export default styled.div<{ $hoverable?: boolean }>`
-    ${tw`flex rounded-xl no-underline text-neutral-200 items-center bg-neutral-800 p-4 border border-white/5 shadow-card transition-all duration-200 overflow-hidden`};
+export default styled.div.attrs({ className: 'lg-rim' })<{ $hoverable?: boolean }>`
+    ${tw`relative flex rounded-xl no-underline text-neutral-200 items-center bg-neutral-800 p-4 border border-white/5 shadow-card transition-all duration-200 overflow-hidden`};
 
     ${(props) =>
         props.$hoverable !== false &&
