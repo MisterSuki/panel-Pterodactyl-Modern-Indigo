@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faChevronRight,
@@ -10,7 +10,9 @@ import {
     faCalendarAlt,
     faClock,
     faSlidersH,
+    faUsers,
 } from '@fortawesome/free-solid-svg-icons';
+import { getPlayersLive } from '@/api/server/insights';
 import serverGame from '@/components/dashboard/serverGame';
 import UpgradeServerDialog from '@/components/dashboard/UpgradeServerDialog';
 import { Link } from 'react-router-dom';
@@ -110,6 +112,41 @@ const uptime = (ms: number): string => {
     return hours < 48 ? `${hours} h ${minutes % 60} min` : `${Math.floor(hours / 24)} j ${hours % 24} h`;
 };
 
+// The players on a running game server, asked every 20 seconds while the dashboard is visible. A website, a bot or a
+// game that does not say how many players it has shows nothing.
+const usePlayers = (server: Server, active: boolean): string | null => {
+    const [players, setPlayers] = useState<string | null>(null);
+
+    useEffect(() => {
+        setPlayers(null);
+        if (!active || server.eggFeatures.includes('web')) return;
+
+        let stop = false;
+        const ask = () => {
+            if (document.hidden) return;
+            getPlayersLive(server.uuid)
+                .then((live) => {
+                    if (stop) return;
+                    setPlayers(
+                        live.online && live.players !== null
+                            ? `${live.players}${live.maxPlayers !== null ? ` / ${live.maxPlayers}` : ''}`
+                            : null
+                    );
+                })
+                .catch(() => undefined);
+        };
+        ask();
+        const timer = window.setInterval(ask, 20000);
+
+        return () => {
+            stop = true;
+            window.clearInterval(timer);
+        };
+    }, [server.uuid, active]);
+
+    return players;
+};
+
 const ServerRow = ({
     server,
     stats = null,
@@ -130,6 +167,10 @@ const ServerRow = ({
 
     const address = server.allocations.filter((alloc) => alloc.isDefault);
     const game = serverGame(server);
+    const players = usePlayers(
+        server,
+        stats?.status === 'running' && !['Node.js', 'Python', 'App'].includes(game.name)
+    );
     // CPU and memory say nothing while the server is stopped: they are dimmed, the disk stays.
     const resting = stats?.status === 'offline';
 
@@ -189,6 +230,12 @@ const ServerRow = ({
                             </div>
                         )}
                         {game.name && <span className={'chip'}>{game.name}</span>}
+                        {players !== null && (
+                            <span className={'chip'} title={'Players'}>
+                                <FontAwesomeIcon icon={faUsers} css={tw`text-primary-300`} />
+                                {players}
+                            </span>
+                        )}
                         {stats?.status === 'running' && stats.uptime > 0 && (
                             <span className={'chip'} title={'Uptime'}>
                                 <FontAwesomeIcon icon={faClock} css={tw`text-green-400/70`} />

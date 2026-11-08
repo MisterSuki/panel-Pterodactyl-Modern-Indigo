@@ -24,6 +24,7 @@ import {
     PlayIcon,
     SearchIcon,
     TrashIcon,
+    ExclamationIcon,
 } from '@heroicons/react/solid';
 import StatusPill from '@/components/server/console/StatusPill';
 
@@ -151,6 +152,11 @@ export default () => {
     const loadedSearchBar = useRef<SearchBarAddon | null>(null);
     const commandInput = useRef<HTMLInputElement>(null);
     const [copied, setCopied] = useState(false);
+    const [errors, setErrors] = useState(0);
+    const errorCount = useRef(0);
+    const errorFrame = useRef<number | null>(null);
+    // The search that was loaded into the terminal, the one from the render where it was opened.
+    const loadedSearch = useRef<SearchAddon | null>(null);
     const webLinksAddon = new WebLinksAddon();
     const unicode11Addon = new Unicode11Addon();
     const scrollDownHelperAddon = new ScrollDownHelperAddon();
@@ -236,6 +242,8 @@ export default () => {
 
     // Empties the console: the screen, the history above it, and anything that was waiting to be written.
     const clearConsole = () => {
+        errorCount.current = 0;
+        setErrors(0);
         pending.current = [];
         held.current = [];
         setHeldCount(0);
@@ -282,12 +290,32 @@ export default () => {
         []
     );
 
-    const handleConsoleOutput = (line: string, prelude = false) =>
+    const countError = (line: string) => {
+        if (line.includes('\u001b') || !ERROR_LINE.test(line)) return;
+        errorCount.current += 1;
+        if (errorFrame.current === null) {
+            errorFrame.current = window.requestAnimationFrame(() => {
+                errorFrame.current = null;
+                setErrors(errorCount.current);
+            });
+        }
+    };
+
+    // From the bottom up: each click shows the error before the one shown.
+    const previousError = () => {
+        loadedSearch.current?.findPrevious(ERROR_LINE.source, { regex: true, caseSensitive: false });
+    };
+
+    const handleConsoleOutput = (line: string, prelude = false) => {
+        if (!prelude) {
+            countError(line);
+        }
         writeln(
             prelude
                 ? TERMINAL_PRELUDE + line.replace(/(?:\r\n|\r|\n)$/im, '') + '\u001b[0m'
                 : tint(line.replace(/(?:\r\n|\r|\n)$/im, '')) + '\u001b[0m'
         );
+    };
 
     const handleTransferStatus = (status: string) => {
         switch (status) {
@@ -346,6 +374,7 @@ export default () => {
         if (connected && ref.current && !terminal.element) {
             terminal.loadAddon(fitAddon);
             terminal.loadAddon(searchAddon);
+            loadedSearch.current = searchAddon;
             terminal.loadAddon(searchBar);
             loadedSearchBar.current = searchBar;
             terminal.loadAddon(webLinksAddon);
@@ -401,6 +430,8 @@ export default () => {
             // Do not clear the console if the server is being transferred.
             if (!isTransferring) {
                 terminal.clear();
+                errorCount.current = 0;
+                setErrors(0);
             }
 
             Object.keys(listeners).forEach((key: string) => {
@@ -462,6 +493,13 @@ export default () => {
                                 </span>
                             )}
                         </ToolButton>
+                        {errors > 0 && (
+                            <ToolButton title={'Show the errors, from the last one'} onClick={previousError}>
+                                <ExclamationIcon className={'w-3.5 h-3.5 text-red-400'} />
+                                <span className={'tabular-nums text-red-300'}>{errors > 999 ? '999+' : errors}</span>
+                                <span className={'hidden lg:inline'}>errors</span>
+                            </ToolButton>
+                        )}
                         <ToolButton title={'Empty the console'} onClick={clearConsole}>
                             <TrashIcon className={'w-3.5 h-3.5'} />
                             <span className={'hidden md:inline'}>Clear</span>

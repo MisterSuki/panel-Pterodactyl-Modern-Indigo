@@ -52,6 +52,7 @@ export interface Server {
         threads: string;
     };
     eggFeatures: string[];
+    eggName: string;
     featureLimits: {
         databases: number;
         allocations: number;
@@ -88,6 +89,7 @@ export const rawDataToServerObject = ({ attributes: data }: FractalResponseData)
     description: data.description ? (data.description.length > 0 ? data.description : null) : null,
     limits: { ...data.limits },
     eggFeatures: data.egg_features || [],
+    eggName: data.egg_name || '',
     featureLimits: { ...data.feature_limits },
     isTransferring: data.is_transferring,
     suspension: data.suspension

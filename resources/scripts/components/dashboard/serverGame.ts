@@ -4,6 +4,7 @@ import {
     faCode,
     faCube,
     faGamepad,
+    faGlobe,
     faRobot,
     faServer,
     faTractor,
@@ -41,14 +42,18 @@ const GAMES: Array<ServerGame & { test: RegExp }> = [
     { test: /steamcmd|srcds/i, name: 'Steam', icon: faGamepad, from: '#818cf8', to: '#4338ca' },
     { test: /python|\.py\b/i, name: 'Python', icon: faRobot, from: '#facc15', to: '#2563eb' },
     { test: /node|npm|yarn|bun\b|\.js\b/i, name: 'Node.js', icon: faRobot, from: '#4ade80', to: '#166534' },
-    { test: /java|golang|rust|php|dotnet/i, name: 'App', icon: faCode, from: '#a78bfa', to: '#6d28d9' },
+    { test: /java|golang|php|dotnet/i, name: 'App', icon: faCode, from: '#a78bfa', to: '#6d28d9' },
 ];
 
 export default (server: Server): ServerGame => {
+    if (server.eggFeatures.includes('web')) {
+        return { name: 'Website', icon: faGlobe, from: '#38bdf8', to: '#6366f1' };
+    }
     if (server.eggFeatures.includes('eula') || server.eggFeatures.includes('java_version')) {
         return GAMES.find((game) => game.name === 'Minecraft')!;
     }
-    const haystack = `${server.dockerImage || ''} ${server.invocation || ''}`;
+    // The name of the egg first: a FiveM or Rust egg can run on a generic image.
+    const haystack = `${server.eggName || ''} ${server.dockerImage || ''} ${server.invocation || ''}`;
 
     return (
         GAMES.find((game) => game.test.test(haystack)) || {
