@@ -99,6 +99,9 @@ export const checkWebDomain = (uuid: string, id: number): Promise<WebPage> =>
 export const deleteWebDomain = (uuid: string, id: number): Promise<WebPage> =>
     http.delete(`${base(uuid)}/domains/${id}`).then(({ data }) => map(data));
 
+export const uninstallWebApp = (uuid: string): Promise<WebPage> =>
+    http.post(`${base(uuid)}/uninstall`).then(({ data }) => map(data));
+
 export const installWebApp = (uuid: string, values: WebInstallValues): Promise<WebPage> =>
     http
         .post(`${base(uuid)}/install`, {

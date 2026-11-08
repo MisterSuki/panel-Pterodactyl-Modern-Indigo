@@ -57,13 +57,7 @@ class WebInstaller
      */
     public function start(Server $server, array $data): void
     {
-        $state = (string) ($this->daemon->setServer($server)->getDetails()['state'] ?? '');
-        if ($state !== 'running') {
-            throw new DisplayException('Start the site first: the installation runs inside it.');
-        }
-        if (($this->status($server)['state'] ?? null) === 'running') {
-            throw new DisplayException('An installation is already running on this site.');
-        }
+        $this->ready($server);
 
         $url = $this->siteUrl($server);
         if ($data['app'] === 'whmcs') {
@@ -88,8 +82,38 @@ class WebInstaller
     }
 
     /**
-     * How the last installation went, or null when there was none.
+     * Removes the CMS: the folder of the site goes back to its first page, and the database the CMS had is deleted.
+     * The files of the client outside the folder of the site stay.
+     *
+     * @throws DisplayException
      */
+    public function uninstall(Server $server): void
+    {
+        $this->ready($server);
+        $this->dropDatabases($server);
+
+        $this->files->setServer($server)->putContent(self::STATUS, (string) json_encode([
+            'state' => 'running', 'app' => 'uninstall', 'step' => 'Waiting for the site', 'url' => '', 'admin_url' => '', 'at' => time(),
+        ]));
+        $this->files->putContent(self::JOB, (string) json_encode(['app' => 'uninstall', 'url' => $this->web->primaryUrl($server) ?? '']));
+    }
+
+    /**
+     * @throws DisplayException
+     */
+    private function ready(Server $server): void
+    {
+        $state = (string) ($this->daemon->setServer($server)->getDetails()['state'] ?? '');
+        if ($state !== 'running') {
+            throw new DisplayException('Start the site first: the installation runs inside it.');
+        }
+        if (($this->status($server)['state'] ?? null) === 'running') {
+            throw new DisplayException('An installation is already running on this site.');
+        }
+    }
+
+    /**
+     * How the last installation went, or null when there was none.
     public function status(Server $server): ?array
     {
         try {
@@ -97,7 +121,7 @@ class WebInstaller
         } catch (\Throwable) {
             return null;
         }
-        if (!is_array($status) || !isset(self::APPS[$status['app'] ?? ''])) {
+        if (!is_array($status) || (!isset(self::APPS[$status['app'] ?? '']) && ($status['app'] ?? '') !== 'uninstall')) {
             return null;
         }
         if (($status['state'] ?? '') === 'running' && time() - (int) ($status['at'] ?? 0) > self::STALE_SECONDS) {
@@ -168,11 +192,7 @@ class WebInstaller
      */
     private function database(Server $server): array
     {
-        foreach ($server->databases()->get() as $old) {
-            if (preg_match('/^s\d+_site[0-9a-f]{5}$/', $old->database) === 1) {
-                $this->management->delete($old);
-            }
-        }
+        $this->dropDatabases($server);
 
         $database = DB::transaction(function () use ($server) {
             if ($server->databases()->lockForUpdate()->count() >= $server->database_limit) {
@@ -183,6 +203,18 @@ class WebInstaller
         });
 
         return $this->connection($database);
+    }
+
+    /**
+     * The databases made by an installation (their name says so); the ones the client made stay.
+     */
+    private function dropDatabases(Server $server): void
+    {
+        foreach ($server->databases()->get() as $old) {
+            if (preg_match('/^s\d+_site[0-9a-f]{5}$/', $old->database) === 1) {
+                $this->management->delete($old);
+            }
+        }
     }
 
     /**

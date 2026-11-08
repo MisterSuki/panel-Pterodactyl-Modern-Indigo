@@ -111,6 +111,20 @@ class WebHostingController extends ClientApiController
         return new JsonResponse($this->payload($server));
     }
 
+    public function uninstall(Request $request, Server $server): JsonResponse
+    {
+        $this->authorizeFor($request, $server, Permission::ACTION_DATABASE_DELETE);
+        $this->authorizeFor($request, $server, Permission::ACTION_FILE_DELETE);
+        if (!WebHostingService::isWebsite($server) || !$this->isPhp($server)) {
+            throw new DisplayException('A CMS can only be installed on a PHP site.');
+        }
+
+        $this->installer->uninstall($server);
+        Activity::event('server:web.uninstall')->log();
+
+        return new JsonResponse($this->payload($server));
+    }
+
     public function status(Request $request, Server $server): JsonResponse
     {
         $this->authorizeFor($request, $server, Permission::ACTION_ALLOCATION_READ);

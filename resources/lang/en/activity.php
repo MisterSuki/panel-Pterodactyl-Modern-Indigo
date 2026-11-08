@@ -141,6 +141,7 @@ return [
         ],
         'web' => [
             'install' => 'Installed :app on the site',
+            'uninstall' => 'Removed the CMS of the site',
         ],
         'subuser' => [
             'create' => 'Added :email as a subuser',

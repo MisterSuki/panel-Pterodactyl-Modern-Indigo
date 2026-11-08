@@ -186,6 +186,7 @@ Route::group([
         Route::post('/domains/{domain}/check', [Client\Servers\WebHostingController::class, 'checkDomain'])->whereNumber('domain')->middleware('throttle:subdomains');
         Route::delete('/domains/{domain}', [Client\Servers\WebHostingController::class, 'deleteDomain'])->whereNumber('domain');
         Route::post('/install', [Client\Servers\WebHostingController::class, 'install'])->middleware('throttle:subdomains');
+        Route::post('/uninstall', [Client\Servers\WebHostingController::class, 'uninstall'])->middleware('throttle:subdomains');
     });
 
     Route::group(['prefix' => '/subdomains'], function () {

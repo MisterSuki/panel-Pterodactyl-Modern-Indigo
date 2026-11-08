@@ -2198,5 +2198,11 @@
  "errors": "erreurs",
  "Upload a folder": "Envoyer un dossier",
  "Drop files or folders to upload.": "Déposez des fichiers ou des dossiers pour les envoyer.",
- "There is nothing to send: the folder is empty.": "Rien à envoyer : le dossier est vide."
+ "There is nothing to send: the folder is empty.": "Rien à envoyer : le dossier est vide.",
+ "Uninstall": "Désinstaller",
+ "Uninstall the CMS": "Désinstaller le CMS",
+ "Everything in the folder of the site is deleted, with the database of the CMS and its data. The site shows its first page again. This cannot be undone: make a backup first if you need it.": "Tout le contenu du dossier du site est supprimé, avec la base de données du CMS et ses données. Le site affiche à nouveau sa première page. C’est définitif : fais d’abord une sauvegarde si tu en as besoin.",
+ "The CMS was removed: the site is empty again.": "Le CMS a été désinstallé : le site est de nouveau vide.",
+ "Removing the CMS": "Désinstallation du CMS",
+ "Uninstalled": "Désinstallé"
 }

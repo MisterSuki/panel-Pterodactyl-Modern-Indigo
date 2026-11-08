@@ -66,7 +66,7 @@ PHP="php -d memory_limit=512M -d max_execution_time=0"
 # A folder that would hold the whole site, or nothing to install: stop before emptying anything.
 [[ "$ROOT" != "$HOME_DIR" ]] || fail "The folder of the site cannot be the home folder."
 case "$APP" in
-    wordpress | joomla | prestashop | nextcloud | dolibarr | drupal | clientxcms | whmcs) ;;
+    wordpress | joomla | prestashop | nextcloud | dolibarr | drupal | clientxcms | whmcs | uninstall) ;;
     *) fail "Unknown application." ;;
 esac
 
@@ -248,6 +248,35 @@ install_whmcs() {
     ADMIN_URL="$URL/install/install.php"
 }
 
+# Back to an empty site: its first page, and nothing left of the CMS (the data folders it made are removed too).
+install_uninstall() {
+    say "Removing the CMS"
+    rm -rf "$HOME_DIR/nextcloud-data" "$HOME_DIR/dolibarr-documents"
+    cat >"$ROOT/index.html" <<'PAGE'
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Your site is ready</title>
+    <style>
+        body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #0e0e16; color: #f4f4f8; font: 16px/1.6 system-ui, sans-serif; text-align: center; padding: 24px; box-sizing: border-box; }
+        h1 { margin: 0 0 8px; font-size: 28px; }
+        p { margin: 0; color: #a1a1b5; }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Your site is ready</h1>
+        <p>Replace this page, or install a CMS from the Website tab of the panel.</p>
+    </div>
+</body>
+</html>
+PAGE
+    preset default
+    ADMIN_URL=""
+}
+
 # Drupal has no simple install command: its files are put in place and the last step is its own page.
 install_drupal() {
     say "Downloading Drupal"
@@ -274,4 +303,4 @@ if [[ -f "$WEB/nginx.conf" ]]; then
 fi
 
 echo "[install] Done: $URL"
-status done "Installed" "$URL" "$ADMIN_URL"
+status done "$([[ "$APP" == uninstall ]] && echo Uninstalled || echo Installed)" "$URL" "$ADMIN_URL"

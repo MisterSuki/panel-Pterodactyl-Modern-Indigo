@@ -32,6 +32,7 @@ import {
     getWeb,
     getWebInstall,
     installWebApp,
+    uninstallWebApp,
     WebApp,
     WebDomain,
     WebInstallStatus,
@@ -181,8 +182,39 @@ const DomainRow = ({
     </div>
 );
 
-const InstallBanner = ({ status, apps }: { status: WebInstallStatus; apps: WebApp[] }) => {
+const InstallBanner = ({
+    status,
+    apps,
+    onUninstall,
+}: {
+    status: WebInstallStatus;
+    apps: WebApp[];
+    onUninstall: () => void;
+}) => {
     const name = apps.find((a) => a.id === status.app)?.name || status.app;
+
+    if (status.app === 'uninstall') {
+        return (
+            <div css={tw`mx-4 mt-4 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm`}>
+                {status.state === 'running' ? (
+                    <p css={tw`text-neutral-100`}>
+                        <FontAwesomeIcon icon={faCircleNotch} spin css={tw`mr-2 text-primary-300`} />
+                        <span>{status.step}</span>
+                    </p>
+                ) : status.state === 'failed' ? (
+                    <p css={tw`text-red-300 break-words`}>
+                        <FontAwesomeIcon icon={faExclamationTriangle} css={tw`mr-2`} />
+                        <span>{status.step}</span>
+                    </p>
+                ) : (
+                    <p css={tw`text-green-300`}>
+                        <FontAwesomeIcon icon={faCheckCircle} css={tw`mr-2`} />
+                        <span>The CMS was removed: the site is empty again.</span>
+                    </p>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div css={tw`mx-4 mt-4 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm`}>
@@ -222,6 +254,15 @@ const InstallBanner = ({ status, apps }: { status: WebInstallStatus; apps: WebAp
                             <span>Open the administration</span>
                         </a>
                     )}
+                    <Button.Danger
+                        variant={Button.Variants.Secondary}
+                        size={Button.Sizes.Small}
+                        type={'button'}
+                        css={tw`ml-auto`}
+                        onClick={onUninstall}
+                    >
+                        <FontAwesomeIcon icon={faTrashAlt} css={tw`mr-1.5`} /> <span>Uninstall</span>
+                    </Button.Danger>
                 </div>
             )}
         </div>
@@ -335,6 +376,7 @@ export default () => {
     const [hostname, setHostname] = useState('');
     const [subdomain, setSubdomain] = useState({ name: '', zone: 0 });
     const [removing, setRemoving] = useState<WebDomain | null>(null);
+    const [uninstalling, setUninstalling] = useState(false);
     const [app, setApp] = useState<WebApp | null>(null);
     const [form, setForm] = useState({ title: '', adminUser: '', adminPassword: '', adminEmail: '', locale: 'fr_FR' });
 
@@ -533,7 +575,13 @@ export default () => {
                                         : 'Add a domain first: the CMS is set up for its address. Your own files go to public_html, with the Files tab or SFTP.'}
                                 </p>
                             </div>
-                            {page.install && <InstallBanner status={page.install} apps={page.apps} />}
+                            {page.install && (
+                                <InstallBanner
+                                    status={page.install}
+                                    apps={page.apps}
+                                    onUninstall={() => setUninstalling(true)}
+                                />
+                            )}
                             <div css={tw`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 px-4 pt-4`}>
                                 {page.apps.map((a) => (
                                     <div
@@ -688,6 +736,22 @@ export default () => {
                     </Button>
                 </Dialog.Footer>
             </Dialog>
+
+            <Dialog.Confirm
+                open={uninstalling}
+                onClose={() => setUninstalling(false)}
+                title={'Uninstall the CMS'}
+                confirm={'Uninstall'}
+                onConfirmed={() => {
+                    setUninstalling(false);
+                    run(uninstallWebApp(uuid));
+                }}
+            >
+                <span>
+                    Everything in the folder of the site is deleted, with the database of the CMS and its data. The site
+                    shows its first page again. This cannot be undone: make a backup first if you need it.
+                </span>
+            </Dialog.Confirm>
 
             <Dialog.Confirm
                 open={!!removing}
