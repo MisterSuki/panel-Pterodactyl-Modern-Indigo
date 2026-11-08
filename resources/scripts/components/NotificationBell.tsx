@@ -11,11 +11,19 @@ import {
     faCloudDownloadAlt,
     faExclamationTriangle,
     faInfoCircle,
+    faTimes,
     faTimesCircle,
+    faTrashAlt,
     faWrench,
 } from '@fortawesome/free-solid-svg-icons';
 import { dateLocale } from '@/components/elements/activity/kinds';
-import { getNotifications, NotificationList, PanelNotification, readNotifications } from '@/api/account/notifications';
+import {
+    deleteNotifications,
+    getNotifications,
+    NotificationList,
+    PanelNotification,
+    readNotifications,
+} from '@/api/account/notifications';
 
 const ICONS = {
     info: [faInfoCircle, '#64d2ff'],
@@ -72,6 +80,20 @@ export default () => {
             .then(setList)
             .catch(() => undefined);
 
+    // Gone at once from the list; the panel is told after.
+    const removeOne = (n: PanelNotification) => {
+        setList((current) => ({
+            unread: Math.max(0, current.unread - (n.read ? 0 : 1)),
+            data: current.data.filter((x) => x.id !== n.id),
+        }));
+        deleteNotifications([n.id]).catch(() => refresh());
+    };
+
+    const removeAll = () => {
+        setList({ unread: 0, data: [] });
+        deleteNotifications().catch(() => refresh());
+    };
+
     const openOne = (n: PanelNotification) => {
         if (!n.read) {
             setList((current) => ({
@@ -119,15 +141,28 @@ export default () => {
                 >
                     <div css={tw`flex items-center justify-between px-4 py-3 border-b border-white/10`}>
                         <span css={tw`text-sm font-semibold text-neutral-50`}>Notifications</span>
-                        {list.unread > 0 && (
-                            <button
-                                type={'button'}
-                                onClick={markAll}
-                                css={tw`text-xs text-primary-300 hover:text-primary-200 focus:outline-none`}
-                            >
-                                <FontAwesomeIcon icon={faCheckDouble} css={tw`mr-1`} /> <span>Mark all as read</span>
-                            </button>
-                        )}
+                        <span css={tw`flex items-center gap-3`}>
+                            {list.unread > 0 && (
+                                <button
+                                    type={'button'}
+                                    onClick={markAll}
+                                    css={tw`text-xs text-primary-300 hover:text-primary-200 focus:outline-none`}
+                                >
+                                    <FontAwesomeIcon icon={faCheckDouble} css={tw`mr-1`} />{' '}
+                                    <span>Mark all as read</span>
+                                </button>
+                            )}
+                            {list.data.length > 0 && (
+                                <button
+                                    type={'button'}
+                                    onClick={removeAll}
+                                    title={'Remove all'}
+                                    css={tw`text-xs text-neutral-400 hover:text-red-300 focus:outline-none`}
+                                >
+                                    <FontAwesomeIcon icon={faTrashAlt} css={tw`mr-1`} /> <span>Clear</span>
+                                </button>
+                            )}
+                        </span>
                     </div>
                     <div css={tw`overflow-y-auto`} style={{ maxHeight: '60vh' }}>
                         {list.data.length === 0 ? (
@@ -137,43 +172,61 @@ export default () => {
                                 const [icon, color] = ICONS[n.kind] || ICONS.info;
 
                                 return (
-                                    <button
-                                        key={n.id}
-                                        type={'button'}
-                                        onClick={() => openOne(n)}
-                                        css={[
-                                            tw`flex w-full gap-3 px-4 py-3 text-left border-b border-white/5 hover:bg-white/10 focus:outline-none`,
-                                            !n.read && tw`bg-white/5`,
-                                        ]}
-                                    >
-                                        <span css={tw`flex-shrink-0 mt-0.5`} style={{ color }}>
-                                            <FontAwesomeIcon icon={n.everyone && n.kind === 'info' ? faBullhorn : icon} />
-                                        </span>
-                                        <span css={tw`flex-1 min-w-0`}>
-                                            <span css={tw`flex items-start gap-2`}>
-                                                <span css={tw`flex-1 text-sm font-semibold text-neutral-50 leading-snug`}>
-                                                    {n.title}
-                                                </span>
-                                                {!n.read && (
+                                    <div key={n.id} className={'group'} css={tw`relative border-b border-white/5`}>
+                                        <button
+                                            type={'button'}
+                                            onClick={() => openOne(n)}
+                                            css={[
+                                                tw`flex w-full gap-3 pl-4 pr-9 py-3 text-left hover:bg-white/10 focus:outline-none`,
+                                                !n.read && tw`bg-white/5`,
+                                            ]}
+                                        >
+                                            <span css={tw`flex-shrink-0 mt-0.5`} style={{ color }}>
+                                                <FontAwesomeIcon
+                                                    icon={n.everyone && n.kind === 'info' ? faBullhorn : icon}
+                                                />
+                                            </span>
+                                            <span css={tw`flex-1 min-w-0`}>
+                                                <span css={tw`flex items-start gap-2`}>
                                                     <span
-                                                        css={tw`flex-shrink-0 mt-1.5 w-2 h-2 rounded-full bg-primary-500`}
-                                                    />
+                                                        css={tw`flex-1 text-sm font-semibold text-neutral-50 leading-snug`}
+                                                    >
+                                                        {n.title}
+                                                    </span>
+                                                    {!n.read && (
+                                                        <span
+                                                            css={tw`flex-shrink-0 mt-1.5 w-2 h-2 rounded-full bg-primary-500`}
+                                                        />
+                                                    )}
+                                                </span>
+                                                {n.body && (
+                                                    <span
+                                                        css={tw`block text-xs text-neutral-300 mt-0.5 leading-snug whitespace-pre-line`}
+                                                    >
+                                                        {n.body}
+                                                    </span>
+                                                )}
+                                                {n.createdAt && (
+                                                    <span css={tw`block text-2xs text-neutral-500 mt-1`}>
+                                                        {formatDistanceToNow(n.createdAt, {
+                                                            addSuffix: true,
+                                                            locale: dateLocale(),
+                                                        })}
+                                                    </span>
                                                 )}
                                             </span>
-                                            {n.body && (
-                                                <span
-                                                    css={tw`block text-xs text-neutral-300 mt-0.5 leading-snug whitespace-pre-line`}
-                                                >
-                                                    {n.body}
-                                                </span>
-                                            )}
-                                            {n.createdAt && (
-                                                <span css={tw`block text-2xs text-neutral-500 mt-1`}>
-                                                    {formatDistanceToNow(n.createdAt, { addSuffix: true, locale: dateLocale() })}
-                                                </span>
-                                            )}
-                                        </span>
-                                    </button>
+                                        </button>
+                                        <button
+                                            type={'button'}
+                                            onClick={() => removeOne(n)}
+                                            title={'Remove'}
+                                            aria-label={'Remove'}
+                                            className={'opacity-60 group-hover:opacity-100'}
+                                            css={tw`absolute top-2.5 right-2 flex items-center justify-center w-6 h-6 rounded-full text-neutral-400 hover:text-white hover:bg-white/10 focus:outline-none focus:opacity-100`}
+                                        >
+                                            <FontAwesomeIcon icon={faTimes} css={tw`text-xs`} />
+                                        </button>
+                                    </div>
                                 );
                             })
                         )}

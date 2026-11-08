@@ -2204,5 +2204,6 @@
  "Everything in the folder of the site is deleted, with the database of the CMS and its data. The site shows its first page again. This cannot be undone: make a backup first if you need it.": "Tout le contenu du dossier du site est supprimé, avec la base de données du CMS et ses données. Le site affiche à nouveau sa première page. C’est définitif : fais d’abord une sauvegarde si tu en as besoin.",
  "The CMS was removed: the site is empty again.": "Le CMS a été désinstallé : le site est de nouveau vide.",
  "Removing the CMS": "Désinstallation du CMS",
- "Uninstalled": "Désinstallé"
+ "Uninstalled": "Désinstallé",
+ "Remove all": "Tout supprimer"
 }

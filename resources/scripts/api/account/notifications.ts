@@ -36,3 +36,7 @@ export const getNotifications = (): Promise<NotificationList> =>
 
 export const readNotifications = (ids?: number[]): Promise<NotificationList> =>
     http.post('/api/client/account/notifications/read', ids ? { ids } : {}).then(({ data }) => map(data));
+
+// Removes them from the bell: one, or all of them when no id is given.
+export const deleteNotifications = (ids?: number[]): Promise<NotificationList> =>
+    http.post('/api/client/account/notifications/delete', ids ? { ids } : {}).then(({ data }) => map(data));

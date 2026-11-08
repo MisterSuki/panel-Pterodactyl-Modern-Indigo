@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Pterodactyl\Services\Notifications\Notifier;
 
 /**
- * The bell of the panel: the messages of the person signed in, and marking them read.
+ * The bell of the panel: the messages of the person signed in, marking them read and removing them.
  */
 class NotificationController extends ClientApiController
 {
@@ -25,6 +25,14 @@ class NotificationController extends ClientApiController
     {
         $data = $request->validate(['ids' => ['nullable', 'array', 'max:100'], 'ids.*' => ['integer']]);
         $this->notifier->markRead($request->user(), isset($data['ids']) ? array_map('intval', $data['ids']) : null);
+
+        return new JsonResponse($this->notifier->forUser($request->user()));
+    }
+
+    public function delete(Request $request): JsonResponse
+    {
+        $data = $request->validate(['ids' => ['nullable', 'array', 'max:100'], 'ids.*' => ['integer']]);
+        $this->notifier->hide($request->user(), isset($data['ids']) ? array_map('intval', $data['ids']) : null);
 
         return new JsonResponse($this->notifier->forUser($request->user()));
     }

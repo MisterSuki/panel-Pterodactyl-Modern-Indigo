@@ -83,7 +83,9 @@ class Notifier
         $since = max($user->created_at?->timestamp ?? 0, now()->subDays(self::KEEP_DAYS)->timestamp);
         $query = PanelNotification::query()
             ->where(fn ($q) => $q->where('user_id', $user->id)->orWhereNull('user_id'))
-            ->where('created_at', '>=', date('Y-m-d H:i:s', $since));
+            ->where('created_at', '>=', date('Y-m-d H:i:s', $since))
+            // The ones the person removed from their bell.
+            ->whereNotIn('id', DB::table('panel_notification_reads')->where('user_id', $user->id)->whereNotNull('hidden_at')->select('notification_id'));
 
         $read = DB::table('panel_notification_reads')->where('user_id', $user->id)
             ->whereIn('notification_id', (clone $query)->select('id'))->pluck('notification_id')->flip();
@@ -104,6 +106,24 @@ class Notifier
                 'created_at' => $n->created_at?->toAtomString(),
             ])->values()->all(),
         ];
+    }
+
+    /**
+     * Removes notifications from the bell of a person (and marks them read). An announcement stays for the others.
+     *
+     * @param int[]|null $ids Null: everything the person can see.
+     */
+    public function hide(User $user, ?array $ids = null): void
+    {
+        $query = PanelNotification::query()->where(fn ($q) => $q->where('user_id', $user->id)->orWhereNull('user_id'));
+        if ($ids !== null) {
+            $query->whereIn('id', $ids);
+        }
+        $now = now();
+        $rows = $query->pluck('id')->map(fn ($id) => ['notification_id' => $id, 'user_id' => $user->id, 'hidden_at' => $now])->all();
+        foreach (array_chunk($rows, 500) as $chunk) {
+            DB::table('panel_notification_reads')->upsert($chunk, ['notification_id', 'user_id'], ['hidden_at']);
+        }
     }
 
     /**

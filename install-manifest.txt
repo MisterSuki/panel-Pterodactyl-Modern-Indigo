@@ -224,6 +224,7 @@ app/Models/ServerCustomDomain.php
 
 # Bell of the panel, announcements, server alerts (Discord), player statistics and the public status page.
 database/migrations/2026_10_24_000000_create_notifications_alerts_and_stats.php
+database/migrations/2026_11_08_000000_add_hidden_at_to_panel_notification_reads.php
 app/Models/PanelNotification.php
 app/Models/ServerAlert.php
 app/Services/Notifications/

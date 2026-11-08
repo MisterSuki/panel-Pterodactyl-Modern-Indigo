@@ -71,6 +71,7 @@ Route::prefix('/account')->middleware(AccountSubject::class)->group(function () 
     Route::put('/language', [Client\AccountController::class, 'updateLanguage'])->name('api:client.account.update-language');
     Route::get('/notifications', [Client\NotificationController::class, 'index'])->name('api:client.account.notifications');
     Route::post('/notifications/read', [Client\NotificationController::class, 'read'])->name('api:client.account.notifications.read');
+    Route::post('/notifications/delete', [Client\NotificationController::class, 'delete'])->name('api:client.account.notifications.delete');
     Route::put('/appearance', [Client\AccountController::class, 'updateAppearance'])->middleware('throttle:60,1')->name('api:client.account.update-appearance');
 
     Route::post('/avatar', [Client\AvatarController::class, 'store'])->middleware('throttle:10,1')->name('api:client.account.avatar');
