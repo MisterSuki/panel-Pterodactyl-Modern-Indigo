@@ -2195,5 +2195,8 @@
  "Link your own Discord account on your Account page first.": "Lie d’abord ton propre compte Discord sur ta page Compte.",
  "Discord refused the message. The bot can only write to someone who shares a Discord server with it: invite it to yours.": "Discord a refusé le message. Le bot ne peut écrire qu’à quelqu’un qui partage un serveur Discord avec lui : invite-le sur le tien.",
  "Show the errors, from the last one": "Afficher les erreurs, en partant de la dernière",
- "errors": "erreurs"
+ "errors": "erreurs",
+ "Upload a folder": "Envoyer un dossier",
+ "Drop files or folders to upload.": "Déposez des fichiers ou des dossiers pour les envoyer.",
+ "There is nothing to send: the folder is empty.": "Rien à envoyer : le dossier est vide."
 }
