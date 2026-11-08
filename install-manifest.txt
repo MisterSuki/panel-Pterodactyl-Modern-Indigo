@@ -187,6 +187,9 @@ app/Http/Controllers/Admin/AppearanceController.php
 app/Http/Controllers/Base/AppearanceController.php
 database/migrations/2026_10_20_000000_add_appearance_to_users_table.php
 public/js/appearance.js
+public/js/admin-search.js
+app/Http/Controllers/Admin/SearchController.php
+app/Http/Controllers/Admin/Servers/ServerLiveController.php
 resources/views/admin/appearance.blade.php
 resources/views/partials/appearance.blade.php
 

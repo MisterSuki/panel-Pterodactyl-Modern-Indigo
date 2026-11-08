@@ -12,7 +12,7 @@ use Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException;
 class DaemonServerListRepository extends DaemonRepository
 {
     /**
-     * @return array<string, array{state: string, memory: int, memory_limit: int, disk: int, uptime: int}> by uuid
+     * @return array<string, array{state: string, cpu: float, memory: int, memory_limit: int, disk: int, uptime: int}> by uuid
      *
      * @throws DaemonConnectionException
      */
@@ -33,6 +33,7 @@ class DaemonServerListRepository extends DaemonRepository
             $use = (array) ($item['utilization'] ?? []);
             $out[$uuid] = [
                 'state' => (string) ($item['state'] ?? $use['state'] ?? 'offline'),
+                'cpu' => (float) ($use['cpu_absolute'] ?? 0),
                 'memory' => (int) ($use['memory_bytes'] ?? 0),
                 'memory_limit' => (int) ($use['memory_limit_bytes'] ?? 0),
                 'disk' => (int) ($use['disk_bytes'] ?? 0),

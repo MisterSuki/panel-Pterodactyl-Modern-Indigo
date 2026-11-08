@@ -5,6 +5,8 @@ use Pterodactyl\Http\Controllers\Admin;
 use Pterodactyl\Http\Middleware\Admin\Servers\ServerInstalled;
 
 Route::get('/', [Admin\BaseController::class, 'index'])->name('admin.index');
+// The search of the whole administration (Ctrl+K): each section is only searched with the right to see it.
+Route::get('/search', Admin\SearchController::class)->name('admin.search');
 // The home page that visitors see before they sign in (the right to manage the settings is needed to change it).
 Route::group(['prefix' => 'home-page', 'middleware' => 'admin.can:settings,manage'], function () {
     Route::get('/', [Admin\LandingController::class, 'index'])->name('admin.home-page');
@@ -212,6 +214,9 @@ Route::group(['prefix' => 'users', 'middleware' => 'admin.can:users'], function 
 */
 Route::group(['prefix' => 'servers', 'middleware' => 'admin.can:servers'], function () {
     Route::get('/', [Admin\Servers\ServerController::class, 'index'])->name('admin.servers');
+    Route::get('/live', [Admin\Servers\ServerLiveController::class, 'live'])->name('admin.servers.live');
+    Route::post('/power', [Admin\Servers\ServerLiveController::class, 'power'])->name('admin.servers.power');
+    Route::post('/suspension', [Admin\Servers\ServerLiveController::class, 'suspension'])->name('admin.servers.suspension');
     Route::get('/new', [Admin\Servers\CreateServerController::class, 'index'])->name('admin.servers.new');
     Route::get('/view/{server:id}', [Admin\Servers\ServerViewController::class, 'index'])->name('admin.servers.view');
 

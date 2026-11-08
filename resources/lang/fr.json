@@ -2153,5 +2153,17 @@
  "ClientXCMS could not be installed: see .web/logs/install.log": "ClientXCMS n’a pas pu être installé : voir .web/logs/install.log",
  "Could not unpack WHMCS.": "Impossible de décompresser WHMCS.",
  "This zip file is not WHMCS.": "Ce fichier zip n’est pas WHMCS.",
- "Could not copy WHMCS.": "Impossible de copier WHMCS."
+ "Could not copy WHMCS.": "Impossible de copier WHMCS.",
+ "Search a server, an owner, an email or a UUID": "Rechercher un serveur, un propriétaire, un e-mail ou un UUID",
+ "Search a server, a user, a node, an IP or a domain": "Rechercher un serveur, un utilisateur, un node, une IP ou un domaine",
+ "to choose": "pour choisir",
+ "to open": "pour ouvrir",
+ "Type at least two characters.": "Tapez au moins deux caractères.",
+ "Nothing found.": "Aucun résultat.",
+ "Node not answering": "Node injoignable",
+ "selected": "sélectionné(s)",
+ "Suspend": "Suspendre",
+ "Unsuspend": "Réactiver",
+ "Use": "Utilisation",
+ "Open in the panel": "Ouvrir dans le panel"
 }

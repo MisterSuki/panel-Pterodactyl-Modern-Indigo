@@ -19,7 +19,7 @@ class ServerController extends Controller
      */
     public function index(Request $request): View
     {
-        $servers = QueryBuilder::for(Server::query()->with('node', 'user', 'allocation'))
+        $servers = QueryBuilder::for(Server::query()->with('node', 'user', 'allocation', 'egg'))
             ->allowedFilters([
                 AllowedFilter::exact('owner_id'),
                 AllowedFilter::custom('*', new AdminServerFilter()),

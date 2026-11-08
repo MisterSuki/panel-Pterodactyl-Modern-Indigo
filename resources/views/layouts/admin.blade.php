@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-pd-search="{{ route('admin.search') }}">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -55,6 +55,12 @@
                     </a>
                     <div class="navbar-custom-menu">
                         <ul class="nav navbar-nav">
+                            <li class="pd-search-trigger">
+                                <a href="#" data-pd-search-open title="Search (Ctrl+K)">
+                                    <i class="fa fa-search"></i>
+                                    <span class="hidden-xs"><span>Search</span> <kbd>Ctrl K</kbd></span>
+                                </a>
+                            </li>
                             <li class="user-menu">
                                 <a href="{{ route('account') }}">
                                     <img src="{{ Auth::user()->avatarUrl() }}" class="user-image" alt="User Image">
@@ -193,6 +199,7 @@
             {!! Theme::js('vendor/select2/select2.full.min.js?t={cache-version}') !!}
             {!! Theme::js('js/admin/functions.js?t={cache-version}') !!}
             <script src="/js/autocomplete.js" type="application/javascript"></script>
+            <script src="/js/admin-search.js?v={{ @filemtime(public_path('js/admin-search.js')) }}" type="application/javascript"></script>
 
             @if(Auth::user()->isStaff())
                 <script>
