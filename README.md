@@ -200,6 +200,12 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 - **facturation d'hébergeur** : ClientXCMS, et WHMCS avec ton fichier, chacun avec ta propre licence
 - **version de PHP** au choix, sous-domaines gratuits, et vente par la boutique
 
+### 🤖 Bot Discord
+
+- `/servers`, `/status`, `/start`, `/restart`, `/stop` : chaque client pilote **ses** serveurs depuis Discord, avec ses droits du panel
+- carte de statut avec CPU, RAM, joueurs et boutons **Démarrer / Redémarrer / Arrêter / Actualiser**
+- **alertes en message privé** au propriétaire ; aucun programme à faire tourner (Interactions de Discord)
+
 ### Et aussi
 
 <table>

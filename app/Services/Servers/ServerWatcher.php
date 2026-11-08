@@ -10,6 +10,7 @@ use Pterodactyl\Models\Node;
 use Pterodactyl\Models\Server;
 use Pterodactyl\Models\ServerAlert;
 use Pterodactyl\Repositories\Wings\DaemonServerListRepository;
+use Pterodactyl\Services\Discord\DiscordBot;
 use Pterodactyl\Services\Helpers\Locales;
 use Pterodactyl\Services\Notifications\AlertTexts;
 use Pterodactyl\Services\Notifications\Notifier;
@@ -234,6 +235,16 @@ class ServerWatcher
             [$title, $body] = AlertTexts::get($event, Locales::default(), $vars);
             [$open] = AlertTexts::get('open', Locales::default());
             $this->notifier->discord($webhook, $title, $body, $kind, rtrim((string) config('app.url'), '/') . $url, $open);
+        }
+        // A private message from the bot of the panel to the owner, in their language, when their Discord is linked.
+        if (!empty($settings['dm'])) {
+            $owner = $server->user()->first();
+            if ($owner?->discord_id) {
+                [$title, $body] = AlertTexts::get($event, $owner->language, $vars);
+                [$open] = AlertTexts::get('open', $owner->language);
+                $link = DiscordBot::link($open, rtrim((string) config('app.url'), '/') . $url);
+                app(DiscordBot::class)->directMessage((string) $owner->discord_id, DiscordBot::card($title, [$body], $kind, array_filter([$link])));
+            }
         }
     }
 

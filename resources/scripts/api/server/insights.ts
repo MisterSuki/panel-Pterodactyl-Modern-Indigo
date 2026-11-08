@@ -1,7 +1,7 @@
 import http from '@/api/http';
 
 export interface AlertSettings {
-    events: { crash: boolean; start: boolean; stop: boolean; memory: boolean; disk: boolean; bell: boolean };
+    events: { crash: boolean; start: boolean; stop: boolean; memory: boolean; disk: boolean; bell: boolean; dm: boolean };
     webhookSet: boolean;
     webhookHint: string | null;
 }

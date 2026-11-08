@@ -61,7 +61,11 @@ export default () => {
     const save = (removeWebhook = false) => {
         clearFlashes('settings:alerts');
         setBusy(true);
-        saveAlerts(uuid, { events: settings.events, webhook: removeWebhook ? '' : webhook, keepWebhook: !removeWebhook })
+        saveAlerts(uuid, {
+            events: settings.events,
+            webhook: removeWebhook ? '' : webhook,
+            keepWebhook: !removeWebhook,
+        })
             .then((next) => {
                 setSettings(next);
                 setWebhook('');
@@ -75,7 +79,9 @@ export default () => {
         clearFlashes('settings:alerts');
         setBusy(true);
         testAlert(uuid)
-            .then(() => addFlash({ key: 'settings:alerts', type: 'success', message: 'A test message was sent to Discord.' }))
+            .then(() =>
+                addFlash({ key: 'settings:alerts', type: 'success', message: 'A test message was sent to Discord.' })
+            )
             .catch((error) => clearAndAddHttpError({ key: 'settings:alerts', error }))
             .then(() => setBusy(false));
     };
@@ -98,9 +104,20 @@ export default () => {
                 <div css={tw`flex items-center gap-3 pt-3 border-t border-white/10`}>
                     <div css={tw`flex-1 min-w-0`}>
                         <p css={tw`text-sm text-neutral-100 font-medium`}>Bell of the panel</p>
-                        <p css={tw`text-xs text-neutral-400`}>The owner and the users of the server get them in the panel.</p>
+                        <p css={tw`text-xs text-neutral-400`}>
+                            The owner and the users of the server get them in the panel.
+                        </p>
                     </div>
                     <Toggle on={settings.events.bell} onChange={() => flip('bell')} />
+                </div>
+                <div css={tw`flex items-center gap-3 pt-3 border-t border-white/10`}>
+                    <div css={tw`flex-1 min-w-0`}>
+                        <p css={tw`text-sm text-neutral-100 font-medium`}>Private message on Discord</p>
+                        <p css={tw`text-xs text-neutral-400`}>
+                            The bot of the panel writes to the owner, when their Discord is linked on the Account page.
+                        </p>
+                    </div>
+                    <Toggle on={!!settings.events.dm} onChange={() => flip('dm')} />
                 </div>
                 <div css={tw`pt-3 border-t border-white/10`}>
                     <p css={tw`text-sm text-neutral-100 font-medium mb-1`}>Discord</p>
@@ -112,7 +129,9 @@ export default () => {
                         autoComplete={'off'}
                         value={webhook}
                         onChange={(e) => setWebhook(e.currentTarget.value.trim())}
-                        placeholder={settings.webhookSet ? settings.webhookHint || '' : 'https://discord.com/api/webhooks/…'}
+                        placeholder={
+                            settings.webhookSet ? settings.webhookHint || '' : 'https://discord.com/api/webhooks/…'
+                        }
                         css={tw`w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-primary-500`}
                     />
                     {settings.webhookSet && (
@@ -136,7 +155,8 @@ export default () => {
                     </Button.Text>
                 )}
                 <Button type={'button'} onClick={() => save()} disabled={busy}>
-                    <FontAwesomeIcon icon={busy ? faCircleNotch : faSave} spin={busy} css={tw`mr-1.5`} /> <span>Save</span>
+                    <FontAwesomeIcon icon={busy ? faCircleNotch : faSave} spin={busy} css={tw`mr-1.5`} />{' '}
+                    <span>Save</span>
                 </Button>
             </div>
         </TitledGreyBox>

@@ -76,6 +76,11 @@ class RouteServiceProvider extends ServiceProvider
                 ->prefix('/api/phpmyadmin')
                 ->group(base_path('routes/phpmyadmin.php'));
 
+            // Called by Discord for the commands of the bot: no session, every call carries the signature of Discord.
+            Route::middleware('throttle:240,1')
+                ->post('/api/discord/interactions', \Pterodactyl\Http\Controllers\Base\DiscordInteractionController::class)
+                ->name('discord.interactions');
+
             Route::middleware('daemon')
                 ->prefix('/api/remote')
                 ->scopeBindings()

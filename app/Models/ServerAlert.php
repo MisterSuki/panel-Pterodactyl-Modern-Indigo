@@ -19,7 +19,7 @@ class ServerAlert extends Model
 {
     public const EVENTS = ['crash', 'start', 'stop', 'memory', 'disk'];
 
-    public const DEFAULTS = ['crash' => true, 'start' => false, 'stop' => false, 'memory' => false, 'disk' => true, 'bell' => true];
+    public const DEFAULTS = ['crash' => true, 'start' => false, 'stop' => false, 'memory' => false, 'disk' => true, 'bell' => true, 'dm' => false];
 
     protected $table = 'server_alerts';
 

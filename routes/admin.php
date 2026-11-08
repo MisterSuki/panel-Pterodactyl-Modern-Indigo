@@ -27,6 +27,14 @@ Route::group(['prefix' => 'web-hosting', 'middleware' => 'admin.can:settings,man
     Route::post('/settings', [Admin\WebHostingController::class, 'settings'])->name('admin.web-hosting.settings');
 });
 
+// The Discord bot: the keys of its application and its commands (settings rights needed).
+Route::group(['prefix' => 'discord-bot', 'middleware' => 'admin.can:settings,manage'], function () {
+    Route::get('/', [Admin\DiscordBotController::class, 'index'])->name('admin.discord-bot');
+    Route::post('/', [Admin\DiscordBotController::class, 'save']);
+    Route::post('/commands', [Admin\DiscordBotController::class, 'commands'])->name('admin.discord-bot.commands');
+    Route::post('/test', [Admin\DiscordBotController::class, 'test'])->name('admin.discord-bot.test');
+});
+
 // Subdomains: the domains offered to the servers, their DNS providers and the records made (settings rights needed).
 Route::group(['prefix' => 'subdomains', 'middleware' => 'admin.can:settings,manage'], function () {
     Route::get('/', [Admin\SubdomainController::class, 'index'])->name('admin.subdomains');
