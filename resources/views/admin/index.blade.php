@@ -128,7 +128,14 @@
                 </div>
                 <div id="pdThemeUpdateProgress" style="display: none;">
                     <p class="pd-update-state" id="pdThemeUpdateState"><i class="fa fa-circle-o-notch fa-spin"></i> <span>Starting the update…</span></p>
-                    <pre class="pd-update-log" id="pdThemeUpdateLog"></pre>
+                    <div class="pd-term">
+                        <div class="pd-term-bar">
+                            <i class="is-red"></i><i class="is-yellow"></i><i class="is-green"></i>
+                            <span>root@panel: install.sh --update</span>
+                            <em><b id="pdThemeUpdateLines">0</b> <span>lines</span></em>
+                        </div>
+                        <div class="pd-update-log" id="pdThemeUpdateLog" role="log" aria-live="polite"></div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -192,12 +199,46 @@
             document.getElementById('pdThemeUpdateReload').style.display = '';
         }
 
+        // The log of install.sh, as in a terminal: its colours are read from the start of each line (the escape codes of
+        // the terminal are removed), the rest (Composer, Yarn) stays grey.
+        var shown = '';
+        function line(raw) {
+            var clean = raw.replace(/\x1b\[[0-9;]*m/g, '').replace(/\r/g, '');
+            var kind = /^==> /.test(clean) ? 'step' : /^ v /.test(clean) ? 'ok' : /^ ! /.test(clean) ? 'warn'
+                : /^ x /.test(clean) ? 'bad' : /^ \* /.test(clean) ? 'info' : 'out';
+            var el = document.createElement('div');
+            el.className = 'pd-log-' + kind;
+            el.textContent = clean.replace(/^(==>| v | ! | x | \* )\s*/, '') || ' ';
+            if (kind !== 'out') {
+                var mark = document.createElement('b');
+                mark.textContent = { step: '›', ok: '✓', warn: '!', bad: '✕', info: '•' }[kind];
+                el.insertBefore(mark, el.firstChild);
+            }
+            return el;
+        }
+        function paint(log) {
+            if (log === shown) { return; }
+            var atBottom = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 20;
+            // Only the new lines are added when the log grew; it is drawn again when it started over.
+            var lines = log.split('\n');
+            if (shown && log.indexOf(shown) === 0) {
+                var before = shown.split('\n');
+                logEl.removeChild(logEl.lastChild);
+                lines = lines.slice(before.length - 1);
+            } else {
+                logEl.innerHTML = '';
+            }
+            lines.forEach(function (raw) { logEl.appendChild(line(raw)); });
+            shown = log;
+            document.getElementById('pdThemeUpdateLines').textContent = logEl.childNodes.length;
+            if (atBottom) { logEl.scrollTop = logEl.scrollHeight; }
+        }
+
         function render(status) {
             if (status.log) {
-                var atBottom = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 20;
-                logEl.textContent = status.log;
-                if (atBottom) { logEl.scrollTop = logEl.scrollHeight; }
+                paint(status.log);
             }
+            logEl.classList.toggle('is-running', !finished && status.state !== 'done' && status.state !== 'failed');
             var late = Date.now() - asked > 45000;
             if (status.state === 'running') {
                 show('running', 'fa-circle-o-notch fa-spin');

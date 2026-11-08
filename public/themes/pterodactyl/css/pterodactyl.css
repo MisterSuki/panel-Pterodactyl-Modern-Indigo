@@ -3611,22 +3611,62 @@ select optgroup {
 .pd-update-state { font-weight: 600; margin-bottom: 12px; }
 .pd-update-state.is-ok { color: #30d158; }
 .pd-update-state.is-bad { color: #ff6961; }
+/* The log of the update, in a terminal like the console of the servers. */
+.pd-term {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #0b0b10;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 40px -18px rgba(0, 0, 0, 0.8);
+}
+.pd-term-bar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 14px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 12px;
+}
+.pd-term-bar > i { width: 11px; height: 11px; border-radius: 50%; }
+.pd-term-bar > i.is-red { background: #ff5f57; }
+.pd-term-bar > i.is-yellow { background: #febc2e; }
+.pd-term-bar > i.is-green { background: #28c840; }
+.pd-term-bar > span { margin-left: 8px; color: rgba(235, 235, 240, 0.6); font-family: "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace; }
+.pd-term-bar > em { margin-left: auto; font-style: normal; color: rgba(235, 235, 240, 0.4); }
 .pd-update-log {
-    max-height: 340px;
+    height: 360px;
     overflow: auto;
     margin: 0;
-    padding: 12px 14px;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.45);
-    color: #d1d1d6;
+    padding: 12px 16px 16px;
+    color: #8e8e99;
     font-family: "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
     font-size: 12px;
-    line-height: 1.5;
+    line-height: 1.65;
     white-space: pre-wrap;
     word-break: break-word;
 }
-.pd-update-log:empty { display: none; }
+.pd-update-log > div { min-height: 1.65em; }
+.pd-update-log b { display: inline-block; width: 1.6em; font-weight: 700; }
+.pd-log-step { margin-top: 8px; color: #fff; font-weight: 600; }
+.pd-log-step b { color: #64d2ff; }
+.pd-log-ok { color: #d1d1d6; }
+.pd-log-ok b { color: #30d158; }
+.pd-log-warn { color: #ffd60a; }
+.pd-log-bad { color: #ff6961; }
+.pd-log-info { color: #b8b8c4; }
+.pd-log-info b { color: #64d2ff; }
+/* A blinking cursor while it works. */
+.pd-update-log.is-running::after {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    margin-top: 4px;
+    background: #d1d1d6;
+    animation: pd-cursor 1s steps(1) infinite;
+}
+@keyframes pd-cursor { 50% { opacity: 0; } }
 
 /* ---- Search of the whole administration (Ctrl+K) ------------------------------------------------------------------ */
 .pd-search-trigger kbd,
