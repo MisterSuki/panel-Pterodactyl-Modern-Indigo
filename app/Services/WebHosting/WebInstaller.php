@@ -114,6 +114,7 @@ class WebInstaller
 
     /**
      * How the last installation went, or null when there was none.
+     */
     public function status(Server $server): ?array
     {
         try {
