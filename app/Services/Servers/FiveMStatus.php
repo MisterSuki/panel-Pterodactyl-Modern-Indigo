@@ -3,6 +3,8 @@
 namespace Pterodactyl\Services\Servers;
 
 use Pterodactyl\Models\Server;
+use Pterodactyl\Models\ServerCustomDomain;
+use Pterodactyl\Models\ServerSubdomain;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
@@ -155,9 +157,8 @@ class FiveMStatus
         $enabled = $flag !== null ? in_array(strtolower($flag), ['1', 'true', 'yes', 'on'], true) : $legacyPort !== null;
         $port = is_numeric($portValue) && (int) $portValue > 0 && (int) $portValue < 65536 ? (int) $portValue : self::DEFAULT_TXADMIN_PORT;
 
-        $allocation = $server->allocation;
-        $host = $allocation ? ($allocation->alias ?: $allocation->ip) : null;
-        if (!$enabled || !$host || in_array($host, ['0.0.0.0', '::'], true)) {
+        $host = $enabled ? $this->txadminHost($server) : null;
+        if (!$enabled || !$host) {
             return ['enabled' => $enabled, 'url' => null, 'port' => $enabled ? $port : null, 'port_allocated' => false];
         }
 
@@ -167,6 +168,46 @@ class FiveMStatus
             'port' => $port,
             'port_allocated' => $server->allocations->contains(fn ($a) => (int) $a->port === $port),
         ];
+    }
+
+    /**
+     * The name txAdmin is opened with: a domain rather than the IP of the machine. The domain of the server first,
+     * then the name of its node, then the domain of the panel when it is on the same machine, and the IP last.
+     */
+    private function txadminHost(Server $server): ?string
+    {
+        $server->loadMissing(['allocation', 'node']);
+        $allocation = $server->allocation;
+        if (!$allocation) {
+            return null;
+        }
+
+        $own = ServerCustomDomain::query()->where('server_id', $server->id)->where('allocation_id', $allocation->id)
+            ->whereNotNull('verified_at')->value('hostname');
+        if ($own) {
+            return (string) $own;
+        }
+        $sub = ServerSubdomain::query()->with('domain')->where('server_id', $server->id)->where('allocation_id', $allocation->id)->first();
+        if ($sub && $sub->domain) {
+            return $sub->fqdn();
+        }
+
+        $ip = $allocation->alias ?: $allocation->ip;
+        $fqdn = (string) $server->node?->fqdn;
+        if ($fqdn !== '' && filter_var($fqdn, FILTER_VALIDATE_IP) === false) {
+            return $fqdn;
+        }
+
+        $panel = (string) parse_url((string) config('app.url'), PHP_URL_HOST);
+        if ($panel !== '' && filter_var($panel, FILTER_VALIDATE_IP) === false) {
+            $machine = in_array($ip, ['0.0.0.0', '::'], true) ? $fqdn : $ip;
+            $panelIp = $this->cache->remember('panel-ip:' . $panel, 600, fn () => gethostbyname($panel));
+            if ($machine !== '' && $panelIp === $machine) {
+                return $panel;
+            }
+        }
+
+        return in_array($ip, ['0.0.0.0', '::'], true) ? ($fqdn ?: null) : $ip;
     }
 
     /**
