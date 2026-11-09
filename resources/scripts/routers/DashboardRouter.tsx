@@ -7,9 +7,8 @@ import TicketView from '@/components/tickets/TicketView';
 import ShopContainer from '@/components/shop/ShopContainer';
 import { NotFound } from '@/components/elements/ScreenBlock';
 import TransitionRouter from '@/TransitionRouter';
-import SubNavigation from '@/components/elements/SubNavigation';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { accountTabIcons } from '@/routers/tabIcons';
+import SubNavigation, { TabIcon } from '@/components/elements/SubNavigation';
+import { accountTabColors, accountTabIcons } from '@/routers/tabIcons';
 import { useLocation } from 'react-router';
 import Spinner from '@/components/elements/Spinner';
 import routes from '@/routers/routes';
@@ -57,7 +56,9 @@ export default () => {
                                 .filter((route) => !!route.name)
                                 .map(({ path, name, exact = false }) => (
                                     <NavLink key={path} to={`/account/${path}`.replace('//', '/')} exact={exact}>
-                                        {accountTabIcons[path] && <FontAwesomeIcon icon={accountTabIcons[path]} />}
+                                        {accountTabIcons[path] && (
+                                            <TabIcon icon={accountTabIcons[path]} color={accountTabColors[path]} />
+                                        )}
                                         <span>{name}</span>
                                     </NavLink>
                                 ))}

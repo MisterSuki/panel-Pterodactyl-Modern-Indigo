@@ -32,6 +32,9 @@ const systemFont = [
     'BlinkMacSystemFont',
     '"SF Pro Display"',
     '"SF Pro Text"',
+    // Inter, served by the panel (see GlobalStylesheet), where San Francisco is not installed.
+    'InterVariable',
+    'Inter',
     '"Segoe UI Variable Display"',
     '"Segoe UI"',
     'Roboto',

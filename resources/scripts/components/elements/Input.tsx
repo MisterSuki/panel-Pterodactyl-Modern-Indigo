@@ -18,7 +18,10 @@ const light = css<Props>`
 `;
 
 const checkboxStyle = css<Props>`
-    ${tw`bg-neutral-500 cursor-pointer appearance-none inline-block align-middle select-none flex-shrink-0 w-4 h-4 text-primary-400 border border-neutral-300 rounded-sm`};
+    ${tw`cursor-pointer appearance-none inline-block align-middle select-none flex-shrink-0 w-[18px] h-[18px] text-primary-500 border`};
+    border-radius: 5px;
+    border-color: rgba(255, 255, 255, 0.28);
+    background-color: rgba(118, 118, 128, 0.24);
     color-adjust: exact;
     background-origin: border-box;
     transition: all 75ms linear, box-shadow 25ms linear;
@@ -31,8 +34,8 @@ const checkboxStyle = css<Props>`
     }
 
     &:focus {
-        ${tw`outline-none border-primary-300`};
-        box-shadow: 0 0 0 1px rgba(9, 103, 210, 0.25);
+        ${tw`outline-none`};
+        box-shadow: 0 0 0 3px rgb(var(--pd-accent-500) / 0.4);
     }
 `;
 
@@ -40,8 +43,14 @@ const inputStyle = css<Props>`
     // Reset to normal styling.
     resize: none;
     ${tw`appearance-none outline-none w-full min-w-0`};
-    ${tw`p-3 border rounded-lg text-sm transition-all duration-150`};
-    ${tw`bg-neutral-900/60 border-white/10 hover:border-white/20 text-neutral-100 shadow-none focus:ring-0`};
+    ${tw`px-3.5 py-3 border text-sm text-neutral-50 shadow-none focus:ring-0 transition-all duration-150`};
+    border-radius: 0.75rem;
+    background-color: rgba(118, 118, 128, 0.18);
+    border-color: rgba(255, 255, 255, 0.07);
+
+    &:hover:not(:disabled) {
+        background-color: rgba(118, 118, 128, 0.24);
+    }
 
     &::placeholder {
         ${tw`text-neutral-500`};
@@ -58,8 +67,10 @@ const inputStyle = css<Props>`
     }
 
     &:not(:disabled):not(:read-only):focus {
-        ${tw`border-primary-400 ring-2 ring-primary-500 ring-opacity-40`};
-        ${(props) => props.hasError && tw`border-red-300 ring-red-200`};
+        border-color: rgb(var(--pd-accent-400));
+        background-color: rgba(118, 118, 128, 0.14);
+        box-shadow: 0 0 0 4px rgb(var(--pd-accent-500) / 0.28);
+        ${(props) => props.hasError && 'border-color: #ff6961; box-shadow: 0 0 0 4px rgba(255, 69, 58, 0.25);'};
     }
 
     &:disabled {

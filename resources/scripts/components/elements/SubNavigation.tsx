@@ -4,6 +4,7 @@ import styled from 'styled-components/macro';
 import tw from 'twin.macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 // The tabs, in a Liquid Glass sidebar on the left of the page: every tab is visible, nothing to scroll. It stays in
 // view while the page scrolls. On a phone (or a narrow window) it becomes a button showing the open tab, which opens the
@@ -27,10 +28,11 @@ const Layout = styled.div`
     }
 
     & .pd-side-panel {
-        ${tw`relative rounded-2xl p-1.5`};
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.04) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 10px 30px -12px rgba(0, 0, 0, 0.5);
+        ${tw`relative p-2`};
+        border-radius: 1.375rem;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.045) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 16px 40px -18px rgba(0, 0, 0, 0.6);
         -webkit-backdrop-filter: saturate(180%) blur(20px);
         backdrop-filter: saturate(180%) blur(20px);
     }
@@ -63,41 +65,61 @@ const Layout = styled.div`
         }
 
         & > div {
-            ${tw`flex flex-col gap-0.5 text-sm`};
+            ${tw`flex flex-col gap-0.5`};
+            font-size: 0.9375rem;
 
             & > a,
             & > div {
-                ${tw`flex items-center gap-3 px-3 py-2 rounded-xl text-neutral-300 no-underline whitespace-nowrap transition-all duration-150`};
+                ${tw`flex items-center gap-3 pl-1.5 pr-3 py-1.5 text-neutral-100 no-underline whitespace-nowrap transition-colors duration-150`};
+                border-radius: 0.75rem;
+                font-weight: 500;
 
                 & > svg {
                     ${tw`w-4 h-3.5 flex-shrink-0 opacity-60`};
                 }
 
-                & > span {
+                & > span:not(.pd-tile) {
                     ${tw`truncate`};
                 }
 
                 &:hover {
-                    ${tw`text-white bg-white/10`};
+                    background: rgba(255, 255, 255, 0.08);
                 }
 
-                &:active,
+                &:active {
+                    background: rgba(255, 255, 255, 0.14);
+                }
+
                 &.active {
                     ${tw`text-white`};
-                    background: rgba(255, 255, 255, 0.16);
-                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+                    background: rgb(var(--pd-accent-500));
+                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 6px 16px -8px rgb(var(--pd-accent-500) / 0.8);
 
-                    & > svg {
-                        ${tw`opacity-100`};
-                        color: rgb(var(--pd-accent-300));
+                    & > .pd-tile {
+                        box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.55);
                     }
                 }
             }
 
             & > a[target='_blank'] {
-                ${tw`mt-1 pt-2.5 text-neutral-400`};
+                ${tw`mt-1.5 pt-2.5 text-neutral-300`};
                 border-top: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 0 0 0.75rem 0.75rem;
+            }
+        }
+
+        /* The coloured square of an icon, like the ones of the Settings app. */
+        & .pd-tile {
+            ${tw`flex flex-shrink-0 items-center justify-center text-white`};
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 0.5rem;
+            background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 100%);
+            box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.18), 0 1px 2px rgba(0, 0, 0, 0.3);
+
+            & > svg {
+                width: 0.875rem;
+                height: 0.875rem;
             }
         }
     }
@@ -106,6 +128,13 @@ const Layout = styled.div`
         ${tw`lg:flex-1 min-w-0`};
     }
 `;
+
+// The icon of a tab, white in a coloured square.
+export const TabIcon = ({ icon, color }: { icon: IconDefinition; color?: string }) => (
+    <span className={'pd-tile'} style={{ backgroundColor: color || '#8e8e93' }} aria-hidden>
+        <FontAwesomeIcon icon={icon} />
+    </span>
+);
 
 interface Props {
     // The tab links (NavLinks inside one <div>).

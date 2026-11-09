@@ -16,17 +16,24 @@ const TitledGreyBox = ({ icon, title, children, className }: Props) => (
         css={tw`relative rounded-xl shadow-card border border-white/5 bg-neutral-800 overflow-hidden`}
         className={['lg-rim', className].filter(Boolean).join(' ')}
     >
-        <div css={tw`bg-white/[0.03] p-3 border-b border-white/5`}>
+        <div css={tw`px-4 pt-3.5 pb-3 border-b border-white/[0.06]`}>
             {typeof title === 'string' ? (
-                <p css={tw`text-xs uppercase tracking-wide font-medium text-neutral-300`}>
-                    {icon && <FontAwesomeIcon icon={icon} css={tw`mr-2 text-primary-400`} />}
+                <p css={tw`flex items-center gap-2.5 text-[0.9375rem] font-semibold text-neutral-50`}>
+                    {icon && (
+                        <span
+                            css={tw`flex items-center justify-center w-6 h-6 rounded-md text-white bg-primary-500`}
+                            style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)' }}
+                        >
+                            <FontAwesomeIcon icon={icon} css={tw`text-xs`} />
+                        </span>
+                    )}
                     {title}
                 </p>
             ) : (
                 title
             )}
         </div>
-        <div css={tw`p-3`}>{children}</div>
+        <div css={tw`p-4`}>{children}</div>
     </div>
 );
 

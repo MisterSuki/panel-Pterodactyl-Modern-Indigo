@@ -2,6 +2,31 @@ import tw from 'twin.macro';
 import { createGlobalStyle } from 'styled-components/macro';
 
 export default createGlobalStyle`
+    /*
+     * Inter, the closest free font to San Francisco, the font of Apple. Macs and iPhones keep their own San Francisco
+     * (it comes first in the list of fonts); Windows and Android get Inter instead of Segoe UI or Roboto. It is served by
+     * the panel itself: nothing is asked from Google.
+     */
+    @font-face {
+        font-family: 'InterVariable';
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('/fonts/inter/inter-latin-wght-normal.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+            U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @font-face {
+        font-family: 'InterVariable';
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('/fonts/inter/inter-latin-ext-wght-normal.woff2') format('woff2');
+        unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+            U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
     /* The accent colour, iOS blue by default. /js/appearance.js replaces it with the one the person picked. */
     :root {
         --pd-accent-50: 230 243 255;
@@ -52,6 +77,20 @@ export default createGlobalStyle`
         min-height: 100vh;
         background: transparent;
         -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        /* The tracking of San Francisco at text sizes: a little tighter than the default of Inter. */
+        letter-spacing: -0.011em;
+        font-feature-settings: 'cv11', 'ss03';
+    }
+
+    /* The focus ring of macOS: a soft halo of the accent colour, only when the keyboard is used. */
+    a:focus-visible,
+    button:focus-visible,
+    [role='button']:focus-visible,
+    summary:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgb(var(--pd-accent-500) / 0.55);
     }
 
     /*
@@ -150,9 +189,15 @@ export default createGlobalStyle`
         color: #fff;
     }
 
+    /* Titles are tight and bold, like the large titles of iOS. */
     h1, h2, h3, h4, h5, h6 {
         ${tw`font-semibold font-header`};
-        letter-spacing: -0.01em;
+        letter-spacing: -0.022em;
+    }
+
+    h1 {
+        ${tw`font-bold`};
+        letter-spacing: -0.028em;
     }
 
     p {

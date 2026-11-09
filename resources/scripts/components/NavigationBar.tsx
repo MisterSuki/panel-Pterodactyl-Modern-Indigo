@@ -21,21 +21,21 @@ const RightNavigation = styled.div`
     & > a,
     & > button,
     & > .navigation-link {
-        ${tw`relative flex flex-shrink-0 items-center justify-center h-9 w-8 sm:w-9 mx-0 sm:mx-1 rounded-lg no-underline text-neutral-400 cursor-pointer transition-all duration-150`};
+        ${tw`relative flex flex-shrink-0 items-center justify-center h-9 w-8 sm:w-9 mx-0 sm:mx-0.5 rounded-full no-underline text-neutral-300 cursor-pointer transition-all duration-150`};
 
-        &:active,
         &:hover {
-            ${tw`text-neutral-50 bg-neutral-700/60`};
+            ${tw`text-white`};
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        &:active,
-        &:hover,
-        &.active {
-            ${tw`text-primary-400`};
+        &:active {
+            transform: scale(0.94);
         }
 
         &.active {
-            ${tw`bg-primary-500 bg-opacity-10`};
+            ${tw`text-white`};
+            background: rgb(var(--pd-accent-500));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 4px 12px -4px rgb(var(--pd-accent-500) / 0.8);
         }
     }
 `;
