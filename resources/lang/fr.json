@@ -2206,5 +2206,7 @@
  "Removing the CMS": "Désinstallation du CMS",
  "Uninstalled": "Désinstallé",
  "Remove all": "Tout supprimer",
- "Copy the PIN of txAdmin": "Copier le PIN de txAdmin"
+ "Copy the PIN of txAdmin": "Copier le PIN de txAdmin",
+ "Server config (cfg)": "Config serveur (cfg)",
+ "Spaces": "Espaces"
 }

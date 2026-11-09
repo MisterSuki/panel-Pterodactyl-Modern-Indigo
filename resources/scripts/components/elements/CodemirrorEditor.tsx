@@ -80,11 +80,11 @@ require('codemirror/mode/vue/vue');
 require('codemirror/mode/xml/xml');
 require('codemirror/mode/yaml/yaml');
 
-// The editor sits in a window frame drawn by the page (FileEditContainer): here only its own look, an iOS dark theme
-// ("pd-glass") with the system colours, the monospace font of the console and the active line lit.
+// The editor sits in a window frame drawn by the page (FileEditContainer). Its look is the one of VS Code, "Dark+":
+// the same background, line numbers, selection and colours of the code, so a file reads like it does in VS Code.
 const EditorContainer = styled.div`
     min-height: 16rem;
-    height: calc(100vh - 22rem);
+    height: calc(100vh - 24rem);
     ${tw`relative`};
 
     > div {
@@ -92,162 +92,199 @@ const EditorContainer = styled.div`
     }
 
     .CodeMirror {
-        font-family: 'SF Mono', 'JetBrains Mono', 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace;
-        font-size: 13px;
-        line-height: 1.65;
+        font-family: 'Cascadia Code', 'JetBrains Mono', 'SF Mono', Consolas, 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.5;
         height: 100%;
     }
 
-    .cm-s-pd-glass.CodeMirror {
+    .cm-s-pd-vscode.CodeMirror {
+        background: #1e1e1e;
+        color: #d4d4d4;
+    }
+
+    .cm-s-pd-vscode .CodeMirror-gutters {
+        background: #1e1e1e;
+        border-right: 0;
+    }
+
+    .cm-s-pd-vscode .CodeMirror-linenumber {
+        color: #6e7681;
+        padding: 0 16px 0 18px !important;
+    }
+
+    .cm-s-pd-vscode .CodeMirror-activeline-background {
         background: transparent;
-        color: #e5e5ea;
+        border-top: 1px solid #2a2a2a;
+        border-bottom: 1px solid #2a2a2a;
     }
 
-    .cm-s-pd-glass .CodeMirror-gutters {
-        background: rgba(0, 0, 0, 0.18);
-        border-right: 1px solid rgba(255, 255, 255, 0.06);
+    .cm-s-pd-vscode .CodeMirror-activeline-gutter .CodeMirror-linenumber {
+        color: #cccccc;
     }
 
-    .cm-s-pd-glass .CodeMirror-linenumber {
-        color: rgba(235, 235, 240, 0.28);
-        padding: 0 12px 0 14px !important;
+    .cm-s-pd-vscode .CodeMirror-cursor {
+        border-left: 2px solid #aeafad;
     }
 
-    .cm-s-pd-glass .CodeMirror-activeline-background {
-        background: rgba(255, 255, 255, 0.045);
+    .cm-s-pd-vscode div.CodeMirror-selected {
+        background: #3a3d41;
     }
 
-    .cm-s-pd-glass .CodeMirror-activeline-gutter .CodeMirror-linenumber {
-        color: rgb(var(--pd-accent-300));
+    .cm-s-pd-vscode.CodeMirror-focused div.CodeMirror-selected {
+        background: #264f78;
     }
 
-    .cm-s-pd-glass .CodeMirror-cursor {
-        border-left: 2px solid rgb(var(--pd-accent-400));
+    .cm-s-pd-vscode .CodeMirror-line::selection,
+    .cm-s-pd-vscode .CodeMirror-line > span::selection,
+    .cm-s-pd-vscode .CodeMirror-line > span > span::selection {
+        background: #264f78;
     }
 
-    .cm-s-pd-glass div.CodeMirror-selected,
-    .cm-s-pd-glass.CodeMirror-focused div.CodeMirror-selected {
-        background: rgb(var(--pd-accent-500) / 0.28);
-    }
-
-    .cm-s-pd-glass .CodeMirror-line::selection,
-    .cm-s-pd-glass .CodeMirror-line > span::selection,
-    .cm-s-pd-glass .CodeMirror-line > span > span::selection {
-        background: rgb(var(--pd-accent-500) / 0.28);
-    }
-
-    .cm-s-pd-glass .CodeMirror-matchingbracket {
-        color: #30d158 !important;
+    .cm-s-pd-vscode .CodeMirror-matchingbracket {
+        color: inherit !important;
         text-decoration: none;
-        background: rgba(48, 209, 88, 0.15);
-        border-radius: 3px;
+        outline: 1px solid #888888;
+        background: rgba(0, 100, 0, 0.1);
     }
 
-    .cm-s-pd-glass .cm-matchhighlight {
-        background: rgba(255, 214, 10, 0.12);
-        border-radius: 3px;
+    .cm-s-pd-vscode .cm-matchhighlight {
+        background: rgba(173, 214, 255, 0.15);
     }
 
-    .cm-s-pd-glass .cm-trailingspace {
+    .cm-s-pd-vscode .cm-trailingspace {
         background: rgba(255, 69, 58, 0.25);
     }
 
-    /* The colours of the code, from the iOS system palette. */
-    .cm-s-pd-glass .cm-property,
-    .cm-s-pd-glass .cm-attribute,
-    .cm-s-pd-glass .cm-qualifier {
-        color: #64d2ff;
+    /* The colours of the code: the "Dark+" theme of VS Code. */
+    .cm-s-pd-vscode .cm-comment {
+        color: #6a9955;
     }
 
-    .cm-s-pd-glass .cm-string,
-    .cm-s-pd-glass .cm-string-2 {
-        color: #7ee787;
+    .cm-s-pd-vscode .cm-keyword,
+    .cm-s-pd-vscode .cm-atom,
+    .cm-s-pd-vscode .cm-tag,
+    .cm-s-pd-vscode .cm-header {
+        color: #569cd6;
     }
 
-    /* JSON keys are strings and properties at once: shown as keys. */
-    .cm-s-pd-glass .cm-string.cm-property {
-        color: #64d2ff;
+    .cm-s-pd-vscode .cm-builtin,
+    .cm-s-pd-vscode .cm-meta {
+        color: #c586c0;
     }
 
-    .cm-s-pd-glass .cm-number {
-        color: #ff9f0a;
+    .cm-s-pd-vscode .cm-string,
+    .cm-s-pd-vscode .cm-string-2 {
+        color: #ce9178;
     }
 
-    .cm-s-pd-glass .cm-atom,
-    .cm-s-pd-glass .cm-builtin {
-        color: #bf5af2;
+    .cm-s-pd-vscode .cm-number {
+        color: #b5cea8;
     }
 
-    .cm-s-pd-glass .cm-keyword,
-    .cm-s-pd-glass .cm-tag {
-        color: #ff7ab2;
+    .cm-s-pd-vscode .cm-property,
+    .cm-s-pd-vscode .cm-attribute,
+    .cm-s-pd-vscode .cm-variable,
+    .cm-s-pd-vscode .cm-variable-2,
+    .cm-s-pd-vscode .cm-qualifier {
+        color: #9cdcfe;
     }
 
-    .cm-s-pd-glass .cm-def,
-    .cm-s-pd-glass .cm-variable-2,
-    .cm-s-pd-glass .cm-variable-3,
-    .cm-s-pd-glass .cm-type {
-        color: #5ac8fa;
+    /* JSON keys are strings and properties at once: shown as keys, like VS Code. */
+    .cm-s-pd-vscode .cm-string.cm-property {
+        color: #9cdcfe;
     }
 
-    .cm-s-pd-glass .cm-variable {
-        color: #f5f5f7;
+    .cm-s-pd-vscode .cm-def {
+        color: #dcdcaa;
     }
 
-    .cm-s-pd-glass .cm-operator,
-    .cm-s-pd-glass .cm-punctuation,
-    .cm-s-pd-glass .cm-bracket {
-        color: #aeaeb2;
+    .cm-s-pd-vscode .cm-variable-3,
+    .cm-s-pd-vscode .cm-type {
+        color: #4ec9b0;
     }
 
-    .cm-s-pd-glass .cm-comment,
-    .cm-s-pd-glass .cm-meta {
-        color: #8e8e93;
+    .cm-s-pd-vscode .cm-operator,
+    .cm-s-pd-vscode .cm-punctuation,
+    .cm-s-pd-vscode .cm-bracket {
+        color: #d4d4d4;
+    }
+
+    .cm-s-pd-vscode .cm-header,
+    .cm-s-pd-vscode .cm-strong {
+        font-weight: 700;
+    }
+
+    .cm-s-pd-vscode .cm-em {
         font-style: italic;
     }
 
-    .cm-s-pd-glass .cm-header,
-    .cm-s-pd-glass .cm-strong {
-        color: #ffd60a;
-        font-weight: 600;
+    .cm-s-pd-vscode .cm-link {
+        color: #3794ff;
+        text-decoration: underline;
     }
 
-    .cm-s-pd-glass .cm-link {
-        color: rgb(var(--pd-accent-300));
-    }
-
-    .cm-s-pd-glass .cm-error {
-        color: #ff453a;
+    .cm-s-pd-vscode .cm-error {
+        color: #f44747;
     }
 
     .CodeMirror-foldmarker {
-        color: rgb(var(--pd-accent-300));
+        color: #c5c5c5;
+        background: #3c3c3c;
+        border-radius: 3px;
+        padding: 0 4px;
         text-shadow: none;
         margin: 0 0.25rem;
     }
 
     .CodeMirror-foldgutter-open,
     .CodeMirror-foldgutter-folded {
-        color: rgba(235, 235, 240, 0.35);
+        color: #c5c5c5;
+        opacity: 0.6;
     }
 
     .CodeMirror-overlayscroll-vertical div,
     .CodeMirror-overlayscroll-horizontal div {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(121, 121, 121, 0.4);
+        border-radius: 0;
     }
 
     .CodeMirror-dialog {
-        background: rgba(30, 30, 38, 0.98);
-        color: #f5f5f7;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: #252526;
+        color: #cccccc;
+        border-bottom: 1px solid #454545;
         padding: 8px 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.36);
     }
 
     .CodeMirror-dialog input {
-        color: #f5f5f7;
+        color: #cccccc;
+        background: #3c3c3c;
+        border: 1px solid #3c3c3c;
+        padding: 2px 6px;
         font-family: inherit;
     }
 `;
+
+// The server.cfg of FiveM (and the .cfg of Source games): one command per line, "#" or "//" comments, quoted text.
+// The command is a keyword, the name a "set" gives is a variable, like the FiveM extension of VS Code shows them.
+// The addon is loaded above; its function is not in the types of CodeMirror.
+(CodeMirror as unknown as { defineSimpleMode: (name: string, states: unknown) => void }).defineSimpleMode('fivem-cfg', {
+    start: [
+        { regex: /\s*(#|\/\/).*/, token: 'comment', sol: true },
+        { regex: /(?:#|\/\/).*/, token: 'comment' },
+        { regex: /(\s*)(set[rsa]?)(\s+)([\w.:-]+)/, token: [null, 'keyword', null, 'property'], sol: true },
+        { regex: /(\s*)([A-Za-z_][\w-]*)/, token: [null, 'keyword'], sol: true },
+        { regex: /"(?:[^\\"]|\\.)*"?/, token: 'string' },
+        { regex: /'(?:[^\\']|\\.)*'?/, token: 'string' },
+        { regex: /\$\{?[\w.]+\}?/, token: 'variable-2' },
+        { regex: /\b(?:true|false|allow|deny)\b/, token: 'atom' },
+        { regex: /-?\d+(?:\.\d+)?\b/, token: 'number' },
+        { regex: /\b(?:group|identifier|builtin|command|resource)\.[\w.:-]+/, token: 'variable-3' },
+        { regex: /[+-]/, token: 'operator' },
+    ],
+    meta: { lineComment: '#' },
+});
 
 export interface Props {
     style?: React.CSSProperties;
@@ -311,7 +348,7 @@ export default ({
 
         const e = CodeMirror.fromTextArea(node, {
             mode: 'text/plain',
-            theme: 'pd-glass',
+            theme: 'pd-vscode',
             indentUnit: 4,
             smartIndent: true,
             tabSize: 4,
