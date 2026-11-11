@@ -26,7 +26,9 @@ class WebHostingService
 {
     public const FEATURE = 'web';
 
-    public const MAX_DOMAINS = 10;
+    // The number of domains of one site (its own domains and free subdomains together), unless the administration
+    // sets another one. The www. of a domain comes with it and does not count.
+    public const MAX_DOMAINS = 1;
 
     private const AGENT_SECONDS = 180;
 
@@ -51,6 +53,21 @@ class WebHostingService
     public function setAcmeEmail(string $email): void
     {
         $this->settings->set('web:acme_email', $email);
+    }
+
+    /**
+     * How many domains one site can have.
+     */
+    public function maxDomains(): int
+    {
+        $max = (int) $this->settings->get('web:max_domains', (string) self::MAX_DOMAINS);
+
+        return max(1, min(50, $max));
+    }
+
+    public function setMaxDomains(int $max): void
+    {
+        $this->settings->set('web:max_domains', (string) max(1, min(50, $max)));
     }
 
     /**
@@ -272,8 +289,11 @@ class WebHostingService
      */
     private function checkRoom(Server $server): void
     {
-        if (ServerWebDomain::query()->where('server_id', $server->id)->count() >= self::MAX_DOMAINS) {
-            throw new DisplayException('This site has reached the maximum of domains.');
+        $max = $this->maxDomains();
+        if (ServerWebDomain::query()->where('server_id', $server->id)->count() >= $max) {
+            throw new DisplayException($max === 1
+                ? 'A site can have only one domain. Remove the current one to use another.'
+                : 'This site has reached the maximum of domains.');
         }
     }
 

@@ -152,15 +152,17 @@ class WebHostingController extends ClientApiController
         $server->loadMissing('allocation.node');
         $agent = $this->web->agentOf($server->node);
         $used = ServerSubdomain::query()->where('server_id', $server->id)->count();
+        $max = $this->web->maxDomains();
+        $full = ServerWebDomain::query()->where('server_id', $server->id)->count() >= $max;
 
         return [
             'php' => $this->isPhp($server),
             'agent' => $agent !== null && $agent['online'],
             'url' => $this->web->primaryUrl($server),
             'preview' => $this->web->previewUrl($server),
-            'max' => WebHostingService::MAX_DOMAINS,
-            // The domains of the panel a subdomain can be made on, while the limit of the server allows one.
-            'zones' => $used < $this->subdomains->limitFor($server)
+            'max' => $max,
+            // The domains of the panel a subdomain can be made on, while the site and the server have room for one.
+            'zones' => !$full && $used < $this->subdomains->limitFor($server)
                 ? SubdomainDomain::query()->where('available', true)->orderBy('domain')->get()
                     ->map(fn (SubdomainDomain $d) => ['id' => $d->id, 'domain' => $d->domain])->values()
                 : [],

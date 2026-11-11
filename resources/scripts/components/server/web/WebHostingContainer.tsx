@@ -483,6 +483,15 @@ export default () => {
                                 <p css={tw`text-xs text-neutral-400`}>
                                     Visitors use the domain, without a port. HTTPS is set up by itself.
                                 </p>
+                                {page.domains.length >= page.max && (
+                                    <p css={tw`mt-1 text-xs text-neutral-500`}>
+                                        {page.max === 1 ? (
+                                            <span>One domain per site: remove it to use another one.</span>
+                                        ) : (
+                                            <span>This site has reached its maximum of domains.</span>
+                                        )}
+                                    </p>
+                                )}
                             </div>
                             <Can action={'allocation.create'}>
                                 <Button.Text

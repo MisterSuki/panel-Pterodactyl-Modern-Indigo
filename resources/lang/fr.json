@@ -2208,5 +2208,9 @@
  "Remove all": "Tout supprimer",
  "Copy the PIN of txAdmin": "Copier le PIN de txAdmin",
  "Server config (cfg)": "Config serveur (cfg)",
- "Spaces": "Espaces"
+ "Spaces": "Espaces",
+ "One domain per site: remove it to use another one.": "Un domaine par site : supprimez-le pour en utiliser un autre.",
+ "This site has reached its maximum of domains.": "Ce site a atteint son nombre maximum de domaines.",
+ "A site can have only one domain. Remove the current one to use another.": "Un site ne peut avoir qu'un seul domaine. Supprimez l'actuel pour en utiliser un autre.",
+ "Own domains and free subdomains together. The www. of a domain comes with it and does not count.": "Domaines personnels et sous-domaines gratuits ensemble. Le www. d'un domaine est inclus et ne compte pas."
 }

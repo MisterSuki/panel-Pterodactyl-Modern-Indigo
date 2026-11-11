@@ -31,6 +31,7 @@ class WebHostingController extends Controller
             'domains' => ServerWebDomain::query()->with(['server', 'custom'])->orderBy('hostname')->limit(500)->get(),
             'eggsInstalled' => $this->setup->installed(),
             'email' => $this->web->acmeEmail(),
+            'maxDomains' => $this->web->maxDomains(),
         ]);
     }
 
@@ -44,8 +45,12 @@ class WebHostingController extends Controller
 
     public function settings(Request $request): RedirectResponse
     {
-        $data = $request->validate(['email' => ['nullable', 'email', 'max:191']]);
+        $data = $request->validate([
+            'email' => ['nullable', 'email', 'max:191'],
+            'max_domains' => ['required', 'integer', 'min:1', 'max:50'],
+        ]);
         $this->web->setAcmeEmail((string) ($data['email'] ?? ''));
+        $this->web->setMaxDomains((int) $data['max_domains']);
         $this->alert->success('The settings were saved.')->flash();
 
         return redirect()->route('admin.web-hosting');

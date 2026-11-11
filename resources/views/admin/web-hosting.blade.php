@@ -112,8 +112,13 @@
         <form action="{{ route('admin.web-hosting.settings') }}" method="POST">
             {!! csrf_field() !!}
             <div class="box">
-                <div class="box-header with-border"><h3 class="box-title">Certificates</h3></div>
+                <div class="box-header with-border"><h3 class="box-title">Settings</h3></div>
                 <div class="box-body">
+                    <div class="form-group">
+                        <label for="pdWebMax">Domains per site</label>
+                        <input type="number" id="pdWebMax" name="max_domains" class="form-control" min="1" max="50" required value="{{ old('max_domains', $maxDomains) }}">
+                        <p class="pd-web-help">Own domains and free subdomains together. The www. of a domain comes with it and does not count.</p>
+                    </div>
                     <div class="form-group">
                         <label for="pdWebEmail">Let's Encrypt email</label>
                         <input type="email" id="pdWebEmail" name="email" class="form-control" maxlength="191" value="{{ old('email', $email) }}" placeholder="you@example.com">
