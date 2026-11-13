@@ -18,8 +18,8 @@ use Pterodactyl\Services\Notifications\Notifier;
 /**
  * Looks at every server once a minute (one request per node), and:
  *  - sends the alerts of the servers (crash, start, stop, memory and disk almost full) to the bell and to Discord;
- *  - every five minutes, writes how many players are on each running server (for its statistics) and whether each
- *    node answered (for the public status page).
+ *  - every five minutes, writes how many players are on each running server and what it uses (processor, memory,
+ *    disk), for its statistics, and whether each node answered (for the public status page).
  *
  * A server that goes offline is only called "crashed" a minute later, once Wings has sent its activity: a stop asked
  * from the console reaches the panel that way, about a minute after it happened.
@@ -100,6 +100,7 @@ class ServerWatcher
             }
 
             $servers = Server::query()->with(['allocation', 'node', 'egg'])->where('node_id', $node->id)->whereNull('status')->get();
+            $usage = [];
             foreach ($servers as $server) {
                 $state = $states[$server->uuid] ?? null;
                 if ($state === null) {
@@ -109,16 +110,27 @@ class ServerWatcher
                     $settings = ($alerts[$server->id] ?? new ServerAlert())->settings();
                     $this->watch($server, $state, $settings, $alerts[$server->id] ?? null);
                     if ($sample && $state['state'] === 'running') {
+                        $usage[] = [
+                            'server_id' => $server->id,
+                            'cpu' => (int) round(max(0.0, (float) $state['cpu']) * 10),
+                            'memory' => intdiv(max(0, (int) $state['memory']), 1048576),
+                            'disk' => intdiv(max(0, (int) $state['disk']), 1048576),
+                            'created_at' => now(),
+                        ];
                         $this->samplePlayers($server);
                     }
                 } catch (\Throwable $exception) {
                     Log::info('A server could not be watched.', ['server' => $server->uuid, 'error' => $exception->getMessage()]);
                 }
             }
+            foreach (array_chunk($usage, 500) as $chunk) {
+                DB::table('server_resource_samples')->insert($chunk);
+            }
         }
 
         if ($sample && (int) date('i') === 0) {
-            DB::table('server_player_samples')->where('created_at', '<', now()->subDays(30))->delete();
+            DB::table('server_player_samples')->where('created_at', '<', now()->subDays(31))->delete();
+            DB::table('server_resource_samples')->where('created_at', '<', now()->subDays(31))->delete();
             DB::table('node_status_samples')->where('created_at', '<', now()->subDays(30))->delete();
             $this->notifier->prune();
         }

@@ -123,6 +123,7 @@ Route::group([
     Route::get('/game-status', Client\Servers\GameStatusController::class)->name('api:client:server.game-status');
     Route::get('/players-history', [Client\Servers\ServerInsightsController::class, 'players']);
     Route::get('/players-live', [Client\Servers\ServerInsightsController::class, 'playersLive']);
+    Route::get('/resources-history', [Client\Servers\ServerInsightsController::class, 'resources']);
     Route::get('/alerts', [Client\Servers\ServerInsightsController::class, 'alerts']);
     Route::put('/alerts', [Client\Servers\ServerInsightsController::class, 'saveAlerts']);
     Route::post('/alerts/test', [Client\Servers\ServerInsightsController::class, 'testAlert'])->middleware('throttle:subdomains');

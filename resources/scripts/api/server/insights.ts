@@ -1,13 +1,23 @@
 import http from '@/api/http';
 
 export interface AlertSettings {
-    events: { crash: boolean; start: boolean; stop: boolean; memory: boolean; disk: boolean; bell: boolean; dm: boolean };
+    events: {
+        crash: boolean;
+        start: boolean;
+        stop: boolean;
+        memory: boolean;
+        disk: boolean;
+        bell: boolean;
+        dm: boolean;
+    };
     webhookSet: boolean;
     webhookHint: string | null;
 }
 
+export type StatsRange = '24h' | '7d' | '30d';
+
 export interface PlayerHistory {
-    range: '24h' | '7d';
+    range: StatsRange;
     samples: number;
     peak: number;
     average: number;
@@ -41,7 +51,7 @@ export const saveAlerts = (
 export const testAlert = (uuid: string): Promise<void> =>
     http.post(`/api/client/servers/${uuid}/alerts/test`).then(() => undefined);
 
-export const getPlayerHistory = (uuid: string, range: '24h' | '7d'): Promise<PlayerHistory> =>
+export const getPlayerHistory = (uuid: string, range: StatsRange): Promise<PlayerHistory> =>
     http.get(`/api/client/servers/${uuid}/players-history`, { params: { range } }).then(({ data }) => ({
         range: data.range,
         samples: data.samples,
@@ -50,6 +60,40 @@ export const getPlayerHistory = (uuid: string, range: '24h' | '7d'): Promise<Pla
         maxPlayers: data.max_players,
         points: (data.points || []).map((p: any) => ({ at: new Date(p.at), players: p.players, peak: p.peak })),
         hours: data.hours || [],
+    }));
+
+// What the server used: processor in % (100 per core), memory and disk in MB, uptime in % of the range.
+export interface ResourceHistory {
+    range: StatsRange;
+    samples: number;
+    cpu: { average: number; peak: number; limit: number };
+    memory: { average: number; peak: number; limit: number };
+    disk: { used: number; limit: number };
+    uptime: number;
+    points: {
+        at: Date;
+        cpu: number | null;
+        cpuPeak: number | null;
+        memory: number | null;
+        memoryPeak: number | null;
+    }[];
+}
+
+export const getResourceHistory = (uuid: string, range: StatsRange): Promise<ResourceHistory> =>
+    http.get(`/api/client/servers/${uuid}/resources-history`, { params: { range } }).then(({ data }) => ({
+        range: data.range,
+        samples: data.samples,
+        cpu: data.cpu,
+        memory: data.memory,
+        disk: data.disk,
+        uptime: data.uptime,
+        points: (data.points || []).map((p: any) => ({
+            at: new Date(p.at),
+            cpu: p.cpu,
+            cpuPeak: p.cpu_peak,
+            memory: p.memory,
+            memoryPeak: p.memory_peak,
+        })),
     }));
 
 export interface PlayersLive {

@@ -2212,5 +2212,13 @@
  "One domain per site: remove it to use another one.": "Un domaine par site : supprimez-le pour en utiliser un autre.",
  "This site has reached its maximum of domains.": "Ce site a atteint son nombre maximum de domaines.",
  "A site can have only one domain. Remove the current one to use another.": "Un site ne peut avoir qu'un seul domaine. Supprimez l'actuel pour en utiliser un autre.",
- "Own domains and free subdomains together. The www. of a domain comes with it and does not count.": "Domaines personnels et sous-domaines gratuits ensemble. Le www. d'un domaine est inclus et ne compte pas."
+ "Own domains and free subdomains together. The www. of a domain comes with it and does not count.": "Domaines personnels et sous-domaines gratuits ensemble. Le www. d'un domaine est inclus et ne compte pas.",
+ "30 days": "30 jours",
+ "Read every 5 minutes while the server runs, kept 30 days.": "Relevées toutes les 5 minutes quand le serveur tourne, gardées 30 jours.",
+ "What the server uses is written every 5 minutes while it runs. The first point arrives in a few minutes.": "Ce que le serveur utilise est relevé toutes les 5 minutes quand il tourne. Le premier point arrive dans quelques minutes.",
+ "CPU average": "CPU moyen",
+ "Memory average": "Mémoire moyenne",
+ "of the time": "du temps",
+ "Processor": "Processeur",
+ "Players and resources, live and over the last 30 days.": "Joueurs et ressources, en direct et sur les 30 derniers jours."
 }

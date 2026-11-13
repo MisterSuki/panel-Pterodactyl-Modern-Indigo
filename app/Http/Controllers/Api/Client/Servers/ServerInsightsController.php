@@ -16,7 +16,7 @@ use Pterodactyl\Services\Notifications\Notifier;
 use Pterodactyl\Services\Servers\PlayerCounter;
 
 /**
- * The alerts of a server (where they go and which ones) and its player statistics.
+ * The alerts of a server (where they go and which ones) and its statistics: players and resources.
  */
 class ServerInsightsController extends ClientApiController
 {
@@ -85,9 +85,7 @@ class ServerInsightsController extends ClientApiController
     public function players(Request $request, Server $server): JsonResponse
     {
         abort_unless($request->user()->can(Permission::ACTION_WEBSOCKET_CONNECT, $server), 403);
-        $range = $request->query('range') === '7d' ? '7d' : '24h';
-        $since = $range === '7d' ? now()->subDays(7) : now()->subDay();
-        $bucket = $range === '7d' ? 7200 : 900;
+        [$range, $since, $bucket] = $this->range($request);
 
         $rows = DB::table('server_player_samples')->where('server_id', $server->id)
             ->where('created_at', '>=', $since)->orderBy('created_at')->get(['players', 'max_players', 'created_at']);
@@ -124,6 +122,71 @@ class ServerInsightsController extends ClientApiController
             'hours' => array_map(fn ($list) => $list ? round(array_sum($list) / count($list), 1) : null, $hours),
             'timezone' => date_default_timezone_get(),
         ]);
+    }
+
+    /**
+     * What the server used over a day, a week or a month: processor and memory (average and peak of each slot), disk,
+     * and how much of the time it was running.
+     */
+    public function resources(Request $request, Server $server): JsonResponse
+    {
+        abort_unless($request->user()->can(Permission::ACTION_WEBSOCKET_CONNECT, $server), 403);
+        [$range, $since, $bucket] = $this->range($request);
+
+        $rows = DB::table('server_resource_samples')->where('server_id', $server->id)
+            ->where('created_at', '>=', $since)->orderBy('created_at')->get(['cpu', 'memory', 'disk', 'created_at']);
+
+        $buckets = [];
+        foreach ($rows as $row) {
+            $key = intdiv((int) strtotime((string) $row->created_at), $bucket) * $bucket;
+            $buckets[$key][] = $row;
+        }
+        $points = [];
+        for ($t = intdiv($since->timestamp, $bucket) * $bucket; $t <= time(); $t += $bucket) {
+            $list = $buckets[$t] ?? [];
+            $cpu = array_map(fn ($r) => (int) $r->cpu / 10, $list);
+            $memory = array_map(fn ($r) => (int) $r->memory, $list);
+            $points[] = [
+                'at' => date(DATE_ATOM, $t),
+                'cpu' => $cpu ? round(array_sum($cpu) / count($cpu), 1) : null,
+                'cpu_peak' => $cpu ? max($cpu) : null,
+                'memory' => $memory ? (int) round(array_sum($memory) / count($memory)) : null,
+                'memory_peak' => $memory ? max($memory) : null,
+            ];
+        }
+
+        $cpu = $rows->map(fn ($r) => (int) $r->cpu / 10);
+        $memory = $rows->map(fn ($r) => (int) $r->memory);
+        $last = $rows->last();
+        // One sample every 5 minutes while the server runs: the share of the slots that have one, counted from the first
+        // sample ever written for the server (the history starts with the update, or when the server was made).
+        $first = DB::table('server_resource_samples')->where('server_id', $server->id)->min('created_at');
+        $from = max($since->timestamp, $first ? (int) strtotime((string) $first) : time());
+        $expected = max(1, intdiv(time() - $from, 300) + 1);
+
+        return new JsonResponse([
+            'range' => $range,
+            'samples' => $rows->count(),
+            'cpu' => ['average' => $cpu->count() ? round((float) $cpu->avg(), 1) : 0, 'peak' => $cpu->max() ?? 0, 'limit' => (int) $server->cpu],
+            'memory' => ['average' => $memory->count() ? (int) round((float) $memory->avg()) : 0, 'peak' => $memory->max() ?? 0, 'limit' => (int) $server->memory],
+            'disk' => ['used' => $last ? (int) $last->disk : 0, 'limit' => (int) $server->disk],
+            'uptime' => min(100, round($rows->count() / $expected * 100, 1)),
+            'points' => $points,
+        ]);
+    }
+
+    /**
+     * The range of a statistic: a day in slots of 15 minutes, a week in slots of 2 hours, a month in slots of 6 hours.
+     *
+     * @return array{0: string, 1: \Illuminate\Support\Carbon, 2: int}
+     */
+    private function range(Request $request): array
+    {
+        return match ($request->query('range')) {
+            '30d' => ['30d', now()->subDays(30), 21600],
+            '7d' => ['7d', now()->subDays(7), 7200],
+            default => ['24h', now()->subDay(), 900],
+        };
     }
 
     /**
