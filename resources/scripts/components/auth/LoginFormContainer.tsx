@@ -31,11 +31,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
             <div css={tw`flex-1 flex items-center justify-center py-16`}>
                 <Column>
                     <div css={tw`flex flex-col items-center mb-8 select-none`}>
-                        <span
-                            aria-hidden
-                            css={tw`w-10 h-10 rounded-lg mb-5`}
-                            style={{ background: 'linear-gradient(135deg, #ededed 0%, #707070 100%)' }}
-                        />
+                        <span aria-hidden className={'pd-mark'} css={tw`w-10 h-10 rounded-lg mb-5`} />
                         {title ? (
                             <h1 css={tw`text-2xl text-center text-neutral-50 font-semibold`}>{title}</h1>
                         ) : (

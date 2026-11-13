@@ -36,7 +36,7 @@ const Bar = styled.header`
         }
 
         & > a {
-            ${tw`px-2.5 py-1.5 rounded-md text-sm no-underline text-neutral-300 transition-colors duration-150`};
+            ${tw`relative px-2.5 py-1.5 rounded-md text-sm no-underline text-neutral-300 transition-colors duration-150`};
 
             &:hover {
                 ${tw`text-neutral-50 bg-neutral-700`};
@@ -44,7 +44,22 @@ const Bar = styled.header`
 
             &.active {
                 ${tw`text-neutral-50`};
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    left: 0.625rem;
+                    right: 0.625rem;
+                    bottom: -0.625rem;
+                    height: 2px;
+                    border-radius: 2px;
+                    background: rgb(var(--pd-accent-500));
+                }
             }
+        }
+
+        &.pd-links-phone > a.active::after {
+            bottom: -0.5rem;
         }
     }
 
@@ -151,11 +166,7 @@ export default () => {
                 >
                     <div id={'logo'} className={'min-w-0 flex-1 md:flex-none'}>
                         <Link to={'/'} className={'flex items-center gap-2.5 min-w-0 no-underline'}>
-                            <span
-                                aria-hidden
-                                className={'w-6 h-6 rounded-md flex-shrink-0'}
-                                style={{ background: 'linear-gradient(135deg, #ededed 0%, #707070 100%)' }}
-                            />
+                            <span aria-hidden className={'pd-mark w-6 h-6 rounded-md flex-shrink-0'} />
                             <BrandTitle className={'truncate'} />
                         </Link>
                     </div>

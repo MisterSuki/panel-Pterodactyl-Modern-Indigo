@@ -62,7 +62,7 @@ export default createGlobalStyle`
 
         /* The surfaces of the theme. */
         --pd-bg: #0a0a0a;
-        --pd-surface: #111111;
+        --pd-surface: rgb(17 17 17 / 0.86);
         --pd-raised: #161616;
         --pd-border: #1f1f1f;
         --pd-border-strong: #2e2e2e;
@@ -107,8 +107,9 @@ export default createGlobalStyle`
     }
 
     /*
-     * The background: plain, near black. The other backgrounds of the Appearance page (gradients, pictures, effects)
-     * are drawn by /js/appearance.js on top of this one.
+     * The default background: near black, a soft light of the accent colour at the top and a faint grid of dots that
+     * fades out downwards. The other backgrounds of the Appearance page (gradients, pictures, effects) are drawn by
+     * /js/appearance.js on top of this one.
      */
     body::before {
         content: '';
@@ -116,7 +117,16 @@ export default createGlobalStyle`
         inset: 0;
         z-index: -1;
         pointer-events: none;
-        background: var(--pd-bg);
+        background: radial-gradient(70% 45% at 50% -8%, rgb(var(--pd-accent-500) / 0.16), transparent 70%),
+            radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px) 0 0 / 22px 22px, var(--pd-bg);
+        -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 55%, rgba(0, 0, 0, 0.55) 100%);
+        mask-image: linear-gradient(180deg, #000 0%, #000 55%, rgba(0, 0, 0, 0.55) 100%);
+    }
+
+    /* The mark of the panel, in the accent colour. */
+    .pd-mark {
+        background: linear-gradient(135deg, rgb(var(--pd-accent-300)) 0%, rgb(var(--pd-accent-600)) 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px -4px rgb(var(--pd-accent-500) / 0.6);
     }
 
     /*

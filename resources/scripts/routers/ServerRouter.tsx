@@ -22,6 +22,31 @@ import PermissionRoute from '@/components/elements/PermissionRoute';
 import routes from '@/routers/routes';
 import { detectEts2 } from '@/api/server/ets2';
 
+// The name of the server above its tabs, with a dot of its state and its game.
+const ServerHeader = () => {
+    const name = ServerContext.useStoreState((state) => state.server.data?.name || '');
+    const egg = ServerContext.useStoreState((state) => state.server.data?.eggName || '');
+    const status = ServerContext.useStoreState((state) => state.status.value);
+    const color =
+        status === 'running'
+            ? '#3ecf8e'
+            : status === 'starting' || status === 'stopping'
+            ? '#f5a524'
+            : status === 'offline'
+            ? '#707070'
+            : '#454545';
+
+    return (
+        <div className={'flex items-center gap-2.5 px-2.5 min-w-0'}>
+            <span className={'w-2 h-2 rounded-full flex-shrink-0'} style={{ background: color }} />
+            <div className={'min-w-0'}>
+                <p className={'text-sm font-semibold text-gray-50 truncate'}>{name}</p>
+                {egg && <p className={'text-xs text-gray-500 truncate'}>{egg}</p>}
+            </div>
+        </div>
+    );
+};
+
 export default () => {
     const match = useRouteMatch<{ id: string }>();
     const location = useLocation();
@@ -89,6 +114,7 @@ export default () => {
                 <>
                     <CSSTransition timeout={150} classNames={'fade'} appear in>
                         <SubNavigation
+                            header={<ServerHeader />}
                             tabs={
                                 <div>
                                     {routes.server

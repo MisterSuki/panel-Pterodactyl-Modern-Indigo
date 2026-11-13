@@ -10,8 +10,10 @@ const gray = {
     500: '#707070',
     600: '#2E2E2E',
     700: '#1F1F1F',
-    800: '#111111',
-    900: '#0A0A0A',
+    // Cards and insets let the background of the Appearance page show through a little; on the plain background they
+    // look solid.
+    800: 'rgb(17 17 17 / 0.86)',
+    900: 'rgb(10 10 10 / 0.9)',
 };
 
 // The accent colour (blue unless the person picked another one), used for links, focus rings, selections and charts.
@@ -72,8 +74,8 @@ module.exports = {
             }),
             // Flat: depth comes from the borders. Only what floats over the page has a shadow.
             boxShadow: {
-                card: '0 0 #0000',
-                'card-hover': '0 0 #0000',
+                card: 'inset 0 1px 0 rgba(255, 255, 255, 0.04)',
+                'card-hover': 'inset 0 1px 0 rgba(255, 255, 255, 0.06)',
                 glow: '0 0 #0000',
                 nav: '0 0 #0000',
                 pop: '0 16px 40px -12px rgba(0, 0, 0, 0.8)',

@@ -4531,3 +4531,84 @@ code {
     color: var(--pd-text) !important;
     border-radius: 4px !important;
 }
+
+/* ---- The look of the Appearance page, in the administration too ------------------------------------------------------
+   The wrappers let the background through (the one of the Appearance page, drawn by /js/appearance.js), the cards are a
+   little see-through, and the accent colour marks the logo, the main buttons and the open page of the menu. */
+
+html,
+body,
+.wrapper,
+.content-wrapper,
+.right-side {
+    background: transparent !important;
+}
+
+html {
+    background: var(--pd-bg) !important;
+}
+
+body::before {
+    background: radial-gradient(70% 45% at 50% -8%, rgb(var(--pd-accent-500) / 0.16), transparent 70%),
+        radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px) 0 0 / 22px 22px, var(--pd-bg) !important;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 55%, rgba(0, 0, 0, 0.55) 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.main-sidebar,
+.skin-blue .main-sidebar,
+.skin-blue .left-side {
+    background: rgba(10, 10, 10, 0.82) !important;
+}
+
+.box,
+.info-box,
+.small-box,
+.nav-tabs-custom,
+.panel,
+.pd-tile,
+.callout,
+.callout.callout-info,
+.callout.callout-warning,
+.callout.callout-danger,
+.callout.callout-success,
+.alert {
+    background: rgb(17 17 17 / 0.86) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+.skin-blue .main-header .logo > span::before {
+    background: linear-gradient(135deg, rgb(var(--pd-accent-300)) 0%, rgb(var(--pd-accent-600)) 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px -4px rgb(var(--pd-accent-500) / 0.6);
+}
+
+.btn-primary,
+.btn-success {
+    background-color: rgb(var(--pd-accent-500)) !important;
+    border-color: rgb(var(--pd-accent-500)) !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+}
+
+.btn-primary:hover,
+.btn-success:hover {
+    background-color: rgb(var(--pd-accent-400)) !important;
+    border-color: rgb(var(--pd-accent-400)) !important;
+}
+
+.skin-blue .sidebar-menu > li.active > a,
+.sidebar-menu > li.active > a {
+    box-shadow: inset 2px 0 0 rgb(var(--pd-accent-500)) !important;
+}
+
+.skin-blue .sidebar-menu > li.active > a > .fa {
+    color: rgb(var(--pd-accent-400)) !important;
+}
+
+.nav-tabs-custom > .nav-tabs > li.active {
+    box-shadow: inset 0 -2px 0 rgb(var(--pd-accent-500)) !important;
+}
+
+.progress-bar {
+    background: rgb(var(--pd-accent-500)) !important;
+}

@@ -32,6 +32,10 @@ const Layout = styled.div`
         ${tw`relative rounded-lg border border-neutral-700 bg-neutral-800 p-1 lg:border-0 lg:bg-transparent lg:p-0`};
     }
 
+    & .pd-side-header {
+        ${tw`hidden lg:block mb-3 pb-3 border-b border-neutral-700`};
+    }
+
     & .pd-side-toggle {
         ${tw`flex lg:hidden items-center w-full gap-3 px-3 py-2 rounded-md text-sm text-neutral-50 focus:outline-none`};
 
@@ -76,9 +80,10 @@ const Layout = styled.div`
 
                 &.active {
                     ${tw`text-neutral-50 bg-neutral-700`};
+                    box-shadow: inset 2px 0 0 rgb(var(--pd-accent-500));
 
                     & > .pd-tile {
-                        ${tw`text-neutral-50`};
+                        color: rgb(var(--pd-accent-400));
                     }
                 }
             }
@@ -122,12 +127,14 @@ export const TabIcon = ({ icon, color }: { icon: IconDefinition; color?: string 
 interface Props {
     // The tab links (NavLinks inside one <div>).
     tabs: React.ReactNode;
+    // Shown above the tabs on a wide screen: what the tabs belong to (the name of the server).
+    header?: React.ReactNode;
     // The page shown next to the tabs.
     children?: React.ReactNode;
     className?: string;
 }
 
-const SubNavigation = ({ tabs, children, className }: Props) => {
+const SubNavigation = ({ tabs, header, children, className }: Props) => {
     const list = useRef<HTMLDivElement>(null);
     const { pathname } = useLocation();
     const [open, setOpen] = useState(false);
@@ -148,6 +155,7 @@ const SubNavigation = ({ tabs, children, className }: Props) => {
             <div className={'pd-side-inner'}>
                 <nav className={'pd-side'}>
                     <div className={'pd-side-panel'}>
+                        {header && <div className={'pd-side-header'}>{header}</div>}
                         <button
                             type={'button'}
                             className={`pd-side-toggle${open ? ' open' : ''}`}

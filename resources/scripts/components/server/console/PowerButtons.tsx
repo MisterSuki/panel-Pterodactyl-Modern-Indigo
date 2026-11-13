@@ -19,11 +19,11 @@ const PENDING_TIMEOUT = 10000;
 // The main action of the moment is the light button; the others are outlined, Stop in red.
 const tones: Record<Tone, { solid: string; soft: string }> = {
     green: {
-        solid: 'bg-gray-50 border-gray-50 text-gray-900 hover:bg-white hover:border-white',
+        solid: 'bg-primary-500 border-primary-500 text-white hover:bg-primary-400 hover:border-primary-400',
         soft: 'bg-transparent border-gray-600 text-gray-50 hover:bg-gray-700',
     },
     primary: {
-        solid: 'bg-gray-50 border-gray-50 text-gray-900 hover:bg-white hover:border-white',
+        solid: 'bg-primary-500 border-primary-500 text-white hover:bg-primary-400 hover:border-primary-400',
         soft: 'bg-transparent border-gray-600 text-gray-50 hover:bg-gray-700',
     },
     red: {
