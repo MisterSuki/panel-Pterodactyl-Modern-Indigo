@@ -4612,3 +4612,25 @@ body::before {
 .progress-bar {
     background: rgb(var(--pd-accent-500)) !important;
 }
+
+/* ---- The logo chosen in Appearance, in place of the mark in the accent colour --------------------------------------- */
+.skin-blue .main-header .logo.has-logo > span::before {
+    display: none !important;
+}
+
+.skin-blue .main-header .logo .pd-admin-logo {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    vertical-align: -6px;
+    object-fit: contain;
+    border-radius: 5px;
+}
+
+.sidebar-mini.sidebar-collapse .main-header .logo.has-logo > span {
+    display: none !important;
+}
+
+.sidebar-mini.sidebar-collapse .main-header .logo.has-logo .pd-admin-logo {
+    margin-right: 0;
+}

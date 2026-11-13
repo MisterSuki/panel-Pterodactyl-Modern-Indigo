@@ -29,6 +29,11 @@ Route::get('/appearance/background', [Base\AppearanceController::class, 'backgro
     ->withoutMiddleware(['auth', RequireTwoFactorAuthentication::class])
     ->name('appearance.background');
 
+// The logo of the panel, for everybody (the sign-in page shows it too).
+Route::get('/appearance/logo', [Base\AppearanceController::class, 'logo'])
+    ->withoutMiddleware(['auth', RequireTwoFactorAuthentication::class])
+    ->name('appearance.logo');
+
 // Where a person lands after paying (or giving up) at a payment provider.
 Route::get('/shop/return/{provider}', [Base\ShopReturnController::class, 'return'])
     ->where('provider', 'stripe|paypal|sumup')

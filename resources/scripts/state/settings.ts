@@ -2,6 +2,8 @@ import { action, Action } from 'easy-peasy';
 
 export interface SiteSettings {
     name: string;
+    // The address of the logo chosen in Administration > Appearance, or null for the mark in the accent colour.
+    logo?: string | null;
     locale: string;
     recaptcha: {
         enabled: boolean;

@@ -31,6 +31,10 @@ class Appearance
 
     public const MIME = ['png' => 'image/png', 'jpg' => 'image/jpeg', 'webp' => 'image/webp', 'gif' => 'image/gif'];
 
+    public const LOGO_MAX_BYTES = 2 * 1024 * 1024;
+
+    public const LOGO_MIME = ['png' => 'image/png', 'jpg' => 'image/jpeg', 'webp' => 'image/webp', 'gif' => 'image/gif', 'svg' => 'image/svg+xml'];
+
     private const TYPES = [IMAGETYPE_PNG => 'png', IMAGETYPE_JPEG => 'jpg', IMAGETYPE_WEBP => 'webp', IMAGETYPE_GIF => 'gif'];
 
     private const KEY = 'appearance:site';
@@ -45,6 +49,8 @@ class Appearance
         'user_choice' => true,
         'image' => null,
         'image_version' => 0,
+        'logo' => null,
+        'logo_version' => 0,
     ];
 
     private const USER_DEFAULTS = [
@@ -87,6 +93,98 @@ class Appearance
             'userChoice' => $site['user_choice'],
             'image' => $image,
         ];
+    }
+
+    /**
+     * The address of the logo chosen by the administration, or null when there is none (the mark in the accent colour
+     * is shown instead). The address changes with each new logo, so browsers may keep it for long.
+     */
+    public function logoUrl(): ?string
+    {
+        $site = $this->stored();
+
+        return $site['logo'] && $this->logoPath() ? '/appearance/logo?v=' . $site['logo_version'] : null;
+    }
+
+    /**
+     * Replaces the logo. A picture is checked by what it really is (not by its name); an SVG must be a plain drawing:
+     * no script, no event handler, no link to anything outside. It is kept outside the public folder.
+     *
+     * @throws DisplayException
+     */
+    public function storeLogo(UploadedFile $file): void
+    {
+        if (!$file->isValid() || $file->getSize() > self::LOGO_MAX_BYTES) {
+            throw new DisplayException('The logo is too big (2 MB at most).');
+        }
+        $raw = (string) file_get_contents($file->getRealPath());
+
+        $info = @getimagesizefromstring($raw);
+        if ($info !== false && isset(self::TYPES[$info[2]])) {
+            if ($info[0] < 16 || $info[1] < 16 || $info[0] > 4096 || $info[1] > 4096) {
+                throw new DisplayException('The logo is too small or too big (16 to 4096 pixels).');
+            }
+            $extension = self::TYPES[$info[2]];
+        } elseif ($this->isSafeSvg($raw)) {
+            $extension = 'svg';
+        } else {
+            throw new DisplayException('The file is not a logo (png, jpeg, webp, gif or svg).');
+        }
+
+        $this->forgetLogo();
+        $name = 'logo.' . $extension;
+        Storage::disk(self::DISK)->put(self::DIRECTORY . '/' . $name, $raw);
+
+        $site = $this->stored();
+        $site['logo'] = $name;
+        $site['logo_version'] = time();
+        $this->settings->set(self::KEY, json_encode($this->cleanSite($site)));
+    }
+
+    public function removeLogo(): void
+    {
+        $this->forgetLogo();
+        $site = $this->stored();
+        $site['logo'] = null;
+        $this->settings->set(self::KEY, json_encode($this->cleanSite($site)));
+    }
+
+    /**
+     * The file of the logo, or null when there is none.
+     */
+    public function logoPath(): ?string
+    {
+        $name = $this->stored()['logo'];
+        if (!$name || preg_match('/^logo\.(png|jpg|webp|gif|svg)$/', $name) !== 1) {
+            return null;
+        }
+        $path = self::DIRECTORY . '/' . $name;
+
+        return Storage::disk(self::DISK)->exists($path) ? Storage::disk(self::DISK)->path($path) : null;
+    }
+
+    private function forgetLogo(): void
+    {
+        foreach (array_keys(self::LOGO_MIME) as $extension) {
+            Storage::disk(self::DISK)->delete(self::DIRECTORY . '/logo.' . $extension);
+        }
+    }
+
+    /**
+     * An SVG with nothing in it that could run or load something: no script, no foreignObject, no on* attribute, no
+     * javascript: or outside link. The file is also served with a policy that forbids scripts, in case.
+     */
+    private function isSafeSvg(string $raw): bool
+    {
+        if (strlen($raw) > self::LOGO_MAX_BYTES || preg_match('/<svg[\s>]/i', $raw) !== 1) {
+            return false;
+        }
+        if (preg_match('/<!ENTITY|<script|<foreignObject|<iframe|<embed|<object|\son[a-z]+\s*=|javascript:|data:text\/html/i', $raw) === 1) {
+            return false;
+        }
+
+        // Links only to something inside the drawing itself (#id).
+        return preg_match('/(?:xlink:)?href\s*=\s*["\'](?!#)/i', $raw) !== 1;
     }
 
     public function saveSite(array $values): void
@@ -193,6 +291,8 @@ class Appearance
             'user_choice' => filter_var($site['user_choice'], FILTER_VALIDATE_BOOLEAN),
             'image' => is_string($site['image']) && $site['image'] !== '' ? $site['image'] : null,
             'image_version' => max(0, (int) $site['image_version']),
+            'logo' => is_string($site['logo']) && $site['logo'] !== '' ? $site['logo'] : null,
+            'logo_version' => max(0, (int) $site['logo_version']),
         ];
     }
 

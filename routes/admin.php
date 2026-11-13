@@ -18,6 +18,7 @@ Route::group(['prefix' => 'appearance', 'middleware' => 'admin.can:settings,mana
     Route::get('/', [Admin\AppearanceController::class, 'index'])->name('admin.appearance');
     Route::post('/', [Admin\AppearanceController::class, 'update']);
     Route::post('/remove-image', [Admin\AppearanceController::class, 'removeImage'])->name('admin.appearance.remove-image');
+    Route::post('/remove-logo', [Admin\AppearanceController::class, 'removeLogo'])->name('admin.appearance.remove-logo');
 });
 
 // Web hosting: the state of the nodes, the eggs and every domain of the websites (settings rights needed).

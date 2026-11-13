@@ -31,7 +31,6 @@ const Cell = ({
             <span>{label}</span>
         </p>
         <p
-            className={'pd-glow-text'}
             css={tw`relative mt-2 text-2xl font-semibold text-neutral-50 tabular-nums leading-tight truncate tracking-tight`}
         >
             {value}

@@ -47,6 +47,10 @@
     .pd-ap-image .pd-ap-pic { width: 260px; max-width: 100%; height: 146px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.12); background: #0b0d18 center / cover no-repeat; display: flex; align-items: center; justify-content: center; color: rgba(235, 235, 240, 0.5); }
     .pd-ap-range { display: flex; align-items: center; gap: 12px; }
     .pd-ap-range input { flex: 1; accent-color: rgb(var(--pd-accent-500)); }
+    .pd-ap-logo { display: flex; gap: 14px; align-items: center; }
+    .pd-ap-logo-pic { width: 64px; height: 64px; flex-shrink: 0; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.03); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .pd-ap-logo-pic img { max-width: 48px; max-height: 48px; object-fit: contain; }
+    .pd-ap-logo-mark { width: 36px; height: 36px; border-radius: 9px; background: linear-gradient(135deg, rgb(var(--pd-accent-300)) 0%, rgb(var(--pd-accent-600)) 100%); }
     .pd-ap-range output { min-width: 48px; text-align: right; font-variant-numeric: tabular-nums; color: rgba(235, 235, 240, 0.85); }
 </style>
 
@@ -120,6 +124,30 @@
         </div>
         <div class="col-lg-4">
             <div class="box box-primary">
+                <div class="box-header with-border"><h3 class="box-title">Logo</h3></div>
+                <div class="box-body">
+                    <div class="pd-ap-logo">
+                        <div class="pd-ap-logo-pic" id="pdApLogoPreview">
+                            @if ($logoUrl)
+                                <img src="{{ $logoUrl }}" alt="">
+                            @else
+                                <span class="pd-ap-logo-mark"></span>
+                            @endif
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <input type="file" id="pdApLogo" name="logo" class="form-control" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml">
+                            @if ($logoUrl)
+                                <button type="submit" class="btn btn-xs btn-danger" style="margin-top: 8px;" formaction="{{ route('admin.appearance.remove-logo') }}" formnovalidate><i class="fa fa-trash"></i> <span>Remove the logo</span></button>
+                            @endif
+                        </div>
+                    </div>
+                    <p class="pd-ap-help"><span>Shown in the top bar, on the sign-in page, in the administration and as the icon of the tab. Square, png, svg, webp, jpeg or gif, 2 MB at most. A transparent background looks best.</span></p>
+                </div>
+                <div class="box-footer">
+                    <button type="submit" class="btn btn-primary btn-sm pull-right"><i class="fa fa-save"></i> <span>Save</span></button>
+                </div>
+            </div>
+            <div class="box box-primary">
                 <div class="box-header with-border"><h3 class="box-title">Accent colour</h3></div>
                 <div class="box-body">
                     <div class="pd-ap-swatches">
@@ -151,6 +179,23 @@
 
 @section('footer-scripts')
     @parent
+    <script>
+        // The chosen logo shows in its box before it is saved.
+        (function () {
+            var input = document.getElementById('pdApLogo');
+            var box = document.getElementById('pdApLogoPreview');
+            if (!input || !box) return;
+            input.addEventListener('change', function () {
+                var file = input.files && input.files[0];
+                if (!file || !window.URL) return;
+                var img = document.createElement('img');
+                img.alt = '';
+                img.src = URL.createObjectURL(file);
+                box.innerHTML = '';
+                box.appendChild(img);
+            });
+        })();
+    </script>
     <script>
         (function () {
             var form = document.getElementById('pdAppearanceForm');

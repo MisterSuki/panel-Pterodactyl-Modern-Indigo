@@ -26,6 +26,7 @@ class AppearanceController extends Controller
             'site' => $this->appearance->stored(),
             'hasImage' => $this->appearance->imagePath() !== null,
             'imageUrl' => $this->appearance->site()['image'],
+            'logoUrl' => $this->appearance->logoUrl(),
         ]);
     }
 
@@ -39,11 +40,15 @@ class AppearanceController extends Controller
             'dim' => ['required', 'integer', 'min:0', 'max:80'],
             'blur' => ['required', 'integer', 'min:0', 'max:30'],
             'image' => ['nullable', 'file', 'max:8192'],
+            'logo' => ['nullable', 'file', 'max:2048'],
         ]);
 
         try {
             if ($request->hasFile('image')) {
                 $this->appearance->storeImage($request->file('image'));
+            }
+            if ($request->hasFile('logo')) {
+                $this->appearance->storeLogo($request->file('logo'));
             }
         } catch (DisplayException $exception) {
             $this->alert->danger($exception->getMessage())->flash();
@@ -75,6 +80,14 @@ class AppearanceController extends Controller
     {
         $this->appearance->removeImage();
         $this->alert->success('The background picture was removed.')->flash();
+
+        return redirect()->route('admin.appearance');
+    }
+
+    public function removeLogo(): RedirectResponse
+    {
+        $this->appearance->removeLogo();
+        $this->alert->success('The logo was removed.')->flash();
 
         return redirect()->route('admin.appearance');
     }

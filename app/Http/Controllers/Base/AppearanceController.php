@@ -34,4 +34,26 @@ class AppearanceController extends Controller
 
         return $response;
     }
+
+    /**
+     * The logo chosen by the administration, shown in the top bar, on the sign-in pages and as the icon of the tab.
+     * An SVG is served with a policy that forbids any script, even if it was opened on its own.
+     */
+    public function logo(): BinaryFileResponse
+    {
+        $path = $this->appearance->logoPath();
+        if (!$path) {
+            throw new NotFoundHttpException();
+        }
+
+        $response = response()->file($path, [
+            'Content-Type' => Appearance::LOGO_MIME[pathinfo($path, PATHINFO_EXTENSION)] ?? 'application/octet-stream',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+        ]);
+        $response->setPublic();
+        $response->setMaxAge(31536000);
+
+        return $response;
+    }
 }

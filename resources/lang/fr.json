@@ -2352,5 +2352,15 @@
  "Also an A record to the same machine.": "Aussi un enregistrement A vers la même machine.",
  "Your servers, under control.": "Vos serveurs, sous contrôle.",
  "The console, the files, the backups and the statistics of every server, in one place.": "La console, les fichiers, les sauvegardes et les statistiques de chaque serveur, au même endroit.",
- "Live console and statistics": "Console et statistiques en direct"
+ "Live console and statistics": "Console et statistiques en direct",
+ "Create an account": "Créer un compte",
+ "Ready to start?": "Prêt à vous lancer ?",
+ "Create your account in a minute and launch your first server.": "Créez votre compte en une minute et lancez votre premier serveur.",
+ "Logo": "Logo",
+ "Remove the logo": "Retirer le logo",
+ "The logo was removed.": "Le logo a été retiré.",
+ "Shown in the top bar, on the sign-in page, in the administration and as the icon of the tab. Square, png, svg, webp, jpeg or gif, 2 MB at most. A transparent background looks best.": "Affiché dans la barre du haut, sur la page de connexion, dans l'administration et comme icône de l'onglet. Carré, png, svg, webp, jpeg ou gif, 2 Mo au maximum. Un fond transparent rend le mieux.",
+ "The logo is too big (2 MB at most).": "Le logo est trop lourd (2 Mo au maximum).",
+ "The logo is too small or too big (16 to 4096 pixels).": "Le logo est trop petit ou trop grand (16 à 4096 pixels).",
+ "The file is not a logo (png, jpeg, webp, gif or svg).": "Le fichier n'est pas un logo (png, jpeg, webp, gif ou svg)."
 }

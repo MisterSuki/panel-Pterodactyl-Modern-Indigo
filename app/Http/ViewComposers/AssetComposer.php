@@ -26,6 +26,8 @@ class AssetComposer
         $view->with('asset', $this->assetHashService);
         $view->with('siteConfiguration', [
             'name' => config('app.name') ?? 'Pterodactyl',
+            // The logo chosen in Administration > Appearance, or null for the mark in the accent colour.
+            'logo' => app(\Pterodactyl\Services\Helpers\Appearance::class)->logoUrl(),
             'locale' => Locales::default(),
             'locales' => (object) (new class() {
                 use AvailableLanguages;

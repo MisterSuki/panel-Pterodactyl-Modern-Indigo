@@ -16,32 +16,14 @@ import BrandTitle from '@/components/elements/BrandTitle';
 import NotificationBell from '@/components/NotificationBell';
 import SupportBubble from '@/components/tickets/SupportBubble';
 import ScreenShare from '@/components/screen/ScreenShare';
+import BrandMark from '@/components/elements/BrandMark';
 
 const Bar = styled.header`
     ${tw`sticky top-0 z-40 w-full`};
-    background: rgba(8, 8, 12, 0.62);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    -webkit-backdrop-filter: saturate(170%) blur(16px);
-    backdrop-filter: saturate(170%) blur(16px);
-
-    /* A line of light along the bottom of the bar, from the accent to its neighbours. */
-    &::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: -1px;
-        height: 1px;
-        pointer-events: none;
-        background: linear-gradient(
-            90deg,
-            transparent 0%,
-            rgb(var(--pd-accent-500) / 0.7) 25%,
-            rgb(var(--pd-neon-2) / 0.6) 55%,
-            rgb(var(--pd-neon-3) / 0.45) 80%,
-            transparent 100%
-        );
-    }
+    background: rgba(10, 10, 10, 0.72);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    backdrop-filter: saturate(160%) blur(14px);
 
     & .pd-links {
         ${tw`items-center gap-0.5`};
@@ -72,8 +54,7 @@ const Bar = styled.header`
                     bottom: -0.625rem;
                     height: 2px;
                     border-radius: 2px;
-                    background: linear-gradient(90deg, rgb(var(--pd-accent-400)), rgb(var(--pd-neon-2)));
-                    box-shadow: 0 0 12px rgb(var(--pd-accent-500) / 0.9), 0 0 2px rgb(var(--pd-accent-300));
+                    background: rgb(var(--pd-accent-500));
                 }
             }
         }
@@ -186,7 +167,7 @@ export default () => {
                 >
                     <div id={'logo'} className={'min-w-0 flex-1 md:flex-none'}>
                         <Link to={'/'} className={'flex items-center gap-2.5 min-w-0 no-underline'}>
-                            <span aria-hidden className={'pd-mark w-6 h-6 rounded-md flex-shrink-0'} />
+                            <BrandMark className={'w-6 h-6 rounded-md'} />
                             <BrandTitle className={'truncate'} />
                         </Link>
                     </div>

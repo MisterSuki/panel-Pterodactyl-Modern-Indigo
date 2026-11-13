@@ -9,6 +9,7 @@ import FlashMessageRender from '@/components/FlashMessageRender';
 import CopyrightLine from '@/components/elements/CopyrightLine';
 import BrandTitle from '@/components/elements/BrandTitle';
 import AuthShowcase from '@/components/auth/AuthShowcase';
+import BrandMark from '@/components/elements/BrandMark';
 
 type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, HTMLFormElement> & {
     title?: string;
@@ -34,7 +35,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                 <div css={tw`flex-1 flex items-center justify-center py-16`}>
                     <Column>
                         <div css={tw`flex flex-col items-center mb-8 select-none`}>
-                            <span aria-hidden className={'pd-mark'} css={tw`w-10 h-10 rounded-lg mb-5`} />
+                            <BrandMark className={'w-10 h-10 rounded-lg mb-5'} />
                             {title ? (
                                 <h1 css={tw`text-2xl text-center text-neutral-50 font-semibold`}>{title}</h1>
                             ) : (

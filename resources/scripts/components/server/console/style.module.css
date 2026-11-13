@@ -6,10 +6,10 @@
 
 .terminal {
     @apply relative flex flex-col w-full overflow-hidden rounded-xl;
-    /* A black terminal in a thin frame, lit a little by the accent colour. */
-    background: rgba(0, 0, 0, 0.88);
-    border: 1px solid rgb(var(--pd-accent-500) / 0.22);
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 30px 70px -35px rgb(var(--pd-accent-500) / 0.45);
+    /* A black terminal in a thin frame. */
+    background: #000000;
+    border: 1px solid #262626;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 40px -24px rgba(0, 0, 0, 0.9);
 
     & .header {
         @apply flex items-center justify-between gap-3 px-4 py-2;
