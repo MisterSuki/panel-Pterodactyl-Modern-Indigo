@@ -13,6 +13,7 @@ import { useStoreState } from 'easy-peasy';
 import DiscordConnectionBox from '@/components/dashboard/DiscordConnectionBox';
 import LanguageBox from '@/components/dashboard/LanguageBox';
 import AvatarBox from '@/components/dashboard/AvatarBox';
+import PasskeysBox from '@/components/dashboard/PasskeysBox';
 
 const Container = styled.div`
     ${tw`flex flex-wrap`};
@@ -53,6 +54,7 @@ export default () => {
                     <ConfigureTwoFactorForm />
                 </ContentBox>
             </Container>
+            <PasskeysBox css={tw`mb-10`} />
             <div css={tw`lg:grid lg:grid-cols-3 lg:gap-8 mb-10`}>
                 <AvatarBox />
                 <LanguageBox css={tw`mt-8 lg:mt-0`} />

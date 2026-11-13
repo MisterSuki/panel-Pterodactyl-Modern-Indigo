@@ -28,6 +28,10 @@ Route::middleware(['throttle:authentication'])->group(function () {
     Route::post('/login', [Auth\LoginController::class, 'login'])->middleware('recaptcha');
     Route::post('/login/checkpoint', Auth\LoginCheckpointController::class)->name('auth.login-checkpoint');
 
+    // Signing in with a passkey (Face ID, Touch ID, Windows Hello, a security key).
+    Route::post('/passkey/options', [Auth\PasskeyController::class, 'options'])->name('auth.passkey.options');
+    Route::post('/passkey/login', [Auth\PasskeyController::class, 'login'])->name('auth.passkey.login');
+
     // Self-registration. The controller refuses the request when registration is disabled.
     Route::post('/register', Auth\RegisterController::class)
         ->name('auth.post.register')

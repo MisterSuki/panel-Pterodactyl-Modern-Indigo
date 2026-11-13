@@ -13,6 +13,7 @@ return [
         'password-reset' => 'Password reset',
         'reset-password' => 'Requested password reset',
         'checkpoint' => 'Two-factor authentication requested',
+        'passkey' => 'Logged in with a passkey',
         'recovery-token' => 'Used two-factor recovery token',
         'token' => 'Solved two-factor challenge',
         'ip-blocked' => 'Blocked request from unlisted IP address for :identifier',
@@ -42,6 +43,10 @@ return [
             'share' => 'Shared their screen with the support',
             'decline' => 'Refused to share their screen',
             'stop' => 'Stopped sharing their screen',
+        ],
+        'passkey' => [
+            'create' => 'Added the passkey :name',
+            'delete' => 'Removed the passkey :name',
         ],
         'two-factor' => [
             'create' => 'Enabled two-factor auth',

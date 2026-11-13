@@ -13,6 +13,7 @@ return [
         'password-reset' => 'Mot de passe réinitialisé',
         'reset-password' => 'Réinitialisation du mot de passe demandée',
         'checkpoint' => 'Authentification à deux facteurs demandée',
+        'passkey' => 'Connexion avec une passkey',
         'recovery-token' => 'Code de secours à deux facteurs utilisé',
         'token' => 'Défi à deux facteurs réussi',
         'ip-blocked' => 'Requête bloquée depuis une adresse IP non autorisée pour :identifier',
@@ -42,6 +43,10 @@ return [
             'share' => 'A partagé son écran avec le support',
             'decline' => 'A refusé de partager son écran',
             'stop' => 'A arrêté de partager son écran',
+        ],
+        'passkey' => [
+            'create' => 'Passkey :name ajoutée',
+            'delete' => 'Passkey :name supprimée',
         ],
         'two-factor' => [
             'create' => 'Authentification à deux facteurs activée',

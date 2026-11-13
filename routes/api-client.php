@@ -90,6 +90,13 @@ Route::prefix('/account')->middleware(AccountSubject::class)->group(function () 
     Route::post('/api-keys', [Client\ApiKeyController::class, 'store']);
     Route::delete('/api-keys/{identifier}', [Client\ApiKeyController::class, 'delete']);
 
+    Route::prefix('/passkeys')->group(function () {
+        Route::get('/', [Client\PasskeyController::class, 'index']);
+        Route::post('/options', [Client\PasskeyController::class, 'options'])->middleware('throttle:20,1');
+        Route::post('/', [Client\PasskeyController::class, 'store'])->middleware('throttle:20,1');
+        Route::delete('/{passkey}', [Client\PasskeyController::class, 'delete'])->whereNumber('passkey');
+    });
+
     Route::prefix('/ssh-keys')->group(function () {
         Route::get('/', [Client\SSHKeyController::class, 'index']);
         Route::post('/', [Client\SSHKeyController::class, 'store']);

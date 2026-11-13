@@ -12,6 +12,9 @@ import Reaptcha from 'reaptcha';
 import useFlash from '@/plugins/useFlash';
 import DiscordButton from '@/components/auth/DiscordButton';
 import getDiscordMessage from '@/components/auth/discordMessages';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFingerprint } from '@fortawesome/free-solid-svg-icons';
+import { loginWithPasskey, passkeyError, passkeysSupported } from '@/api/passkeys';
 
 interface Values {
     username: string;
@@ -26,6 +29,28 @@ const LoginContainer = ({ history, location }: RouteComponentProps) => {
     const { enabled: recaptchaEnabled, siteKey } = useStoreState((state) => state.settings.data!.recaptcha);
     const registration = useStoreState((state) => state.settings.data!.registration);
     const discordEnabled = useStoreState((state) => state.settings.data!.discord.enabled);
+    const [passkeyBusy, setPasskeyBusy] = useState(false);
+
+    // Face ID, Touch ID, Windows Hello: the device shows the passkeys it holds for the panel, and the one chosen opens
+    // its account. It replaces the password and the code of the authenticator app.
+    const onPasskey = () => {
+        clearFlashes();
+        setPasskeyBusy(true);
+        loginWithPasskey()
+            .then((response) => {
+                // @ts-expect-error this is valid
+                window.location = response.intended || '/';
+            })
+            .catch((error) => {
+                setPasskeyBusy(false);
+                const message = passkeyError(error);
+                if (message) {
+                    addFlash({ type: 'error', title: 'Error', message });
+                } else {
+                    clearAndAddHttpError({ error });
+                }
+            });
+    };
 
     useEffect(() => {
         clearFlashes();
@@ -93,10 +118,30 @@ const LoginContainer = ({ history, location }: RouteComponentProps) => {
                         <Field type={'password'} label={'Password'} name={'password'} disabled={isSubmitting} />
                     </div>
                     <div css={tw`mt-6`}>
-                        <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
+                        <Button
+                            type={'submit'}
+                            size={'xlarge'}
+                            isLoading={isSubmitting}
+                            disabled={isSubmitting || passkeyBusy}
+                        >
                             Login
                         </Button>
                     </div>
+                    {passkeysSupported() && (
+                        <div css={tw`mt-3`}>
+                            <Button
+                                type={'button'}
+                                size={'xlarge'}
+                                isSecondary
+                                isLoading={passkeyBusy}
+                                disabled={isSubmitting || passkeyBusy}
+                                onClick={onPasskey}
+                            >
+                                <FontAwesomeIcon icon={faFingerprint} css={tw`mr-2`} />
+                                <span>Sign in with a passkey</span>
+                            </Button>
+                        </div>
+                    )}
                     {discordEnabled && (
                         <React.Fragment>
                             <div css={tw`mt-6 flex items-center`}>
