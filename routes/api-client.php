@@ -52,13 +52,15 @@ Route::prefix('/shop')->group(function () {
     Route::put('/servers/{server}/resources', [Client\ShopController::class, 'updateResources'])->middleware('throttle:30,1');
 });
 
-// The VPS of the person (virtual machines of Proxmox given to them by the administration).
+// The VPS of the person (virtual machines of Proxmox given to them by the administration). Each limit has its own
+// counter (the third parameter): without it, every "throttle" of a person shares one, and the page that refreshes every
+// few seconds would use up the limit of the power buttons and of the console.
 Route::prefix('/vps')->group(function () {
-    Route::get('/', [Client\VpsController::class, 'index'])->middleware('throttle:60,1');
-    Route::get('/{uuid}', [Client\VpsController::class, 'show'])->whereUuid('uuid')->middleware('throttle:60,1');
-    Route::get('/{uuid}/history', [Client\VpsController::class, 'history'])->whereUuid('uuid')->middleware('throttle:30,1');
-    Route::post('/{uuid}/power', [Client\VpsController::class, 'power'])->whereUuid('uuid')->middleware('throttle:10,1');
-    Route::post('/{uuid}/console', [Client\VpsController::class, 'console'])->whereUuid('uuid')->middleware('throttle:20,1');
+    Route::get('/', [Client\VpsController::class, 'index'])->middleware('throttle:120,1,vps-list');
+    Route::get('/{uuid}', [Client\VpsController::class, 'show'])->whereUuid('uuid')->middleware('throttle:120,1,vps-show');
+    Route::get('/{uuid}/history', [Client\VpsController::class, 'history'])->whereUuid('uuid')->middleware('throttle:30,1,vps-history');
+    Route::post('/{uuid}/power', [Client\VpsController::class, 'power'])->whereUuid('uuid')->middleware('throttle:10,1,vps-power');
+    Route::post('/{uuid}/console', [Client\VpsController::class, 'console'])->whereUuid('uuid')->middleware('throttle:20,1,vps-console');
 });
 
 // Somebody of the staff asks to see the screen: the person answers here, and only about their own session.

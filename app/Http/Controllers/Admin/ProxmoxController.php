@@ -43,7 +43,11 @@ class ProxmoxController extends Controller
             $hosts->each(fn (ProxmoxHost $host) => $this->proxmox->forgetOverview($host));
         }
 
+        $versions = app(\Pterodactyl\Services\Admin\ThemeVersionService::class);
+
         return view('admin.proxmox', [
+            'consoleRunning' => $this->proxmox->consoleAvailable(),
+            'consoleCommand' => str_replace(' --update', ' --console', $versions->updateCommand()),
             'hosts' => $hosts->map(fn (ProxmoxHost $host) => $this->entry($host, $this->proxmox->cachedOverview($host))),
             'editing' => $request->filled('edit') ? $hosts->firstWhere('id', (int) $request->query('edit')) : null,
         ]);

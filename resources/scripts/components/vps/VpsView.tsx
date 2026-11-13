@@ -204,7 +204,7 @@ export default () => {
                                     <span>Start</span>
                                 </Button>
                             )}
-                            {ready && running && vps.console && (
+                            {ready && running && (
                                 <Link to={`/vps/${uuid}/console`} css={tw`no-underline`}>
                                     <Button>
                                         <FontAwesomeIcon icon={faTerminal} css={tw`mr-2 text-xs`} />

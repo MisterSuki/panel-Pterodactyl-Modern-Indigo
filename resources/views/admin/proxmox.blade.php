@@ -105,6 +105,21 @@
             </form>
         </div>
         <div class="box box-primary">
+            <div class="box-header with-border"><h3 class="box-title">Console (noVNC)</h3></div>
+            <div class="box-body">
+                @if ($consoleRunning)
+                    <p style="margin: 0;"><span class="pd-px-dot" style="background: #3ecf8e"></span> <span>The console relay is running: users can open the screen of their VPS.</span></p>
+                @else
+                    <p style="margin: 0;"><span class="pd-px-dot" style="background: #e5484d"></span> <strong><span>The console relay is not running.</span></strong></p>
+                    <p class="pd-px-help"><span>The console of the VPS goes through a small relay on this machine. Install it (or start it again) as root on the machine of the panel:</span></p>
+                    <code class="pd-px-cmd" style="white-space: pre-wrap; word-break: break-all;">{{ $consoleCommand }}</code>
+                    <p class="pd-px-help"><span>Then, if it still does not run, look at what it says:</span></p>
+                    <code class="pd-px-cmd">systemctl status pterodactyl-vnc-relay
+journalctl -u pterodactyl-vnc-relay -n 30</code>
+                @endif
+            </div>
+        </div>
+        <div class="box box-primary">
             <div class="box-header with-border"><h3 class="box-title">How it works</h3></div>
             <div class="box-body">
                 <p class="pd-px-help" style="margin-top: 0;"><span>Create a VPS from a template right here, with "Create a VPS": the panel copies the template, sets its cores, memory, disk, address and root password, and starts it. It shows in the panel of the user at once, as "being created".</span></p>

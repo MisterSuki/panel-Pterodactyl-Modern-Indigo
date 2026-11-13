@@ -2479,5 +2479,10 @@
  "The console is not set up on the panel yet: the administrator has to run the update of the panel.": "La console n'est pas encore installée sur le panel : l'administrateur doit lancer la mise à jour du panel.",
  "The console cannot be opened: the folder of its sessions cannot be made.": "La console ne peut pas s'ouvrir : le dossier de ses sessions ne peut pas être créé.",
  "The console cannot be opened: its session cannot be written.": "La console ne peut pas s'ouvrir : sa session ne peut pas être écrite.",
- "Proxmox did not open the console.": "Proxmox n'a pas ouvert la console."
+ "Proxmox did not open the console.": "Proxmox n'a pas ouvert la console.",
+ "Console (noVNC)": "Console (noVNC)",
+ "The console relay is running: users can open the screen of their VPS.": "Le relais de la console tourne : les utilisateurs peuvent ouvrir l'écran de leur VPS.",
+ "The console relay is not running.": "Le relais de la console ne tourne pas.",
+ "The console of the VPS goes through a small relay on this machine. Install it (or start it again) as root on the machine of the panel:": "La console des VPS passe par un petit relais sur cette machine. Installez-le (ou relancez-le) en root sur la machine du panel :",
+ "Then, if it still does not run, look at what it says:": "Ensuite, s'il ne tourne toujours pas, regardez ce qu'il dit :"
 }

@@ -55,6 +55,7 @@ DO_PMA=false
 NO_PMA=false
 DO_WEB=false
 DO_MAIL=false
+DO_CONSOLE=false
 MAIL_TOKEN=""
 
 # answers, asked when missing
@@ -164,6 +165,7 @@ Examples:
   bash <(curl -s ${INSTALL_URL}) --wings
   bash <(curl -s ${INSTALL_URL}) --update --yes --install-node
   bash <(curl -s ${INSTALL_URL}) --phpmyadmin
+  bash <(curl -s ${INSTALL_URL}) --console      (only the console relay of the VPS of Proxmox)
   bash <(curl -s ${INSTALL_URL}) --uninstall
 EOF
 }
@@ -178,6 +180,7 @@ for arg in "$@"; do
         --phpmyadmin) DO_PMA=true ;;
         --web) DO_WEB=true ;;
         --mail) DO_MAIL=true ;;
+        --console) DO_CONSOLE=true ;;
         --mail-token=*) MAIL_TOKEN="${arg#*=}" ;;
         --no-phpmyadmin) NO_PMA=true ;;
         --pma-source=*) PMA_SOURCE="${arg#*=}" ;;
@@ -1626,6 +1629,20 @@ run_mail_install() {
     info "Its state shows in the admin, page Email."
 }
 
+# Installs (or starts again) only the console relay of the VPS, without updating the panel.
+run_console_install() {
+    panel_exists || die "No panel was found in ${PANEL_PATH} (give its folder with --path=)."
+    step "Getting the files"
+    fetch_source
+    install_vnc_relay
+    if systemctl is-active --quiet pterodactyl-vnc-relay.service; then
+        ok "${BOLD}The VPS console is ready.${NC} Reload the page of a VPS in the panel."
+    else
+        err "The console relay is not running. What it says:"
+        journalctl -u pterodactyl-vnc-relay -n 20 --no-pager 2>/dev/null | sed 's/^/    /' >&2 || true
+    fi
+}
+
 run_web_install() {
     step "Getting the files"
     fetch_source
@@ -2197,7 +2214,7 @@ main() {
         exit 0
     fi
 
-    if [[ "$DO_PANEL" != true && "$DO_WINGS" != true && "$DO_UPDATE" != true && "$UNINSTALL" != true && "$DO_PMA" != true && "$DO_WEB" != true && "$DO_MAIL" != true ]]; then
+    if [[ "$DO_PANEL" != true && "$DO_WINGS" != true && "$DO_UPDATE" != true && "$UNINSTALL" != true && "$DO_PMA" != true && "$DO_WEB" != true && "$DO_MAIL" != true && "$DO_CONSOLE" != true ]]; then
         if panel_exists; then
             info "A panel is installed in $PANEL_PATH: updating it."
             DO_UPDATE=true
@@ -2235,6 +2252,11 @@ main() {
 
     if [[ "$DO_MAIL" == true && "$DO_PANEL" != true && "$DO_UPDATE" != true ]]; then
         run_mail_install
+        return 0
+    fi
+
+    if [[ "$DO_CONSOLE" == true && "$DO_PANEL" != true && "$DO_UPDATE" != true ]]; then
+        run_console_install
         return 0
     fi
 
