@@ -2,8 +2,6 @@
 
 namespace Pterodactyl\Services\Mail;
 
-use Illuminate\Http\Client\Pool;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
 use Pterodactyl\Exceptions\DisplayException;
@@ -325,7 +323,8 @@ class MailHosting
         $code = ['MX' => 15, 'TXT' => 16, 'A' => 1][$type] ?? 0;
         foreach (['https://cloudflare-dns.com/dns-query', 'https://dns.google/resolve'] as $resolver) {
             try {
-                $response = Http::acceptJson()->withHeaders(['Accept' => 'application/dns-json'])
+                // Only "application/dns-json": Cloudflare refuses the request when "application/json" comes with it.
+                $response = Http::withHeaders(['Accept' => 'application/dns-json'])
                     ->connectTimeout(2)->timeout(4)->get($resolver, ['name' => $name, 'type' => $type]);
             } catch (\Throwable) {
                 continue;
@@ -354,7 +353,7 @@ class MailHosting
     }
 
     /**
-     * Asks the A records of several names at once.
+     * The A records of several names (the name of the mail server and of the webmail, for the admin page).
      *
      * @param array<int, string> $names
      *
@@ -363,24 +362,9 @@ class MailHosting
     public function addresses(array $names): array
     {
         $names = array_values(array_filter(array_unique($names)));
-        if (!$names) {
-            return [];
-        }
-        try {
-            $responses = Http::pool(fn (Pool $pool) => array_map(
-                fn (string $n) => $pool->as($n)->acceptJson()->withHeaders(['Accept' => 'application/dns-json'])
-                    ->connectTimeout(2)->timeout(4)->get('https://cloudflare-dns.com/dns-query', ['name' => $n, 'type' => 'A']),
-                $names
-            ));
-        } catch (\Throwable) {
-            return [];
-        }
         $out = [];
         foreach ($names as $n) {
-            $response = $responses[$n] ?? null;
-            $out[$n] = $response instanceof Response && $response->successful()
-                ? array_values(array_map(fn ($a) => (string) $a['data'], array_filter((array) $response->json('Answer', []), fn ($a) => (int) ($a['type'] ?? 0) === 1)))
-                : [];
+            $out[$n] = $this->lookup($n, 'A') ?? [];
         }
 
         return $out;

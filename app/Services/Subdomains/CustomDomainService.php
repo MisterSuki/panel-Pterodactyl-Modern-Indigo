@@ -156,9 +156,9 @@ class CustomDomainService
         foreach (['https://cloudflare-dns.com/dns-query', 'https://dns.google/resolve'] as $resolver) {
             try {
                 $responses = Http::pool(fn (Pool $pool) => [
-                    $pool->as('A')->acceptJson()->withHeaders(['Accept' => 'application/dns-json'])
+                    $pool->as('A')->withHeaders(['Accept' => 'application/dns-json'])
                         ->connectTimeout(2)->timeout(3)->get($resolver, ['name' => $hostname, 'type' => 'A']),
-                    $pool->as('AAAA')->acceptJson()->withHeaders(['Accept' => 'application/dns-json'])
+                    $pool->as('AAAA')->withHeaders(['Accept' => 'application/dns-json'])
                         ->connectTimeout(2)->timeout(3)->get($resolver, ['name' => $hostname, 'type' => 'AAAA']),
                 ]);
             } catch (\Throwable) {
