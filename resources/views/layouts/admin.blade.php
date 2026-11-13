@@ -7,7 +7,9 @@
         <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
         <meta name="_token" content="{{ csrf_token() }}">
 
-        @php($pdLogo = app(\Pterodactyl\Services\Helpers\Appearance::class)->logoUrl())
+        @php
+            $pdLogo = app(\Pterodactyl\Services\Helpers\Appearance::class)->logoUrl();
+        @endphp
         @if ($pdLogo)
             <link rel="icon" href="{{ $pdLogo }}">
             <link rel="apple-touch-icon" href="{{ $pdLogo }}">
