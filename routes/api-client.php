@@ -198,6 +198,16 @@ Route::group([
         Route::post('/uninstall', [Client\Servers\WebHostingController::class, 'uninstall'])->middleware('throttle:subdomains');
     });
 
+    Route::group(['prefix' => '/mail'], function () {
+        Route::get('/', [Client\Servers\MailController::class, 'index']);
+        Route::post('/check', [Client\Servers\MailController::class, 'check'])->middleware('throttle:subdomains');
+        Route::post('/enable', [Client\Servers\MailController::class, 'enable'])->middleware('throttle:subdomains');
+        Route::post('/disable', [Client\Servers\MailController::class, 'disable']);
+        Route::post('/boxes', [Client\Servers\MailController::class, 'store'])->middleware('throttle:subdomains');
+        Route::post('/boxes/{box}/password', [Client\Servers\MailController::class, 'password'])->whereNumber('box')->middleware('throttle:subdomains');
+        Route::delete('/boxes/{box}', [Client\Servers\MailController::class, 'delete'])->whereNumber('box');
+    });
+
     Route::group(['prefix' => '/subdomains'], function () {
         Route::get('/', [Client\Servers\SubdomainController::class, 'index']);
         Route::post('/', [Client\Servers\SubdomainController::class, 'store'])->middleware('throttle:subdomains');

@@ -59,6 +59,13 @@ return [
         ],
     ],
     'server' => [
+        'mail' => [
+            'enable' => 'Turned on email for :domain',
+            'disable' => 'Turned off email for :domain',
+            'box-create' => 'Created the mailbox :address',
+            'box-password' => 'Changed the password of :address',
+            'box-delete' => 'Deleted the mailbox :address',
+        ],
         'reinstall' => 'Reinstalled server',
         'console' => [
             'command' => 'Executed ":command" on the server',

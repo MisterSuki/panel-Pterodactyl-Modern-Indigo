@@ -6,6 +6,7 @@ import {
     faCog,
     faCube,
     faDatabase,
+    faEnvelope,
     faFolder,
     faGlobe,
     faKey,
@@ -24,6 +25,7 @@ import {
 export const serverTabIcons: Record<string, IconDefinition> = {
     '/': faTerminal,
     '/web': faGlobe,
+    '/mail': faEnvelope,
     '/files': faFolder,
     '/minecraft': faCube,
     '/ets2': faTruck,
@@ -43,6 +45,7 @@ export const serverTabIcons: Record<string, IconDefinition> = {
 export const serverTabColors: Record<string, string> = {
     '/': '#48484a',
     '/web': '#40c8e0',
+    '/mail': '#1e88ff',
     '/files': '#0a84ff',
     '/minecraft': '#30d158',
     '/ets2': '#ff9f0a',

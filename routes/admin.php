@@ -27,6 +27,13 @@ Route::group(['prefix' => 'web-hosting', 'middleware' => 'admin.can:settings,man
     Route::post('/settings', [Admin\WebHostingController::class, 'settings'])->name('admin.web-hosting.settings');
 });
 
+// Email: the names of the mail server, the limits, and the key of its agent (settings rights needed).
+Route::group(['prefix' => 'mail', 'middleware' => 'admin.can:settings,manage'], function () {
+    Route::get('/', [Admin\MailController::class, 'index'])->name('admin.mail');
+    Route::post('/settings', [Admin\MailController::class, 'settings'])->name('admin.mail.settings');
+    Route::post('/token', [Admin\MailController::class, 'token'])->name('admin.mail.token');
+});
+
 // The Discord bot: the keys of its application and its commands (settings rights needed).
 Route::group(['prefix' => 'discord-bot', 'middleware' => 'admin.can:settings,manage'], function () {
     Route::get('/', [Admin\DiscordBotController::class, 'index'])->name('admin.discord-bot');

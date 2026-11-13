@@ -81,6 +81,12 @@ class RouteServiceProvider extends ServiceProvider
                 ->post('/api/discord/interactions', \Pterodactyl\Http\Controllers\Base\DiscordInteractionController::class)
                 ->name('discord.interactions');
 
+            // Called by the agent of the mail server: no session, no user, only the key made for it in the admin.
+            Route::middleware('throttle:120,1')->prefix('/api/mail-agent')->group(function () {
+                Route::get('/feed', [\Pterodactyl\Http\Controllers\Base\MailAgentController::class, 'feed'])->name('mail-agent.feed');
+                Route::post('/report', [\Pterodactyl\Http\Controllers\Base\MailAgentController::class, 'report'])->name('mail-agent.report');
+            });
+
             Route::middleware('daemon')
                 ->prefix('/api/remote')
                 ->scopeBindings()

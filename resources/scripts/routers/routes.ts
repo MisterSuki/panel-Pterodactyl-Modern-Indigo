@@ -24,6 +24,7 @@ const FileEditContainer = lazy(() => import('@/components/server/files/FileEditC
 const PlayerStatsContainer = lazy(() => import('@/components/server/stats/PlayerStatsContainer'));
 const SubdomainsContainer = lazy(() => import('@/components/server/subdomains/SubdomainsContainer'));
 const WebHostingContainer = lazy(() => import('@/components/server/web/WebHostingContainer'));
+const MailContainer = lazy(() => import('@/components/server/mail/MailContainer'));
 const SqliteViewerContainer = lazy(() => import('@/components/server/files/SqliteViewerContainer'));
 const ScheduleEditContainer = lazy(() => import('@/components/server/schedules/ScheduleEditContainer'));
 const MinecraftContainer = lazy(() => import('@/components/server/minecraft/MinecraftContainer'));
@@ -97,6 +98,13 @@ export default {
             permission: 'allocation.*',
             name: 'Website',
             component: WebHostingContainer,
+            web: true,
+        },
+        {
+            path: '/mail',
+            permission: 'allocation.*',
+            name: 'Email',
+            component: MailContainer,
             web: true,
         },
         {

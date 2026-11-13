@@ -232,6 +232,15 @@ app/Models/UserPasskey.php
 app/Services/Auth/Passkeys.php
 app/Http/Controllers/Auth/PasskeyController.php
 app/Http/Controllers/Api/Client/PasskeyController.php
+# Email: mailboxes on the domain of the websites (the agent is installed from install-assets/mail, with --mail).
+database/migrations/2026_11_13_000002_create_server_mail_tables.php
+app/Models/ServerMailDomain.php
+app/Models/ServerMailBox.php
+app/Services/Mail/MailHosting.php
+app/Http/Controllers/Api/Client/Servers/MailController.php
+app/Http/Controllers/Base/MailAgentController.php
+app/Http/Controllers/Admin/MailController.php
+resources/views/admin/mail.blade.php
 app/Models/PanelNotification.php
 app/Models/ServerAlert.php
 app/Services/Notifications/

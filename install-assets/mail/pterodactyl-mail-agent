@@ -1,0 +1,626 @@
+#!/usr/bin/env python3
+"""Runs the mail server of the panel on this machine. Written by install.sh (--mail).
+
+The panel keeps the mailboxes; this service asks it for them every few seconds (with the key made in the admin, page
+Email) and runs everything here:
+ - docker-mailserver (SMTP, IMAP, the Rspamd spam filter, DKIM signing) and Roundcube (the webmail), in Docker;
+ - an Nginx site for the webmail, and the Let's Encrypt certificates of the two names;
+ - the accounts and quotas files of docker-mailserver, which it reloads by itself when they change;
+ - a DKIM key for each new domain, whose record is sent back to the panel for the client to add;
+ - how full each mailbox is, whether outgoing port 25 is open, and what went wrong.
+
+It runs as root, so it stays careful:
+ - what comes from the panel is checked again here (names, addresses, password hashes), nothing else is written;
+ - only its own files are touched: /opt/pterodactyl-mail and the Nginx site ptero-mail.conf;
+ - Nginx is tested before every reload, and the previous file is put back if the test fails;
+ - the messages of a deleted mailbox are kept 7 days in data/deleted before being removed, and only for mailboxes the
+   panel says no longer exist (a suspended site keeps its messages);
+ - if the panel does not answer, nothing changes.
+"""
+import base64
+import glob
+import hashlib
+import json
+import os
+import re
+import secrets
+import shutil
+import socket
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.request
+
+VERSION = '1'
+CONFIG = os.environ.get('MAIL_AGENT_CONFIG', '/etc/pterodactyl-mail/agent.json')
+BASE = os.environ.get('MAIL_AGENT_BASE', '/opt/pterodactyl-mail')
+STATE_DIR = os.environ.get('MAIL_AGENT_STATE_DIR', '/var/lib/pterodactyl-mail')
+NGINX_DIR = os.environ.get('MAIL_AGENT_NGINX_DIR', '/etc/nginx')
+CERT_DIR = os.environ.get('MAIL_AGENT_CERT_DIR', '/etc/letsencrypt/live')
+CONTAINER = 'pterodactyl-mail'
+WEBMAIL_CONTAINER = 'pterodactyl-webmail'
+WEBMAIL_PORT = 8095
+POLL_SECONDS = 15
+REPORT_SECONDS = 60
+USAGE_SECONDS = 300
+PORT25_SECONDS = 3600
+KEEP_DELETED_SECONDS = 7 * 86400
+RETRY_SECONDS = [300, 900, 3600, 21600]
+
+HOSTNAME = re.compile(r'^(?=.{4,191}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$')
+LOCAL = re.compile(r'^[a-z0-9](?:[a-z0-9._-]{0,62}[a-z0-9])?$')
+HASH = re.compile(r'^\{SHA512-CRYPT\}\$6\$[A-Za-z0-9./]{1,16}\$[A-Za-z0-9./]{86}$')
+EMAIL = re.compile(r'^[^@\s"\';]+@[^@\s"\';]+\.[^@\s"\';]+$')
+
+COMPOSE = """# Written by pterodactyl-mail-agent: changes here are replaced.
+name: pterodactyl-mail
+services:
+  mailserver:
+    image: mailserver/docker-mailserver:16
+    container_name: {container}
+    hostname: {hostname}
+    ports:
+      - "25:25"
+      - "465:465"
+      - "587:587"
+      - "993:993"
+    volumes:
+      - ./data/mail-data/:/var/mail/
+      - ./data/mail-state/:/var/mail-state/
+      - ./data/mail-logs/:/var/log/mail/
+      - ./config/:/tmp/docker-mailserver/
+      - /etc/letsencrypt/:/etc/letsencrypt/:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - SSL_TYPE=letsencrypt
+      - ENABLE_RSPAMD=1
+      - ENABLE_OPENDKIM=0
+      - ENABLE_OPENDMARC=0
+      - ENABLE_POLICYD_SPF=0
+      - ENABLE_AMAVIS=0
+      - ENABLE_SPAMASSASSIN=0
+      - ENABLE_CLAMAV=0
+      - ENABLE_FAIL2BAN=1
+      - ENABLE_QUOTAS=1
+      - SPOOF_PROTECTION=1
+      - PERMIT_DOCKER=none
+      - POSTMASTER_ADDRESS=postmaster@{hostname}
+      - POSTFIX_MESSAGE_SIZE_LIMIT=52428800
+      - ENABLE_UPDATE_CHECK=0
+    cap_add:
+      - NET_ADMIN
+    restart: always
+    stop_grace_period: 1m
+
+  webmail:
+    image: roundcube/roundcubemail:1.6.x-apache
+    container_name: {webmail_container}
+    ports:
+      - "127.0.0.1:{webmail_port}:80"
+    volumes:
+      - ./data/webmail/:/var/roundcube/db/
+    environment:
+      - ROUNDCUBEMAIL_DEFAULT_HOST=ssl://{hostname}
+      - ROUNDCUBEMAIL_DEFAULT_PORT=993
+      - ROUNDCUBEMAIL_SMTP_SERVER=ssl://{hostname}
+      - ROUNDCUBEMAIL_SMTP_PORT=465
+      - ROUNDCUBEMAIL_DB_TYPE=sqlite
+      - ROUNDCUBEMAIL_SKIN=elastic
+      - ROUNDCUBEMAIL_UPLOAD_MAX_FILESIZE=25M
+      - ROUNDCUBEMAIL_PLUGINS=archive,zipdownload,markasjunk
+    depends_on:
+      - mailserver
+    restart: always
+"""
+
+ACME = """    location /.well-known/acme-challenge/ {{
+        root {state}/acme;
+    }}
+"""
+
+HTTP_ONLY = """    listen 80;
+    listen [::]:80;
+    server_name {names};
+
+{acme}
+    location / {{
+        return 404;
+    }}
+"""
+
+SITE = """# Written by pterodactyl-mail-agent: changes here are replaced.
+server {{
+{http}}}
+{https}"""
+
+HTTPS_WEBMAIL = """
+server {{
+    listen 80;
+    listen [::]:80;
+    server_name {webmail};
+
+{acme}
+    location / {{
+        return 301 https://$host$request_uri;
+    }}
+}}
+
+server {{
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name {webmail};
+
+    ssl_certificate {cert}/fullchain.pem;
+    ssl_certificate_key {cert}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    client_max_body_size 30m;
+
+    location / {{
+        proxy_pass http://127.0.0.1:{port};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_read_timeout 120s;
+    }}
+}}
+"""
+
+HTTPS_HOST = """
+server {{
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name {hostname};
+
+    ssl_certificate {cert}/fullchain.pem;
+    ssl_certificate_key {cert}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    location / {{
+        return 301 https://{webmail}/;
+    }}
+}}
+"""
+
+
+def log(message):
+    print(message, flush=True)
+
+
+def run(args, timeout=60):
+    """Runs a command. Returns (worked, what it printed)."""
+    try:
+        done = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout, text=True)
+        return done.returncode == 0, done.stdout or ''
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return False, str(error)
+
+
+def last_line(output):
+    lines = [line.strip() for line in (output or '').splitlines() if line.strip()]
+    return (lines[-1] if lines else 'no output')[:300]
+
+
+def write_if_changed(path, text, mode=0o644):
+    """Writes a file only when its content changes, through a temporary file (never half written)."""
+    try:
+        with open(path, encoding='utf8') as file:
+            if file.read() == text:
+                return False
+    except OSError:
+        pass
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    temporary = path + '.tmp'
+    with open(temporary, 'w', encoding='utf8') as file:
+        file.write(text)
+    os.chmod(temporary, mode)
+    os.replace(temporary, path)
+    return True
+
+
+def clean_feed(raw):
+    """What the panel sent, checked again: anything that does not look right is left out."""
+    hostname = str(raw.get('hostname') or '').lower()
+    webmail = str(raw.get('webmail') or '').lower()
+    email = str(raw.get('email') or '')
+    feed = {
+        'hostname': hostname if HOSTNAME.fullmatch(hostname) else '',
+        'webmail': webmail if HOSTNAME.fullmatch(webmail) and webmail != hostname else '',
+        'email': email if EMAIL.fullmatch(email) else '',
+        'domains': [],
+        'boxes': [],
+        'known': set(),
+    }
+    for domain in raw.get('domains') or []:
+        domain = str(domain).lower()
+        if HOSTNAME.fullmatch(domain) and domain != feed['hostname'] and domain not in feed['domains']:
+            feed['domains'].append(domain)
+    seen = set()
+    for box in raw.get('boxes') or []:
+        if not isinstance(box, dict):
+            continue
+        address = str(box.get('address') or '').lower()
+        local, _, domain = address.partition('@')
+        password = str(box.get('password') or '')
+        try:
+            quota = int(box.get('quota_mb') or 0)
+        except (TypeError, ValueError):
+            continue
+        if not LOCAL.fullmatch(local) or '..' in local or domain not in feed['domains'] or address in seen:
+            continue
+        if not HASH.fullmatch(password) or not 50 <= quota <= 102400:
+            continue
+        seen.add(address)
+        feed['boxes'].append({'address': address, 'password': password, 'quota_mb': quota})
+    for address in raw.get('known') or []:
+        feed['known'].add(str(address).lower())
+    return feed
+
+
+class Panel:
+    def __init__(self, url, token):
+        self.url = url.rstrip('/')
+        self.token = token
+
+    def call(self, method, path, body=None):
+        data = json.dumps(body).encode('utf8') if body is not None else None
+        request = urllib.request.Request(self.url + '/api/mail-agent' + path, data=data, method=method, headers={
+            'Authorization': 'Bearer ' + self.token,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'User-Agent': 'pterodactyl-mail-agent/' + VERSION,
+        })
+        with urllib.request.urlopen(request, timeout=20) as response:
+            return json.loads(response.read().decode('utf8') or '{}')
+
+
+class Agent:
+    def __init__(self, panel):
+        self.panel = panel
+        self.state_path = os.path.join(STATE_DIR, 'state.json')
+        self.state = self.load_state()
+        self.errors = {}
+        self.dkim = {}
+        self.usage = {}
+        self.last_report = 0
+        self.last_usage = 0
+        self.last_port25 = 0
+        self.outbound_25 = None
+        self.next_start = 0
+        self.ip = None
+
+    # --- State ----------------------------------------------------------------------------------------------------
+    def load_state(self):
+        try:
+            with open(self.state_path, encoding='utf8') as file:
+                state = json.load(file)
+                if isinstance(state, dict):
+                    return state
+        except (OSError, ValueError):
+            pass
+        return {}
+
+    def save_state(self):
+        write_if_changed(self.state_path, json.dumps(self.state, indent=1, sort_keys=True), 0o600)
+
+    def compose_command(self):
+        worked, _ = run(['docker', 'compose', 'version'], timeout=20)
+        return ['docker', 'compose'] if worked else ['docker-compose']
+
+    # --- Nginx and certificates -----------------------------------------------------------------------------------
+    def cert_path(self, name):
+        return os.path.join(CERT_DIR, name)
+
+    def has_cert(self, name):
+        return bool(name) and os.path.isfile(os.path.join(self.cert_path(name), 'fullchain.pem'))
+
+    def write_nginx(self, feed):
+        hostname, webmail = feed['hostname'], feed['webmail']
+        names = ' '.join(n for n in (hostname, webmail) if n)
+        acme = ACME.format(state=STATE_DIR)
+        https = ''
+        if webmail and self.has_cert(webmail):
+            https += HTTPS_WEBMAIL.format(webmail=webmail, acme=acme, cert=self.cert_path(webmail), port=WEBMAIL_PORT)
+            http_names = hostname
+        else:
+            http_names = names
+        if hostname and webmail and self.has_cert(hostname):
+            https += HTTPS_HOST.format(hostname=hostname, webmail=webmail, cert=self.cert_path(hostname))
+        text = SITE.format(http=HTTP_ONLY.format(names=http_names, acme=acme), https=https) if http_names else \
+            '# Written by pterodactyl-mail-agent: changes here are replaced.\n' + https
+
+        path = os.path.join(NGINX_DIR, 'sites-enabled', 'ptero-mail.conf')
+        try:
+            with open(path, encoding='utf8') as file:
+                old = file.read()
+        except OSError:
+            old = None
+        if old == text:
+            return True
+        write_if_changed(path, text)
+        worked, output = run(['nginx', '-t'])
+        if not worked:
+            if old is None:
+                os.remove(path)
+            else:
+                write_if_changed(path, old)
+            self.errors['nginx'] = 'Nginx refused the site of the webmail: ' + last_line(output)
+            return False
+        self.errors.pop('nginx', None)
+        worked, output = run(['nginx', '-s', 'reload'])
+        if not worked:
+            self.errors['nginx'] = 'Nginx could not reload: ' + last_line(output)
+        return worked
+
+    def get_cert(self, name, email):
+        if not name or self.has_cert(name):
+            self.errors.pop('cert:' + name, None)
+            return
+        tries = self.state.setdefault('certs', {}).setdefault(name, {'failures': 0, 'next_try': 0})
+        if time.time() < tries['next_try']:
+            return
+        command = ['certbot', 'certonly', '--non-interactive', '--agree-tos', '--webroot', '-w', os.path.join(STATE_DIR, 'acme'),
+                   '--cert-name', name, '-d', name, '--keep-until-expiring']
+        command += ['-m', email] if email else ['--register-unsafely-without-email']
+        log('Asking a certificate for ' + name)
+        worked, output = run(command, timeout=240)
+        if worked and self.has_cert(name):
+            tries.update({'failures': 0, 'next_try': 0})
+            self.errors.pop('cert:' + name, None)
+        else:
+            wait = RETRY_SECONDS[min(tries['failures'], len(RETRY_SECONDS) - 1)]
+            tries.update({'failures': tries['failures'] + 1, 'next_try': time.time() + wait})
+            self.errors['cert:' + name] = 'No certificate for %s (is its A record on this machine?): %s' % (name, last_line(output))
+        self.save_state()
+
+    # --- docker-mailserver ----------------------------------------------------------------------------------------
+    def running(self, container=CONTAINER):
+        worked, output = run(['docker', 'inspect', '-f', '{{.State.Running}}', container], timeout=20)
+        return worked and output.strip() == 'true'
+
+    def write_compose(self, feed):
+        text = COMPOSE.format(container=CONTAINER, webmail_container=WEBMAIL_CONTAINER, hostname=feed['hostname'],
+                              webmail_port=WEBMAIL_PORT)
+        return write_if_changed(os.path.join(BASE, 'compose.yaml'), text, 0o600)
+
+    def write_accounts(self, feed):
+        """The accounts and the quotas. docker-mailserver sees the change within seconds and applies it."""
+        postmaster = self.state.get('postmaster')
+        if not postmaster:
+            # The address the mail server writes from. Nobody signs in with it: its password is a random one.
+            worked, output = run(['openssl', 'passwd', '-6', secrets.token_urlsafe(32)], timeout=20)
+            if not worked:
+                self.errors['accounts'] = 'openssl could not make a password: ' + last_line(output)
+                return False
+            postmaster = '{SHA512-CRYPT}' + output.strip()
+            self.state['postmaster'] = postmaster
+            self.save_state()
+
+        accounts = ['postmaster@%s|%s' % (feed['hostname'], postmaster)]
+        quotas = []
+        for box in feed['boxes']:
+            accounts.append('%s|%s' % (box['address'], box['password']))
+            quotas.append('%s:%dM' % (box['address'], box['quota_mb']))
+        config = os.path.join(BASE, 'config')
+        changed = write_if_changed(os.path.join(config, 'postfix-accounts.cf'), '\n'.join(accounts) + '\n', 0o600)
+        changed = write_if_changed(os.path.join(config, 'dovecot-quotas.cf'), '\n'.join(quotas) + ('\n' if quotas else ''), 0o600) or changed
+        self.errors.pop('accounts', None)
+        return changed
+
+    def start(self, feed, compose_changed):
+        """Starts the mail server and the webmail, once the certificate of the mail server is there."""
+        if not self.has_cert(feed['hostname']):
+            return
+        if not compose_changed and self.running() and self.running(WEBMAIL_CONTAINER):
+            self.errors.pop('start', None)
+            return
+        if time.time() < self.next_start:
+            return
+        if not self.running() and port_in_use(25):
+            self.errors['start'] = 'Port 25 is used by another program on this machine (exim4 or postfix?). Stop it: systemctl disable --now exim4 postfix'
+            self.next_start = time.time() + 300
+            return
+        log('Starting the mail server')
+        worked, output = run(self.compose_command() + ['-f', os.path.join(BASE, 'compose.yaml'), 'up', '-d', '--remove-orphans'], timeout=900)
+        if worked:
+            self.errors.pop('start', None)
+            self.next_start = 0
+        else:
+            self.errors['start'] = 'The mail server did not start: ' + last_line(output)
+            self.next_start = time.time() + 300
+
+    # --- DKIM -----------------------------------------------------------------------------------------------------
+    def dkim_file(self, domain):
+        """The private key docker-mailserver made for a domain (the name of the file changes with its versions)."""
+        pattern = re.compile(r'(^|[-_])' + re.escape(domain) + r'([-_][^/]*)?\.private(\.txt)?$')
+        for path in sorted(glob.glob(os.path.join(BASE, 'config', 'rspamd', 'dkim', '*'))):
+            if pattern.search(os.path.basename(path)):
+                return path
+        return None
+
+    def ensure_dkim(self, feed):
+        if not self.running():
+            return
+        made = False
+        for domain in feed['domains']:
+            path = self.dkim_file(domain)
+            if path is None:
+                log('Making the DKIM key of ' + domain)
+                worked, output = run(['docker', 'exec', CONTAINER, 'setup', 'config', 'dkim', 'keytype', 'rsa', 'keysize', '2048',
+                                      'selector', 'mail', 'domain', domain], timeout=120)
+                path = self.dkim_file(domain)
+                if not worked or path is None:
+                    self.errors['dkim:' + domain] = 'No DKIM key for %s: %s' % (domain, last_line(output))
+                    continue
+                made = True
+            self.errors.pop('dkim:' + domain, None)
+            record = self.dkim.get(domain)
+            if record is None:
+                worked, output = run(['openssl', 'pkey', '-in', path, '-pubout', '-outform', 'PEM'], timeout=20)
+                key = ''.join(line for line in output.splitlines() if line and not line.startswith('-----')) if worked else ''
+                if key:
+                    self.dkim[domain] = 'v=DKIM1; k=rsa; p=' + key
+        if made:
+            # Rspamd reads its signing keys when it starts.
+            log('Restarting the mail server for the new DKIM keys')
+            run(['docker', 'restart', CONTAINER], timeout=180)
+            self.last_report = 0
+
+    # --- Deleted mailboxes ----------------------------------------------------------------------------------------
+    def clean_deleted(self, feed):
+        """Moves the messages of the mailboxes the panel deleted out of the way, and removes them a week later."""
+        if not feed['known'] and not feed['boxes']:
+            return
+        data = os.path.join(BASE, 'data', 'mail-data')
+        trash = os.path.join(BASE, 'data', 'deleted')
+        active = {box['address'] for box in feed['boxes']} | feed['known'] | {'postmaster@' + feed['hostname']}
+        for folder in glob.glob(os.path.join(data, '*', '*')):
+            if not os.path.isdir(folder) or os.path.islink(folder):
+                continue
+            local = os.path.basename(folder).lower()
+            domain = os.path.basename(os.path.dirname(folder)).lower()
+            if not LOCAL.fullmatch(local) or not HOSTNAME.fullmatch(domain):
+                continue
+            address = local + '@' + domain
+            if address in active:
+                continue
+            os.makedirs(trash, mode=0o700, exist_ok=True)
+            target = os.path.join(trash, '%s-%d' % (address, int(time.time())))
+            log('Mailbox %s was deleted: its messages are kept 7 days in %s' % (address, target))
+            shutil.move(folder, target)
+        for folder in glob.glob(os.path.join(trash, '*')):
+            try:
+                if time.time() - os.path.getmtime(folder) > KEEP_DELETED_SECONDS:
+                    shutil.rmtree(folder)
+            except OSError:
+                pass
+
+    # --- Usage and checks -----------------------------------------------------------------------------------------
+    def read_usage(self):
+        worked, output = run(['docker', 'exec', CONTAINER, 'doveadm', '-f', 'tab', 'quota', 'get', '-A'], timeout=120)
+        if not worked:
+            return
+        usage = {}
+        lines = output.splitlines()
+        header = lines[0].split('\t') if lines else []
+        try:
+            user_col, type_col, value_col = header.index('Username'), header.index('Type'), header.index('Value')
+        except ValueError:
+            return
+        for line in lines[1:]:
+            fields = line.split('\t')
+            if len(fields) <= max(user_col, type_col, value_col) or fields[type_col] != 'STORAGE':
+                continue
+            try:
+                usage[fields[user_col].lower()] = int(fields[value_col]) * 1024
+            except ValueError:
+                continue
+        self.usage = usage
+
+    def check_port25(self):
+        """Many hosts block outgoing port 25: mail then comes in but cannot go out."""
+        try:
+            with socket.create_connection(('gmail-smtp-in.l.google.com', 25), timeout=10) as connection:
+                connection.settimeout(10)
+                self.outbound_25 = connection.recv(64).startswith(b'220')
+        except OSError:
+            self.outbound_25 = False
+
+    def report(self, feed, force=False):
+        if not force and time.time() - self.last_report < REPORT_SECONDS:
+            return
+        if feed['hostname']:
+            try:
+                self.ip = socket.gethostbyname(feed['hostname'])
+            except OSError:
+                self.ip = None
+        body = {
+            'version': VERSION,
+            'running': self.running(),
+            'certificate': self.has_cert(feed['hostname']),
+            'webmail_certificate': self.has_cert(feed['webmail']),
+            'outbound_25': self.outbound_25,
+            'errors': list(self.errors.values())[:20],
+            'dkim': {d: r for d, r in self.dkim.items() if d in feed['domains']},
+            'usage': self.usage,
+        }
+        if self.ip:
+            body['ip'] = self.ip
+        try:
+            self.panel.call('POST', '/report', body)
+            self.last_report = time.time()
+        except (urllib.error.URLError, OSError, ValueError) as error:
+            log('The panel did not take the report: %s' % error)
+
+    # --- The loop -------------------------------------------------------------------------------------------------
+    def tick(self):
+        try:
+            feed = clean_feed(self.panel.call('GET', '/feed'))
+        except urllib.error.HTTPError as error:
+            log('The panel refused the agent (%s): is the key in %s the last one made in the admin?' % (error.code, CONFIG))
+            return
+        except (urllib.error.URLError, OSError, ValueError) as error:
+            log('The panel did not answer: %s' % error)
+            return
+
+        if not feed['hostname'] or not feed['webmail']:
+            self.errors = {'settings': 'Save the names of the mail server and of the webmail in the admin, page Email.'}
+            self.report(feed)
+            return
+        self.errors.pop('settings', None)
+
+        for folder in ('config', 'data/mail-data', 'data/mail-state', 'data/mail-logs', 'data/webmail'):
+            os.makedirs(os.path.join(BASE, folder), exist_ok=True)
+        os.makedirs(os.path.join(STATE_DIR, 'acme'), exist_ok=True)
+
+        self.write_nginx(feed)
+        self.get_cert(feed['hostname'], feed['email'])
+        self.get_cert(feed['webmail'], feed['email'])
+        self.write_nginx(feed)
+
+        compose_changed = self.write_compose(feed)
+        self.write_accounts(feed)
+        self.start(feed, compose_changed)
+        self.ensure_dkim(feed)
+        self.clean_deleted(feed)
+
+        if self.running() and time.time() - self.last_usage > USAGE_SECONDS:
+            self.read_usage()
+            self.last_usage = time.time()
+            self.last_report = 0
+        if time.time() - self.last_port25 > PORT25_SECONDS:
+            self.check_port25()
+            self.last_port25 = time.time()
+        self.report(feed)
+
+
+def port_in_use(port):
+    worked, output = run(['ss', '-ltnH', 'sport = :%d' % port], timeout=10)
+    return worked and output.strip() != ''
+
+
+def main():
+    try:
+        with open(CONFIG, encoding='utf8') as file:
+            config = json.load(file)
+        panel = Panel(str(config['panel']), str(config['token']))
+    except (OSError, ValueError, KeyError) as error:
+        log('The configuration %s could not be read: %s' % (CONFIG, error))
+        sys.exit(1)
+
+    os.makedirs(STATE_DIR, mode=0o755, exist_ok=True)
+    agent = Agent(panel)
+    log('Mail agent %s started' % VERSION)
+    while True:
+        try:
+            agent.tick()
+        except Exception as error:  # noqa: BLE001 — the agent must keep running whatever happens in one round.
+            log('Error: %s' % error)
+        time.sleep(POLL_SECONDS)
+
+
+if __name__ == '__main__':
+    main()

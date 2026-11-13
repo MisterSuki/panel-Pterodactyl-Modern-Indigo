@@ -59,6 +59,13 @@ return [
         ],
     ],
     'server' => [
+        'mail' => [
+            'enable' => 'E-mails activés pour :domain',
+            'disable' => 'E-mails désactivés pour :domain',
+            'box-create' => 'Boîte mail :address créée',
+            'box-password' => 'Mot de passe de :address changé',
+            'box-delete' => 'Boîte mail :address supprimée',
+        ],
         'reinstall' => 'Serveur réinstallé',
         'console' => [
             'command' => 'A exécuté « :command » sur le serveur',

@@ -54,6 +54,8 @@ UNINSTALL=false
 DO_PMA=false
 NO_PMA=false
 DO_WEB=false
+DO_MAIL=false
+MAIL_TOKEN=""
 
 # answers, asked when missing
 FQDN=""
@@ -112,6 +114,7 @@ What to do (asked in a menu when you give nothing, and no panel is found):
   --restore             Put back the files saved by the last update
   --phpmyadmin          Install phpMyAdmin next to the panel: databases open from the panel, already signed in
   --web                 Install web hosting on this machine of Wings: domains, HTTPS and the images of the websites
+  --mail                With --panel-url and --mail-token (admin, page Email): install the mail server on this machine
   --uninstall           Go back to the official panel. Your servers, users and settings are kept
 
 New panel install:
@@ -174,6 +177,8 @@ for arg in "$@"; do
         --uninstall) UNINSTALL=true ;;
         --phpmyadmin) DO_PMA=true ;;
         --web) DO_WEB=true ;;
+        --mail) DO_MAIL=true ;;
+        --mail-token=*) MAIL_TOKEN="${arg#*=}" ;;
         --no-phpmyadmin) NO_PMA=true ;;
         --pma-source=*) PMA_SOURCE="${arg#*=}" ;;
         --stock-version=*) STOCK_VERSION="${arg#*=}" ;;
@@ -866,6 +871,8 @@ run_update() {
         if ! install_web_hosting; then
             warn "Web hosting could not be installed. The panel is updated: run this again with --web."
         fi
+        # The mail agent of this machine, when it has one.
+        install_mail_agent || warn "The mail agent could not be updated."
     fi
 
     echo ""
@@ -1389,6 +1396,137 @@ EOF
     else
         ok "Images of the sites up to date"
     fi
+}
+
+# ---------------------------------------------------------------------------------------------
+# Email: the mail server of the panel (docker-mailserver and Roundcube), driven by its agent
+# ---------------------------------------------------------------------------------------------
+# Installs or updates the agent. With no key given, only refreshes an agent that is already installed.
+install_mail_agent() {
+    local assets="${SRC:-}/install-assets/mail" config=/etc/pterodactyl-mail/agent.json
+    if [[ ! -f "$assets/pterodactyl-mail-agent" ]]; then
+        warn "install-assets/mail is missing from the downloaded files: the mail server was not installed."
+        return 0
+    fi
+    if [[ -z "$MAIL_TOKEN" && ! -f "$config" ]]; then
+        return 0
+    fi
+
+    step "Mail server"
+    if [[ -n "$MAIL_TOKEN" ]]; then
+        [[ "$MAIL_TOKEN" =~ ^pml_[a-f0-9]{48}$ ]] || die "The key does not look right: copy the whole command from the admin, page Email."
+        [[ "$WINGS_PANEL_URL" =~ ^https?://[^[:space:]\"\'\\]+$ ]] || die "Give the address of the panel: --panel-url=https://panel.example.com"
+        mkdir -p /etc/pterodactyl-mail
+        chmod 700 /etc/pterodactyl-mail
+        printf '{"panel": "%s", "token": "%s"}\n' "${WINGS_PANEL_URL%/}" "$MAIL_TOKEN" >"$config"
+        chmod 600 "$config"
+    fi
+
+    mkdir -p /opt/pterodactyl-mail /var/lib/pterodactyl-mail/acme /etc/letsencrypt/renewal-hooks/deploy
+    chmod 700 /opt/pterodactyl-mail
+    chmod 755 /var/lib/pterodactyl-mail /var/lib/pterodactyl-mail/acme
+    install -m 755 "$assets/pterodactyl-mail-agent" /usr/local/sbin/pterodactyl-mail-agent
+
+    # A renewed certificate is used by Nginx after a reload; docker-mailserver sees it by itself.
+    cat >/etc/letsencrypt/renewal-hooks/deploy/ptero-mail-reload.sh <<'EOF'
+#!/bin/sh
+nginx -s reload
+EOF
+    chmod 755 /etc/letsencrypt/renewal-hooks/deploy/ptero-mail-reload.sh
+
+    cat >/etc/systemd/system/pterodactyl-mail-agent.service <<'EOF'
+[Unit]
+Description=Pterodactyl mail server: mailboxes, DKIM, certificates and webmail
+After=network-online.target nginx.service docker.service
+Wants=network-online.target
+ConditionPathExists=/etc/pterodactyl-mail/agent.json
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/sbin/pterodactyl-mail-agent
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    # The ports of the mail server, when a firewall is on.
+    if command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -q "Status: active"; then
+        local port
+        for port in 25 465 587 993; do
+            ufw allow "$port/tcp" >/dev/null 2>&1 || true
+        done
+        ok "Ports 25, 465, 587 and 993 opened in ufw"
+    fi
+
+    systemctl daemon-reload
+    systemctl enable pterodactyl-mail-agent.service >/dev/null 2>&1 || true
+    if systemctl restart pterodactyl-mail-agent.service; then
+        ok "Mail agent running. Follow it with: journalctl -fu pterodactyl-mail-agent"
+    else
+        warn "The mail agent did not start. See: journalctl -u pterodactyl-mail-agent"
+    fi
+}
+
+run_mail_install() {
+    [[ -n "$MAIL_TOKEN" ]] || die "Give the key made in the admin, page Email: --mail-token=pml_..."
+    [[ -n "$WINGS_PANEL_URL" ]] || die "Give the address of the panel: --panel-url=https://panel.example.com"
+
+    step "Getting the files"
+    fetch_source
+
+    step "Checking this machine"
+    local tool missing=false
+    for tool in docker nginx systemctl python3 openssl; do
+        if command -v "$tool" >/dev/null 2>&1; then
+            ok "$tool"
+        else
+            err "$tool was not found"
+            missing=true
+        fi
+    done
+    if ! docker compose version >/dev/null 2>&1 && ! command -v docker-compose >/dev/null 2>&1; then
+        err "Docker Compose was not found (docker compose)"
+        missing=true
+    fi
+    [[ -d /etc/nginx/sites-enabled ]] || { err "/etc/nginx/sites-enabled was not found: the mail server needs the Nginx of Debian or Ubuntu"; missing=true; }
+    [[ "$missing" == true ]] && die "Install what is missing, then run this again."
+
+    local busy=""
+    for port in 25 465 587 993; do
+        if ss -ltnH "sport = :$port" 2>/dev/null | grep -q .; then
+            busy="$busy $port"
+        fi
+    done
+    if [[ -n "$busy" ]]; then
+        warn "These ports are already used on this machine:$busy. Stop what uses them (often exim4 or postfix: systemctl disable --now exim4 postfix), or the mail server cannot start."
+    fi
+
+    step "What will happen"
+    info "Install the mail agent: it runs docker-mailserver (SMTP, IMAP, spam filter, DKIM) and Roundcube (webmail) in Docker"
+    info "It writes its own Nginx site (ptero-mail.conf) for the webmail, and asks Let's Encrypt for the certificates"
+    info "The mailboxes come from the panel: nothing to set here"
+    ok "The panel, Wings and the websites are not touched"
+
+    if [[ "$DRY_RUN" == true ]]; then
+        ok "Dry run finished, nothing was changed."
+        return 0
+    fi
+
+    ask "Continue?" || {
+        info "Nothing was changed."
+        exit 0
+    }
+
+    if ! command -v certbot >/dev/null 2>&1; then
+        info "Installing certbot"
+        apt-get update -qq >/dev/null 2>&1 || true
+        apt_install certbot || die "certbot could not be installed."
+    fi
+    install_mail_agent
+    echo ""
+    info "The first start downloads the images of the mail server and of the webmail: allow a few minutes."
+    info "Its state shows in the admin, page Email."
 }
 
 run_web_install() {
@@ -1961,7 +2099,7 @@ main() {
         exit 0
     fi
 
-    if [[ "$DO_PANEL" != true && "$DO_WINGS" != true && "$DO_UPDATE" != true && "$UNINSTALL" != true && "$DO_PMA" != true && "$DO_WEB" != true ]]; then
+    if [[ "$DO_PANEL" != true && "$DO_WINGS" != true && "$DO_UPDATE" != true && "$UNINSTALL" != true && "$DO_PMA" != true && "$DO_WEB" != true && "$DO_MAIL" != true ]]; then
         if panel_exists; then
             info "A panel is installed in $PANEL_PATH: updating it."
             DO_UPDATE=true
@@ -1994,6 +2132,11 @@ main() {
 
     if [[ "$DO_WEB" == true && "$DO_PANEL" != true && "$DO_UPDATE" != true ]]; then
         run_web_install
+        return 0
+    fi
+
+    if [[ "$DO_MAIL" == true && "$DO_PANEL" != true && "$DO_UPDATE" != true ]]; then
+        run_mail_install
         return 0
     fi
 
