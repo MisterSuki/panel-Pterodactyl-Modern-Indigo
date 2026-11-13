@@ -2312,5 +2312,6 @@
  "Install the mail server": "Installer le serveur mail",
  "Make a key": "Créer une clé",
  "Make a new key (the old one stops working)": "Créer une nouvelle clé (l'ancienne ne marchera plus)",
- "The key is shown only now. Run:": "La clé ne sera affichée que maintenant. Lancez :"
+ "The key is shown only now. Run:": "La clé ne sera affichée que maintenant. Lancez :",
+ "New server": "Nouveau serveur"
 }

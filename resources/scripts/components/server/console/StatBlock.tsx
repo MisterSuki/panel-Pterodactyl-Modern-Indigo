@@ -19,24 +19,20 @@ interface StatBlockProps {
 export default ({ title, copyOnClick, icon, color, className, children, sparkline }: StatBlockProps) => {
     return (
         <CopyOnClick text={copyOnClick}>
-            <div className={classNames(styles.stat_block, 'bg-gray-600 overflow-hidden', className)}>
+            <div className={classNames(styles.stat_block, 'overflow-hidden', className)}>
                 {sparkline}
-                <div className={classNames(styles.status_bar, color || 'bg-gray-700')} />
-                <div className={classNames(styles.icon, color || 'bg-gray-700')}>
-                    <Icon
-                        icon={icon}
-                        className={classNames({
-                            'text-gray-100': !color || color === 'bg-gray-700',
-                            'text-gray-50': color && color !== 'bg-gray-700',
-                        })}
-                    />
-                </div>
-                <div className={'flex flex-col justify-center overflow-hidden w-full'}>
-                    <p className={'font-header font-medium leading-tight text-xs md:text-sm text-gray-200'}>{title}</p>
+                <div className={'relative flex flex-col justify-center overflow-hidden w-full'}>
+                    <p className={'flex items-center gap-2 leading-tight text-xs text-gray-400'}>
+                        <Icon icon={icon} className={'w-3 h-3 text-gray-500'} />
+                        <span className={'truncate'}>{title}</span>
+                        {color && color !== 'bg-gray-700' && (
+                            <span className={classNames('ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0', color)} />
+                        )}
+                    </p>
                     {/* Plain CSS sizing: the old fit-to-width script measured the page again on every stats update. */}
                     <div
                         className={
-                            'w-full text-base sm:text-lg leading-7 font-semibold text-gray-50 truncate tabular-nums'
+                            'w-full mt-1.5 text-lg sm:text-xl leading-7 font-semibold text-gray-50 truncate tabular-nums tracking-tight'
                         }
                     >
                         {children}

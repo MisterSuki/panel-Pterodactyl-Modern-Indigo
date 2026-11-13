@@ -19,9 +19,9 @@ const light = css<Props>`
 
 const checkboxStyle = css<Props>`
     ${tw`cursor-pointer appearance-none inline-block align-middle select-none flex-shrink-0 w-[18px] h-[18px] text-primary-500 border`};
-    border-radius: 5px;
-    border-color: rgba(255, 255, 255, 0.28);
-    background-color: rgba(118, 118, 128, 0.24);
+    border-radius: 4px;
+    border-color: #3a3a3a;
+    background-color: #0a0a0a;
     color-adjust: exact;
     background-origin: border-box;
     transition: all 75ms linear, box-shadow 25ms linear;
@@ -43,13 +43,13 @@ const inputStyle = css<Props>`
     // Reset to normal styling.
     resize: none;
     ${tw`appearance-none outline-none w-full min-w-0`};
-    ${tw`px-3.5 py-3 border text-sm text-neutral-50 shadow-none focus:ring-0 transition-all duration-150`};
-    border-radius: 0.75rem;
-    background-color: rgba(118, 118, 128, 0.18);
-    border-color: rgba(255, 255, 255, 0.07);
+    ${tw`px-3 py-2.5 border text-sm text-neutral-50 shadow-none focus:ring-0 transition-all duration-150`};
+    border-radius: 0.375rem;
+    background-color: #0a0a0a;
+    border-color: #262626;
 
     &:hover:not(:disabled) {
-        background-color: rgba(118, 118, 128, 0.24);
+        border-color: #3a3a3a;
     }
 
     &::placeholder {
@@ -67,9 +67,9 @@ const inputStyle = css<Props>`
     }
 
     &:not(:disabled):not(:read-only):focus {
-        border-color: rgb(var(--pd-accent-400));
-        background-color: rgba(118, 118, 128, 0.14);
-        box-shadow: 0 0 0 4px rgb(var(--pd-accent-500) / 0.28);
+        border-color: #707070;
+        background-color: #0a0a0a;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
         ${(props) => props.hasError && 'border-color: #ff6961; box-shadow: 0 0 0 4px rgba(255, 69, 58, 0.25);'};
     }
 

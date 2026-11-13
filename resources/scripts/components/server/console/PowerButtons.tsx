@@ -16,18 +16,19 @@ type Tone = 'green' | 'primary' | 'red';
 // How long a button keeps showing that it is waiting, if the server never answers.
 const PENDING_TIMEOUT = 10000;
 
+// The main action of the moment is the light button; the others are outlined, Stop in red.
 const tones: Record<Tone, { solid: string; soft: string }> = {
     green: {
-        solid: 'bg-gradient-to-b from-green-500 to-green-600 border-green-400/40 text-white shadow-[0_8px_24px_-8px_rgba(34,197,94,0.7)] hover:brightness-110',
-        soft: 'bg-green-500/10 border-green-500/30 text-green-200 hover:bg-green-500/20 hover:border-green-400/50',
+        solid: 'bg-gray-50 border-gray-50 text-gray-900 hover:bg-white hover:border-white',
+        soft: 'bg-transparent border-gray-600 text-gray-50 hover:bg-gray-700',
     },
     primary: {
-        solid: 'bg-gradient-to-b from-primary-500 to-primary-600 border-primary-400 border-opacity-40 text-white shadow-[0_8px_24px_-8px_rgb(var(--pd-accent-500)/0.7)] hover:brightness-110',
-        soft: 'bg-primary-500 bg-opacity-10 border-primary-500 border-opacity-30 text-primary-200 hover:bg-primary-500 hover:bg-opacity-20 hover:border-primary-400 hover:border-opacity-50',
+        solid: 'bg-gray-50 border-gray-50 text-gray-900 hover:bg-white hover:border-white',
+        soft: 'bg-transparent border-gray-600 text-gray-50 hover:bg-gray-700',
     },
     red: {
-        solid: 'bg-gradient-to-b from-red-500 to-red-600 border-red-400/40 text-white shadow-[0_8px_24px_-8px_rgba(239,68,68,0.7)] hover:brightness-110',
-        soft: 'bg-red-500/10 border-red-500/30 text-red-200 hover:bg-red-500/20 hover:border-red-400/50',
+        solid: 'bg-[#e5484d] border-[#e5484d] text-white hover:bg-[#ec5d5e] hover:border-[#ec5d5e]',
+        soft: 'bg-transparent border-gray-600 text-[#ff6166] hover:bg-[#1f0f10] hover:border-[#5c1f22]',
     },
 };
 
@@ -48,11 +49,10 @@ const PowerButton = ({ label, icon, tone, emphasis, disabled, pending, onClick }
         disabled={disabled || pending}
         onClick={onClick}
         className={classNames(
-            'min-w-0 sm:flex-none inline-flex items-center justify-center gap-1.5 sm:gap-2 h-10 px-2 sm:px-4 rounded-lg border text-xs sm:text-sm font-semibold tracking-wide select-none',
-            'transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900',
-            'active:scale-95 disabled:active:scale-100',
+            'min-w-0 sm:flex-none inline-flex items-center justify-center gap-1.5 sm:gap-2 h-9 px-2 sm:px-3.5 rounded-md border text-xs sm:text-sm font-medium select-none',
+            'transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900',
             disabled && !pending
-                ? 'bg-white/5 border-white/5 text-gray-500 cursor-not-allowed'
+                ? 'bg-transparent border-gray-700 text-gray-500 cursor-not-allowed'
                 : emphasis
                 ? tones[tone].solid
                 : tones[tone].soft,

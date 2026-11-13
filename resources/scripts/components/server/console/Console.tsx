@@ -454,12 +454,7 @@ export default () => {
             <SpinnerOverlay visible={!connected} size={'large'} />
             <div className={styles.header}>
                 <span className={'flex items-center gap-3'}>
-                    <span className={'flex items-center gap-1.5'} aria-hidden>
-                        <span className={styles.light} style={{ background: '#ff5f57' }} />
-                        <span className={styles.light} style={{ background: '#febc2e' }} />
-                        <span className={styles.light} style={{ background: '#28c840' }} />
-                    </span>
-                    <span className={'text-sm font-semibold text-gray-100 select-none'}>Console</span>
+                    <span className={'text-sm font-medium text-gray-100 select-none'}>Console</span>
                 </span>
                 <span className={'flex items-center gap-2'}>
                     <span className={styles.tools}>

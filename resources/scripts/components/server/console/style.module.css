@@ -1,36 +1,19 @@
 .stat_block {
-    @apply flex items-center rounded-xl shadow-card border border-white/5 bg-gray-800 relative;
-    @apply col-span-3 md:col-span-2 lg:col-span-6;
-    @apply px-3 py-2 md:p-3 lg:p-4;
-    @apply transition-all duration-200 hover:border-primary-500/30;
-
-    & > .status_bar {
-        @apply w-1 h-full absolute left-0 top-0 rounded-l sm:hidden;
-    }
-
-    & > .icon {
-        @apply hidden flex-shrink-0 items-center justify-center rounded-lg shadow-glow w-11 h-11;
-        @apply transition-colors duration-500;
-        @apply sm:flex sm:mr-4;
-        background-image: linear-gradient(135deg, rgb(var(--pd-accent-500)) 0%, rgb(var(--pd-accent-600)) 100%);
-
-        & > svg {
-            @apply w-5 h-5 m-auto text-white;
-        }
-    }
+    @apply flex items-center rounded-xl border border-gray-700 bg-gray-800 relative;
+    @apply px-4 py-3;
+    @apply transition-colors duration-150 hover:border-gray-600;
 }
 
 .terminal {
-    @apply relative flex flex-col w-full overflow-hidden rounded-2xl;
-    /* Dark Liquid Glass: deep enough for the log to stay readable, with the bright rim of the other glass cards. */
-    background: linear-gradient(180deg, rgba(24, 24, 32, 0.82) 0%, rgba(10, 10, 16, 0.9) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 22px 54px -22px rgba(0, 0, 0, 0.75);
+    @apply relative flex flex-col w-full overflow-hidden rounded-xl;
+    /* A black terminal in a thin frame. */
+    background: #000000;
+    border: 1px solid #1f1f1f;
 
     & .header {
-        @apply flex items-center justify-between gap-3 px-4 py-2.5;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 100%);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        @apply flex items-center justify-between gap-3 px-4 py-2;
+        background: #0a0a0a;
+        border-bottom: 1px solid #1f1f1f;
     }
 
     /* The macOS window lights. */
@@ -39,12 +22,10 @@
         box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.35);
     }
 
-    /* Search / copy / pause / clear, grouped in a small glass capsule. */
+    /* Search / copy / pause / clear. */
     & .tools {
-        @apply flex items-center gap-0.5 rounded-full p-0.5;
-        background: rgba(255, 255, 255, 0.07);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        @apply flex items-center gap-0.5 rounded-md p-0.5;
+        border: 1px solid #262626;
     }
 
     & > .container {
@@ -73,47 +54,44 @@
 
         & :global(.xterm-viewport)::-webkit-scrollbar-thumb {
             border-radius: 9999px;
-            background: rgba(255, 255, 255, 0.18);
+            background: #2e2e2e;
         }
 
         & :global(.xterm-viewport)::-webkit-scrollbar-thumb:hover {
-            background: rgb(var(--pd-accent-500) / 0.7);
+            background: #454545;
         }
     }
 
-    /* The command line: a glass pill, with a round blue send button like iMessage. */
+    /* The command line. */
     & .prompt {
         @apply relative px-3 py-3;
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        border-top: 1px solid #1f1f1f;
     }
 
     & .command_icon {
-        @apply flex items-center absolute z-10 select-none top-3 bottom-3 left-3 px-4 text-primary-400 transition-colors duration-100;
+        @apply flex items-center absolute z-10 select-none top-3 bottom-3 left-3 px-4 text-gray-500 transition-colors duration-100;
     }
 
     & .command_send {
-        @apply absolute right-5 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-8 h-8 rounded-full text-white;
-        @apply bg-primary-500 transition-all duration-150 hover:bg-primary-400 active:scale-90;
-        @apply disabled:opacity-40 disabled:cursor-not-allowed;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 16px -6px rgb(var(--pd-accent-500) / 0.8);
+        @apply absolute right-5 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-7 h-7 rounded-md text-gray-900;
+        @apply bg-gray-50 transition-colors duration-150 hover:bg-white;
+        @apply disabled:opacity-30 disabled:cursor-not-allowed;
     }
 
     & .command_input {
-        @apply relative w-full rounded-full pl-11 pr-14 py-2.5 font-mono text-sm text-gray-100 placeholder-gray-500;
+        @apply relative w-full rounded-md pl-11 pr-14 py-2.5 font-mono text-sm text-gray-100 placeholder-gray-500;
         @apply outline-none focus:outline-none focus-visible:outline-none transition-all duration-150;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        background: #0a0a0a;
+        border: 1px solid #262626;
 
         &:focus {
-            background: rgba(255, 255, 255, 0.09);
-            border-color: rgb(var(--pd-accent-500) / 0.6);
-            box-shadow: 0 0 0 3px rgb(var(--pd-accent-500) / 0.25);
+            border-color: #707070;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
         }
     }
 }
 
 .chart_container {
-    @apply bg-gradient-surface rounded-xl shadow-card border border-white/5 relative overflow-hidden;
-    @apply transition-colors duration-200 hover:border-primary-500/30;
+    @apply bg-gray-800 rounded-xl border border-gray-700 relative overflow-hidden;
+    @apply transition-colors duration-150 hover:border-gray-600;
 }

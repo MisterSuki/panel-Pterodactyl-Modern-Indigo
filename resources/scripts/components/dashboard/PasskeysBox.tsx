@@ -80,11 +80,7 @@ export default ({ className }: { className?: string }) => {
         <ContentBox title={'Passkeys'} showFlashes={FLASH_KEY} className={className}>
             <div css={tw`flex flex-wrap items-center gap-4`}>
                 <span
-                    css={tw`flex items-center justify-center w-12 h-12 rounded-2xl text-white text-xl flex-shrink-0`}
-                    style={{
-                        background: 'linear-gradient(180deg, #34c759 0%, #248a3d 100%)',
-                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
-                    }}
+                    css={tw`flex items-center justify-center w-10 h-10 rounded-lg border border-neutral-600 bg-neutral-900 text-neutral-300 flex-shrink-0`}
                 >
                     <FontAwesomeIcon icon={faFingerprint} />
                 </span>
@@ -118,7 +114,7 @@ export default ({ className }: { className?: string }) => {
                                     i > 0 && tw`border-t border-white/[0.06]`,
                                 ]}
                             >
-                                <FontAwesomeIcon icon={faFingerprint} css={tw`text-green-400`} />
+                                <FontAwesomeIcon icon={faFingerprint} css={tw`text-neutral-400`} />
                                 <div css={tw`flex-1 min-w-0`}>
                                     <p css={tw`text-sm font-medium text-neutral-50 truncate`}>{p.name}</p>
                                     <p css={tw`text-xs text-neutral-400 truncate`}>

@@ -1,4 +1,5 @@
 import http from '@/api/http';
+import { avatarFor } from '@/lib/avatar';
 
 export type TicketStatus = 'open' | 'answered' | 'closed';
 export type TicketPriority = 'low' | 'normal' | 'high' | 'urgent';
@@ -48,7 +49,7 @@ const toMessage = (m: any): TicketMessage => ({
     body: m.body,
     staff: !!m.staff,
     author: m.author,
-    avatar: m.avatar || '/assets/svgs/pterodactyl.svg',
+    avatar: avatarFor(m.avatar, String(m.author || '')),
     mine: !!m.mine,
     at: new Date(m.at),
 });

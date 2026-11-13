@@ -11,7 +11,7 @@ interface Props {
 }
 
 const ButtonStyle = styled.button<Omit<Props, 'isLoading'>>`
-    ${tw`relative inline-block rounded-lg p-2 font-medium tracking-wide text-sm transition-all duration-150 border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900`};
+    ${tw`relative inline-block rounded-md p-2 font-medium text-sm transition-colors duration-150 border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900`};
 
     ${(props) =>
         ((!props.isSecondary && !props.color) || props.color === 'primary') &&
@@ -19,25 +19,21 @@ const ButtonStyle = styled.button<Omit<Props, 'isLoading'>>`
             ${(props) =>
                 !props.isSecondary &&
                 css`
-                    ${tw`bg-gradient-brand-flat border-primary-500 border-opacity-50 border text-white shadow-glow`};
+                    ${tw`bg-neutral-50 border-neutral-50 border text-neutral-900`};
                 `};
 
             &:hover:not(:disabled) {
-                ${tw`brightness-110 border-primary-400`};
-            }
-
-            &:active:not(:disabled) {
-                ${tw`brightness-95`};
+                ${tw`bg-white border-white`};
             }
         `};
 
     ${(props) =>
         props.color === 'grey' &&
         css`
-            ${tw`border-neutral-600 bg-neutral-600 text-neutral-50`};
+            ${tw`border-neutral-600 bg-neutral-700 text-neutral-50`};
 
             &:hover:not(:disabled) {
-                ${tw`bg-neutral-500 border-neutral-500`};
+                ${tw`bg-neutral-600 border-neutral-500`};
             }
         `};
 
@@ -79,16 +75,16 @@ const ButtonStyle = styled.button<Omit<Props, 'isLoading'>>`
 
     ${(props) => props.size === 'xsmall' && tw`px-2 py-1 text-xs`};
     ${(props) => (!props.size || props.size === 'small') && tw`px-4 py-2`};
-    ${(props) => props.size === 'large' && tw`p-4 text-sm`};
-    ${(props) => props.size === 'xlarge' && tw`p-4 w-full`};
+    ${(props) => props.size === 'large' && tw`px-4 py-2.5 text-sm`};
+    ${(props) => props.size === 'xlarge' && tw`px-4 py-2.5 w-full`};
 
     ${(props) =>
         props.isSecondary &&
         css<Props>`
-            ${tw`border-neutral-600 bg-white/[0.02] text-neutral-200 shadow-none`};
+            ${tw`border-neutral-600 bg-transparent text-neutral-50 shadow-none`};
 
             &:hover:not(:disabled) {
-                ${tw`border-neutral-400 text-neutral-50 bg-white/5`};
+                ${tw`border-neutral-600 text-neutral-50 bg-neutral-700`};
                 ${(props) => props.color === 'red' && tw`bg-red-500 border-red-600 text-red-50`};
                 ${(props) => props.color === 'primary' && tw`bg-primary-500 border-primary-600 text-primary-50`};
                 ${(props) => props.color === 'green' && tw`bg-green-500 border-green-600 text-green-50`};

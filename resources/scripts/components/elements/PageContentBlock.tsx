@@ -5,6 +5,8 @@ import tw from 'twin.macro';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import styled, { keyframes } from 'styled-components/macro';
 import CopyrightLine from '@/components/elements/CopyrightLine';
+import { useStoreState } from 'easy-peasy';
+import { ApplicationStore } from '@/state';
 
 const rise = keyframes`
     from {
@@ -29,6 +31,7 @@ export interface PageContentBlockProps {
 }
 
 const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey, className, children }) => {
+    const name = useStoreState((state: ApplicationStore) => state.settings.data?.name || '');
     useEffect(() => {
         if (title) {
             document.title = title;
@@ -47,15 +50,7 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey
                         <CopyrightLine
                             fallback={
                                 <>
-                                    <a
-                                        rel={'noopener nofollow noreferrer'}
-                                        href={'https://pterodactyl.io'}
-                                        target={'_blank'}
-                                        css={tw`no-underline text-neutral-500 hover:text-neutral-300`}
-                                    >
-                                        Pterodactyl&reg;
-                                    </a>
-                                    &nbsp;&copy; 2015 - {new Date().getFullYear()}
+                                    {name}&nbsp;&copy; {new Date().getFullYear()}
                                 </>
                             }
                         />

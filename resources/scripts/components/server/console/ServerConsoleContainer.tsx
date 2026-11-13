@@ -35,39 +35,26 @@ const ServerConsoleContainer = () => {
                         : 'This server is currently being transferred to another node and all actions are unavailable.'}
                 </Alert>
             )}
-            <div className={'grid grid-cols-4 gap-4 mb-4'}>
-                <div className={'hidden sm:block sm:col-span-2 lg:col-span-3 pr-4'}>
-                    <div className={'flex items-center gap-3'}>
-                        <h1 className={'font-header font-semibold text-2xl text-gray-50 leading-relaxed line-clamp-1'}>
-                            {name}
-                        </h1>
+            <div className={'flex flex-wrap items-end justify-between gap-4 mb-6'}>
+                <div className={'min-w-0'}>
+                    <div className={'flex flex-wrap items-center gap-3'}>
+                        <h1 className={'font-header font-semibold text-2xl text-gray-50 truncate'}>{name}</h1>
                         <StatusPill status={status} className={'flex-shrink-0'} />
                         <TxAdminLink className={'flex-shrink-0'} />
                     </div>
-                    <p className={'text-sm text-gray-400 line-clamp-2'}>{description}</p>
+                    {description && <p className={'mt-1 text-sm text-gray-400 line-clamp-2'}>{description}</p>}
                 </div>
-                <div className={'col-span-4 sm:col-span-2 lg:col-span-1 self-end'}>
-                    <div className={'sm:hidden mb-3'}>
-                        <div className={'flex items-center gap-2 min-w-0'}>
-                            <h1 className={'font-header font-semibold text-xl text-gray-50 truncate'}>{name}</h1>
-                            <StatusPill status={status} className={'flex-shrink-0'} />
-                        </div>
-                        <TxAdminLink className={'mt-1'} />
-                    </div>
-                    <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
-                        <PowerButtons className={'grid grid-cols-3 gap-2 sm:flex sm:justify-end'} />
-                    </Can>
-                </div>
+                <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
+                    <PowerButtons className={'grid grid-cols-3 gap-2 w-full sm:w-auto sm:flex'} />
+                </Can>
             </div>
-            <div className={'grid grid-cols-4 gap-2 sm:gap-4 mb-4'}>
-                <div className={'flex col-span-4 lg:col-span-3'}>
-                    <Spinner.Suspense>
-                        <Console />
-                    </Spinner.Suspense>
-                </div>
-                <ServerDetailsBlock className={'col-span-4 lg:col-span-1 order-last lg:order-none'} />
+            <ServerDetailsBlock className={'mb-4'} />
+            <div className={'flex mb-4'}>
+                <Spinner.Suspense>
+                    <Console />
+                </Spinner.Suspense>
             </div>
-            <div className={'grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4'}>
+            <div className={'grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4'}>
                 <Spinner.Suspense>
                     <StatGraphs />
                 </Spinner.Suspense>

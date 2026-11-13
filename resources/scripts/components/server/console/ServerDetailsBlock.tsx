@@ -113,7 +113,8 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
 
     // What gets copied is always the real address, even while it is hidden on screen.
     const allocation =
-        named ?? (allocationHost === null || allocationPort === undefined ? 'n/a' : `${allocationHost}:${allocationPort}`);
+        named ??
+        (allocationHost === null || allocationPort === undefined ? 'n/a' : `${allocationHost}:${allocationPort}`);
 
     useEffect(() => {
         if (!connected || !instance) {
@@ -152,10 +153,19 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
     }, [status]);
 
     return (
-        <div className={classNames('grid grid-cols-6 gap-2 md:gap-4', className)}>
+        // A row of figures above the console, as many columns as fit.
+        <div
+            className={classNames('grid gap-3', className)}
+            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}
+        >
             <StatBlock icon={faWifi} title={'Address'} copyOnClick={allocation}>
                 {named ? (
-                    <span css={tw`block whitespace-normal break-all text-sm sm:text-base leading-snug`} title={allocationHost ? `${allocationHost}:${allocationPort}` : undefined}>{named}</span>
+                    <span
+                        css={tw`block whitespace-normal break-all text-sm sm:text-base leading-snug`}
+                        title={allocationHost ? `${allocationHost}:${allocationPort}` : undefined}
+                    >
+                        {named}
+                    </span>
                 ) : allocationHost === null || allocationPort === undefined ? (
                     allocation
                 ) : (

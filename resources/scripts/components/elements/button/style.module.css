@@ -1,38 +1,33 @@
+/*
+ * Buttons of the theme: the main one is light on the dark page, the others are outlined. Small corners, no glow.
+ */
 .button {
-    @apply px-4 py-2 inline-flex items-center justify-center whitespace-nowrap;
-    @apply rounded-full text-base font-semibold transition-all duration-150 active:scale-[0.97];
-    letter-spacing: -0.01em;
-    @apply focus:ring-[3px] focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-opacity-50;
+    @apply px-3.5 py-1.5 min-h-[2.25rem] leading-5 text-center inline-flex items-center justify-center select-none;
+    @apply rounded-md text-sm font-medium transition-colors duration-150;
+    @apply focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-opacity-60;
 
-    /* Sizing Controls */
     &.small {
-        @apply px-4 py-0 h-8 font-normal text-sm focus:ring-2;
+        @apply px-3 py-1 min-h-[2rem] text-sm;
     }
 
     &.large {
-        @apply px-5 py-3;
+        @apply px-5 py-2.5 min-h-[2.75rem];
     }
 
     &.secondary {
-        @apply text-gray-50 border border-white/10;
-        background-color: rgba(118, 118, 128, 0.24);
+        @apply bg-transparent text-gray-50 border border-gray-600;
 
         &:hover:not(:disabled) {
-            @apply border-white/20;
-            background-color: rgba(118, 118, 128, 0.34);
-        }
-
-        &:disabled {
-            background: transparent !important;
+            @apply bg-gray-700 border-gray-600;
         }
     }
 
     &:disabled {
-        @apply cursor-not-allowed opacity-60;
+        @apply cursor-not-allowed opacity-50;
     }
 
     &.square {
-        @apply p-0 w-12 h-12;
+        @apply p-0 w-9 h-9 min-h-0;
 
         &.small {
             @apply w-8 h-8;
@@ -41,65 +36,51 @@
 }
 
 .primary {
-    @apply bg-primary-500 text-white border border-transparent;
-    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 100%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 18px -8px rgb(var(--pd-accent-500) / 0.65);
-    @apply hover:brightness-110 active:brightness-95 focus:ring-primary-400 focus:ring-opacity-75;
+    @apply bg-gray-50 text-gray-900 border border-gray-50 focus:ring-primary-400;
 
-    &.secondary {
-        @apply hover:bg-primary-600 active:bg-primary-600;
+    &:hover:not(:disabled) {
+        @apply bg-white border-white;
     }
 
-    &:disabled {
-        @apply bg-primary-500/60 text-primary-100/70 shadow-none;
-        background-image: none;
+    &.secondary {
+        @apply bg-transparent text-gray-50 border-gray-600;
     }
 }
 
-/*
- * The text and danger buttons are built on the primary one, which paints a sheen and a blue glow. Their own colours have
- * to take those away, or every one of them shows up blue.
- */
 .text {
-    @apply text-gray-50 border border-white/10 shadow-none;
-    @apply hover:border-white/20 focus:ring-gray-400 focus:ring-opacity-50;
-    background-color: rgba(118, 118, 128, 0.24);
-    background-image: none;
+    @apply bg-transparent text-gray-50 border border-gray-600 focus:ring-gray-400;
 
     &:hover:not(:disabled) {
-        background-color: rgba(118, 118, 128, 0.34);
+        @apply bg-gray-700 border-gray-600;
     }
 
     &.secondary {
-        background-color: transparent;
-    }
+        @apply border-transparent text-gray-300;
 
-    &:disabled {
-        @apply bg-white/5 text-gray-400;
-        background-image: none;
+        &:hover:not(:disabled) {
+            @apply bg-gray-700 text-gray-50;
+        }
     }
 }
 
 .danger {
-    @apply text-white border border-transparent shadow-none;
-    @apply focus:ring-red-400 focus:ring-opacity-75;
-    background-color: #ff453a;
-    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 100%);
+    @apply text-white border focus:ring-red-400;
+    background-color: #e5484d;
+    border-color: #e5484d;
 
     &:hover:not(:disabled) {
-        filter: brightness(1.08);
+        background-color: #ec5d5e;
+        border-color: #ec5d5e;
     }
 
     &.secondary {
-        @apply bg-red-500/10 text-red-300 border-red-500/30;
+        @apply bg-transparent;
+        color: #ff6166;
+        border-color: #3c1618;
 
         &:hover:not(:disabled) {
-            @apply bg-red-500/20 border-red-400/50 text-red-200;
+            background-color: #1f0f10;
+            border-color: #5c1f22;
         }
-    }
-
-    &:disabled {
-        @apply bg-red-600/75 text-red-50/75;
-        background-image: none;
     }
 }

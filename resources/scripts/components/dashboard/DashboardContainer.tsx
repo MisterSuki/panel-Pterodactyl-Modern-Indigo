@@ -17,7 +17,9 @@ import { ServerStats } from '@/api/server/getServerResourceUsage';
 import { getUpgradeableServers, UpgradeableServer } from '@/api/shop';
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/elements/button/index';
 import classNames from 'classnames';
 import serverGame from '@/components/dashboard/serverGame';
 
@@ -31,6 +33,7 @@ export default () => {
     const { clearFlashes, clearAndAddHttpError } = useFlash();
     const uuid = useStoreState((state) => state.user.data!.uuid);
     const rootAdmin = useStoreState((state) => state.user.data!.rootAdmin);
+    const shopOpen = useStoreState((state) => !!state.settings.data?.shop?.enabled);
     const [showOnlyAdmin, setShowOnlyAdmin] = usePersistedState(`${uuid}:show_all_servers`, false);
     const [query, setQuery] = useState('');
     const [filter, setFilter] = useState<StatusFilter>('all');
@@ -100,38 +103,41 @@ export default () => {
 
     return (
         <PageContentBlock title={'Dashboard'} showFlashKey={'dashboard'}>
-            <div css={tw`mb-5 flex flex-wrap items-end justify-between gap-3`}>
+            <div css={tw`mb-8 flex flex-wrap items-end justify-between gap-4`}>
                 <div>
-                    <h1 css={tw`text-2xl font-semibold text-neutral-50 flex items-center gap-3`}>
-                        {showOnlyAdmin ? 'All servers' : 'Your servers'}
-                        {servers && (
-                            <span
-                                css={tw`rounded-full bg-primary-500 bg-opacity-20 border border-primary-500 border-opacity-30 px-2.5 py-0.5 text-xs font-medium text-primary-300`}
-                            >
-                                {servers.pagination.total}
-                            </span>
-                        )}
+                    <h1 css={tw`text-3xl font-semibold text-neutral-50`}>
+                        {showOnlyAdmin ? 'All servers' : 'Servers'}
                     </h1>
-                    <p css={tw`text-sm text-neutral-400 mt-1`}>
+                    <p css={tw`text-sm text-neutral-400 mt-1.5`}>
                         Open a server to manage its console, files and settings.
                     </p>
                 </div>
-                {rootAdmin && (
-                    <div css={tw`flex items-center`}>
-                        <p css={tw`uppercase text-xs text-neutral-400 mr-2`}>
-                            {showOnlyAdmin ? "Showing others' servers" : 'Showing your servers'}
-                        </p>
-                        <Switch
-                            name={'show_all_servers'}
-                            defaultChecked={showOnlyAdmin}
-                            onChange={() => setShowOnlyAdmin((s) => !s)}
-                        />
-                    </div>
-                )}
+                <div css={tw`flex items-center gap-4`}>
+                    {rootAdmin && (
+                        <div css={tw`flex items-center`}>
+                            <p css={tw`text-sm text-neutral-400 mr-2`}>
+                                {showOnlyAdmin ? "Showing others' servers" : 'Showing your servers'}
+                            </p>
+                            <Switch
+                                name={'show_all_servers'}
+                                defaultChecked={showOnlyAdmin}
+                                onChange={() => setShowOnlyAdmin((s) => !s)}
+                            />
+                        </div>
+                    )}
+                    {shopOpen && (
+                        <Link to={'/shop'} css={tw`no-underline`}>
+                            <Button type={'button'}>
+                                <FontAwesomeIcon icon={faPlus} css={tw`mr-2 text-xs`} />
+                                <span>New server</span>
+                            </Button>
+                        </Link>
+                    )}
+                </div>
             </div>
             {servers && <DashboardSummary total={servers.pagination.total} servers={servers.items} usage={usage} />}
             {servers && servers.items.length > 3 && (
-                <div css={tw`flex flex-wrap items-center gap-3 mb-4`}>
+                <div css={tw`flex flex-wrap items-center gap-2 mb-4`}>
                     <div css={tw`relative flex-1 min-w-[12rem]`}>
                         <FontAwesomeIcon
                             icon={faSearch}
@@ -145,26 +151,26 @@ export default () => {
                             onKeyDown={(e) => e.key === 'Escape' && setQuery('')}
                             placeholder={'Search a server...'}
                             aria-label={'Search a server...'}
-                            css={tw`w-full rounded-xl border border-white/10 bg-neutral-900/60 py-2.5 pl-9 pr-10 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-40`}
+                            css={tw`w-full h-9 rounded-md border border-neutral-600 bg-neutral-900 pl-9 pr-10 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:border-neutral-500 focus:ring-0`}
                         />
                         {!query && (
                             <kbd
-                                css={tw`hidden sm:block absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-white/10 bg-white/5 px-1.5 text-2xs text-neutral-500 pointer-events-none`}
+                                css={tw`hidden sm:block absolute right-3 top-1/2 -translate-y-1/2 rounded border border-neutral-600 px-1.5 text-2xs text-neutral-500 pointer-events-none`}
                             >
                                 /
                             </kbd>
                         )}
                     </div>
-                    <div css={tw`flex items-center gap-1 rounded-xl border border-white/10 bg-neutral-900/60 p-1`}>
+                    <div css={tw`flex items-center gap-0.5 rounded-md border border-neutral-600 p-0.5`}>
                         {(['all', 'online', 'offline'] as StatusFilter[]).map((value) => (
                             <button
                                 key={value}
                                 type={'button'}
                                 onClick={() => setFilter(value)}
                                 className={classNames(
-                                    'rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-150',
+                                    'rounded px-3 py-1 text-sm transition-colors duration-150',
                                     filter === value
-                                        ? 'bg-primary-500 bg-opacity-20 text-primary-200'
+                                        ? 'bg-neutral-700 text-neutral-50'
                                         : 'text-neutral-400 hover:text-neutral-100'
                                 )}
                             >
@@ -175,11 +181,15 @@ export default () => {
                 </div>
             )}
             {!servers ? (
-                <div aria-busy={'true'} aria-label={'Loading servers'}>
+                <div
+                    aria-busy={'true'}
+                    aria-label={'Loading servers'}
+                    css={tw`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4`}
+                >
                     {[0, 1, 2].map((i) => (
                         <div
                             key={i}
-                            css={tw`h-[5.5rem] mb-2 rounded-xl border border-white/5 bg-neutral-800 animate-pulse`}
+                            css={tw`h-52 rounded-2xl border border-neutral-700 bg-neutral-800 animate-pulse`}
                             style={{ animationDelay: `${i * 120}ms` }}
                         />
                     ))}
@@ -211,18 +221,19 @@ export default () => {
                         return all.length > 0 && items.length === 0 ? (
                             <p css={tw`text-center text-sm text-neutral-400`}>No server matches your search.</p>
                         ) : items.length > 0 ? (
-                            items.map((server, index) => (
-                                <ServerRow
-                                    key={server.uuid}
-                                    server={server}
-                                    stats={usage?.[server.uuid] ?? null}
-                                    unreachable={usageSettled && !usage?.[server.uuid]}
-                                    upgradeable={shopServers.has(server.id)}
-                                    billing={shopServers.get(server.id)}
-                                    css={index > 0 ? tw`mt-2` : undefined}
-                                    style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
-                                />
-                            ))
+                            <div css={tw`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4`}>
+                                {items.map((server, index) => (
+                                    <ServerRow
+                                        key={server.uuid}
+                                        server={server}
+                                        stats={usage?.[server.uuid] ?? null}
+                                        unreachable={usageSettled && !usage?.[server.uuid]}
+                                        upgradeable={shopServers.has(server.id)}
+                                        billing={shopServers.get(server.id)}
+                                        style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+                                    />
+                                ))}
+                            </div>
                         ) : (
                             <p css={tw`text-center text-sm text-neutral-400`}>
                                 {showOnlyAdmin

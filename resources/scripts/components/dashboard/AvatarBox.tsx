@@ -6,19 +6,20 @@ import ContentBox from '@/components/elements/ContentBox';
 import Button from '@/components/elements/Button';
 import useFlash from '@/plugins/useFlash';
 import { removeAvatar, uploadAvatar } from '@/api/account/avatar';
+import { avatarFor, isCustomAvatar } from '@/lib/avatar';
 
 const FLASH_KEY = 'account:avatar';
-const DEFAULT_AVATAR = '/assets/svgs/pterodactyl.svg';
 const MAX_BYTES = 2 * 1024 * 1024;
 
-// The profile picture: the logo of the panel until the person chooses another one.
+// The profile picture: a gradient made from the name until the person chooses a picture.
 export default ({ className }: { className?: string }) => {
     const avatar = useStoreState((state: State<ApplicationStore>) => state.user.data!.avatar);
+    const name = useStoreState((state: State<ApplicationStore>) => state.user.data!.username);
     const updateUserData = useStoreActions((actions) => actions.user.updateUserData);
     const { clearFlashes, addFlash, clearAndAddHttpError } = useFlash();
     const [busy, setBusy] = useState(false);
     const input = useRef<HTMLInputElement>(null);
-    const custom = !!avatar && !avatar.startsWith(DEFAULT_AVATAR);
+    const custom = isCustomAvatar(avatar);
 
     const choose = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.currentTarget.files?.[0];
@@ -58,9 +59,9 @@ export default ({ className }: { className?: string }) => {
         <ContentBox title={'Profile picture'} showFlashes={FLASH_KEY} className={className}>
             <div css={tw`flex items-center gap-5`}>
                 <img
-                    src={avatar || DEFAULT_AVATAR}
+                    src={avatarFor(avatar, name)}
                     alt={''}
-                    css={tw`w-24 h-24 rounded-full object-cover flex-shrink-0 border border-white/10 bg-neutral-900 p-0.5`}
+                    css={tw`w-20 h-20 rounded-full object-cover flex-shrink-0 border border-neutral-600`}
                 />
                 <div css={tw`min-w-0`}>
                     <div css={tw`flex flex-wrap gap-2`}>

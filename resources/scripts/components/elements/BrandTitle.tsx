@@ -9,26 +9,19 @@ interface Props {
     className?: string;
 }
 
-// The name of the panel, iOS style: the system font in heavy weight, white fading to a light blue, with a soft glow.
+// The name of the panel: Geist, semibold and tight, in plain white.
 const Title = styled.span<{ $size: 'nav' | 'hero' }>`
     display: inline-block;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI', Roboto,
-        system-ui, sans-serif;
-    font-weight: ${({ $size }) => ($size === 'hero' ? 800 : 700)};
-    font-size: ${({ $size }) => ($size === 'hero' ? '2.75rem' : '1.25rem')};
-    line-height: 1.15;
-    letter-spacing: ${({ $size }) => ($size === 'hero' ? '-0.035em' : '-0.02em')};
+    font-family: Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+    font-weight: 600;
+    font-size: ${({ $size }) => ($size === 'hero' ? '1.75rem' : '0.9375rem')};
+    line-height: 1.2;
+    letter-spacing: ${({ $size }) => ($size === 'hero' ? '-0.04em' : '-0.01em')};
     max-width: 100%;
     white-space: ${({ $size }) => ($size === 'nav' ? 'nowrap' : 'normal')};
     text-align: center;
     user-select: none;
-    background-image: linear-gradient(180deg, #ffffff 0%, #ffffff 35%, #b9dcff 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    filter: ${({ $size }) =>
-        $size === 'hero' ? 'drop-shadow(0 6px 24px rgb(var(--pd-accent-500) / 0.45))' : 'drop-shadow(0 2px 8px rgb(var(--pd-accent-500) / 0.35))'};
+    color: #ededed;
 `;
 
 export default ({ size = 'nav', className }: Props) => {

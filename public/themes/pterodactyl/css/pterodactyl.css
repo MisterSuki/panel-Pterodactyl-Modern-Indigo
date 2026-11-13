@@ -3867,3 +3867,667 @@ select optgroup {
 }
 .box.lg-lit::after,
 .pd-tile.lg-lit::after { opacity: 1; }
+
+
+/* ==========================================================================
+   "Dashboard pro" — overrides everything above.
+   A plain, sharp administration: near-black surfaces, thin borders, small
+   corners, Geist, a light main button. No glass, no glow, no gradients.
+   ========================================================================== */
+
+@font-face {
+    font-family: 'Geist';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/geist/geist-latin-wght-normal.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+        U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: 'Geist';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/geist/geist-latin-ext-wght-normal.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: 'Geist Mono';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/geist/geist-mono-latin-wght-normal.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+        U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+    --pd-bg: #0a0a0a;
+    --pd-surface: #111111;
+    --pd-raised: #161616;
+    --pd-border: #1f1f1f;
+    --pd-border-strong: #2e2e2e;
+    --pd-text: #ededed;
+    --pd-muted: #a1a1a1;
+    --pd-faint: #707070;
+}
+
+html,
+body,
+.wrapper,
+.content-wrapper,
+.right-side {
+    background: var(--pd-bg) !important;
+}
+
+body {
+    font-family: Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    font-size: 14px;
+    color: var(--pd-muted) !important;
+    letter-spacing: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+    background: var(--pd-bg) !important;
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, .box-title {
+    font-family: inherit !important;
+    color: var(--pd-text) !important;
+    letter-spacing: -0.02em;
+}
+
+code, kbd, pre, .pd-term, .pd-update-log {
+    font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+}
+
+a {
+    color: var(--pd-text);
+}
+
+a:hover,
+a:focus {
+    color: #ffffff;
+}
+
+/* ---- Top bar and menu -------------------------------------------------------------------------------------------- */
+
+.skin-blue .main-header .navbar,
+.skin-blue .main-header .logo {
+    background: rgba(10, 10, 10, 0.85) !important;
+    background-image: none !important;
+    border-bottom: 1px solid var(--pd-border) !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: saturate(150%) blur(12px);
+    backdrop-filter: saturate(150%) blur(12px);
+}
+
+.skin-blue .main-header .logo {
+    border-right: 1px solid var(--pd-border) !important;
+    color: var(--pd-text) !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    letter-spacing: -0.01em;
+    text-align: left !important;
+    padding-left: 18px !important;
+}
+
+.skin-blue .main-header .logo > span::before {
+    content: '';
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    margin-right: 10px;
+    vertical-align: -6px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #ededed 0%, #707070 100%);
+}
+
+.skin-blue .main-header .navbar .nav > li > a,
+.skin-blue .main-header .navbar .sidebar-toggle {
+    color: var(--pd-muted) !important;
+    background: transparent !important;
+}
+
+.skin-blue .main-header .navbar .nav > li > a:hover,
+.skin-blue .main-header .navbar .sidebar-toggle:hover {
+    color: var(--pd-text) !important;
+    background: var(--pd-raised) !important;
+}
+
+.main-sidebar,
+.skin-blue .main-sidebar,
+.skin-blue .left-side {
+    background: var(--pd-bg) !important;
+    background-image: none !important;
+    border-right: 1px solid var(--pd-border) !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+.sidebar-menu > li > a,
+.skin-blue .sidebar-menu > li > a {
+    color: var(--pd-muted) !important;
+    border-left: 0 !important;
+    border-radius: 6px !important;
+    margin: 1px 10px !important;
+    padding: 8px 10px !important;
+    font-size: 14px;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.sidebar-menu > li > a > .fa,
+.sidebar-menu > li > a > .ion {
+    color: var(--pd-faint) !important;
+}
+
+.skin-blue .sidebar-menu > li:hover > a,
+.sidebar-menu > li > a:hover {
+    color: var(--pd-text) !important;
+    background: var(--pd-raised) !important;
+}
+
+.skin-blue .sidebar-menu > li.active > a,
+.sidebar-menu > li.active > a {
+    color: var(--pd-text) !important;
+    background: var(--pd-border) !important;
+    box-shadow: none !important;
+}
+
+.sidebar-menu > li.active > a > .fa {
+    color: var(--pd-text) !important;
+}
+
+.skin-blue .sidebar-menu > li.header,
+.sidebar-menu > li.header {
+    background: transparent !important;
+    color: var(--pd-faint) !important;
+    font-size: 11px !important;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 18px 20px 6px !important;
+}
+
+.sidebar-menu .label,
+.sidebar-menu .badge {
+    background: var(--pd-border-strong) !important;
+    color: var(--pd-text) !important;
+}
+
+.main-footer {
+    background: transparent !important;
+    border-top: 1px solid var(--pd-border) !important;
+    color: var(--pd-faint) !important;
+    font-size: 12px;
+}
+
+/* ---- Page header ------------------------------------------------------------------------------------------------- */
+
+.content-header > h1 {
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.04em !important;
+}
+
+.content-header > h1 > small {
+    color: var(--pd-muted) !important;
+    font-size: 14px !important;
+    letter-spacing: 0;
+    font-weight: 400;
+}
+
+.content-header > .breadcrumb {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+.content-header > .breadcrumb > li,
+.content-header > .breadcrumb > li > a {
+    color: var(--pd-faint) !important;
+}
+
+/* ---- Cards -------------------------------------------------------------------------------------------------------- */
+
+.box,
+.info-box,
+.small-box,
+.nav-tabs-custom,
+.panel,
+.pd-tile {
+    background: var(--pd-surface) !important;
+    background-image: none !important;
+    border: 1px solid var(--pd-border) !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    color: var(--pd-muted);
+}
+
+.box,
+.box.box-default,
+.box.box-primary,
+.box.box-success,
+.box.box-danger,
+.box.box-warning,
+.box.box-info {
+    border-top: 1px solid var(--pd-border) !important;
+}
+
+.box::after,
+.pd-tile::after,
+.lg-rim::after {
+    display: none !important;
+}
+
+.box-header,
+.box-header.with-border,
+.box-footer {
+    background: transparent !important;
+    border-color: var(--pd-border) !important;
+}
+
+.box-header .box-title {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+}
+
+.box-body {
+    color: var(--pd-muted);
+}
+
+.small-box > .inner h3,
+.info-box-number {
+    color: var(--pd-text) !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.03em;
+}
+
+.small-box .icon,
+.info-box-icon {
+    color: var(--pd-border-strong) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.small-box > .small-box-footer {
+    background: transparent !important;
+    border-top: 1px solid var(--pd-border);
+    color: var(--pd-muted) !important;
+}
+
+.callout,
+.alert {
+    background: var(--pd-surface) !important;
+    background-image: none !important;
+    border: 1px solid var(--pd-border) !important;
+    border-left-width: 3px !important;
+    border-radius: 8px !important;
+    color: var(--pd-text) !important;
+    box-shadow: none !important;
+}
+
+.callout.callout-danger, .alert-danger { border-left-color: #e5484d !important; }
+.callout.callout-warning, .alert-warning { border-left-color: #f5a524 !important; }
+.callout.callout-success, .alert-success { border-left-color: #3ecf8e !important; }
+.callout.callout-info, .alert-info { border-left-color: rgb(var(--pd-accent-500)) !important; }
+
+/* Tabs: a line under the open one. */
+.nav-tabs-custom > .nav-tabs {
+    background: transparent !important;
+    border-bottom: 1px solid var(--pd-border) !important;
+}
+
+.nav-tabs-custom > .nav-tabs > li > a {
+    color: var(--pd-muted) !important;
+    background: transparent !important;
+    border: 0 !important;
+}
+
+.nav-tabs-custom > .nav-tabs > li.active > a,
+.nav-tabs-custom > .nav-tabs > li.active:hover > a {
+    color: var(--pd-text) !important;
+    background: transparent !important;
+}
+
+.nav-tabs-custom > .nav-tabs > li.active {
+    border-top-color: transparent !important;
+    box-shadow: inset 0 -2px 0 var(--pd-text);
+}
+
+/* ---- Windows, menus, tooltips ------------------------------------------------------------------------------------- */
+
+.modal-content,
+.sweet-alert {
+    background: var(--pd-surface) !important;
+    background-image: none !important;
+    border: 1px solid var(--pd-border-strong) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 24px 60px -16px rgba(0, 0, 0, 0.85) !important;
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--pd-border) !important;
+}
+
+.modal-backdrop.in {
+    opacity: 0.7 !important;
+}
+
+.dropdown-menu,
+.select2-dropdown,
+.pd-search-panel {
+    background: var(--pd-surface) !important;
+    background-image: none !important;
+    border: 1px solid var(--pd-border-strong) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.85) !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+.dropdown-menu > li > a {
+    color: var(--pd-muted) !important;
+}
+
+.dropdown-menu > li > a:hover {
+    color: var(--pd-text) !important;
+    background: var(--pd-raised) !important;
+}
+
+.tooltip-inner,
+.popover {
+    background: #ededed !important;
+    color: #0a0a0a !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+}
+
+/* ---- Buttons ------------------------------------------------------------------------------------------------------ */
+
+.btn {
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    border: 1px solid var(--pd-border-strong) !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease !important;
+    transform: none !important;
+    filter: none !important;
+}
+
+.btn:hover {
+    filter: none !important;
+}
+
+.btn-primary,
+.btn-success {
+    background-color: #ededed !important;
+    border-color: #ededed !important;
+    color: #0a0a0a !important;
+}
+
+.btn-primary:hover,
+.btn-success:hover {
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
+}
+
+.btn-danger {
+    background-color: #e5484d !important;
+    border-color: #e5484d !important;
+    color: #ffffff !important;
+}
+
+.btn-warning {
+    background-color: #f5a524 !important;
+    border-color: #f5a524 !important;
+    color: #0a0a0a !important;
+}
+
+.btn-default,
+.btn-secondary,
+.btn-info {
+    background-color: transparent !important;
+    color: var(--pd-text) !important;
+}
+
+.btn-default:hover,
+.btn-secondary:hover,
+.btn-info:hover {
+    background-color: var(--pd-border) !important;
+}
+
+/* ---- Fields ------------------------------------------------------------------------------------------------------- */
+
+.form-control,
+.input-group-addon,
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+    background: var(--pd-bg) !important;
+    border: 1px solid #262626 !important;
+    border-radius: 6px !important;
+    color: var(--pd-text) !important;
+    box-shadow: none !important;
+}
+
+.form-control:focus,
+.select2-container--default.select2-container--focus .select2-selection--multiple,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: var(--pd-faint) !important;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08) !important;
+}
+
+.input-group-addon {
+    color: var(--pd-faint) !important;
+}
+
+label,
+.control-label {
+    color: var(--pd-text) !important;
+    font-weight: 500 !important;
+}
+
+.help-block,
+.text-muted,
+small.text-muted {
+    color: var(--pd-faint) !important;
+}
+
+select option,
+select optgroup {
+    background: var(--pd-surface) !important;
+    color: var(--pd-text) !important;
+}
+
+/* ---- Tables ------------------------------------------------------------------------------------------------------- */
+
+.table > thead > tr > th,
+.table > tbody > tr > th {
+    color: var(--pd-faint) !important;
+    font-weight: 500 !important;
+    font-size: 12px;
+    background: transparent !important;
+    border-color: var(--pd-border) !important;
+}
+
+.table > tbody > tr > td,
+.table > tfoot > tr > td {
+    color: var(--pd-muted);
+    border-color: var(--pd-border) !important;
+    background: transparent !important;
+}
+
+.table > tbody > tr > td a {
+    color: var(--pd-text);
+}
+
+.table-hover > tbody > tr:hover > td {
+    background: var(--pd-raised) !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background: transparent !important;
+}
+
+/* ---- Labels and badges -------------------------------------------------------------------------------------------- */
+
+.label,
+.badge {
+    border-radius: 999px !important;
+    font-weight: 500 !important;
+    border: 1px solid var(--pd-border-strong);
+    background: transparent !important;
+    color: var(--pd-text) !important;
+    box-shadow: none !important;
+}
+
+.label-success, .bg-green { color: #3ecf8e !important; border-color: #1c4733 !important; }
+.label-danger, .bg-red { color: #ff6166 !important; border-color: #4d1b1d !important; }
+.label-warning, .bg-yellow { color: #f5a524 !important; border-color: #4d3711 !important; }
+.label-info, .label-primary, .bg-blue { color: rgb(var(--pd-accent-300)) !important; border-color: rgb(var(--pd-accent-800)) !important; }
+.label-default { color: var(--pd-muted) !important; }
+
+.progress {
+    background: var(--pd-border) !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+}
+
+.progress-bar {
+    background: #ededed !important;
+    background-image: none !important;
+    box-shadow: none !important;
+}
+
+.pagination > li > a,
+.pagination > li > span {
+    background: transparent !important;
+    border-color: var(--pd-border) !important;
+    color: var(--pd-muted) !important;
+}
+
+.pagination > .active > a,
+.pagination > .active > span {
+    background: var(--pd-border) !important;
+    color: var(--pd-text) !important;
+}
+
+/* ---- Update log, search, live servers ----------------------------------------------------------------------------- */
+
+.pd-term {
+    background: #000000 !important;
+    border: 1px solid var(--pd-border) !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+}
+
+.pd-term-bar {
+    background: var(--pd-bg) !important;
+    border-bottom: 1px solid var(--pd-border) !important;
+}
+
+.pd-search,
+.pd-srv-search input {
+    background: var(--pd-bg) !important;
+    border: 1px solid #262626 !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+}
+
+.pd-srv-chips button,
+.pd-icon-btn {
+    border-radius: 6px !important;
+    background-image: none !important;
+    box-shadow: none !important;
+}
+
+::selection {
+    background: rgb(var(--pd-accent-500) / 0.4);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #2e2e2e !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #454545 !important;
+}
+
+/* The name of the panel: plain white, without the old gradient. */
+.skin-blue .main-header .logo span {
+    background: none !important;
+    background-image: none !important;
+    -webkit-text-fill-color: var(--pd-text) !important;
+    color: var(--pd-text) !important;
+    filter: none !important;
+    font-weight: 600 !important;
+}
+
+/* The icons of the menu: plain, in the colour of the text, no squares behind them. */
+.skin-blue .sidebar-menu > li > a > .fa,
+.skin-blue .sidebar-menu > li:hover > a > .fa,
+.skin-blue .sidebar-menu > li.active > a > .fa,
+.sidebar-mini.sidebar-collapse.skin-blue .sidebar-menu > li > a > .fa {
+    width: 18px !important;
+    height: auto !important;
+    margin-right: 10px !important;
+    line-height: inherit !important;
+    background: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    color: var(--pd-faint) !important;
+    font-size: 14px !important;
+}
+
+.skin-blue .sidebar-menu > li.active > a > .fa,
+.skin-blue .sidebar-menu > li:hover > a > .fa {
+    color: var(--pd-text) !important;
+}
+
+.skin-blue .sidebar-menu > li.active > a,
+.skin-blue .sidebar-menu > li:hover > a {
+    font-weight: 400 !important;
+}
+
+/* Callouts: the same surface as the cards, only the edge is coloured. */
+.callout,
+.callout.callout-info,
+.callout.callout-warning,
+.callout.callout-danger,
+.callout.callout-success {
+    background: var(--pd-surface) !important;
+    border: 1px solid var(--pd-border) !important;
+    border-left-width: 3px !important;
+    border-radius: 8px !important;
+}
+
+.callout.callout-info { border-left-color: rgb(var(--pd-accent-500)) !important; }
+.callout.callout-warning { border-left-color: #f5a524 !important; }
+.callout.callout-danger { border-left-color: #e5484d !important; }
+.callout.callout-success { border-left-color: #3ecf8e !important; }
+
+/* Links in the content are white, like the text; the accent stays for focus and selection. */
+.content a:not(.btn):not(.label),
+.table > tbody > tr > td a:not(.btn) {
+    color: var(--pd-text) !important;
+}
+
+.content a:not(.btn):not(.label):hover {
+    color: #ffffff !important;
+    text-decoration: underline;
+}
+
+code {
+    background: var(--pd-raised) !important;
+    border: 1px solid var(--pd-border) !important;
+    color: var(--pd-text) !important;
+    border-radius: 4px !important;
+}

@@ -1,22 +1,21 @@
 const colors = require('tailwindcss/colors');
 
-// iOS dark palette. 50-600 are the opaque "label" greys used for text and icons. 700 is Apple's fill grey, 800 is the
-// clear Liquid Glass material used by cards (a light tint over the wallpaper) and 900 is a darker inset for content inside it.
+// The greys of the theme, from the text (50) to the page (900): near black surfaces, thin borders, clear text.
 const gray = {
-    50: '#F5F5F7',
-    100: '#EBEBF0',
-    200: '#D1D1D6',
-    300: '#AEAEB2',
-    400: '#8E8E93',
-    500: '#636366',
-    600: '#48484A',
-    700: 'rgba(118, 118, 128, 0.24)',
-    800: 'rgba(255, 255, 255, 0.08)',
-    900: 'rgba(0, 0, 0, 0.32)',
+    50: '#EDEDED',
+    100: '#E2E2E2',
+    200: '#C7C7C7',
+    300: '#A1A1A1',
+    400: '#8F8F8F',
+    500: '#707070',
+    600: '#2E2E2E',
+    700: '#1F1F1F',
+    800: '#111111',
+    900: '#0A0A0A',
 };
 
-// The accent colour (iOS blue unless the person picked another one), used for CTAs, links, focus states and glows. Each
-// shade is a CSS variable holding "r g b", set by public/js/appearance.js (defaults in GlobalStylesheet).
+// The accent colour (blue unless the person picked another one), used for links, focus rings, selections and charts.
+// Each shade is a CSS variable holding "r g b", set by public/js/appearance.js (defaults in GlobalStylesheet).
 const accent = (shade) => ({ opacityValue }) =>
     opacityValue === undefined
         ? `rgb(var(--pd-accent-${shade}))`
@@ -27,21 +26,9 @@ const primary = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900].reduce(
     {}
 );
 
-const systemFont = [
-    '-apple-system',
-    'BlinkMacSystemFont',
-    '"SF Pro Display"',
-    '"SF Pro Text"',
-    // Inter, served by the panel (see GlobalStylesheet), where San Francisco is not installed.
-    'InterVariable',
-    'Inter',
-    '"Segoe UI Variable Display"',
-    '"Segoe UI"',
-    'Roboto',
-    '"Helvetica Neue"',
-    'Arial',
-    'sans-serif',
-];
+// Geist and Geist Mono, served by the panel (see GlobalStylesheet).
+const systemFont = ['Geist', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'];
+const monoFont = ['"Geist Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'];
 
 module.exports = {
     content: [
@@ -52,6 +39,7 @@ module.exports = {
             fontFamily: {
                 sans: systemFont,
                 header: systemFont,
+                mono: monoFont,
             },
             colors: {
                 black: '#000000',
@@ -67,31 +55,33 @@ module.exports = {
             fontSize: {
                 '2xs': '0.625rem',
             },
-            // Rounder corners everywhere, like iOS.
+            // Small, sharp corners.
             borderRadius: {
-                DEFAULT: '0.5rem',
-                md: '0.625rem',
-                lg: '0.875rem',
-                xl: '1.25rem',
-                '2xl': '1.75rem',
-                '3xl': '2.25rem',
+                DEFAULT: '0.375rem',
+                md: '0.375rem',
+                lg: '0.5rem',
+                xl: '0.625rem',
+                '2xl': '0.75rem',
+                '3xl': '1rem',
             },
             transitionDuration: {
                 250: '250ms',
             },
             borderColor: theme => ({
-                default: 'rgba(255, 255, 255, 0.12)',
+                default: '#1F1F1F',
             }),
+            // Flat: depth comes from the borders. Only what floats over the page has a shadow.
             boxShadow: {
-                card: 'inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 14px 34px -16px rgba(0, 0, 0, 0.6)',
-                'card-hover': 'inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 20px 44px -16px rgba(0, 0, 0, 0.65)',
-                glow: '0 0 0 1px rgb(var(--pd-accent-500) / 0.45), 0 8px 30px -6px rgb(var(--pd-accent-500) / 0.5)',
-                nav: 'inset 0 -1px 0 rgba(255, 255, 255, 0.06), 0 8px 30px -10px rgba(0, 0, 0, 0.6)',
+                card: '0 0 #0000',
+                'card-hover': '0 0 #0000',
+                glow: '0 0 #0000',
+                nav: '0 0 #0000',
+                pop: '0 16px 40px -12px rgba(0, 0, 0, 0.8)',
             },
             backgroundImage: {
-                'gradient-brand': 'linear-gradient(135deg, rgb(var(--pd-accent-500)) 0%, rgb(var(--pd-accent-700)) 100%)',
-                'gradient-brand-flat': 'linear-gradient(135deg, rgb(var(--pd-accent-400)) 0%, rgb(var(--pd-accent-500)) 100%)',
-                'gradient-surface': 'linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                'gradient-brand': 'linear-gradient(0deg, rgb(var(--pd-accent-500)), rgb(var(--pd-accent-500)))',
+                'gradient-brand-flat': 'linear-gradient(0deg, rgb(var(--pd-accent-500)), rgb(var(--pd-accent-500)))',
+                'gradient-surface': 'linear-gradient(0deg, #111111, #111111)',
             },
         },
     },

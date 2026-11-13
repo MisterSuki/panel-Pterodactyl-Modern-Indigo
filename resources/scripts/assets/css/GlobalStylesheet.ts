@@ -3,31 +3,50 @@ import { createGlobalStyle } from 'styled-components/macro';
 
 export default createGlobalStyle`
     /*
-     * Inter, the closest free font to San Francisco, the font of Apple. Macs and iPhones keep their own San Francisco
-     * (it comes first in the list of fonts); Windows and Android get Inter instead of Segoe UI or Roboto. It is served by
-     * the panel itself: nothing is asked from Google.
+     * Geist and Geist Mono, served by the panel itself (nothing is asked from Google or Vercel). The theme is a plain,
+     * sharp dashboard: near-black surfaces, thin borders, one light accent, no glass and no glow.
      */
     @font-face {
-        font-family: 'InterVariable';
+        font-family: 'Geist';
         font-style: normal;
         font-weight: 100 900;
         font-display: swap;
-        src: url('/fonts/inter/inter-latin-wght-normal.woff2') format('woff2');
+        src: url('/fonts/geist/geist-latin-wght-normal.woff2') format('woff2');
         unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
-            U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+            U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
     }
 
     @font-face {
-        font-family: 'InterVariable';
+        font-family: 'Geist';
         font-style: normal;
         font-weight: 100 900;
         font-display: swap;
-        src: url('/fonts/inter/inter-latin-ext-wght-normal.woff2') format('woff2');
-        unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
-            U+2113, U+2C60-2C7F, U+A720-A7FF;
+        src: url('/fonts/geist/geist-latin-ext-wght-normal.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+            U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
     }
 
-    /* The accent colour, iOS blue by default. /js/appearance.js replaces it with the one the person picked. */
+    @font-face {
+        font-family: 'Geist Mono';
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('/fonts/geist/geist-mono-latin-wght-normal.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+            U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @font-face {
+        font-family: 'Geist Mono';
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('/fonts/geist/geist-mono-latin-ext-wght-normal.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+            U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* The accent colour, blue by default. /js/appearance.js replaces it with the one the person picked. */
     :root {
         --pd-accent-50: 230 243 255;
         --pd-accent-100: 206 230 255;
@@ -40,17 +59,22 @@ export default createGlobalStyle`
         --pd-accent-800: 6 77 148;
         --pd-accent-900: 4 55 107;
         --pd-a: 10, 132, 255;
+
+        /* The surfaces of the theme. */
+        --pd-bg: #0a0a0a;
+        --pd-surface: #111111;
+        --pd-raised: #161616;
+        --pd-border: #1f1f1f;
+        --pd-border-strong: #2e2e2e;
+        --pd-text: #ededed;
+        --pd-muted: #a1a1a1;
     }
 
     html {
-        background: #070816;
+        background: var(--pd-bg);
         scroll-behavior: smooth;
     }
 
-    /*
-     * The list of a drop-down is drawn by the browser and cannot be translucent: it gets a solid iOS dark grey so the
-     * choices can be read. The dark scheme also darkens date pickers and scrollbars in fields.
-     */
     select,
     input,
     textarea {
@@ -59,44 +83,32 @@ export default createGlobalStyle`
 
     select option,
     select optgroup {
-        background-color: #1c1c1e;
-        color: #f5f5f7;
+        background-color: var(--pd-surface);
+        color: var(--pd-text);
     }
 
     select option:checked {
-        background-color: rgb(var(--pd-accent-500));
+        background-color: #262626;
         color: #ffffff;
     }
 
     select option:disabled {
-        color: #636366;
+        color: #707070;
     }
 
     body {
-        ${tw`font-sans text-neutral-200 antialiased`};
+        ${tw`font-sans text-neutral-300 antialiased`};
         min-height: 100vh;
         background: transparent;
+        font-size: 14px;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
-        /* The tracking of San Francisco at text sizes: a little tighter than the default of Inter. */
-        letter-spacing: -0.011em;
-        font-feature-settings: 'cv11', 'ss03';
-    }
-
-    /* The focus ring of macOS: a soft halo of the accent colour, only when the keyboard is used. */
-    a:focus-visible,
-    button:focus-visible,
-    [role='button']:focus-visible,
-    summary:focus-visible {
-        outline: none;
-        box-shadow: 0 0 0 3px rgb(var(--pd-accent-500) / 0.55);
     }
 
     /*
-     * The wallpaper: soft, saturated colour glows on a deep base, like the iOS 26/27 wallpapers. It is made only of
-     * gradients on one fixed layer, painted once: no "filter: blur" and no animation, so it costs nothing while
-     * scrolling. The glows are already soft, so a translucent card over them looks frosted without blurring anything.
+     * The background: plain, near black. The other backgrounds of the Appearance page (gradients, pictures, effects)
+     * are drawn by /js/appearance.js on top of this one.
      */
     body::before {
         content: '';
@@ -104,58 +116,18 @@ export default createGlobalStyle`
         inset: 0;
         z-index: -1;
         pointer-events: none;
-        background:
-            radial-gradient(55% 45% at 12% 8%, rgb(var(--pd-accent-500) / 0.55), transparent 70%),
-            radial-gradient(45% 40% at 88% 12%, rgba(191, 90, 242, 0.45), transparent 70%),
-            radial-gradient(50% 45% at 82% 92%, rgba(255, 55, 95, 0.38), transparent 70%),
-            radial-gradient(45% 45% at 8% 88%, rgba(100, 210, 255, 0.32), transparent 70%),
-            linear-gradient(160deg, #0b1030 0%, #160c2c 48%, #05060f 100%);
+        background: var(--pd-bg);
     }
 
     /*
-     * Liquid Glass, used by everything that floats over the page (navigation, menus, sheets). A light tint, a blur of
-     * what is behind, a bright rim on the top edge (the "specular" highlight) and a soft drop shadow.
+     * What floats over the page (the top bar, menus, sheets). The class keeps its old name ("glass") for the components
+     * that use it: it is now a flat surface, only the top bar is a little see-through.
      */
     .lg-glass {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.05) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38), inset 0 -1px 0 rgba(255, 255, 255, 0.08),
-            inset 0 0 24px rgba(255, 255, 255, 0.04), 0 12px 36px -12px rgba(0, 0, 0, 0.55);
-        -webkit-backdrop-filter: saturate(190%) blur(22px) brightness(1.06);
-        backdrop-filter: saturate(190%) blur(22px) brightness(1.06);
-    }
-
-    /*
-     * The rim of the glass: a thin line of light, brighter on the top left edge where the light comes from, and a
-     * reflection that follows the pointer along it (its place is set by /js/liquid-light.js). It is drawn on the
-     * border only (the inside is masked out), so nothing under it is blurred again.
-     */
-    .lg-glass::after,
-    .lg-rim::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        z-index: 1;
-        border-radius: inherit;
-        padding: 1px;
-        pointer-events: none;
-        background:
-            radial-gradient(180px circle at var(--lg-x, -400px) var(--lg-y, -400px), rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 70%),
-            linear-gradient(140deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.1) 28%, rgba(255, 255, 255, 0.03) 55%, rgba(255, 255, 255, 0.14) 100%);
-        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-        opacity: 0.75;
-        transition: opacity 0.3s ease;
-    }
-
-    .lg-glass.lg-lit::after,
-    .lg-rim.lg-lit::after {
-        opacity: 1;
-    }
-
-    /* The capsules can scroll sideways on small screens: no scroll bar inside the glass. */
-    .lg-glass {
+        background: rgba(10, 10, 10, 0.8);
+        border: 1px solid var(--pd-border);
+        -webkit-backdrop-filter: saturate(150%) blur(12px);
+        backdrop-filter: saturate(150%) blur(12px);
         scrollbar-width: none;
     }
 
@@ -163,13 +135,16 @@ export default createGlobalStyle`
         display: none;
     }
 
-    /* Thicker glass for sheets and menus that hold text over the page. */
     .lg-glass-thick {
-        background: linear-gradient(180deg, rgba(58, 58, 68, 0.78) 0%, rgba(34, 34, 42, 0.82) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 24px 60px -16px rgba(0, 0, 0, 0.7);
-        -webkit-backdrop-filter: saturate(180%) blur(28px);
-        backdrop-filter: saturate(180%) blur(28px);
+        background: var(--pd-surface);
+        border: 1px solid var(--pd-border-strong);
+        box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.8);
+    }
+
+    /* The old light on the edges of the glass is gone. */
+    .lg-glass::after,
+    .lg-rim::after {
+        display: none;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -185,23 +160,25 @@ export default createGlobalStyle`
     }
 
     ::selection {
-        background: rgb(var(--pd-accent-500) / 0.45);
+        background: rgb(var(--pd-accent-500) / 0.4);
         color: #fff;
     }
 
-    /* Titles are tight and bold, like the large titles of iOS. */
     h1, h2, h3, h4, h5, h6 {
-        ${tw`font-semibold font-header`};
-        letter-spacing: -0.022em;
+        ${tw`font-semibold font-header text-neutral-50`};
+        letter-spacing: -0.02em;
     }
 
     h1 {
-        ${tw`font-bold`};
-        letter-spacing: -0.028em;
+        letter-spacing: -0.04em;
     }
 
     p {
-        ${tw`text-neutral-200 leading-snug font-sans`};
+        ${tw`text-neutral-300 leading-snug font-sans`};
+    }
+
+    code, kbd, pre, .font-mono {
+        font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
 
     form {
@@ -210,6 +187,15 @@ export default createGlobalStyle`
 
     textarea, select, input, button, button:focus, button:focus-visible {
         ${tw`outline-none`};
+    }
+
+    /* A clear ring when the keyboard is used, nothing for the mouse. */
+    a:focus-visible,
+    button:focus-visible,
+    [role='button']:focus-visible,
+    summary:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--pd-bg), 0 0 0 4px rgb(var(--pd-accent-500) / 0.8);
     }
 
     a {
@@ -226,7 +212,6 @@ export default createGlobalStyle`
         -moz-appearance: textfield !important;
     }
 
-    /* Thin, rounded, translucent scroll bars, like iOS. */
     ::-webkit-scrollbar {
         background: none;
         width: 10px;
@@ -237,12 +222,11 @@ export default createGlobalStyle`
         border: solid 3px transparent;
         border-radius: 9999px;
         background-clip: padding-box;
-        background-color: rgba(255, 255, 255, 0.18);
-        transition: background-color 150ms ease;
+        background-color: #2e2e2e;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        background-color: rgb(var(--pd-accent-500) / 0.7);
+        background-color: #454545;
     }
 
     ::-webkit-scrollbar-track-piece {

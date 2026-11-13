@@ -168,7 +168,7 @@ const List = ({ onOpen, onNew, onClose }: { onOpen: (id: number) => void; onNew:
                     type={'button'}
                     onClick={onNew}
                     className={
-                        'w-full flex items-center justify-center gap-2 rounded-lg bg-primary-500 hover:bg-primary-400 px-4 py-2 text-sm font-semibold text-white transition-colors duration-150'
+                        'w-full flex items-center justify-center gap-2 rounded-lg bg-neutral-50 hover:bg-white px-4 py-2 text-sm font-medium text-neutral-900 transition-colors duration-150'
                     }
                 >
                     <FontAwesomeIcon icon={faPlus} />
@@ -262,7 +262,7 @@ const NewTicket = ({
                     type={'submit'}
                     disabled={busy || subject.trim().length < 3 || !message.trim()}
                     className={
-                        'mt-auto w-full rounded-lg bg-primary-500 hover:bg-primary-400 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 text-sm font-semibold text-white transition-colors duration-150'
+                        'mt-auto w-full rounded-lg bg-neutral-50 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 text-sm font-medium text-neutral-900 transition-colors duration-150'
                     }
                 >
                     Open the ticket
@@ -481,7 +481,7 @@ const Thread = ({ id, onBack, onClose }: { id: number; onBack: () => void; onClo
                             disabled={busy || !text.trim()}
                             aria-label={'Send'}
                             className={
-                                'flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-lg bg-primary-500 hover:bg-primary-400 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors duration-150'
+                                'flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-lg bg-neutral-50 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed text-neutral-900 transition-colors duration-150'
                             }
                         >
                             <FontAwesomeIcon icon={faPaperPlane} />
@@ -552,11 +552,11 @@ export default () => {
                     aria-expanded={open}
                     onClick={() => setOpen(!open)}
                     className={
-                        'relative flex items-center justify-center h-11 w-11 sm:h-14 sm:w-14 rounded-full text-white text-base sm:text-xl bg-gradient-to-br from-primary-400 to-primary-600 shadow-glow border border-white/20 transition-transform duration-150 hover:scale-110 active:scale-95'
+                        'relative flex items-center justify-center h-11 w-11 sm:h-12 sm:w-12 rounded-full text-neutral-900 text-base sm:text-lg bg-neutral-50 hover:bg-white border border-neutral-50 shadow-pop transition-colors duration-150'
                     }
                 >
                     {!!unread && !open && (
-                        <span className={'absolute inset-0 rounded-full bg-primary-400 bg-opacity-40 animate-ping'} />
+                        <span className={'absolute inset-0 rounded-full bg-neutral-50 bg-opacity-30 animate-ping'} />
                     )}
                     <FontAwesomeIcon icon={open ? faTimes : faLifeRing} className={'relative'} />
                     {!!unread && (

@@ -44,7 +44,7 @@
         <div class="wrapper">
             <header class="main-header">
                 <a href="{{ route('index') }}" class="logo">
-                    <span>{{ config('app.name', 'Pterodactyl') }}</span>
+                    <span>{{ config('app.name', 'Panel') }}</span>
                 </a>
                 <nav class="navbar navbar-static-top">
                     <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
@@ -184,7 +184,7 @@
                 @if ($copyright)
                     @if ($copyright['url'])<a href="{{ $copyright['url'] }}" rel="noopener nofollow noreferrer" target="_blank">{{ $copyright['text'] }}</a>@else{{ $copyright['text'] }}@endif
                 @else
-                    Copyright &copy; 2015 - {{ date('Y') }} <a href="https://pterodactyl.io/">Pterodactyl Software</a>.
+                    {{ config('app.name', 'Panel') }} &copy; {{ date('Y') }}
                 @endif
             </footer>
         </div>

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCogs, faHeartbeat, faLayerGroup, faSignOutAlt, faStore } from '@fortawesome/free-solid-svg-icons';
+import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
 import SearchContainer from '@/components/dashboard/search/SearchContainer';
@@ -17,25 +17,63 @@ import NotificationBell from '@/components/NotificationBell';
 import SupportBubble from '@/components/tickets/SupportBubble';
 import ScreenShare from '@/components/screen/ScreenShare';
 
-const RightNavigation = styled.div`
-    & > a,
-    & > button,
-    & > .navigation-link {
-        ${tw`relative flex flex-shrink-0 items-center justify-center h-9 w-8 sm:w-9 mx-0 sm:mx-0.5 rounded-full no-underline text-neutral-300 cursor-pointer transition-all duration-150`};
+const Bar = styled.header`
+    ${tw`sticky top-0 z-40 w-full`};
+    background: rgba(10, 10, 10, 0.8);
+    border-bottom: 1px solid #1f1f1f;
+    -webkit-backdrop-filter: saturate(150%) blur(12px);
+    backdrop-filter: saturate(150%) blur(12px);
+
+    & .pd-links {
+        ${tw`flex items-center gap-0.5 order-last w-full -mx-2.5 pb-2 md:order-none md:w-auto md:mx-0 md:pb-0`};
+
+        & > a {
+            ${tw`px-2.5 py-1.5 rounded-md text-sm no-underline text-neutral-300 transition-colors duration-150`};
+
+            &:hover {
+                ${tw`text-neutral-50 bg-neutral-700`};
+            }
+
+            &.active {
+                ${tw`text-neutral-50`};
+            }
+        }
+    }
+
+    & .pd-search {
+        ${tw`flex items-center gap-2 h-8 rounded-md text-sm text-neutral-500 transition-colors duration-150`};
+        ${tw`w-8 justify-center md:w-56 md:justify-start md:px-2.5 md:border md:border-neutral-600 md:bg-neutral-900`};
 
         &:hover {
-            ${tw`text-white`};
-            background: rgba(255, 255, 255, 0.1);
+            ${tw`text-neutral-300 md:border-neutral-500`};
         }
 
-        &:active {
-            transform: scale(0.94);
+        & > svg {
+            ${tw`w-3.5 h-3.5 flex-shrink-0`};
+        }
+    }
+
+    & .pd-search-label {
+        ${tw`hidden md:inline`};
+    }
+
+    & .pd-search-key {
+        ${tw`hidden md:inline ml-auto rounded border border-neutral-600 px-1 text-2xs text-neutral-500`};
+    }
+`;
+
+const RightNavigation = styled.div`
+    & > a,
+    & > button:not(.pd-search),
+    & > .navigation-link {
+        ${tw`relative flex flex-shrink-0 items-center justify-center h-8 w-8 rounded-md no-underline text-neutral-300 cursor-pointer transition-colors duration-150`};
+
+        &:hover {
+            ${tw`text-neutral-50 bg-neutral-700`};
         }
 
         &.active {
-            ${tw`text-white`};
-            background: rgb(var(--pd-accent-500));
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 4px 12px -4px rgb(var(--pd-accent-500) / 0.8);
+            ${tw`text-neutral-50 bg-neutral-700`};
         }
     }
 `;
@@ -77,52 +115,43 @@ export default () => {
         <>
             <SupportBubble />
             <ScreenShare />
-            <div className={'sticky top-0 z-40 w-full px-2 sm:px-4 pt-3'}>
+            <Bar>
                 <SpinnerOverlay visible={isLoggingOut} />
                 <div
                     className={
-                        'lg-glass relative rounded-full mx-auto w-full flex items-center h-14 max-w-[1200px] px-2 sm:px-5'
+                        'relative mx-auto w-full flex flex-wrap md:flex-nowrap items-center gap-x-6 min-h-[3.5rem] max-w-[1280px] px-4 sm:px-6'
                     }
                 >
-                    <div id={'logo'} className={'flex-1 min-w-0'}>
-                        <Link
-                            to={'/'}
-                            className={
-                                'flex items-center min-w-0 px-1 sm:px-2 no-underline hover:brightness-110 transition-[filter] duration-150'
-                            }
-                        >
+                    <div id={'logo'} className={'min-w-0 flex-shrink'}>
+                        <Link to={'/'} className={'flex items-center gap-2.5 min-w-0 no-underline'}>
+                            <span
+                                aria-hidden
+                                className={'w-6 h-6 rounded-md flex-shrink-0'}
+                                style={{ background: 'linear-gradient(135deg, #ededed 0%, #707070 100%)' }}
+                            />
                             <BrandTitle className={'truncate'} />
                         </Link>
                     </div>
-                    <RightNavigation className={'flex h-full items-center justify-center'}>
-                        <SearchContainer />
-                        <NotificationBell />
-                        <Tooltip placement={'bottom'} content={'Dashboard'}>
-                            <NavLink to={'/'} exact>
-                                <FontAwesomeIcon icon={faLayerGroup} />
-                            </NavLink>
-                        </Tooltip>
-                        {shopOpen && (
-                            <Tooltip placement={'bottom'} content={'Shop'}>
-                                <NavLink to={'/shop'}>
-                                    <FontAwesomeIcon icon={faStore} />
-                                </NavLink>
-                            </Tooltip>
-                        )}
+                    <nav className={'pd-links'}>
+                        <NavLink to={'/'} exact>
+                            Servers
+                        </NavLink>
+                        {shopOpen && <NavLink to={'/shop'}>Shop</NavLink>}
                         {statusOpen && (
-                            <Tooltip placement={'bottom'} content={'Status page'}>
-                                <a href={'/status'} target={'_blank'} rel={'noopener noreferrer'}>
-                                    <FontAwesomeIcon icon={faHeartbeat} />
-                                </a>
-                            </Tooltip>
+                            <a href={'/status'} target={'_blank'} rel={'noopener noreferrer'}>
+                                Status
+                            </a>
                         )}
                         {adminAccess && (
-                            <Tooltip placement={'bottom'} content={'Admin'}>
-                                <a href={'/admin'} rel={'noreferrer'}>
-                                    <FontAwesomeIcon icon={faCogs} />
-                                </a>
-                            </Tooltip>
+                            <a href={'/admin'} rel={'noreferrer'}>
+                                Admin
+                            </a>
                         )}
+                    </nav>
+                    <div className={'flex-1'} />
+                    <RightNavigation className={'flex h-14 items-center justify-center gap-1'}>
+                        <SearchContainer />
+                        <NotificationBell />
                         <Tooltip placement={'bottom'} content={'Account Settings'}>
                             <NavLink to={'/account'}>
                                 <span className={'flex items-center w-5 h-5'}>
@@ -137,7 +166,7 @@ export default () => {
                         </Tooltip>
                     </RightNavigation>
                 </div>
-            </div>
+            </Bar>
         </>
     );
 };

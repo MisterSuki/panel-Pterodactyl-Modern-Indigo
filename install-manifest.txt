@@ -190,6 +190,7 @@ public/js/appearance.js
 public/js/admin-search.js
 public/js/liquid-light.js
 public/fonts/inter/
+public/fonts/geist/
 app/Services/Discord/
 app/Http/Controllers/Base/DiscordInteractionController.php
 app/Http/Controllers/Admin/DiscordBotController.php
