@@ -23,6 +23,7 @@ return [
     ],
     'user' => [
         'vps' => [
+            'console' => 'Opened the console of the VPS :name',
             'power' => 'Sent ":action" to the VPS :name',
         ],
         'user' => [

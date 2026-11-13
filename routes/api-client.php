@@ -58,6 +58,7 @@ Route::prefix('/vps')->group(function () {
     Route::get('/{uuid}', [Client\VpsController::class, 'show'])->whereUuid('uuid')->middleware('throttle:60,1');
     Route::get('/{uuid}/history', [Client\VpsController::class, 'history'])->whereUuid('uuid')->middleware('throttle:30,1');
     Route::post('/{uuid}/power', [Client\VpsController::class, 'power'])->whereUuid('uuid')->middleware('throttle:10,1');
+    Route::post('/{uuid}/console', [Client\VpsController::class, 'console'])->whereUuid('uuid')->middleware('throttle:20,1');
 });
 
 // Somebody of the staff asks to see the screen: the person answers here, and only about their own session.

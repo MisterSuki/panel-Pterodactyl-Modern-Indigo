@@ -228,6 +228,54 @@ class ProxmoxService
     }
 
     /**
+     * True while the console relay runs on this machine (it touches <storage>/app/vnc/.alive every 30 seconds).
+     */
+    public function consoleAvailable(): bool
+    {
+        $alive = storage_path('app/vnc/.alive');
+
+        return is_file($alive) && (int) @filemtime($alive) > time() - 90;
+    }
+
+    /**
+     * Opens the console of a VPS for the browser: Proxmox gives a ticket, and a one-time session file tells the relay
+     * where to connect and with which token. The browser only gets the id of the session (and the VNC password).
+     *
+     * @return array{session: string, password: string}
+     *
+     * @throws DisplayException
+     */
+    public function openConsole(ProxmoxVm $vm): array
+    {
+        $directory = storage_path('app/vnc');
+        if (!is_dir($directory) && !@mkdir($directory, 0700, true) && !is_dir($directory)) {
+            throw new DisplayException('The console cannot be opened: the folder of its sessions cannot be made.');
+        }
+
+        $client = $this->client($vm->host);
+        $proxy = $client->vncProxy($vm->node, $vm->vmid);
+        $session = bin2hex(random_bytes(24));
+        $file = $directory . '/' . $session . '.json';
+        $written = @file_put_contents($file, json_encode([
+            'url' => $vm->host->url,
+            'auth' => $client->authorization(),
+            'verify' => $vm->host->verify_tls,
+            'node' => $vm->node,
+            'vmid' => $vm->vmid,
+            'port' => $proxy['port'],
+            'ticket' => $proxy['ticket'],
+            // Proxmox waits only a few seconds for the connection.
+            'expires' => time() + 30,
+        ]), LOCK_EX);
+        if ($written === false) {
+            throw new DisplayException('The console cannot be opened: its session cannot be written.');
+        }
+        @chmod($file, 0600);
+
+        return ['session' => $session, 'password' => $proxy['ticket']];
+    }
+
+    /**
      * "running", "stopped", "paused", or "busy" while Proxmox works on it (a backup, a migration...).
      */
     public function status(array $live): string

@@ -82,6 +82,7 @@ class VpsController extends ClientApiController
             'root_password' => $this->password($vm),
             'os' => isset($config['ostype']) ? (string) $config['ostype'] : null,
             'agent' => !empty($config['agent']),
+            'console' => $this->proxmox->consoleAvailable(),
         ])]);
     }
 
@@ -138,6 +139,32 @@ class VpsController extends ClientApiController
             ->log();
 
         return $this->returnNoContent();
+    }
+
+    /**
+     * Opens the console (noVNC) of the machine. The browser gets the address of the relay of the panel and the VNC
+     * password; the token of Proxmox stays on the server.
+     */
+    public function console(Request $request, string $uuid): JsonResponse
+    {
+        $vm = $this->find($request, $uuid);
+        if (!$vm->isReady()) {
+            throw new DisplayException('The VPS is not ready yet.');
+        }
+        if (!$this->proxmox->consoleAvailable()) {
+            throw new DisplayException('The console is not set up on the panel yet: the administrator has to run the update of the panel.');
+        }
+
+        $console = $this->proxmox->openConsole($vm);
+
+        Activity::event('user:vps.console')
+            ->property(['name' => $vm->name])
+            ->log();
+
+        return new JsonResponse(['data' => [
+            'path' => '/vnc-relay/' . $console['session'],
+            'password' => $console['password'],
+        ]]);
     }
 
     /**

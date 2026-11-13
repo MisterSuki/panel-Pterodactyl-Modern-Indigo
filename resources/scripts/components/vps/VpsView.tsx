@@ -17,6 +17,7 @@ import {
     faPowerOff,
     faRedo,
     faStop,
+    faTerminal,
 } from '@fortawesome/free-solid-svg-icons';
 import PageContentBlock from '@/components/elements/PageContentBlock';
 import Spinner from '@/components/elements/Spinner';
@@ -202,6 +203,14 @@ export default () => {
                                     <FontAwesomeIcon icon={faPlay} css={tw`mr-2 text-xs`} />
                                     <span>Start</span>
                                 </Button>
+                            )}
+                            {ready && running && vps.console && (
+                                <Link to={`/vps/${uuid}/console`} css={tw`no-underline`}>
+                                    <Button>
+                                        <FontAwesomeIcon icon={faTerminal} css={tw`mr-2 text-xs`} />
+                                        <span>Console</span>
+                                    </Button>
+                                </Link>
                             )}
                             {ready && running && (
                                 <>

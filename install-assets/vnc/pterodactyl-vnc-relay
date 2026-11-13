@@ -1,0 +1,227 @@
+#!/usr/bin/env python3
+"""
+The bridge between the browser and the console (VNC) of a VPS on Proxmox.
+
+The browser cannot open the console of Proxmox by itself: Proxmox wants the API token of the panel, which must never
+reach the browser. So the panel asks Proxmox for a console ticket, writes a one-time session file next to it (in
+<panel>/storage/app/vnc, readable by root and the web user only), and gives the browser the id of that session. The
+browser opens wss://<panel>/vnc-relay/<id>; Nginx hands it to this relay on 127.0.0.1, which reads and deletes the
+session file, opens the websocket of Proxmox with the token, and passes the bytes both ways.
+
+Both websockets are opened without extensions, so the frames do not need to be read: what the browser sends is already
+a masked client frame, which is what Proxmox expects, and what Proxmox sends is an unmasked server frame, which is what
+the browser expects.
+
+Only the Python standard library is used. Started by systemd (pterodactyl-vnc-relay.service).
+"""
+import argparse
+import asyncio
+import base64
+import hashlib
+import json
+import os
+import re
+import secrets
+import ssl
+import sys
+import time
+from urllib.parse import quote, urlsplit
+
+GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+SESSION = re.compile(r'^/vnc-relay/([a-f0-9]{48})$')
+MAX_HEADER = 16384
+
+
+def log(*parts):
+    print(time.strftime('%Y-%m-%d %H:%M:%S'), *parts, flush=True)
+
+
+async def read_head(reader):
+    """The request or response line and headers, up to the empty line. Returns (first line, headers, leftover)."""
+    data = b''
+    while b'\r\n\r\n' not in data:
+        chunk = await reader.read(4096)
+        if not chunk:
+            raise ConnectionError('closed during the handshake')
+        data += chunk
+        if len(data) > MAX_HEADER:
+            raise ConnectionError('headers too long')
+    head, rest = data.split(b'\r\n\r\n', 1)
+    lines = head.decode('latin-1').split('\r\n')
+    headers = {}
+    for line in lines[1:]:
+        if ':' in line:
+            name, value = line.split(':', 1)
+            headers[name.strip().lower()] = value.strip()
+    return lines[0], headers, rest
+
+
+def take_session(directory, session_id):
+    """Reads the session file once and deletes it. None when it is missing or too old."""
+    path = os.path.join(directory, session_id + '.json')
+    try:
+        with open(path, encoding='utf8') as handle:
+            data = json.load(handle)
+    except (OSError, ValueError):
+        return None
+    finally:
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+    if not isinstance(data, dict) or float(data.get('expires', 0)) < time.time():
+        return None
+    return data
+
+
+async def pipe(reader, writer):
+    try:
+        while True:
+            chunk = await reader.read(65536)
+            if not chunk:
+                break
+            writer.write(chunk)
+            await writer.drain()
+    except (ConnectionError, asyncio.CancelledError, OSError):
+        pass
+    finally:
+        try:
+            writer.close()
+        except Exception:
+            pass
+
+
+async def refuse(writer, status):
+    writer.write(('HTTP/1.1 %s\r\nContent-Length: 0\r\nConnection: close\r\n\r\n' % status).encode())
+    try:
+        await writer.drain()
+    finally:
+        writer.close()
+
+
+async def open_proxmox(session, protocols):
+    """Opens the websocket of the console on Proxmox. Returns (reader, writer, chosen protocol, leftover bytes)."""
+    url = urlsplit(session['url'])
+    host = url.hostname
+    port = url.port or 8006
+    context = ssl.create_default_context()
+    if not session.get('verify'):
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+    reader, writer = await asyncio.wait_for(
+        asyncio.open_connection(host, port, ssl=context, server_hostname=host), timeout=8)
+
+    path = '/api2/json/nodes/%s/qemu/%d/vncwebsocket?port=%d&vncticket=%s' % (
+        quote(str(session['node']), safe=''), int(session['vmid']), int(session['port']), quote(str(session['ticket']), safe=''))
+    key = base64.b64encode(secrets.token_bytes(16)).decode()
+    lines = [
+        'GET %s HTTP/1.1' % path,
+        'Host: %s:%d' % (host, port),
+        'Upgrade: websocket',
+        'Connection: Upgrade',
+        'Sec-WebSocket-Version: 13',
+        'Sec-WebSocket-Key: %s' % key,
+        'Authorization: %s' % session['auth'],
+        'Origin: https://%s:%d' % (host, port),
+    ]
+    if protocols:
+        lines.append('Sec-WebSocket-Protocol: %s' % protocols)
+    writer.write(('\r\n'.join(lines) + '\r\n\r\n').encode('latin-1'))
+    await writer.drain()
+
+    status, headers, rest = await asyncio.wait_for(read_head(reader), timeout=8)
+    if ' 101 ' not in status + ' ':
+        writer.close()
+        raise ConnectionError('Proxmox answered: ' + status)
+    expected = base64.b64encode(hashlib.sha1((key + GUID).encode()).digest()).decode()
+    if headers.get('sec-websocket-accept') != expected:
+        writer.close()
+        raise ConnectionError('Proxmox gave a wrong handshake')
+    return reader, writer, headers.get('sec-websocket-protocol'), rest
+
+
+def handler(directory):
+    async def handle(client_reader, client_writer):
+        peer = client_writer.get_extra_info('peername')
+        try:
+            line, headers, rest = await asyncio.wait_for(read_head(client_reader), timeout=10)
+        except Exception:
+            client_writer.close()
+            return
+
+        parts = line.split(' ')
+        match = SESSION.match(parts[1].split('?', 1)[0]) if len(parts) >= 2 and parts[0] == 'GET' else None
+        if not match or headers.get('upgrade', '').lower() != 'websocket' or 'sec-websocket-key' not in headers:
+            await refuse(client_writer, '400 Bad Request')
+            return
+
+        session = take_session(directory, match.group(1))
+        if not session:
+            log('refused: unknown or expired session from', headers.get('x-real-ip') or peer)
+            await refuse(client_writer, '403 Forbidden')
+            return
+
+        try:
+            px_reader, px_writer, protocol, px_rest = await open_proxmox(session, headers.get('sec-websocket-protocol', ''))
+        except Exception as error:
+            log('Proxmox console of VM', session.get('vmid'), 'could not be opened:', error)
+            await refuse(client_writer, '502 Bad Gateway')
+            return
+
+        accept = base64.b64encode(hashlib.sha1((headers['sec-websocket-key'] + GUID).encode()).digest()).decode()
+        answer = ['HTTP/1.1 101 Switching Protocols', 'Upgrade: websocket', 'Connection: Upgrade', 'Sec-WebSocket-Accept: ' + accept]
+        if protocol:
+            answer.append('Sec-WebSocket-Protocol: ' + protocol)
+        client_writer.write(('\r\n'.join(answer) + '\r\n\r\n').encode('latin-1'))
+        if px_rest:
+            client_writer.write(px_rest)
+        if rest:
+            px_writer.write(rest)
+        await client_writer.drain()
+        log('console of VM', session.get('vmid'), 'opened for', headers.get('x-real-ip') or peer)
+
+        await asyncio.gather(pipe(client_reader, px_writer), pipe(px_reader, client_writer))
+        log('console of VM', session.get('vmid'), 'closed')
+
+    return handle
+
+
+async def heartbeat(directory):
+    """Tells the panel the relay is running: it shows the Console button only then."""
+    while True:
+        try:
+            with open(os.path.join(directory, '.alive'), 'w') as handle:
+                handle.write(str(int(time.time())))
+        except OSError as error:
+            log('cannot write in', directory, ':', error)
+        # Sessions nobody came for.
+        try:
+            for name in os.listdir(directory):
+                path = os.path.join(directory, name)
+                if name.endswith('.json') and os.path.getmtime(path) < time.time() - 120:
+                    os.unlink(path)
+        except OSError:
+            pass
+        await asyncio.sleep(30)
+
+
+async def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--sessions', required=True, help='<panel>/storage/app/vnc')
+    parser.add_argument('--listen', default='127.0.0.1:8095')
+    args = parser.parse_args()
+    host, port = args.listen.rsplit(':', 1)
+    os.makedirs(args.sessions, exist_ok=True)
+
+    server = await asyncio.start_server(handler(args.sessions), host, int(port))
+    log('listening on', args.listen, 'for the sessions in', args.sessions)
+    asyncio.ensure_future(heartbeat(args.sessions))
+    async with server:
+        await server.serve_forever()
+
+
+if __name__ == '__main__':
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        sys.exit(0)

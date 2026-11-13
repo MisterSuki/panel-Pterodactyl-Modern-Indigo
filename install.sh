@@ -873,6 +873,8 @@ run_update() {
         fi
         # The mail agent of this machine, when it has one.
         install_mail_agent || warn "The mail agent could not be updated."
+        # The console (noVNC) of the VPS.
+        install_vnc_relay || warn "The VPS console could not be installed."
     fi
 
     echo ""
@@ -1102,6 +1104,101 @@ find_fpm_socket() {
         fi
     done
     return 1
+}
+
+# The console (noVNC) of the VPS of Proxmox: a small relay on 127.0.0.1:8095 that the browser reaches through nginx at
+# /vnc-relay/. The panel writes a one-time session for each console in <panel>/storage/app/vnc; the relay reads it and
+# opens the console of Proxmox with the API token, which never reaches the browser. Safe to run again.
+install_vnc_relay() {
+    local assets="${SRC:-}/install-assets/vnc" sessions="${PANEL_PATH}/storage/app/vnc"
+    local snippet="${NGINX_DIR}/snippets/pterodactyl-vnc.conf" vhost added=() backups=() i
+    local backup_dir="${TMP:-}"
+    [[ -n "$backup_dir" && -d "$backup_dir" ]] || backup_dir="$(mktemp -d)"
+    if [[ ! -f "$assets/pterodactyl-vnc-relay" ]]; then
+        warn "install-assets/vnc is missing from the downloaded files: the VPS console was not installed."
+        return 0
+    fi
+    if ! command -v python3 >/dev/null 2>&1 || ! command -v nginx >/dev/null 2>&1; then
+        warn "python3 or nginx was not found: the VPS console was not installed."
+        return 0
+    fi
+
+    step "VPS console (noVNC)"
+    install -m 755 "$assets/pterodactyl-vnc-relay" /usr/local/sbin/pterodactyl-vnc-relay
+    mkdir -p "$sessions"
+    chown "${WEB_USER}:${WEB_USER}" "$sessions" 2>/dev/null || warn "Could not give $sessions to ${WEB_USER} (check the web user with WEB_USER=)."
+    chmod 700 "$sessions"
+
+    cat >/etc/systemd/system/pterodactyl-vnc-relay.service <<EOF
+[Unit]
+Description=Pterodactyl: console (noVNC) of the VPS of Proxmox
+After=network-online.target nginx.service
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/sbin/pterodactyl-vnc-relay --sessions ${sessions} --listen 127.0.0.1:8095
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl daemon-reload
+    systemctl enable pterodactyl-vnc-relay.service >/dev/null 2>&1 || true
+    if systemctl restart pterodactyl-vnc-relay.service; then
+        ok "Console relay running. Follow it with: journalctl -fu pterodactyl-vnc-relay"
+    else
+        warn "The console relay did not start. See: journalctl -u pterodactyl-vnc-relay"
+    fi
+
+    # nginx: /vnc-relay/ goes to the relay, as a websocket.
+    mkdir -p "${NGINX_DIR}/snippets"
+    cat >"$snippet" <<'EOF'
+# The console (noVNC) of the VPS: websockets handed to the relay of the panel (pterodactyl-vnc-relay).
+location /vnc-relay/ {
+    proxy_pass http://127.0.0.1:8095;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+}
+EOF
+
+    local vhosts=()
+    while IFS= read -r vhost; do
+        [[ -n "$vhost" ]] && vhosts+=("$vhost")
+    done < <(find_panel_vhosts)
+
+    if [[ "${#vhosts[@]}" -eq 0 ]]; then
+        warn "Could not find the nginx file of the panel (looked for \"root ${PANEL_PATH}/public;\" in ${NGINX_DIR})."
+        warn "Add this line inside its \"server { }\" block, then reload nginx:"
+        warn "    include ${snippet};"
+        return 0
+    fi
+    for vhost in "${vhosts[@]}"; do
+        if grep -qF "include ${snippet};" "$vhost"; then
+            continue
+        fi
+        cp -p "$vhost" "$backup_dir/vnc-vhost.${#backups[@]}.bak"
+        backups+=("$backup_dir/vnc-vhost.${#backups[@]}.bak")
+        added+=("$vhost")
+        sed -i "/^[[:space:]]*root[[:space:]]\+${PANEL_PATH//\//\\/}\/\?public;/a\\    include ${snippet//\//\\/};" "$vhost"
+    done
+    if ! nginx -t >/dev/null 2>&1; then
+        err "nginx does not accept the console of the VPS (nginx -t):"
+        nginx -t 2>&1 | sed 's/^/    /' >&2 || true
+        for i in "${!added[@]}"; do
+            cp -p "${backups[$i]}" "${added[$i]}"
+        done
+        warn "The nginx configuration was put back as it was: the VPS console is not available."
+        return 0
+    fi
+    systemctl reload nginx >/dev/null 2>&1 || systemctl restart nginx >/dev/null 2>&1 || true
+    ok "nginx hands /vnc-relay/ to the console relay"
 }
 
 # The nginx files that serve the panel (the ones with "root <panel>/public;").
@@ -1945,6 +2042,7 @@ run_panel_install() {
         compile_dashboard
     fi
     setup_services
+    install_vnc_relay || warn "The VPS console could not be installed (the panel itself is fine)."
     save_credentials
     rm -f "$marker"
     trap - ERR

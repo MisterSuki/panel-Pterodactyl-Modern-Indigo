@@ -33,6 +33,8 @@ export interface VpsDetails extends Vps {
     agent: boolean;
     // The root password set when the panel created the machine, null for a machine made on Proxmox.
     rootPassword: string | null;
+    // True when the console relay runs on the panel, so the console (noVNC) can be opened.
+    console: boolean;
 }
 
 export interface VpsPoint {
@@ -71,6 +73,7 @@ export const getVps = (uuid: string): Promise<VpsDetails> =>
         os: data.data.os || null,
         agent: !!data.data.agent,
         rootPassword: data.data.root_password || null,
+        console: !!data.data.console,
     }));
 
 export const getVpsHistory = (uuid: string, range: 'hour' | 'day' | 'week'): Promise<VpsPoint[]> =>
@@ -83,6 +86,10 @@ export const getVpsHistory = (uuid: string, range: 'hour' | 'day' | 'week'): Pro
             netOut: point.net_out ?? null,
         }))
     );
+
+// A one-time session of the console: the path of the relay to open as a websocket, and the VNC password.
+export const openVpsConsole = (uuid: string): Promise<{ path: string; password: string }> =>
+    http.post(`/api/client/vps/${uuid}/console`).then(({ data }) => data.data);
 
 export const sendVpsPower = (uuid: string, action: VpsAction): Promise<void> =>
     http.post(`/api/client/vps/${uuid}/power`, { action }).then(() => undefined);

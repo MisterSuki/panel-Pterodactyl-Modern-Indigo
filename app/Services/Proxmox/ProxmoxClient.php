@@ -230,6 +230,30 @@ class ProxmoxClient
         return (string) $this->send('delete', $this->vmPath($node, $vmid), ['purge' => 1, 'destroy-unreferenced-disks' => 1]);
     }
 
+    /**
+     * Opens the console (VNC) of a machine for a websocket: Proxmox answers with the port it listens on for a few
+     * seconds and a ticket, which is also the VNC password.
+     *
+     * @return array{port: int, ticket: string}
+     */
+    public function vncProxy(string $node, int $vmid): array
+    {
+        $data = (array) $this->send('post', $this->vmPath($node, $vmid) . '/vncproxy', ['websocket' => 1]);
+        if (empty($data['port']) || empty($data['ticket'])) {
+            throw new DisplayException('Proxmox did not open the console.');
+        }
+
+        return ['port' => (int) $data['port'], 'ticket' => (string) $data['ticket']];
+    }
+
+    /**
+     * The Authorization header of the token, for the console relay that opens the websocket of Proxmox itself.
+     */
+    public function authorization(): string
+    {
+        return $this->headers()['Authorization'];
+    }
+
     private function vmPath(string $node, int $vmid): string
     {
         return '/nodes/' . rawurlencode($node) . '/qemu/' . $vmid;
