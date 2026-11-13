@@ -104,6 +104,10 @@
         });
         root.style.setProperty('--pd-a', base.join(', '));
         root.style.setProperty('--pd-accent', ACCENTS[name] || ACCENTS.blue);
+        // Its two neighbours on the colour wheel, for the aurora behind the page and the neon edges of the cards.
+        var pair = palette(name);
+        root.style.setProperty('--pd-neon-2', pair[1].join(' '));
+        root.style.setProperty('--pd-neon-3', pair[2].join(' '));
     }
 
     // The three colours the effects are painted with: the accent, and two neighbours on the colour wheel.

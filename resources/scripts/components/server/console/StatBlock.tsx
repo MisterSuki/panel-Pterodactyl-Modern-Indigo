@@ -19,7 +19,7 @@ interface StatBlockProps {
 export default ({ title, copyOnClick, icon, color, className, children, sparkline }: StatBlockProps) => {
     return (
         <CopyOnClick text={copyOnClick}>
-            <div className={classNames(styles.stat_block, 'overflow-hidden', className)}>
+            <div className={classNames(styles.stat_block, 'pd-neon overflow-hidden', className)}>
                 {sparkline}
                 <div className={'relative flex flex-col justify-center overflow-hidden w-full'}>
                     <p className={'flex items-center gap-2 leading-tight text-xs text-gray-400'}>

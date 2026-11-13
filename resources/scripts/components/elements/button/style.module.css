@@ -36,15 +36,25 @@
 }
 
 .primary {
-    @apply bg-primary-500 text-white border border-primary-500 focus:ring-primary-400;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    @apply bg-primary-500 text-white border border-transparent focus:ring-primary-400;
+    /* A gradient from the accent to its neighbour, with a glow under it that grows on hover. */
+    background-image: linear-gradient(135deg, rgb(var(--pd-accent-400)) 0%, rgb(var(--pd-accent-600)) 55%, rgb(var(--pd-neon-2)) 130%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 20px -8px rgb(var(--pd-accent-500) / 0.8);
+    transition: box-shadow 200ms ease, filter 200ms ease, transform 200ms ease;
 
     &:hover:not(:disabled) {
-        @apply bg-primary-400 border-primary-400;
+        filter: brightness(1.12);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 8px 30px -6px rgb(var(--pd-accent-500) / 0.95);
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(1px);
     }
 
     &.secondary {
         @apply bg-transparent text-gray-50 border-gray-600;
+        background-image: none;
+        box-shadow: none;
     }
 }
 

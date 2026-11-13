@@ -31,6 +31,7 @@ const Cell = ({
             <span>{label}</span>
         </p>
         <p
+            className={'pd-glow-text'}
             css={tw`relative mt-2 text-2xl font-semibold text-neutral-50 tabular-nums leading-tight truncate tracking-tight`}
         >
             {value}
@@ -69,7 +70,8 @@ export default ({ total, servers, usage, history }: Props) => {
 
     return (
         <div
-            css={tw`grid grid-cols-2 lg:grid-cols-4 mb-8 rounded-2xl border border-neutral-700 bg-neutral-800 divide-x divide-neutral-700 overflow-hidden`}
+            className={'pd-neon'}
+            css={tw`relative grid grid-cols-2 lg:grid-cols-4 mb-8 rounded-2xl border border-neutral-700 bg-neutral-800 divide-x divide-neutral-700 overflow-hidden`}
         >
             <Cell icon={faPowerOff} label={'Running'} value={usage ? running : '–'} detail={`/ ${total}`}>
                 <div css={tw`absolute inset-x-5 bottom-4 h-1 rounded-full bg-neutral-700 overflow-hidden`}>

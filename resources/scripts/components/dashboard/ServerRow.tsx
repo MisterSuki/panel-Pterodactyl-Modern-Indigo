@@ -51,7 +51,7 @@ const ServerCard = styled(GreyRowBox)`
     /* A soft light of the accent colour that follows the pointer (see onMouseMove), and a slight lift on hover. */
     background-image: radial-gradient(
         480px circle at var(--x, 50%) var(--y, 0%),
-        rgb(var(--pd-accent-500) / calc(var(--pd-glow) * 0.13)),
+        rgb(var(--pd-accent-500) / calc(var(--pd-glow) * 0.2)),
         transparent 45%
     );
     transition: border-color 150ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease,
@@ -59,9 +59,8 @@ const ServerCard = styled(GreyRowBox)`
 
     &[href]:hover {
         --pd-glow: 1;
-        transform: translate3d(0, -2px, 0);
-        border-color: rgb(var(--pd-accent-500) / 0.35);
-        box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.9), 0 0 0 1px rgb(var(--pd-accent-500) / 0.08);
+        transform: translate3d(0, -3px, 0);
+        box-shadow: 0 22px 50px -20px rgba(0, 0, 0, 0.95), 0 0 32px -6px rgb(var(--pd-accent-500) / 0.35);
     }
 
     & .icon {

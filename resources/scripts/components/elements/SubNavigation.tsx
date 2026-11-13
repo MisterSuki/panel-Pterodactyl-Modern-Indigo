@@ -79,8 +79,15 @@ const Layout = styled.div`
                 }
 
                 &.active {
-                    ${tw`text-neutral-50 bg-neutral-700`};
-                    box-shadow: inset 2px 0 0 rgb(var(--pd-accent-500));
+                    ${tw`text-neutral-50`};
+                    background: linear-gradient(
+                        90deg,
+                        rgb(var(--pd-accent-500) / 0.22),
+                        rgb(var(--pd-neon-2) / 0.06) 70%,
+                        transparent
+                    );
+                    box-shadow: inset 2px 0 0 rgb(var(--pd-accent-400)),
+                        -4px 0 14px -4px rgb(var(--pd-accent-500) / 0.8);
 
                     & > .pd-tile {
                         color: rgb(var(--pd-accent-400));
