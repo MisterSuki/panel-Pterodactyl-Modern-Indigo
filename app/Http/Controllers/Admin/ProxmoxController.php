@@ -4,6 +4,7 @@ namespace Pterodactyl\Http\Controllers\Admin;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Prologue\Alerts\AlertsMessageBag;
@@ -31,23 +32,45 @@ class ProxmoxController extends Controller
     {
     }
 
+    /**
+     * The page opens at once with what is already known; the hosts that were not asked recently fill their box right
+     * after, each one on its own (see panel()).
+     */
     public function index(Request $request): View
     {
         $hosts = ProxmoxHost::query()->orderBy('name')->get();
-        $fresh = $request->boolean('refresh');
-        $panelVms = ProxmoxVm::query()->with(['user:id,username,email', 'ip'])->orderBy('name')->get()->groupBy('host_id');
-        $ips = ProxmoxIp::query()->with('vm:id,name')->orderBy('address')->get()->groupBy('host_id');
+        if ($request->boolean('refresh')) {
+            $hosts->each(fn (ProxmoxHost $host) => $this->proxmox->forgetOverview($host));
+        }
 
         return view('admin.proxmox', [
-            'hosts' => $hosts->map(fn (ProxmoxHost $host) => [
-                'host' => $host,
-                'overview' => $this->proxmox->overview($host, $fresh),
-                'assigned' => ($panelVms->get($host->id) ?? collect())->keyBy('vmid'),
-                'panelVms' => $panelVms->get($host->id) ?? collect(),
-                'ips' => $ips->get($host->id) ?? collect(),
-            ]),
+            'hosts' => $hosts->map(fn (ProxmoxHost $host) => $this->entry($host, $this->proxmox->cachedOverview($host))),
             'editing' => $request->filled('edit') ? $hosts->firstWhere('id', (int) $request->query('edit')) : null,
         ]);
+    }
+
+    /**
+     * The box of one host, asked by the page after it opened.
+     */
+    public function panel(ProxmoxHost $host): Response
+    {
+        return response(view('admin.proxmox.host', ['entry' => $this->entry($host, $this->proxmox->overview($host))])->render());
+    }
+
+    /**
+     * What the box of a host shows: its overview (null while it was not asked), and the VPS and addresses of the panel.
+     */
+    private function entry(ProxmoxHost $host, ?array $overview): array
+    {
+        $panelVms = ProxmoxVm::query()->where('host_id', $host->id)->with(['user:id,username,email', 'ip'])->orderBy('name')->get();
+
+        return [
+            'host' => $host,
+            'overview' => $overview,
+            'assigned' => $panelVms->keyBy('vmid'),
+            'panelVms' => $panelVms,
+            'ips' => ProxmoxIp::query()->where('host_id', $host->id)->with('vm:id,name')->orderBy('address')->get(),
+        ];
     }
 
     public function store(Request $request): RedirectResponse

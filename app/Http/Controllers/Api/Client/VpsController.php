@@ -53,8 +53,16 @@ class VpsController extends ClientApiController
         }
 
         try {
-            $live = $client->status($vm->node, $vm->vmid);
-            $config = $client->config($vm->node, $vm->vmid);
+            // Both asked at the same time.
+            $path = '/nodes/' . rawurlencode($vm->node) . '/qemu/' . $vm->vmid;
+            $answers = $client->many(['status' => $path . '/status/current', 'config' => $path . '/config']);
+            foreach ($answers as $answer) {
+                if ($answer instanceof DisplayException) {
+                    throw $answer;
+                }
+            }
+            $live = (array) $answers['status'];
+            $config = (array) $answers['config'];
         } catch (DisplayException $exception) {
             return new JsonResponse(['data' => array_merge($this->proxmox->present($vm, null), [
                 'error' => $exception->getMessage(),

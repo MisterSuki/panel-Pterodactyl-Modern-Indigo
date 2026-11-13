@@ -5,6 +5,8 @@ namespace Pterodactyl\Services\Proxmox;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Pterodactyl\Exceptions\DisplayException;
@@ -259,6 +261,56 @@ class ProxmoxClient
             throw new DisplayException('Proxmox does not answer: check the address and that port 8006 is reachable from the panel.');
         }
 
+        return $this->decode($response);
+    }
+
+    /**
+     * Several readings asked at the same time instead of one after the other, so a page that needs the version, the
+     * nodes and the machines waits for the slowest answer only. Each one comes back as its data, or as the
+     * DisplayException it would have thrown.
+     *
+     * @param array<string, string> $paths name => path (GET, with an optional "?query")
+     *
+     * @return array<string, mixed>
+     */
+    public function many(array $paths, int $timeout = 8): array
+    {
+        $headers = $this->headers();
+        $responses = Http::pool(function (Pool $pool) use ($paths, $headers, $timeout) {
+            $requests = [];
+            foreach ($paths as $name => $path) {
+                $requests[] = $pool->as($name)
+                    ->withHeaders($headers)
+                    ->withOptions(['verify' => $this->host->verify_tls])
+                    ->connectTimeout(4)
+                    ->timeout($timeout)
+                    ->get($this->base() . $path);
+            }
+
+            return $requests;
+        });
+
+        $results = [];
+        foreach (array_keys($paths) as $name) {
+            $response = $responses[$name] ?? null;
+            try {
+                if (!$response instanceof Response) {
+                    throw new DisplayException('Proxmox does not answer: check the address and that port 8006 is reachable from the panel.');
+                }
+                $results[$name] = $this->decode($response);
+            } catch (DisplayException $exception) {
+                $results[$name] = $exception;
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * @throws DisplayException
+     */
+    private function decode(Response $response): mixed
+    {
         if ($response->status() === 401) {
             throw new DisplayException('Proxmox refused the API token: check its ID and its secret.');
         }
@@ -276,19 +328,29 @@ class ProxmoxClient
 
     private function request(int $timeout): PendingRequest
     {
+        return Http::withHeaders($this->headers())
+            ->withOptions(['verify' => $this->host->verify_tls])
+            ->connectTimeout(4)
+            ->timeout($timeout);
+    }
+
+    /**
+     * @return array<string, string>
+     *
+     * @throws DisplayException
+     */
+    private function headers(): array
+    {
         try {
             $secret = Crypt::decryptString($this->host->token_secret);
         } catch (DecryptException) {
             throw new DisplayException('The secret of the API token cannot be read: enter it again.');
         }
 
-        return Http::withHeaders([
+        return [
             'Authorization' => 'PVEAPIToken=' . $this->host->token_id . '=' . $secret,
             'Accept' => 'application/json',
-        ])
-            ->withOptions(['verify' => $this->host->verify_tls])
-            ->connectTimeout(4)
-            ->timeout($timeout);
+        ];
     }
 
     private function base(): string

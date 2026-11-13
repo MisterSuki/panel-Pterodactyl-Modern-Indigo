@@ -276,3 +276,4 @@ database/migrations/2026_11_14_000001_add_provisioning_to_proxmox.php
 app/Models/ProxmoxIp.php
 app/Services/Proxmox/ProxmoxProvisioner.php
 app/Jobs/ProxmoxVmJob.php
+resources/views/admin/proxmox/host.blade.php

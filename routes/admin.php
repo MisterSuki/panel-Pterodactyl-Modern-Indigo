@@ -33,6 +33,7 @@ Route::group(['prefix' => 'proxmox', 'middleware' => 'admin.can:settings,manage'
     Route::get('/', [Admin\ProxmoxController::class, 'index'])->name('admin.proxmox');
     Route::post('/hosts', [Admin\ProxmoxController::class, 'store'])->name('admin.proxmox.hosts.store');
     Route::post('/hosts/{host}', [Admin\ProxmoxController::class, 'update'])->whereNumber('host')->name('admin.proxmox.hosts.update');
+    Route::get('/hosts/{host}/panel', [Admin\ProxmoxController::class, 'panel'])->whereNumber('host')->name('admin.proxmox.hosts.panel');
     Route::post('/hosts/{host}/test', [Admin\ProxmoxController::class, 'test'])->whereNumber('host')->name('admin.proxmox.hosts.test');
     Route::post('/hosts/{host}/delete', [Admin\ProxmoxController::class, 'delete'])->whereNumber('host')->name('admin.proxmox.hosts.delete');
     Route::post('/hosts/{host}/assign', [Admin\ProxmoxController::class, 'assign'])->whereNumber('host')->name('admin.proxmox.assign');

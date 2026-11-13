@@ -49,8 +49,9 @@ class ProxmoxService
     }
 
     /**
-     * What a host looks like, for the administration: its version, its nodes (with their storage) and its machines.
-     * Kept 15 seconds, so that opening the page twice does not ask Proxmox twice.
+     * What a host looks like, for the administration: its version, its nodes (with their storage), its machines and
+     * its templates. The readings are asked at the same time (two rounds: the host, then the storage of each node), and
+     * kept 30 seconds so that coming back to the page does not ask Proxmox again.
      *
      * @return array{ok: bool, error: ?string, version: ?string, nodes: array, vms: array, templates: array}
      */
@@ -60,65 +61,121 @@ class ProxmoxService
             Cache::forget($this->cacheKey($host));
         }
 
-        return Cache::remember($this->cacheKey($host), 15, function () use ($host) {
-            $client = $this->client($host);
-            try {
-                $version = $client->version();
-                $nodes = [];
-                foreach ($client->nodes() as $node) {
-                    $name = (string) ($node['node'] ?? '');
-                    $online = ($node['status'] ?? '') === 'online';
-                    $storage = [];
-                    if ($online) {
-                        try {
-                            foreach ($client->storage($name) as $store) {
-                                if (empty($store['active']) || (int) ($store['total'] ?? 0) <= 0) {
-                                    continue;
-                                }
-                                $storage[] = [
-                                    'name' => (string) ($store['storage'] ?? ''),
-                                    'type' => (string) ($store['type'] ?? ''),
-                                    'used' => (int) ($store['used'] ?? 0),
-                                    'total' => (int) ($store['total'] ?? 0),
-                                ];
-                            }
-                        } catch (DisplayException) {
-                            // A node can refuse the storage list (missing Datastore.Audit): its figures still show.
-                        }
-                    }
-                    $nodes[] = [
-                        'name' => $name,
-                        'online' => $online,
-                        'cpu' => round((float) ($node['cpu'] ?? 0) * 100, 1),
-                        'cores' => (int) ($node['maxcpu'] ?? 0),
-                        'memory' => (int) ($node['mem'] ?? 0),
-                        'max_memory' => (int) ($node['maxmem'] ?? 0),
-                        'disk' => (int) ($node['disk'] ?? 0),
-                        'max_disk' => (int) ($node['maxdisk'] ?? 0),
-                        'uptime' => (int) ($node['uptime'] ?? 0),
-                        'storage' => $storage,
-                    ];
-                }
-                usort($nodes, fn ($a, $b) => strcmp($a['name'], $b['name']));
+        return Cache::remember($this->cacheKey($host), 30, fn () => $this->read($host));
+    }
 
-                $vms = array_map(fn (array $vm) => [
+    /**
+     * The overview kept from a recent visit, or null when Proxmox has to be asked (the page then loads it afterwards).
+     */
+    public function cachedOverview(ProxmoxHost $host): ?array
+    {
+        $cached = Cache::get($this->cacheKey($host));
+
+        return is_array($cached) ? $cached : null;
+    }
+
+    public function forgetOverview(ProxmoxHost $host): void
+    {
+        Cache::forget($this->cacheKey($host));
+    }
+
+    private function read(ProxmoxHost $host): array
+    {
+        $failed = fn (string $message) => ['ok' => false, 'error' => $message, 'version' => null, 'nodes' => [], 'vms' => [], 'templates' => []];
+        $client = $this->client($host);
+
+        try {
+            $first = $client->many([
+                'version' => '/version',
+                'nodes' => '/nodes',
+                'resources' => '/cluster/resources?type=vm',
+            ]);
+        } catch (DisplayException $exception) {
+            return $failed($exception->getMessage());
+        }
+        foreach (['version', 'nodes', 'resources'] as $key) {
+            if ($first[$key] instanceof DisplayException) {
+                return $failed($first[$key]->getMessage());
+            }
+        }
+
+        $rawNodes = array_values(array_filter((array) $first['nodes'], 'is_array'));
+        $online = array_values(array_filter($rawNodes, fn ($node) => ($node['status'] ?? '') === 'online'));
+        $storages = [];
+        if ($online) {
+            $paths = [];
+            foreach ($online as $index => $node) {
+                $paths['n' . $index] = '/nodes/' . rawurlencode((string) ($node['node'] ?? '')) . '/storage';
+            }
+            $answers = $client->many($paths);
+            foreach ($online as $index => $node) {
+                // A node can refuse the storage list (missing Datastore.Audit): its other figures still show.
+                $answer = $answers['n' . $index] ?? null;
+                $storages[(string) ($node['node'] ?? '')] = is_array($answer) ? $answer : [];
+            }
+        }
+
+        $nodes = [];
+        foreach ($rawNodes as $node) {
+            $name = (string) ($node['node'] ?? '');
+            $storage = [];
+            foreach ($storages[$name] ?? [] as $store) {
+                if (!is_array($store) || empty($store['active']) || (int) ($store['total'] ?? 0) <= 0) {
+                    continue;
+                }
+                $storage[] = [
+                    'name' => (string) ($store['storage'] ?? ''),
+                    'type' => (string) ($store['type'] ?? ''),
+                    'used' => (int) ($store['used'] ?? 0),
+                    'total' => (int) ($store['total'] ?? 0),
+                ];
+            }
+            $nodes[] = [
+                'name' => $name,
+                'online' => ($node['status'] ?? '') === 'online',
+                'cpu' => round((float) ($node['cpu'] ?? 0) * 100, 1),
+                'cores' => (int) ($node['maxcpu'] ?? 0),
+                'memory' => (int) ($node['mem'] ?? 0),
+                'max_memory' => (int) ($node['maxmem'] ?? 0),
+                'disk' => (int) ($node['disk'] ?? 0),
+                'max_disk' => (int) ($node['maxdisk'] ?? 0),
+                'uptime' => (int) ($node['uptime'] ?? 0),
+                'storage' => $storage,
+            ];
+        }
+        usort($nodes, fn ($a, $b) => strcmp($a['name'], $b['name']));
+
+        $vms = [];
+        $templates = [];
+        foreach ((array) $first['resources'] as $vm) {
+            if (!is_array($vm) || ($vm['type'] ?? '') !== 'qemu') {
+                continue;
+            }
+            if (!empty($vm['template'])) {
+                $templates[] = [
                     'vmid' => (int) ($vm['vmid'] ?? 0),
                     'node' => (string) ($vm['node'] ?? ''),
                     'name' => (string) ($vm['name'] ?? ''),
-                    'status' => (string) ($vm['status'] ?? 'unknown'),
-                    'cpu' => round((float) ($vm['cpu'] ?? 0) * 100, 1),
-                    'cores' => (int) ($vm['maxcpu'] ?? 0),
-                    'memory' => (int) ($vm['mem'] ?? 0),
-                    'max_memory' => (int) ($vm['maxmem'] ?? 0),
-                    'max_disk' => (int) ($vm['maxdisk'] ?? 0),
-                ], $client->vms());
-                usort($vms, fn ($a, $b) => $a['vmid'] <=> $b['vmid']);
-
-                return ['ok' => true, 'error' => null, 'version' => $version, 'nodes' => $nodes, 'vms' => $vms, 'templates' => $client->templates()];
-            } catch (DisplayException $exception) {
-                return ['ok' => false, 'error' => $exception->getMessage(), 'version' => null, 'nodes' => [], 'vms' => [], 'templates' => []];
+                    'disk' => (int) ($vm['maxdisk'] ?? 0),
+                ];
+                continue;
             }
-        });
+            $vms[] = [
+                'vmid' => (int) ($vm['vmid'] ?? 0),
+                'node' => (string) ($vm['node'] ?? ''),
+                'name' => (string) ($vm['name'] ?? ''),
+                'status' => (string) ($vm['status'] ?? 'unknown'),
+                'cpu' => round((float) ($vm['cpu'] ?? 0) * 100, 1),
+                'cores' => (int) ($vm['maxcpu'] ?? 0),
+                'memory' => (int) ($vm['mem'] ?? 0),
+                'max_memory' => (int) ($vm['maxmem'] ?? 0),
+                'max_disk' => (int) ($vm['maxdisk'] ?? 0),
+            ];
+        }
+        usort($vms, fn ($a, $b) => $a['vmid'] <=> $b['vmid']);
+        usort($templates, fn ($a, $b) => strcmp($a['name'], $b['name']));
+
+        return ['ok' => true, 'error' => null, 'version' => (string) ($first['version']['version'] ?? '?'), 'nodes' => $nodes, 'vms' => $vms, 'templates' => $templates];
     }
 
     /**

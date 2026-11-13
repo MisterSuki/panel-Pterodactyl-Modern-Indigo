@@ -2463,5 +2463,7 @@
  "Open a ticket so the team can start it again.": "Ouvrez un ticket pour que l'équipe la relance.",
  "The password set when the VPS was created: change it inside the machine (passwd). Click it to copy it.": "Le mot de passe défini à la création du VPS : changez-le dans la machine (passwd). Cliquez dessus pour le copier.",
  "Hide the password": "Masquer le mot de passe",
- "Show the password": "Afficher le mot de passe"
+ "Show the password": "Afficher le mot de passe",
+ "Asking Proxmox...": "Interrogation de Proxmox…",
+ "Proxmox could not be asked. Reload the page.": "Impossible d'interroger Proxmox. Rechargez la page."
 }
