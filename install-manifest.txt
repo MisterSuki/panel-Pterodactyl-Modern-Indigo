@@ -263,3 +263,12 @@ resources/views/status.blade.php
 app/Services/Eggs/EggParserService.php
 app/Http/Controllers/Admin/Nests/EggShareController.php
 app/Http/Requests/Admin/Egg/EggImportFormRequest.php
+# Proxmox: hosts, their nodes, and the virtual machines given to users as VPS.
+database/migrations/2026_11_14_000000_create_proxmox_tables.php
+app/Models/ProxmoxHost.php
+app/Models/ProxmoxVm.php
+app/Services/Proxmox/ProxmoxClient.php
+app/Services/Proxmox/ProxmoxService.php
+app/Http/Controllers/Admin/ProxmoxController.php
+app/Http/Controllers/Api/Client/VpsController.php
+resources/views/admin/proxmox.blade.php

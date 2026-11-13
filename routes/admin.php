@@ -28,6 +28,17 @@ Route::group(['prefix' => 'web-hosting', 'middleware' => 'admin.can:settings,man
     Route::post('/settings', [Admin\WebHostingController::class, 'settings'])->name('admin.web-hosting.settings');
 });
 
+// Proxmox: the hosts, their nodes and the virtual machines given to users as VPS (settings rights needed).
+Route::group(['prefix' => 'proxmox', 'middleware' => 'admin.can:settings,manage'], function () {
+    Route::get('/', [Admin\ProxmoxController::class, 'index'])->name('admin.proxmox');
+    Route::post('/hosts', [Admin\ProxmoxController::class, 'store'])->name('admin.proxmox.hosts.store');
+    Route::post('/hosts/{host}', [Admin\ProxmoxController::class, 'update'])->whereNumber('host')->name('admin.proxmox.hosts.update');
+    Route::post('/hosts/{host}/test', [Admin\ProxmoxController::class, 'test'])->whereNumber('host')->name('admin.proxmox.hosts.test');
+    Route::post('/hosts/{host}/delete', [Admin\ProxmoxController::class, 'delete'])->whereNumber('host')->name('admin.proxmox.hosts.delete');
+    Route::post('/hosts/{host}/assign', [Admin\ProxmoxController::class, 'assign'])->whereNumber('host')->name('admin.proxmox.assign');
+    Route::post('/vms/{vm}/unassign', [Admin\ProxmoxController::class, 'unassign'])->whereNumber('vm')->name('admin.proxmox.unassign');
+});
+
 // Email: the names of the mail server, the limits, and the key of its agent (settings rights needed).
 Route::group(['prefix' => 'mail', 'middleware' => 'admin.can:settings,manage'], function () {
     Route::get('/', [Admin\MailController::class, 'index'])->name('admin.mail');

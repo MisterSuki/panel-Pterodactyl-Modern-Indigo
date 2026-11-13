@@ -52,6 +52,14 @@ Route::prefix('/shop')->group(function () {
     Route::put('/servers/{server}/resources', [Client\ShopController::class, 'updateResources'])->middleware('throttle:30,1');
 });
 
+// The VPS of the person (virtual machines of Proxmox given to them by the administration).
+Route::prefix('/vps')->group(function () {
+    Route::get('/', [Client\VpsController::class, 'index'])->middleware('throttle:60,1');
+    Route::get('/{uuid}', [Client\VpsController::class, 'show'])->whereUuid('uuid')->middleware('throttle:60,1');
+    Route::get('/{uuid}/history', [Client\VpsController::class, 'history'])->whereUuid('uuid')->middleware('throttle:30,1');
+    Route::post('/{uuid}/power', [Client\VpsController::class, 'power'])->whereUuid('uuid')->middleware('throttle:10,1');
+});
+
 // Somebody of the staff asks to see the screen: the person answers here, and only about their own session.
 Route::prefix('/screen')->group(function () {
     Route::get('/', [Client\ScreenShareController::class, 'show'])->middleware('throttle:120,1')->name('api:client.screen');

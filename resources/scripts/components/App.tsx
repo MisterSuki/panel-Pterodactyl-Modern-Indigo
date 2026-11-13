@@ -32,6 +32,7 @@ interface ExtendedWindow extends Window {
         discord_linked: boolean;
         discord_username: string | null;
         avatar_url?: string;
+        vps_count?: number;
         language: string;
         updated_at: string;
         created_at: string;
@@ -55,6 +56,7 @@ const App = () => {
             discordLinked: PterodactylUser.discord_linked,
             discordUsername: PterodactylUser.discord_username,
             avatar: PterodactylUser.avatar_url || '/assets/svgs/pterodactyl.svg',
+            vpsCount: PterodactylUser.vps_count || 0,
             createdAt: new Date(PterodactylUser.created_at),
             updatedAt: new Date(PterodactylUser.updated_at),
         });

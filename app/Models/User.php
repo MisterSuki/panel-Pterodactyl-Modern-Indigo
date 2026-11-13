@@ -223,6 +223,19 @@ class User extends Model implements
         return '/avatars/' . $this->uuid . '?v=' . ($this->avatar_updated_at?->timestamp ?? 0);
     }
 
+    /**
+     * How many VPS (virtual machines of Proxmox) the person was given, for the link in the top bar. Zero when the tables
+     * are not there yet (before the migrations of an update ran).
+     */
+    public function vpsCount(): int
+    {
+        try {
+            return ProxmoxVm::query()->where('user_id', $this->id)->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
     public function toVueObject(): array
     {
         return Collection::make($this->toArray())->except(['id', 'external_id'])
@@ -233,6 +246,7 @@ class User extends Model implements
                 'admin_access' => $this->isStaff(),
                 'avatar_url' => $this->avatarUrl(),
                 'appearance' => app(\Pterodactyl\Services\Helpers\Appearance::class)->forUser($this),
+                'vps_count' => $this->vpsCount(),
             ])
             ->toArray();
     }

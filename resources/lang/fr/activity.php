@@ -22,6 +22,9 @@ return [
         ],
     ],
     'user' => [
+        'vps' => [
+            'power' => 'Action « :action » envoyée au VPS :name',
+        ],
         'user' => [
             'create' => 'Nouvel utilisateur créé : :email',
         ],

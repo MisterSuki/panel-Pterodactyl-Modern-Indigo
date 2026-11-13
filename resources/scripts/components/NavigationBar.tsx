@@ -105,6 +105,7 @@ const RightNavigation = styled.div`
 export default () => {
     const adminAccess = useStoreState((state: ApplicationStore) => state.user.data!.adminAccess);
     const shopOpen = useStoreState((state: ApplicationStore) => !!state.settings.data?.shop?.enabled);
+    const vpsCount = useStoreState((state: ApplicationStore) => state.user.data?.vpsCount || 0);
     const statusOpen = useStoreState((state: ApplicationStore) => !!state.settings.data?.status?.enabled);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const { pathname } = useLocation();
@@ -140,6 +141,7 @@ export default () => {
             <NavLink to={'/'} exact>
                 Servers
             </NavLink>
+            {vpsCount > 0 && <NavLink to={'/vps'}>VPS</NavLink>}
             {shopOpen && <NavLink to={'/shop'}>Shop</NavLink>}
             {statusOpen && (
                 <a href={'/status'} target={'_blank'} rel={'noopener noreferrer'}>
