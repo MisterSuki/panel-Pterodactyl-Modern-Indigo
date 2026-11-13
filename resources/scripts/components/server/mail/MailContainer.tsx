@@ -75,19 +75,19 @@ const Status = ({ status }: { status: MailRecord['status'] }) => {
     switch (status) {
         case 'ok':
             return (
-                <span css={[pill, tw`bg-green-500/15 text-green-300`]}>
+                <span css={[pill, tw`bg-green-500/10 text-green-300`]}>
                     <FontAwesomeIcon icon={faCheckCircle} /> <span>Found</span>
                 </span>
             );
         case 'wrong':
             return (
-                <span css={[pill, tw`bg-yellow-500/15 text-yellow-300`]}>
+                <span css={[pill, tw`bg-yellow-500/10 text-yellow-300`]}>
                     <FontAwesomeIcon icon={faExclamationTriangle} /> <span>Different</span>
                 </span>
             );
         case 'missing':
             return (
-                <span css={[pill, tw`bg-red-500/15 text-red-300`]}>
+                <span css={[pill, tw`bg-red-500/10 text-red-300`]}>
                     <FontAwesomeIcon icon={faTimesCircle} /> <span>Missing</span>
                 </span>
             );
