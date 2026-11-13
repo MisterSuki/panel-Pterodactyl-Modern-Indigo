@@ -6,11 +6,13 @@ interface Props {
     color: string;
     // The top of the scale (a limit). Left out, the line fills to its own highest value.
     max?: number | null;
+    // Where the line sits and how strong it is; by default, faint along the bottom of its block.
+    className?: string;
 }
 
 // A tiny trend line drawn behind a number, so the last minute or so is visible at a glance without scrolling to the big
 // charts. Plain SVG: no chart library, nothing measured on every update.
-export default ({ points, color, max }: Props) => {
+export default ({ points, color, max, className }: Props) => {
     const W = 100;
     const H = 28;
     const id = useMemo(() => 'spark-' + Math.random().toString(36).slice(2), []);
@@ -56,7 +58,7 @@ export default ({ points, color, max }: Props) => {
         <svg
             viewBox={`0 0 ${W} ${H}`}
             preserveAspectRatio={'none'}
-            className={'absolute inset-x-0 bottom-0 w-full h-7 opacity-40 pointer-events-none'}
+            className={className || 'absolute inset-x-0 bottom-0 w-full h-7 opacity-40 pointer-events-none'}
             aria-hidden={'true'}
         >
             <defs>

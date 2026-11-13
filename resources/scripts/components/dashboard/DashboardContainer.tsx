@@ -25,6 +25,39 @@ import serverGame from '@/components/dashboard/serverGame';
 
 type StatusFilter = 'all' | 'online' | 'offline';
 
+// How many readings the trend lines keep: at one every 3 seconds, the last two minutes.
+const HISTORY = 40;
+
+interface History {
+    cpu: number[];
+    memory: number[];
+    servers: Record<string, number[]>;
+}
+
+const push = (list: number[] | undefined, value: number) => [...(list || []), value].slice(-HISTORY);
+
+// "Good morning" until six in the evening, "Good evening" after (and in the middle of the night).
+const greeting = () => {
+    const hour = new Date().getHours();
+
+    return hour >= 5 && hour < 18 ? 'Good morning' : 'Good evening';
+};
+
+// Today, in the language of the page: "vendredi 13 novembre".
+const today = () => {
+    try {
+        const text = new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+        }).format(new Date());
+
+        return text.charAt(0).toUpperCase() + text.slice(1);
+    } catch {
+        return '';
+    }
+};
+
 export default () => {
     const { search } = useLocation();
     const defaultPage = Number(new URLSearchParams(search).get('page') || '1');
@@ -32,6 +65,7 @@ export default () => {
     const [page, setPage] = useState(!isNaN(defaultPage) && defaultPage > 0 ? defaultPage : 1);
     const { clearFlashes, clearAndAddHttpError } = useFlash();
     const uuid = useStoreState((state) => state.user.data!.uuid);
+    const username = useStoreState((state) => state.user.data!.username);
     const rootAdmin = useStoreState((state) => state.user.data!.rootAdmin);
     const shopOpen = useStoreState((state) => !!state.settings.data?.shop?.enabled);
     const [showOnlyAdmin, setShowOnlyAdmin] = usePersistedState(`${uuid}:show_all_servers`, false);
@@ -67,6 +101,29 @@ export default () => {
         () => getServersResourceUsage(liveUuids!),
         { refreshInterval: 3000, dedupingInterval: 1500, revalidateOnFocus: false, shouldRetryOnError: false }
     );
+
+    // Every answer adds a point to the trend lines: of all the servers together, and of each server's CPU.
+    const [history, setHistory] = useState<History>({ cpu: [], memory: [], servers: {} });
+    useEffect(() => {
+        if (!usage) return;
+        const stats = Object.values(usage);
+        setHistory((previous) => ({
+            cpu: push(
+                previous.cpu,
+                stats.reduce((sum, s) => sum + s.cpuUsagePercent, 0)
+            ),
+            memory: push(
+                previous.memory,
+                stats.reduce((sum, s) => sum + s.memoryUsageInBytes, 0)
+            ),
+            servers: Object.fromEntries(
+                Object.entries(usage).map(([id, s]) => [
+                    id,
+                    push(previous.servers[id], s.status === 'running' ? s.cpuUsagePercent : 0),
+                ])
+            ),
+        }));
+    }, [usage]);
 
     // Once the first answer is in (or has failed), a server that is missing from it could not be reached.
     const usageSettled = usage !== undefined || !!usageError;
@@ -104,9 +161,16 @@ export default () => {
     return (
         <PageContentBlock title={'Dashboard'} showFlashKey={'dashboard'}>
             <div css={tw`mb-8 flex flex-wrap items-end justify-between gap-4`}>
-                <div>
-                    <h1 css={tw`text-3xl font-semibold text-neutral-50`}>
-                        {showOnlyAdmin ? 'All servers' : 'Servers'}
+                <div css={tw`min-w-0`}>
+                    <p css={tw`text-xs font-medium uppercase tracking-wider text-neutral-500`}>{today()}</p>
+                    <h1 css={tw`mt-1.5 text-3xl font-semibold text-neutral-50 tracking-tight truncate`}>
+                        {showOnlyAdmin ? (
+                            'All servers'
+                        ) : (
+                            <>
+                                <span>{greeting()}</span>, <span className={'pd-gradient-text'}>{username}</span>
+                            </>
+                        )}
                     </h1>
                     <p css={tw`text-sm text-neutral-400 mt-1.5`}>
                         Open a server to manage its console, files and settings.
@@ -135,7 +199,14 @@ export default () => {
                     )}
                 </div>
             </div>
-            {servers && <DashboardSummary total={servers.pagination.total} servers={servers.items} usage={usage} />}
+            {servers && (
+                <DashboardSummary
+                    total={servers.pagination.total}
+                    servers={servers.items}
+                    usage={usage}
+                    history={history}
+                />
+            )}
             {servers && servers.items.length > 3 && (
                 <div css={tw`flex flex-wrap items-center gap-2 mb-4`}>
                     <div css={tw`relative flex-1 min-w-[12rem]`}>
@@ -187,11 +258,25 @@ export default () => {
                     css={tw`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4`}
                 >
                     {[0, 1, 2].map((i) => (
-                        <div
-                            key={i}
-                            css={tw`h-52 rounded-2xl border border-neutral-700 bg-neutral-800 animate-pulse`}
-                            style={{ animationDelay: `${i * 120}ms` }}
-                        />
+                        <div key={i} css={tw`h-52 rounded-2xl border border-neutral-700 bg-neutral-800 p-5`}>
+                            <div css={tw`flex items-center gap-3`}>
+                                <div className={'pd-skeleton'} css={tw`w-9 h-9 rounded-lg`} />
+                                <div css={tw`flex-1 space-y-2`}>
+                                    <div className={'pd-skeleton'} css={tw`h-3 w-1/2 rounded`} />
+                                    <div className={'pd-skeleton'} css={tw`h-2.5 w-1/4 rounded`} />
+                                </div>
+                            </div>
+                            <div className={'pd-skeleton'} css={tw`mt-5 h-2.5 w-2/5 rounded`} />
+                            <div css={tw`mt-8 pt-4 border-t border-neutral-700 grid grid-cols-3 gap-4`}>
+                                {[0, 1, 2].map((j) => (
+                                    <div key={j} css={tw`space-y-2`}>
+                                        <div className={'pd-skeleton'} css={tw`h-2 w-1/2 rounded`} />
+                                        <div className={'pd-skeleton'} css={tw`h-3 w-3/4 rounded`} />
+                                        <div className={'pd-skeleton'} css={tw`h-1 w-full rounded-full`} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     ))}
                 </div>
             ) : (
@@ -227,6 +312,7 @@ export default () => {
                                         key={server.uuid}
                                         server={server}
                                         stats={usage?.[server.uuid] ?? null}
+                                        cpuHistory={history.servers[server.uuid]}
                                         unreachable={usageSettled && !usage?.[server.uuid]}
                                         upgradeable={shopServers.has(server.id)}
                                         billing={shopServers.get(server.id)}

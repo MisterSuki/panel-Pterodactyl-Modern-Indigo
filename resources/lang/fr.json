@@ -2018,6 +2018,8 @@
  "New announcement": "Nouvelle annonce",
  "Kind": "Type",
  "Warning": "Avertissement",
+ "Good evening": "Bonsoir",
+ "Good morning": "Bonjour",
  "Good news": "Bonne nouvelle",
  "Link": "Lien",
  "(optional)": "(facultatif)",
@@ -2347,5 +2349,8 @@
  "No A record": "Aucun enregistrement A",
  "The settings were saved.": "Les réglages ont été enregistrés.",
  "The MX of every domain, and the IMAP and SMTP server in the apps. An A record must lead it to the machine of the mail server.": "Le MX de chaque domaine, et le serveur IMAP et SMTP des applications. Un enregistrement A doit le mener à la machine du serveur mail.",
- "Also an A record to the same machine.": "Aussi un enregistrement A vers la même machine."
+ "Also an A record to the same machine.": "Aussi un enregistrement A vers la même machine.",
+ "Your servers, under control.": "Vos serveurs, sous contrôle.",
+ "The console, the files, the backups and the statistics of every server, in one place.": "La console, les fichiers, les sauvegardes et les statistiques de chaque serveur, au même endroit.",
+ "Live console and statistics": "Console et statistiques en direct"
 }

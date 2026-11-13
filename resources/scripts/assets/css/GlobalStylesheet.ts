@@ -129,6 +129,43 @@ export default createGlobalStyle`
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px -4px rgb(var(--pd-accent-500) / 0.6);
     }
 
+    /* A word in the accent colour, fading from light to deep (the name of the person on the dashboard). */
+    .pd-gradient-text {
+        background: linear-gradient(90deg, rgb(var(--pd-accent-200)) 0%, rgb(var(--pd-accent-500)) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* A block that stands for content on its way: a light that runs across it. */
+    @keyframes pd-shimmer {
+        from {
+            background-position: 150% 0;
+        }
+        to {
+            background-position: -50% 0;
+        }
+    }
+
+    .pd-skeleton {
+        background: linear-gradient(
+                100deg,
+                rgba(255, 255, 255, 0) 30%,
+                rgba(255, 255, 255, 0.07) 50%,
+                rgba(255, 255, 255, 0) 70%
+            )
+            0 0 / 200% 100%,
+            rgba(255, 255, 255, 0.05);
+        animation: pd-shimmer 1.6s ease-in-out infinite;
+    }
+
+    /* How strong the light that follows the pointer over a card is (0 to 1), so it can fade in and out. */
+    @property --pd-glow {
+        syntax: '<number>';
+        inherits: false;
+        initial-value: 0;
+    }
+
     /*
      * What floats over the page (the top bar, menus, sheets). The class keeps its old name ("glass") for the components
      * that use it: it is now a flat surface, only the top bar is a little see-through.

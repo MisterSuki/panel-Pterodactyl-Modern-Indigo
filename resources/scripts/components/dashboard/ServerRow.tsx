@@ -15,6 +15,9 @@ import styled, { keyframes } from 'styled-components/macro';
 import HiddenAddress from '@/components/elements/HiddenAddress';
 import { formatDistanceToNow } from 'date-fns';
 import isEqual from 'react-fast-compare';
+import Sparkline from '@/components/server/console/Sparkline';
+import { accentHex } from '@/lib/helpers';
+import { headroom } from '@/components/dashboard/DashboardSummary';
 
 const fadeIn = keyframes`
     from {
@@ -45,12 +48,33 @@ const ServerCard = styled(GreyRowBox)`
     ${tw`flex-col items-stretch p-5`};
     animation: ${fadeIn} 280ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 
+    /* A soft light of the accent colour that follows the pointer (see onMouseMove), and a slight lift on hover. */
+    background-image: radial-gradient(
+        480px circle at var(--x, 50%) var(--y, 0%),
+        rgb(var(--pd-accent-500) / calc(var(--pd-glow) * 0.13)),
+        transparent 45%
+    );
+    transition: border-color 150ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease,
+        --pd-glow 250ms ease;
+
+    &[href]:hover {
+        --pd-glow: 1;
+        transform: translate3d(0, -2px, 0);
+        border-color: rgb(var(--pd-accent-500) / 0.35);
+        box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.9), 0 0 0 1px rgb(var(--pd-accent-500) / 0.08);
+    }
+
     & .icon {
         ${tw`w-9 h-9 rounded-lg text-sm text-white border-0 p-0`};
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 0 rgba(0, 0, 0, 0.15);
     }
 
     & .chip {
         ${tw`inline-flex items-center gap-1.5 max-w-full rounded-full border border-neutral-600 px-2 py-0.5 text-xs text-neutral-300`};
+    }
+
+    & .state {
+        ${tw`inline-flex items-center gap-1.5 flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium`};
     }
 
     & .resting {
@@ -104,6 +128,8 @@ interface Props {
     server: Server;
     // The live usage of this server. The dashboard asks for all of its servers at once, every few seconds.
     stats?: ServerStats | null;
+    // The CPU of this server over the last readings (oldest first), drawn faintly along the bottom of the card.
+    cpuHistory?: number[];
     // True once the usage was asked for and this server did not answer, so the card says so instead of waiting.
     unreachable?: boolean;
     // True when this server was bought in the shop and its resources can be changed (billed monthly).
@@ -162,6 +188,7 @@ const usePlayers = (server: Server, active: boolean): string | null => {
 const ServerRow = ({
     server,
     stats = null,
+    cpuHistory,
     unreachable = false,
     upgradeable = false,
     billing,
@@ -193,7 +220,20 @@ const ServerRow = ({
             $hoverable={!isSuspended}
             className={className}
             style={style}
+            onMouseMove={(e: React.MouseEvent<HTMLElement>) => {
+                const box = e.currentTarget.getBoundingClientRect();
+                e.currentTarget.style.setProperty('--x', `${e.clientX - box.left}px`);
+                e.currentTarget.style.setProperty('--y', `${e.clientY - box.top}px`);
+            }}
         >
+            {stats?.status === 'running' && cpuHistory && (
+                <Sparkline
+                    points={cpuHistory}
+                    max={headroom(cpuHistory)}
+                    color={accentHex(400)}
+                    className={'absolute inset-x-0 bottom-0 w-full h-16 opacity-30 pointer-events-none'}
+                />
+            )}
             <div css={tw`flex items-center gap-3 min-w-0`}>
                 <div
                     className={'icon'}
@@ -208,17 +248,28 @@ const ServerRow = ({
                     <p css={tw`text-xs text-neutral-500 truncate`}>{game.name || 'Server'}</p>
                 </div>
                 {isSuspended ? (
-                    <span css={tw`flex items-center gap-1.5 text-xs text-neutral-300 flex-shrink-0`}>
-                        <FontAwesomeIcon icon={faLock} css={tw`text-red-400`} />
+                    <span className={'state'} style={{ background: 'rgba(229, 72, 77, 0.12)', color: '#ff9592' }}>
+                        <FontAwesomeIcon icon={faLock} css={tw`text-2xs`} />
                         <span>Suspended</span>
                     </span>
                 ) : (
-                    <span css={tw`flex items-center gap-1.5 text-xs text-neutral-300 flex-shrink-0`}>
-                        <span
-                            css={tw`w-2 h-2 rounded-full`}
-                            className={state === 'starting' || state === 'stopping' ? 'animate-pulse' : undefined}
-                            style={{ background: DOTS[state] }}
-                        />
+                    <span
+                        className={'state'}
+                        style={{ background: `${DOTS[state]}1f`, color: state === 'running' ? '#6ee7b7' : '#d4d4d4' }}
+                    >
+                        <span css={tw`relative flex w-1.5 h-1.5`}>
+                            {state === 'running' && (
+                                <span
+                                    css={tw`absolute inset-0 rounded-full animate-ping opacity-60`}
+                                    style={{ background: DOTS[state], animationDuration: '2s' }}
+                                />
+                            )}
+                            <span
+                                css={tw`relative w-1.5 h-1.5 rounded-full`}
+                                className={state === 'starting' || state === 'stopping' ? 'animate-pulse' : undefined}
+                                style={{ background: DOTS[state] }}
+                            />
+                        </span>
                         <span>{LABELS[state]}</span>
                     </span>
                 )}
