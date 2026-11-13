@@ -38,7 +38,7 @@ import {
 } from '@/api/server/mail';
 
 const field = tw`w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-primary-500`;
-const label = tw`block text-xs uppercase tracking-wide font-semibold text-neutral-300 mb-1.5`;
+const label = tw`block text-sm font-medium text-neutral-200 mb-1.5`;
 const card = tw`rounded-2xl bg-neutral-800 border border-white/10 shadow-card overflow-hidden mt-6`;
 const pill = tw`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap`;
 
@@ -218,11 +218,7 @@ export default () => {
 
             <div css={tw`flex flex-wrap items-center gap-3`}>
                 <span
-                    css={tw`flex items-center justify-center w-11 h-11 rounded-2xl text-white text-lg flex-shrink-0`}
-                    style={{
-                        background: 'linear-gradient(180deg, #4fa8ff 0%, #0a6cff 100%)',
-                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
-                    }}
+                    css={tw`flex items-center justify-center w-10 h-10 rounded-lg border border-neutral-600 bg-neutral-900 text-neutral-300 flex-shrink-0`}
                 >
                     <FontAwesomeIcon icon={faEnvelope} />
                 </span>
@@ -320,7 +316,7 @@ export default () => {
                         <div css={tw`overflow-x-auto`}>
                             <table css={tw`w-full text-sm`}>
                                 <thead>
-                                    <tr css={tw`text-left text-xs uppercase tracking-wide text-neutral-400`}>
+                                    <tr css={tw`text-left text-xs text-neutral-500`}>
                                         <th css={tw`px-4 py-2 font-semibold`}>Type</th>
                                         <th css={tw`px-4 py-2 font-semibold`}>Name</th>
                                         <th css={tw`px-4 py-2 font-semibold`}>Value</th>
@@ -387,7 +383,7 @@ export default () => {
                                     css={tw`flex items-center gap-4 px-4 py-3 border-b border-white/5 last:border-0`}
                                 >
                                     <span
-                                        css={tw`flex items-center justify-center w-9 h-9 rounded-full bg-primary-500 bg-opacity-20 text-primary-300 flex-shrink-0 font-semibold uppercase`}
+                                        css={tw`flex items-center justify-center w-9 h-9 rounded-full bg-neutral-700 text-neutral-200 flex-shrink-0 font-medium uppercase`}
                                     >
                                         {box.address.charAt(0)}
                                     </span>

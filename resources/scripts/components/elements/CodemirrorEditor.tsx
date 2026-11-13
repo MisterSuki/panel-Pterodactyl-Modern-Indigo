@@ -285,6 +285,8 @@ const EditorContainer = styled.div`
     ],
     meta: { lineComment: '#' },
 });
+// The editor asks for a mode by its MIME type (see modes.ts): without this, the .cfg files stayed in plain text.
+CodeMirror.defineMIME('text/x-fivem-cfg', 'fivem-cfg');
 
 export interface Props {
     style?: React.CSSProperties;

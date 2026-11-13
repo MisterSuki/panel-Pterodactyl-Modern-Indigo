@@ -33,14 +33,14 @@ const H = 260;
 const PAD = { left: 36, right: 12, top: 14, bottom: 28 };
 
 const Tile = ({ icon, label, value, sub }: { icon: any; label: string; value: string; sub?: string }) => (
-    <div css={tw`rounded-2xl bg-neutral-800 border border-white/10 shadow-card p-4 flex items-center gap-3`}>
+    <div css={tw`rounded-2xl bg-neutral-800 border border-neutral-700 p-4 flex items-center gap-3`}>
         <span
-            css={tw`flex items-center justify-center w-11 h-11 rounded-xl bg-primary-500 bg-opacity-20 text-primary-300 flex-shrink-0`}
+            css={tw`flex items-center justify-center w-9 h-9 rounded-lg border border-neutral-600 bg-neutral-900 text-neutral-400 text-sm flex-shrink-0`}
         >
             <FontAwesomeIcon icon={icon} />
         </span>
         <div css={tw`min-w-0`}>
-            <p css={tw`text-xs uppercase tracking-wide text-neutral-400`}>{label}</p>
+            <p css={tw`text-sm text-neutral-400`}>{label}</p>
             <p css={tw`text-xl font-semibold text-neutral-50 tabular-nums`}>
                 {value}
                 {sub && <span css={tw`text-sm text-neutral-400 font-normal`}> {sub}</span>}
@@ -202,8 +202,7 @@ const Resources = ({ range }: { range: StatsRange }) => {
         <div css={tw`mt-8`}>
             <div css={tw`flex items-center gap-3 mb-4`}>
                 <span
-                    css={tw`flex items-center justify-center w-11 h-11 rounded-2xl text-white text-lg flex-shrink-0`}
-                    style={{ background: '#30d158', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)' }}
+                    css={tw`flex items-center justify-center w-10 h-10 rounded-lg border border-neutral-600 bg-neutral-900 text-neutral-300 flex-shrink-0`}
                 >
                     <FontAwesomeIcon icon={faMicrochip} />
                 </span>
@@ -217,7 +216,7 @@ const Resources = ({ range }: { range: StatsRange }) => {
                     <FontAwesomeIcon icon={faCircleNotch} spin size={'2x'} />
                 </div>
             ) : data.samples === 0 ? (
-                <div css={tw`rounded-2xl bg-neutral-800 border border-white/10 shadow-card p-8 text-center`}>
+                <div css={tw`rounded-2xl bg-neutral-800 border border-neutral-700 p-8 text-center`}>
                     <p css={tw`text-neutral-200 font-medium`}>No data yet.</p>
                     <p css={tw`text-sm text-neutral-400 mt-1`}>
                         What the server uses is written every 5 minutes while it runs. The first point arrives in a few
@@ -248,7 +247,7 @@ const Resources = ({ range }: { range: StatsRange }) => {
                         <Tile icon={faPowerOff} label={'Online'} value={`${data.uptime}%`} sub={'of the time'} />
                     </div>
                     <div css={tw`grid grid-cols-1 xl:grid-cols-2 gap-4`}>
-                        <div css={tw`rounded-2xl bg-neutral-800 border border-white/10 shadow-card p-4`}>
+                        <div css={tw`rounded-2xl bg-neutral-800 border border-neutral-700 p-4`}>
                             <p css={tw`text-sm font-semibold text-neutral-100 mb-2`}>Processor</p>
                             <LineChart
                                 id={'pd-cpu-fill'}
@@ -260,7 +259,7 @@ const Resources = ({ range }: { range: StatsRange }) => {
                                 label={(v) => `${Math.round(v)}%`}
                             />
                         </div>
-                        <div css={tw`rounded-2xl bg-neutral-800 border border-white/10 shadow-card p-4`}>
+                        <div css={tw`rounded-2xl bg-neutral-800 border border-neutral-700 p-4`}>
                             <p css={tw`text-sm font-semibold text-neutral-100 mb-2`}>Memory</p>
                             <LineChart
                                 id={'pd-memory-fill'}
@@ -345,7 +344,7 @@ const LiveCard = ({ onFirstCount }: { onFirstCount: () => void }) => {
     const counting = status === 'running' && !!live?.online;
 
     return (
-        <div css={tw`rounded-2xl bg-neutral-800 border border-white/10 shadow-card p-4 mb-4 overflow-hidden`}>
+        <div css={tw`rounded-2xl bg-neutral-800 border border-neutral-700 p-4 mb-4 overflow-hidden`}>
             <div css={tw`flex flex-wrap items-center gap-4`}>
                 <div css={tw`flex items-center gap-3`}>
                     <span css={tw`relative flex w-3 h-3`}>
@@ -362,7 +361,7 @@ const LiveCard = ({ onFirstCount }: { onFirstCount: () => void }) => {
                         />
                     </span>
                     <div>
-                        <p css={tw`text-xs uppercase tracking-wide text-neutral-400`}>Players right now</p>
+                        <p css={tw`text-sm text-neutral-400`}>Players right now</p>
                         <p css={tw`text-3xl font-semibold text-neutral-50 tabular-nums leading-tight`}>
                             {status !== 'running' ? (
                                 <span css={tw`text-xl text-neutral-400`}>Server offline</span>
@@ -465,7 +464,7 @@ export default () => {
             <FlashMessageRender byKey={'server:stats'} css={tw`mb-4`} />
             <div css={tw`flex flex-wrap items-center gap-3 mb-4`}>
                 <span
-                    css={tw`flex items-center justify-center w-11 h-11 rounded-2xl bg-primary-500 bg-opacity-20 text-primary-300 text-lg flex-shrink-0`}
+                    css={tw`flex items-center justify-center w-10 h-10 rounded-lg border border-neutral-600 bg-neutral-900 text-neutral-300 flex-shrink-0`}
                 >
                     <FontAwesomeIcon icon={faChartLine} />
                 </span>
@@ -473,15 +472,17 @@ export default () => {
                     <h1 css={tw`text-xl text-neutral-50 font-semibold`}>Statistics</h1>
                     <p css={tw`text-sm text-neutral-400`}>Players and resources, live and over the last 30 days.</p>
                 </div>
-                <div css={tw`flex gap-1 p-1 rounded-full bg-black/30 border border-white/10`}>
+                <div css={tw`flex gap-0.5 p-0.5 rounded-md border border-neutral-600`}>
                     {(['24h', '7d', '30d'] as const).map((r) => (
                         <button
                             key={r}
                             type={'button'}
                             onClick={() => setRange(r)}
                             css={[
-                                tw`px-4 py-1.5 rounded-full text-sm font-medium focus:outline-none`,
-                                range === r ? tw`bg-white/20 text-white` : tw`text-neutral-300 hover:text-white`,
+                                tw`px-3 py-1 rounded text-sm focus:outline-none`,
+                                range === r
+                                    ? tw`bg-neutral-700 text-neutral-50`
+                                    : tw`text-neutral-400 hover:text-neutral-50`,
                             ]}
                         >
                             {r === '24h' ? (
@@ -503,7 +504,7 @@ export default () => {
                     <FontAwesomeIcon icon={faCircleNotch} spin size={'2x'} />
                 </div>
             ) : data.samples === 0 ? (
-                <div css={tw`rounded-2xl bg-neutral-800 border border-white/10 shadow-card p-8 text-center`}>
+                <div css={tw`rounded-2xl bg-neutral-800 border border-neutral-700 p-8 text-center`}>
                     <p css={tw`text-neutral-200 font-medium`}>No data yet.</p>
                     <p css={tw`text-sm text-neutral-400 mt-1`}>
                         The players are counted every 5 minutes while the server runs. The first point arrives in a few
@@ -526,11 +527,11 @@ export default () => {
                             value={busiest === null ? '–' : `${String(busiest).padStart(2, '0')}:00`}
                         />
                     </div>
-                    <div css={tw`rounded-2xl bg-neutral-800 border border-white/10 shadow-card p-4 mb-4`}>
+                    <div css={tw`rounded-2xl bg-neutral-800 border border-neutral-700 p-4 mb-4`}>
                         <p css={tw`text-sm font-semibold text-neutral-100 mb-2`}>Players online</p>
                         <Curve data={data} />
                     </div>
-                    <div css={tw`rounded-2xl bg-neutral-800 border border-white/10 shadow-card p-4`}>
+                    <div css={tw`rounded-2xl bg-neutral-800 border border-neutral-700 p-4`}>
                         <p css={tw`text-sm font-semibold text-neutral-100`}>Busy hours</p>
                         <p css={tw`text-xs text-neutral-400 mb-3`}>
                             Average players at each hour of the day, over the last 7 days.

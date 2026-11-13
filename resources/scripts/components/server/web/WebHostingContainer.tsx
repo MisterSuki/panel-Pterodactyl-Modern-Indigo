@@ -40,7 +40,7 @@ import {
 } from '@/api/server/web';
 
 const field = tw`w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-primary-500`;
-const label = tw`block text-xs uppercase tracking-wide font-semibold text-neutral-300 mb-1.5`;
+const label = tw`block text-sm font-medium text-neutral-200 mb-1.5`;
 const card = tw`rounded-2xl bg-neutral-800 border border-white/10 shadow-card overflow-hidden mt-6`;
 const pill = tw`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold`;
 
@@ -154,7 +154,7 @@ const DomainRow = ({
                 <div css={tw`overflow-x-auto rounded-xl border border-white/10 bg-black/30`}>
                     <table css={tw`min-w-full text-sm`}>
                         <thead>
-                            <tr css={tw`text-xs uppercase tracking-wide text-neutral-400`}>
+                            <tr css={tw`text-xs text-neutral-500`}>
                                 <th css={tw`text-left px-3 py-2`}>Type</th>
                                 <th css={tw`text-left px-3 py-2`}>Name</th>
                                 <th css={tw`text-left px-3 py-2`}>Value</th>
@@ -441,7 +441,7 @@ export default () => {
             <FlashMessageRender byKey={'server:web'} css={tw`mb-4`} />
             <div css={tw`flex flex-wrap items-center gap-3`}>
                 <span
-                    css={tw`flex items-center justify-center w-11 h-11 rounded-2xl bg-primary-500 bg-opacity-20 text-primary-300 text-lg flex-shrink-0`}
+                    css={tw`flex items-center justify-center w-10 h-10 rounded-lg border border-neutral-600 bg-neutral-900 text-neutral-300 flex-shrink-0`}
                 >
                     <FontAwesomeIcon icon={faGlobe} />
                 </span>

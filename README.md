@@ -2,12 +2,12 @@
 
 <br>
 
-# 🦖 Pterodactyl · Modern Indigo
+# Modern Indigo
 
-### Ton panel de jeu, façon iOS « Liquid Glass »
+### Le panel d'hébergement complet, net et rapide, construit sur Pterodactyl
 
-Verre transparent, fonds animés, couleurs au choix, onglets **Minecraft** et **Euro Truck**, **boutique**, **inscription Discord**…<br>
-pour le dashboard client **et** l'administration, installé avec **une seule commande**.
+Serveurs de jeu, **sites web**, **boîtes mail**, **boutique**, **bot Discord**, connexion par **Face ID / Windows Hello**…<br>
+dans une interface sobre façon Vercel / Linear, pour les clients **et** l'administration, installée avec **une seule commande**.
 
 <br>
 
@@ -30,19 +30,19 @@ pour le dashboard client **et** l'administration, installé avec **une seule com
 
 <br>
 
-<a href="docs/images/hero.jpg"><img src="docs/images/hero.jpg" alt="Le dashboard avec le fond animé Aurore" width="100%"></a>
+<a href="docs/images/hero.jpg"><img src="docs/images/hero.jpg" alt="Le tableau de bord" width="100%"></a>
 
-<sub>Le dashboard, avec le fond animé « Aurore ». Captures faites avec des données d'exemple.</sub>
+<sub>Le tableau de bord. Captures faites avec des données d'exemple.</sub>
 
 <br><br>
 
 <table>
 <tr>
-<td align="center" width="20%">🎨<br><b>Liquid Glass</b><br><sub>9 fonds animés, dégradés ou ta propre image</sub></td>
-<td align="center" width="20%">⛏️<br><b>Minecraft</b><br><sub>plugins, mods et modpacks Modrinth en un clic</sub></td>
-<td align="center" width="20%">🛒<br><b>Boutique</b><br><sub>crédit Stripe, PayPal, SumUp, serveurs créés seuls</sub></td>
-<td align="center" width="20%">🔔<br><b>Alertes</b><br><sub>crash et disque plein, dans le panel et sur Discord</sub></td>
-<td align="center" width="20%">🗃️<br><b>Fichiers .db</b><br><sub>bases SQLite ouvertes et modifiées dans le panel</sub></td>
+<td align="center" width="20%">🖤<br><b>Design pro</b><br><sub>sobre, net, rapide, Geist, aucun reste de Pterodactyl</sub></td>
+<td align="center" width="20%">🌍<br><b>Sites web</b><br><sub>domaine sans port, HTTPS, WordPress et 7 autres CMS</sub></td>
+<td align="center" width="20%">📧<br><b>E-mails</b><br><sub>boîtes mail sur le domaine du site, avec webmail</sub></td>
+<td align="center" width="20%">🔑<br><b>Passkeys</b><br><sub>connexion Face ID, Touch ID, Windows Hello</sub></td>
+<td align="center" width="20%">🛒<br><b>Boutique</b><br><sub>Stripe, PayPal, SumUp, serveurs créés seuls</sub></td>
 </tr>
 </table>
 
@@ -65,12 +65,14 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 | | Ce que tu veux faire | Option |
 | :-: | --- | --- |
 | **1** | 🆕 Installer le **panel** sur un serveur vierge (nginx, PHP, base de données, Redis, SSL, services) | `--panel` |
-| **2** | 🖥️ Installer **Wings**, qui fait tourner les serveurs de jeu | `--wings` |
+| **2** | 🖥️ Installer **Wings**, qui fait tourner les serveurs | `--wings` |
 | **3** | 🔀 Installer les **deux** sur la même machine | `--panel --wings` |
 | **4** | 🔄 **Mettre à jour** un panel déjà installé avec ce thème | `--update` |
 | **5** | ⏪ **Restaurer** les fichiers d'avant une mise à jour | `--restore` |
 | **6** | 🧹 **Désinstaller** le thème et retrouver le panel d'origine, sans rien perdre | `--uninstall` |
 | **7** | 🗄️ Installer **phpMyAdmin** pour ouvrir les bases depuis le panel | `--phpmyadmin` |
+| **8** | 🌍 Installer l'**hébergement web** sur un autre node que celui du panel | `--web` |
+| **9** | 📧 Installer le **serveur mail** (commande toute faite dans *Admin → Email*) | `--mail` |
 
 > [!TIP]
 > S'il détecte déjà un panel dans `/var/www/pterodactyl`, le script passe directement à la mise à jour.
@@ -85,126 +87,106 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 
 <table>
 <tr>
-<td width="55%"><a href="docs/images/appearance.jpg"><img src="docs/images/appearance.jpg" alt="La page Apparence"></a></td>
+<td width="55%"><a href="docs/images/console.jpg"><img src="docs/images/console.jpg" alt="La console d'un serveur"></a></td>
 <td width="45%" valign="middle">
 
-### 🎨 Un panel à ton image
+### 🎮 Une console claire
 
-- **Fond animé** dessiné par la carte graphique : Aurore, Soie, Plasma, Vagues, Lignes, Halo, Faisceaux, Étoiles, Bulles
-- ou un **dégradé**, ou **ta propre image** (avec flou et assombrissement)
-- **9 couleurs d'accent** : chaque utilisateur choisit la sienne
-- l'admin décide si les utilisateurs peuvent aussi choisir leur fond
-- léger : demi-résolution, 30 images/s max, pause quand l'onglet est caché
-
-</td>
-</tr>
-<tr>
-<td width="45%" valign="middle">
-
-### 🎮 Une console qui donne envie
-
-- terminal coloré façon **macOS**, recherche, copie, **pause** et **vider**
-- CPU, mémoire, disque, réseau et ping **en direct**, avec graphiques
-- boutons Démarrer / Redémarrer / Arrêter qui répondent tout de suite
-- **FiveM** : joueurs connectés et lien **txAdmin** ; jeux **Steam** : joueurs via la requête A2S
+- en-tête avec l'état et les boutons **Démarrer / Redémarrer / Arrêter**, qui répondent tout de suite
+- **adresse, temps en ligne, CPU, mémoire, disque** en direct, puis le terminal sur toute la largeur
+- terminal noir avec couleurs, recherche, copie, **pause**, **vider** et compteur d'erreurs
+- **FiveM** : joueurs connectés, bouton **txAdmin** sur ton domaine et son **PIN** ; jeux **Steam** : joueurs via A2S
 - explique les plantages courants (comme `-Xmx0M`) en français
 
 </td>
-<td width="55%"><a href="docs/images/console.jpg"><img src="docs/images/console.jpg" alt="La console d'un serveur"></a></td>
 </tr>
 <tr>
-<td width="55%"><a href="docs/images/minecraft.jpg"><img src="docs/images/minecraft.jpg" alt="L'onglet Minecraft"></a></td>
 <td width="45%" valign="middle">
 
-### ⛏️ Minecraft clé en main
+### 📈 Statistiques sur 30 jours
 
-- catalogue **Modrinth** : plugins, mods, modpacks, packs de ressources, datapacks
-- loader (Paper, Fabric, Forge…) et version **détectés tout seuls**
-- ce qui est déjà installé est marqué, à activer, couper ou supprimer
-- **joueurs connectés**, **whitelist** on/off, ops et bannis en un clic
+- **joueurs** en direct et sur **24 h, 7 jours ou 30 jours** : pic, moyenne, heures d'affluence
+- **ressources** : CPU, mémoire, disque et **temps en ligne**, avec la limite du serveur
+- relevé toutes les 5 minutes, pour **tous les jeux** (Minecraft, FiveM, Steam…)
+
+</td>
+<td width="55%"><a href="docs/images/statistics.jpg"><img src="docs/images/statistics.jpg" alt="Les statistiques d'un serveur"></a></td>
+</tr>
+<tr>
+<td width="55%"><a href="docs/images/files.jpg"><img src="docs/images/files.jpg" alt="Le gestionnaire de fichiers"></a></td>
+<td width="45%" valign="middle">
+
+### 🗂️ Fichiers
+
+- une **icône et une couleur par type** (config, JSON, logs, archives, .db…), taille, date en français, filtre rapide
+- **envoi d'un dossier entier** par glisser-déposer, sans le zipper
+- les bases **SQLite (.db)** s'ouvrent dans un vrai lecteur : tables, modification au double-clic, onglet SQL
 
 </td>
 </tr>
 <tr>
 <td width="45%" valign="middle">
 
-### 🚚 Euro Truck Simulator 2
+### 📝 Un éditeur façon VS Code
 
-- `server_config.sii` en **formulaire** : nom, mot de passe, règles du jeu…
-- **modérateurs** par SteamID64
-- mods `.scs` à activer ou couper
-- le guide pas à pas pour **exporter ses mods** depuis le jeu
-
-</td>
-<td width="55%"><a href="docs/images/ets2.jpg"><img src="docs/images/ets2.jpg" alt="L'onglet Euro Truck"></a></td>
-</tr>
-<tr>
-<td width="55%"><a href="docs/images/shop.jpg"><img src="docs/images/shop.jpg" alt="La boutique"></a></td>
-<td width="45%" valign="middle">
-
-### 🛒 Une vraie boutique
-
-- offres par **catégorie**, ou serveur **sur mesure**
-- crédit rechargé par **Stripe, PayPal ou SumUp**
-- le serveur est **créé tout seul** après paiement, suspendu à l'échéance
-- remboursement automatique si la création échoue
+- couleurs du thème **Dark+**, onglet du fichier, chemin, barre d'état bleue
+- coloration des `server.cfg` de **FiveM**, des `.conf`, `.env`, Lua, JSON, YAML, PHP…
+- **Ctrl + S** pour enregistrer, **Ctrl + F** pour chercher, badge quand le fichier n'est pas enregistré
 
 </td>
-</tr>
-<tr>
-<td width="45%" valign="middle">
-
-### 🗃️ Les bases SQLite s'ouvrent
-
-- un clic sur un fichier **.db** dans *Fichiers* ouvre un vrai lecteur
-- tables, vues et nombre de lignes
-- **double-clic** pour modifier une case, ajout et suppression de lignes
-- onglet **SQL** pour tes propres requêtes, puis **Enregistrer**
-
-</td>
-<td width="55%"><a href="docs/images/sqlite.jpg"><img src="docs/images/sqlite.jpg" alt="Le lecteur de bases SQLite"></a></td>
-</tr>
-<tr>
 <td width="55%"><a href="docs/images/editor.jpg"><img src="docs/images/editor.jpg" alt="L'éditeur de code"></a></td>
-<td width="45%" valign="middle">
-
-### 🗂️ Fichiers et code soignés
-
-- une liste en verre, avec une **icône et une couleur par type** (JSON, Lua, config, logs, archives, images, .jar, .db…)
-- l'extension en plus discret, la **taille**, la date **en français**, un **filtre** rapide et le total en bas
-- un **éditeur façon macOS** : coloration aux couleurs iOS, ligne active, police SF Mono
-- une barre d'état : ligne, colonne, nombre de lignes, taille, et un badge **« Non enregistré »**
-
-</td>
 </tr>
 <tr>
+<td width="55%"><a href="docs/images/mail.jpg"><img src="docs/images/mail.jpg" alt="L'onglet E-mails d'un site"></a></td>
 <td width="45%" valign="middle">
 
-### 🔔 Alertes, stats et cloche
+### 📧 Des boîtes mail, comme Plesk
 
-- **alertes** de crash, mémoire, disque, démarrage et arrêt, dans le panel et sur **Discord**
-- onglet **Statistiques** : joueurs sur 24 h / 7 jours, pic, moyenne, heures d'affluence
-- une **cloche** de notifications et des **annonces** à tous (maintenance, mises à jour)
-- une **page de statut publique** avec la disponibilité des nodes
+- adresses sur le **domaine du site** (`contact@monsite.fr`), avec la taille utilisée
+- les enregistrements **MX, SPF, DKIM et DMARC** à ajouter, et un bouton pour **vérifier**
+- **webmail** Roundcube, et les réglages pour Outlook, Thunderbird ou l'iPhone
+- un vrai serveur mail (docker-mailserver) avec **anti-spam** et **DKIM**, piloté par le panel
 
 </td>
-<td width="55%"><a href="docs/images/statistics.jpg"><img src="docs/images/statistics.jpg" alt="Les statistiques des joueurs"></a></td>
 </tr>
 </table>
 
-### 🌍 Hébergement web, comme Plesk
+### 🌍 Sites web, comme Plesk
 
 - **sites PHP, HTML, JS, Node.js et Python**, chacun dans son conteneur, avec sa limite de CPU et de mémoire
-- **domaine sans port** : `https://monsite.fr`, certificat créé et renouvelé tout seul, `www` compris
-- **CMS en un clic** : WordPress, Joomla, PrestaShop, Nextcloud, Dolibarr et Drupal, base de données comprise
+- **domaine sans port** : `https://monsite.fr`, certificat créé et renouvelé tout seul, `www` compris, **un domaine par site**
+- **CMS en un clic** : WordPress, Joomla, PrestaShop, Nextcloud, Dolibarr et Drupal, base de données comprise, et **désinstallation**
 - **facturation d'hébergeur** : ClientXCMS, et WHMCS avec ton fichier, chacun avec ta propre licence
-- **version de PHP** au choix, sous-domaines gratuits, et vente par la boutique
+- **aperçu** du site, **version de PHP** au choix, sous-domaines gratuits, et vente par la boutique
 
-### 🤖 Bot Discord
+### 🔑 Sans mot de passe
 
-- `/servers`, `/status`, `/start`, `/restart`, `/stop` : chaque client pilote **ses** serveurs depuis Discord, avec ses droits du panel
-- carte de statut avec CPU, RAM, joueurs et boutons **Démarrer / Redémarrer / Arrêter / Actualiser**
-- **alertes en message privé** au propriétaire ; aucun programme à faire tourner (Interactions de Discord)
+- **Face ID, Touch ID, Windows Hello**, un téléphone ou une clé de sécurité, **sans mot de passe**
+- ajoutées et retirées dans *Compte → Passkeys*, avec la date de dernière utilisation
+- vérification WebAuthn faite par le panel lui-même : défi à usage unique, site, signature, compteur de l'appareil
+
+### ⛏️ Minecraft et 🚚 Euro Truck
+
+- **Minecraft** : catalogue **Modrinth** (plugins, mods, modpacks), loader et version détectés tout seuls, **joueurs connectés**, whitelist, ops et bannis
+- **Euro Truck Simulator 2 / American Truck** : `server_config.sii` en formulaire, modérateurs, mods `.scs`
+
+### 🛒 Une vraie boutique
+
+- offres par **catégorie**, ou serveur **sur mesure**, crédit rechargé par **Stripe, PayPal ou SumUp**
+- le serveur est **créé tout seul** après paiement, suspendu à l'échéance, remboursé si la création échoue
+
+### 🔔 Alertes, cloche et bot Discord
+
+- **alertes** de crash, mémoire, disque, démarrage et arrêt, dans la cloche, sur **Discord** (cartes Components V2) et en **message privé**
+- une **cloche** de notifications (supprimables) et des **annonces** à tous ; une **page de statut publique**
+- **bot Discord** : `/servers`, `/status`, `/start`, `/restart`, `/stop` pour piloter **ses** serveurs, avec ses droits du panel
+
+### 🧭 Une administration à la hauteur
+
+- liste des serveurs **en direct** (CPU, mémoire, état) avec actions groupées : démarrer, arrêter, suspendre
+- **recherche globale Ctrl + K** : serveurs, utilisateurs, nodes, tickets
+- journal de mise à jour **façon terminal**, personnes connectées en temps réel, capacité de chaque node
+- pages **Web Hosting**, **Email** et **Bot Discord**, rôles de staff section par section
 
 ### Et aussi
 
@@ -232,8 +214,8 @@ Tape le nom d'un egg (Valheim, Palworld…) et il est importé depuis **eggs.pte
 <tr>
 <td width="33%" valign="top">
 
-**🗄️ phpMyAdmin & SQLite**<br>
-Un bouton ouvre la base MySQL **déjà connecté** ; les fichiers **.db** s'ouvrent dans le gestionnaire de fichiers.
+**🗄️ phpMyAdmin**<br>
+Un bouton ouvre la base MySQL d'un serveur, **déjà connecté**.
 
 </td>
 <td width="33%" valign="top">
@@ -265,65 +247,28 @@ Panel, Wings, mise à jour avec **sauvegarde et retour en arrière**, désinstal
 <td width="50%"><a href="docs/images/register.jpg"><img src="docs/images/register.jpg" alt="Inscription"></a></td>
 </tr>
 <tr>
-<td align="center"><sub>Connexion, fond « Soie » et accent violet</sub></td>
-<td align="center"><sub>Inscription, fond « Bulles » et accent rose</sub></td>
+<td align="center"><sub>Connexion, avec passkey et Discord</sub></td>
+<td align="center"><sub>Inscription</sub></td>
 </tr>
 </table>
 
-### 📱 Sur téléphone
-
-<a href="docs/images/mobile.jpg"><img src="docs/images/mobile.jpg" alt="Le panel sur téléphone" width="100%"></a>
-
-### 👥 Joueurs Minecraft et dégradé « Océan »
+### 📱 Sur téléphone et 🧭 dans l'administration
 
 <table>
 <tr>
-<td width="50%"><a href="docs/images/minecraft-players.jpg"><img src="docs/images/minecraft-players.jpg" alt="Joueurs Minecraft"></a></td>
-<td width="50%"><a href="docs/images/dashboard-ocean.jpg"><img src="docs/images/dashboard-ocean.jpg" alt="Dashboard avec le dégradé Océan"></a></td>
+<td width="28%"><a href="docs/images/mobile.jpg"><img src="docs/images/mobile.jpg" alt="Le panel sur téléphone"></a></td>
+<td width="72%"><a href="docs/images/admin.jpg"><img src="docs/images/admin.jpg" alt="L'administration"></a></td>
 </tr>
 <tr>
-<td align="center"><sub>Joueurs connectés, whitelist, opérateurs et bannis</sub></td>
-<td align="center"><sub>Le dégradé « Océan » avec l'accent sarcelle</sub></td>
-</tr>
-</table>
-
-### 🗂️ Fichiers
-
-<a href="docs/images/files.jpg"><img src="docs/images/files.jpg" alt="Le gestionnaire de fichiers" width="100%"></a>
-
-### 🔔 Notifications, alertes et page de statut
-
-<table>
-<tr>
-<td width="33%"><a href="docs/images/notifications.jpg"><img src="docs/images/notifications.jpg" alt="La cloche de notifications"></a></td>
-<td width="33%"><a href="docs/images/alerts.jpg"><img src="docs/images/alerts.jpg" alt="Les alertes d'un serveur"></a></td>
-<td width="33%"><a href="docs/images/status.jpg"><img src="docs/images/status.jpg" alt="La page de statut"></a></td>
-</tr>
-<tr>
-<td align="center"><sub>La cloche</sub></td>
-<td align="center"><sub>Les alertes (Discord)</sub></td>
-<td align="center"><sub>La page de statut</sub></td>
-</tr>
-</table>
-
-### 🧭 Administration
-
-<a href="docs/images/admin-appearance.jpg"><img src="docs/images/admin-appearance.jpg" alt="Administration : Apparence" width="100%"></a>
-
-<table>
-<tr>
-<td width="50%"><a href="docs/images/admin.jpg"><img src="docs/images/admin.jpg" alt="Administration"></a></td>
-<td width="50%"><a href="docs/images/maintenance.jpg"><img src="docs/images/maintenance.jpg" alt="Page de maintenance"></a></td>
-</tr>
-<tr>
-<td align="center"><sub>L'administration, dans le même verre</sub></td>
-<td align="center"><sub>La page affichée pendant une mise à jour</sub></td>
+<td align="center"><sub>Le tableau de bord sur téléphone</sub></td>
+<td align="center"><sub>L'administration, dans le même style</sub></td>
 </tr>
 </table>
 
 <br>
 
 ---
+
 
 ## 📚 Documentation
 
@@ -340,12 +285,16 @@ Panel, Wings, mise à jour avec **sauvegarde et retour en arrière**, désinstal
 [Euro Truck](#-euro-truck-simulator-2--american-truck-simulator) ·
 [Boutique](#-boutique-stripe-paypal-sumup) ·
 [Notifications](#-notifications-alertes-et-annonces) ·
-[Statistiques](#-statistiques-des-joueurs) ·
+[Statistiques](#-statistiques--joueurs-et-ressources) ·
 [Page de statut](#-page-de-statut-publique) ·
+[Hébergement web](#-hébergement-web) ·
+[E-mails](#-e-mails-boîtes-mail-des-sites) ·
 [Sous-domaines](#-sous-domaines-cloudflare-bunnynet-powerdns) ·
 [Bases SQLite](#️-bases-sqlite-db-dans-le-gestionnaire-de-fichiers) ·
 [Apparence](#-apparence--fond-animé-image-et-couleurs) ·
 [Console](#-console-et-petits-plus) ·
+[Passkeys](#-connexion-par-passkey) ·
+[Bot Discord](#-bot-discord) ·
 [Discord](#-inscription-et-connexion-discord) ·
 [Rôles](#️-rôles-de-staff)
 
@@ -519,7 +468,7 @@ perdu** : serveurs, utilisateurs, nodes, allocations, sauvegardes, bases de donn
 
 | Option | Effet |
 | --- | --- |
-| `--panel`, `--wings`, `--update`, `--restore`, `--uninstall`, `--phpmyadmin` | Ce qu'il faut faire (sinon, menu) |
+| `--panel`, `--wings`, `--update`, `--restore`, `--uninstall`, `--phpmyadmin`, `--web`, `--mail` | Ce qu'il faut faire (sinon, menu) |
 | `-y`, `--yes` | Ne pose aucune question |
 | `--dry-run` | Vérifie tout et affiche le plan, sans rien changer |
 | `--fqdn=`, `--email=` | Domaine (ou IP) et email, pour un nouveau panel |
@@ -527,6 +476,7 @@ perdu** : serveurs, utilisateurs, nodes, allocations, sauvegardes, bases de donn
 | `--timezone=` | Fuseau horaire du panel (celui du serveur par défaut) |
 | `--ssl`, `--no-ssl` | Force ou désactive le certificat SSL |
 | `--panel-url=`, `--wings-token=`, `--node-id=` | Configure Wings tout de suite |
+| `--panel-url=`, `--mail-token=` | Avec `--mail` : l'adresse du panel et la clé de l'agent du serveur mail (*Admin → Email*) |
 | `--path=/chemin` | Dossier du panel, si ce n'est pas `/var/www/pterodactyl` |
 | `--install-node` | Installe Node.js 22 et Yarn s'ils manquent (Debian/Ubuntu), pour une mise à jour |
 | `--enable-settings-ui` | Passe `APP_ENVIRONMENT_ONLY` à `false` dans `.env` (mise à jour) |
@@ -749,11 +699,16 @@ mémoire ou disque remplis à 90 %, démarrage, arrêt. Elles vont dans la cloch
 minute**, avec une seule requête par node (commande `p:servers:watch`, lancée par la tâche planifiée habituelle du panel). Un
 arrêt demandé depuis le panel, la console ou un planning n'est pas compté comme un crash.
 
-### 📈 Statistiques des joueurs
+### 📈 Statistiques : joueurs et ressources
 
-Un onglet **Statistiques** sur chaque serveur : la courbe des joueurs connectés sur **24 heures** ou **7 jours**, le **pic**, la
-**moyenne** et les **heures d'affluence**. Le nombre de joueurs est relevé toutes les 5 minutes pendant que le serveur tourne :
-**Minecraft** (comme la liste des serveurs du jeu), **FiveM** et les **jeux Steam**. 30 jours sont gardés.
+Un onglet **Statistiques** sur chaque serveur, sur **24 heures**, **7 jours** ou **30 jours** :
+
+- **joueurs** : en direct, la courbe des joueurs connectés, le **pic**, la **moyenne** et les **heures d'affluence**. Le nombre de
+  joueurs est lu comme le font les jeux : **Minecraft** (Java et Bedrock), **FiveM** et les **jeux Steam** (requête A2S) ;
+- **ressources** : la **moyenne** et le **pic** du processeur et de la mémoire, le disque, et le **temps en ligne**, avec un graphique
+  du processeur et un de la mémoire. La limite du serveur est tracée en pointillés.
+
+Tout est relevé toutes les 5 minutes pendant que le serveur tourne (une seule requête par node, avec les alertes), et gardé 30 jours.
 
 ### 🟢 Page de statut publique
 
@@ -783,12 +738,46 @@ vont vers quels conteneurs (avec le jeton de Wings), écrit ses propres sites Ng
 certificats Let's Encrypt et ferme le port du conteneur à l'extérieur. Il teste Nginx avant chaque rechargement et remet
 les anciens fichiers si le test échoue. Un site suspendu affiche une page d'indisponibilité et garde son certificat.
 
-**Domaine d'un client.** Il ajoute son domaine dans l'onglet, puis crée l'enregistrement affiché dans son DNS. Avec
-Cloudflare, le nuage doit être **gris** (« DNS only ») pour que le panel voie l'adresse du serveur.
+**Domaine d'un client.** Il ajoute son domaine dans l'onglet, puis crée les enregistrements affichés dans son DNS (le
+`www` est un enregistrement A, comme le domaine). Avec Cloudflare, le nuage doit être **gris** (« DNS only ») pour que le panel
+voie l'adresse du serveur. Un site a **un seul domaine** (domaine perso ou sous-domaine gratuit) ; la limite se règle dans
+*Admin → Web Hosting → Domaines par site*.
+
+**CMS.** WordPress, Joomla, PrestaShop, Nextcloud, Dolibarr, Drupal, ClientXCMS et WHMCS (avec ton propre fichier et ta licence)
+s'installent en un clic, base de données comprise, et se **désinstallent** de la même façon. L'onglet montre un **aperçu** du site.
 
 **Node.js et Python.** L'application doit écouter sur la variable `PORT`. Sa commande est dans l'onglet *Démarrage*.
 
-**Les e-mails ne sont pas inclus** : utilise un service de messagerie pour les boîtes mail des clients.
+**E-mails.** Les sites peuvent avoir des boîtes mail sur leur domaine : voir [E-mails](#-e-mails-boîtes-mail-des-sites).
+
+### 📧 E-mails (boîtes mail des sites)
+
+Un onglet **E-mails** sur chaque site web : le client active les e-mails pour **le domaine de son site**, crée ses adresses
+(`contact@monsite.fr`…), change leur mot de passe et voit leur taille utilisée. Il a les enregistrements **MX, SPF, DKIM et
+DMARC** à ajouter, avec un bouton **Vérifier**, les réglages **IMAP / SMTP** pour ses applications et un lien vers le **webmail**.
+
+**Mise en route** (*Admin → Email*) :
+
+1. Choisis deux noms, par exemple `mail.ton-domaine.fr` (le serveur mail) et `webmail.ton-domaine.fr`, et crée pour chacun un
+   enregistrement **A** vers la machine du serveur mail. Enregistre-les dans la page.
+2. Chez l'hébergeur de la machine : règle son **DNS inverse (PTR)** sur `mail.ton-domaine.fr`, et vérifie que le **port 25
+   sortant** est ouvert (beaucoup d'hébergeurs le bloquent). Sans ça, Gmail et Outlook refusent les mails.
+3. Clique **Créer une clé** : la page affiche la commande à lancer en root sur la machine du serveur mail, du genre :
+   ```bash
+   bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --mail --panel-url=https://panel.ton-domaine.fr --mail-token=pml_...
+   ```
+   Il faut **Docker**, **Nginx** et les ports **25, 465, 587 et 993** libres (s'ils sont pris par exim4 ou postfix, le script le dit).
+4. La page *Email* montre ensuite l'état : agent connecté, certificats, port 25, DNS inverse, erreurs.
+
+**Comment ça marche.** Un service, `pterodactyl-mail-agent`, tourne sur cette machine. Il lance
+[docker-mailserver](https://github.com/docker-mailserver/docker-mailserver) (SMTP, IMAP, anti-spam Rspamd, signature DKIM) et
+[Roundcube](https://roundcube.net) (webmail) dans Docker, obtient leurs certificats Let's Encrypt, et demande au panel la liste des
+boîtes toutes les 15 secondes. Les mots de passe ne sont gardés que **hachés** (SHA512-CRYPT). L'agent crée la clé **DKIM** de
+chaque nouveau domaine et renvoie l'enregistrement au panel. Les messages d'une boîte supprimée sont gardés **7 jours** sur la
+machine avant d'être effacés ; un site suspendu garde les siens.
+
+**Limites** : nombre de boîtes par site et taille d'une boîte, dans *Admin → Email*. Les e-mails demandent un **domaine perso** :
+un sous-domaine gratuit du panel ne peut pas en avoir.
 
 ### 🌐 Sous-domaines (Cloudflare, Bunny.net, PowerDNS)
 
@@ -818,17 +807,6 @@ supprimé, ses sous-domaines et leurs enregistrements le sont aussi.
 
 ### 🗃️ Bases SQLite (.db) dans le gestionnaire de fichiers
 
-<table>
-<tr>
-<td width="50%"><a href="docs/images/sqlite.jpg"><img src="docs/images/sqlite.jpg" alt="Les données d'une table"></a></td>
-<td width="50%"><a href="docs/images/sqlite-sql.jpg"><img src="docs/images/sqlite-sql.jpg" alt="Une requête SQL"></a></td>
-</tr>
-<tr>
-<td align="center"><sub>Les données d'une table, modifiables au double-clic</sub></td>
-<td align="center"><sub>Une requête SQL et ses résultats</sub></td>
-</tr>
-</table>
-
 Un clic sur un fichier `.db`, `.sqlite`, `.sqlite3` ou `.db3` l'ouvre dans un **lecteur de base de données**, sans rien installer :
 
 - la liste des **tables** et des vues, avec leur nombre de lignes ;
@@ -849,7 +827,7 @@ par SQLite compilé en WebAssembly ([sql.js](https://github.com/sql-js/sql.js), 
 Dans *Administration → Apparence* (droit de gérer les réglages), l'admin choisit ce qu'il y a **derrière tout le panel** (dashboard,
 administration, connexion et page d'accueil) :
 
-- un **dégradé** : Liquid Glass (celui d'origine), Minuit, Océan, Coucher de soleil, Forêt ;
+- le fond **uni** du thème (par défaut), ou un **dégradé** : Minuit, Océan, Coucher de soleil, Forêt ;
 - un **fond animé** : Aurore, Soie, Plasma, Vagues, Lignes, Halo, Faisceaux, Étoiles, Bulles. Il est dessiné par la carte graphique
   (WebGL) à la moitié de la taille de l'écran et à 30 images par seconde au plus, s'arrête quand l'onglet est caché et reste figé pour
   ceux qui ont demandé moins d'animations ;
@@ -934,13 +912,13 @@ injoignable ou occupé est réessayé 15 minutes plus tard sans gêner les autre
 
 | | Ce que ça fait |
 | --- | --- |
-| 🔠 **Titre en 3D** | Le nom du panel (*Admin → Settings → Company Name*) s'affiche en relief dans la barre du haut et en grand sur les pages de connexion et d'inscription |
-| 🎛️ **Administration relookée** | Menu latéral avec icônes en tuiles, compteurs (serveurs, utilisateurs, nodes), carte du compte connecté et retour au dashboard ; menu réduit propre ; listes déroulantes, fenêtres de confirmation, infobulles, encadrés et pagination aux couleurs du thème ; barres de défilement fines |
+| 🔠 **Nom du panel** | Le nom (*Admin → Settings → Company Name*) s'affiche dans la barre du haut, sur les pages de connexion et en bas de chaque page, à la place des mentions de Pterodactyl |
+| 🎛️ **Administration relookée** | Même style que le panel : menu plat, compteurs (serveurs, utilisateurs, nodes), cartes, tableaux, boutons, champs, fenêtres et pagination ; recherche **Ctrl + K** ; liste des serveurs en direct |
 | 🎫 **Tickets de support** | Conversation en temps réel entre l'utilisateur et le staff, notes internes, priorités, prise en charge, transcription en texte ou à imprimer (voir [Tickets de support](#-tickets-de-support)) |
 | 🟢 **Actifs en temps réel** | Sur l'accueil de l'administration, la carte *Actifs en ce moment* liste les personnes qui utilisent le panel, avec **la page où elles sont** (Console, Fichiers, Sauvegardes, Compte, Support…) et le **serveur** concerné, et disparaissent dès qu'elles se déconnectent. Mise à jour toutes les 5 secondes. Actif = une action dans les 2 dernières minutes (le dashboard signale sa page toutes les 30 secondes tant qu'il est à l'écran). Seul le *type* de page est gardé, jamais l'adresse complète ; la liste est réservée à ceux qui peuvent voir les utilisateurs |
 | 🧭 **Accueil de l'administration** | Un vrai tableau de bord : nombre de serveurs, utilisateurs, nodes et emplacements, **capacité de chaque node** (mémoire et disque promis aux serveurs, en vert, jaune puis rouge), derniers serveurs et derniers utilisateurs, actions rapides. Un membre du staff ne voit que les sections qui lui sont ouvertes |
-| 🗂️ **Dashboard repensé** | Résumé en haut (serveurs, en ligne, CPU et mémoire cumulés), cartes éclairées selon l'état du serveur, **jauges circulaires** CPU / mémoire / disque qui passent au jaune puis au rouge, adresse floutée dans une pastille, et recherche + filtre En ligne / Hors ligne dès 4 serveurs |
-| 🖥️ **Console améliorée** | Console dans un cadre arrondi, barre d'outils **Rechercher / Copier / Pause / Clear**, `[étiquettes]` en bleu, heures en gris, erreurs en rouge, avertissements en jaune, succès en vert et traces d'exception en gris, ligne de commande avec bouton d'envoi, bouton « retour en bas » rond |
+| 🗂️ **Dashboard repensé** | Une ligne de chiffres (en marche, CPU, mémoire, disque), puis les serveurs **en grille de cartes** : jeu, état, adresse floutée, **barres** CPU / mémoire / disque qui passent à l'orange puis au rouge, joueurs et temps en ligne ; recherche + filtre En ligne / Hors ligne dès 4 serveurs |
+| 🖥️ **Console améliorée** | Terminal noir sur toute la largeur, barre d'outils **Rechercher / Copier / Pause / Vider** et compteur d'erreurs, `[étiquettes]` en bleu, heures en gris, erreurs en rouge, avertissements en jaune, succès en vert, ligne de commande avec bouton d'envoi |
 | 🔘 **Boutons d'alimentation** | *Start / Restart / Stop* avec icônes, couleurs, état d'attente pendant que le serveur répond, et *Kill* quand l'arrêt traîne |
 | 📈 **Graphiques fluides** | Les courbes CPU, mémoire, **écriture disque** (estimée) et réseau glissent en continu (60 images/s) au lieu de sauter une fois par seconde. Quand le serveur s'éteint, elles **redescendent progressivement à zéro** et restent là ; en passant la souris dessus, une ligne pointillée et une bulle donnent la **valeur exacte** à cet instant (et depuis combien de secondes) |
 | ⏸️ **Pause / Clear** | Dans la console, **Pause** gèle l'écran pour lire ou copier (les nouvelles lignes attendent, jusqu'à 5000, et s'affichent au **Resume**). **Clear** vide la console |
@@ -961,6 +939,35 @@ injoignable ou occupé est réessayé 15 minutes plus tard sans gêner les autre
 <br>
 
 ---
+
+### 🔑 Connexion par passkey
+
+Chaque utilisateur peut se connecter avec **Face ID, Touch ID, Windows Hello**, son téléphone ou une clé de sécurité, sans taper
+son mot de passe :
+
+1. *Compte → Passkeys → Ajouter une passkey* : l'appareil demande le visage, le doigt ou le code, et la passkey est enregistrée.
+2. Sur la page de connexion, **Se connecter avec une passkey** : l'appareil montre les passkeys qu'il garde pour le panel.
+
+La passkey remplace aussi le code de l'application d'authentification, puisque l'appareil est déjà déverrouillé par la personne.
+Le panel fait toute la vérification WebAuthn lui-même, sans dépendance : défi à usage unique de 5 minutes, nom du site, présence
+et vérification de la personne, signature (ES256, Ed25519 ou RS256) et compteur de l'appareil. Les essais ratés sont limités comme
+la connexion par mot de passe. Les passkeys ne marchent qu'en **HTTPS**, sur l'adresse du panel.
+
+### 🤖 Bot Discord
+
+Chaque client pilote **ses** serveurs depuis Discord, avec les droits qu'il a dans le panel : `/servers`, `/status`, `/start`,
+`/restart` et `/stop`, avec une carte qui montre CPU, mémoire et joueurs et des boutons **Démarrer / Redémarrer / Arrêter /
+Actualiser**. Les alertes peuvent aussi arriver **en message privé** (case dans les alertes du serveur). Aucun programme à faire
+tourner : Discord appelle le panel (Interactions), chaque appel est vérifié avec la clé publique de l'application.
+
+**Mise en place** (*Admin → Bot Discord*) :
+
+1. Sur le [Discord Developer Portal](https://discord.com/developers/applications), ouvre ton application (ou crée-la).
+2. Copie l'**Application ID**, la **Public Key** et le **Bot Token** dans la page, et **enregistre** (le badge passe à « Prêt »).
+3. Copie l'**Interactions Endpoint URL** affichée dans *General Information* sur le portail, et enregistre là-bas : Discord
+   la teste tout de suite (l'adresse doit être en HTTPS).
+4. Envoie les commandes avec le bouton de la page, puis **invite le bot** sur ton serveur Discord.
+5. Tes clients lient leur Discord sur la page *Compte* du panel.
 
 ### 🔐 Inscription et connexion Discord
 
@@ -1098,6 +1105,26 @@ fini de démarrer. Le compteur se met à jour tout seul dès que FiveM répond.
 </details>
 
 <details>
+<summary><b>Les mails envoyés arrivent en spam, ou sont refusés par Gmail</b></summary>
+
+<br>
+
+Regarde *Admin → Email* : le **DNS inverse (PTR)** de la machine doit être le nom du serveur mail, et le **port 25 sortant** doit
+être ouvert. Côté client, les quatre enregistrements de l'onglet *E-mails* (MX, SPF, DKIM, DMARC) doivent être **Trouvés**. Un SPF
+déjà présent (Google, Microsoft…) doit recevoir `mx` au lieu d'un deuxième enregistrement.
+
+</details>
+
+<details>
+<summary><b>Le bouton « Se connecter avec une passkey » n'apparaît pas</b></summary>
+
+<br>
+
+Les passkeys demandent le **HTTPS** et un navigateur récent. Ouvre le panel par son adresse en `https://` (pas par l'IP).
+
+</details>
+
+<details>
 <summary><b>L'installation s'est arrêtée en route</b></summary>
 
 <br>
@@ -1131,9 +1158,13 @@ yarn install
 yarn watch   # recompile à chaque modification
 ```
 
-Les couleurs et les ombres sont définies dans [`tailwind.config.js`](tailwind.config.js) (dashboard client) et
-dans les variables CSS `--pd-*` de [`public/themes/pterodactyl/css/pterodactyl.css`](public/themes/pterodactyl/css/pterodactyl.css)
+Les couleurs, la police et les angles sont définis dans [`tailwind.config.js`](tailwind.config.js) et
+[`GlobalStylesheet.ts`](resources/scripts/assets/css/GlobalStylesheet.ts) (dashboard client), et dans les variables CSS `--pd-*`
+de la dernière partie de [`public/themes/pterodactyl/css/pterodactyl.css`](public/themes/pterodactyl/css/pterodactyl.css)
 (administration).
+
+Avant de publier, compile une fois (`yarn build`) : `tsc` ne voit pas les classes que twin.macro refuse, et la mise à jour
+compile le dashboard sur le serveur.
 
 > [!IMPORTANT]
 > Quand tu ajoutes ou modifies un fichier, ajoute-le à [`install-manifest.txt`](install-manifest.txt) : l'installateur
@@ -1145,13 +1176,18 @@ Ce projet est un thème construit sur [Pterodactyl Panel](https://github.com/pte
 [licence MIT](LICENSE.md). Il n'est ni affilié ni approuvé par le projet Pterodactyl.
 Pterodactyl® est une marque de ses propriétaires.
 
+Il utilise aussi les polices [Geist et Geist Mono](https://github.com/vercel/geist-font) (licence SIL OFL, servies par le panel),
+[sql.js](https://github.com/sql-js/sql.js) (MIT), et, pour les e-mails, les images Docker de
+[docker-mailserver](https://github.com/docker-mailserver/docker-mailserver) (MIT) et de
+[Roundcube](https://github.com/roundcube/roundcubemail-docker) (GPL), téléchargées sur la machine du serveur mail.
+
 Un problème, une idée ? Ouvre une [issue](https://github.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/issues) sur le dépôt.
 
 <br>
 
 <div align="center">
 
-**Fait avec 💜 pour les hébergeurs de jeux**
+**Fait avec 💜 pour les hébergeurs de jeux et de sites**
 
 <sub>Si ce thème te plaît, une ⭐ sur le dépôt fait toujours plaisir.</sub>
 

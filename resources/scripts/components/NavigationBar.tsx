@@ -25,7 +25,15 @@ const Bar = styled.header`
     backdrop-filter: saturate(150%) blur(12px);
 
     & .pd-links {
-        ${tw`flex items-center gap-0.5 order-last w-full -mx-2.5 pb-2 md:order-none md:w-auto md:mx-0 md:pb-0`};
+        ${tw`items-center gap-0.5`};
+
+        &.pd-links-wide {
+            ${tw`hidden md:flex`};
+        }
+
+        &.pd-links-phone {
+            ${tw`flex md:hidden`};
+        }
 
         & > a {
             ${tw`px-2.5 py-1.5 rounded-md text-sm no-underline text-neutral-300 transition-colors duration-150`};
@@ -111,6 +119,25 @@ export default () => {
         });
     };
 
+    const links = (
+        <>
+            <NavLink to={'/'} exact>
+                Servers
+            </NavLink>
+            {shopOpen && <NavLink to={'/shop'}>Shop</NavLink>}
+            {statusOpen && (
+                <a href={'/status'} target={'_blank'} rel={'noopener noreferrer'}>
+                    Status
+                </a>
+            )}
+            {adminAccess && (
+                <a href={'/admin'} rel={'noreferrer'}>
+                    Admin
+                </a>
+            )}
+        </>
+    );
+
     return (
         <>
             <SupportBubble />
@@ -119,10 +146,10 @@ export default () => {
                 <SpinnerOverlay visible={isLoggingOut} />
                 <div
                     className={
-                        'relative mx-auto w-full flex flex-wrap md:flex-nowrap items-center gap-x-6 min-h-[3.5rem] max-w-[1280px] px-4 sm:px-6'
+                        'relative mx-auto w-full flex items-center gap-x-3 md:gap-x-6 h-14 max-w-[1280px] px-4 sm:px-6'
                     }
                 >
-                    <div id={'logo'} className={'min-w-0 flex-shrink'}>
+                    <div id={'logo'} className={'min-w-0 flex-1 md:flex-none'}>
                         <Link to={'/'} className={'flex items-center gap-2.5 min-w-0 no-underline'}>
                             <span
                                 aria-hidden
@@ -132,24 +159,9 @@ export default () => {
                             <BrandTitle className={'truncate'} />
                         </Link>
                     </div>
-                    <nav className={'pd-links'}>
-                        <NavLink to={'/'} exact>
-                            Servers
-                        </NavLink>
-                        {shopOpen && <NavLink to={'/shop'}>Shop</NavLink>}
-                        {statusOpen && (
-                            <a href={'/status'} target={'_blank'} rel={'noopener noreferrer'}>
-                                Status
-                            </a>
-                        )}
-                        {adminAccess && (
-                            <a href={'/admin'} rel={'noreferrer'}>
-                                Admin
-                            </a>
-                        )}
-                    </nav>
-                    <div className={'flex-1'} />
-                    <RightNavigation className={'flex h-14 items-center justify-center gap-1'}>
+                    <nav className={'pd-links pd-links-wide'}>{links}</nav>
+                    <div className={'hidden md:block flex-1'} />
+                    <RightNavigation className={'flex h-14 flex-shrink-0 items-center justify-center gap-0.5 sm:gap-1'}>
                         <SearchContainer />
                         <NotificationBell />
                         <Tooltip placement={'bottom'} content={'Account Settings'}>
@@ -166,6 +178,8 @@ export default () => {
                         </Tooltip>
                     </RightNavigation>
                 </div>
+                {/* On a phone, the links get their own row under the name and the tools. */}
+                <nav className={'pd-links pd-links-phone px-2 sm:px-3.5 pb-2'}>{links}</nav>
             </Bar>
         </>
     );

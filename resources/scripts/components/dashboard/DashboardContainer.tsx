@@ -141,7 +141,7 @@ export default () => {
                     <div css={tw`relative flex-1 min-w-[12rem]`}>
                         <FontAwesomeIcon
                             icon={faSearch}
-                            css={tw`absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm`}
+                            css={tw`absolute left-3 inset-y-0 my-auto text-neutral-500 text-sm`}
                         />
                         <input
                             ref={searchInput}
