@@ -20,11 +20,125 @@
     .pd-mail-cmd { display: block; white-space: pre-wrap; word-break: break-all; padding: 10px 12px; margin-top: 8px; user-select: all; }
     .pd-mail-error { display: block; font-size: 12px; color: rgba(255, 170, 160, 0.9); margin-top: 4px; }
     .pd-mail-state td:first-child { width: 45%; color: rgba(235, 235, 240, 0.7); }
+    .pd-step { display: flex; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--pd-border, #1f1f1f); }
+    .pd-step:last-child { border-bottom: 0; }
+    .pd-step > .fa { font-size: 18px; margin-top: 1px; width: 18px; text-align: center; color: #707070; }
+    .pd-step.is-done > .fa { color: #3ecf8e; }
+    .pd-step.is-now > .fa { color: rgb(var(--pd-accent-400)); }
+    .pd-step.is-wait > .fa { color: #f5a524; }
+    .pd-step.is-todo { opacity: 0.55; }
+    .pd-step.is-done .pd-step-text { display: none; }
+    .pd-step.is-now { background: rgb(var(--pd-accent-500) / 0.06); border-radius: 8px; padding-left: 10px; padding-right: 10px; }
+    .pd-step-title { margin: 0 0 4px; color: var(--pd-text, #ededed); font-weight: 600; }
+    .pd-step-tag { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; border: 1px solid #2e2e2e; font-size: 11px; font-weight: 500; color: #a1a1a1; }
+    .pd-step.is-done .pd-step-tag { color: #3ecf8e; border-color: #1c4733; }
+    .pd-step.is-now .pd-step-tag { color: rgb(var(--pd-accent-300)); border-color: rgb(var(--pd-accent-700)); }
+    .pd-step.is-wait .pd-step-tag { color: #f5a524; border-color: #4d3711; }
+    .pd-step-text { margin: 0 0 4px; font-size: 13px; color: #a1a1a1; }
+    .pd-mail-copy { display: flex; gap: 8px; align-items: flex-start; }
+    .pd-mail-copy .pd-mail-cmd { flex: 1; margin-top: 0; }
 </style>
 
 <div class="row">
     <div class="col-md-7">
-        <div class="box box-primary">
+        <div class="box box-primary pd-mail-guide">
+            <div class="box-header with-border"><h3 class="box-title">Setup</h3></div>
+            <div class="box-body">
+                @php
+                    $icons = ['done' => 'fa-check-circle', 'now' => 'fa-arrow-circle-right', 'wait' => 'fa-clock-o', 'todo' => 'fa-circle-o'];
+                    $labels = ['done' => 'Done', 'now' => 'To do now', 'wait' => 'In progress', 'todo' => 'Later'];
+                    $command = $token ? 'bash <(curl -s https://raw.githubusercontent.com/' . config('pterodactyl.theme.repo') . '/main/install.sh) --mail --panel-url=' . $panelUrl . ' --mail-token=' . $token : null;
+                @endphp
+
+                {{-- 1. The names --}}
+                <div class="pd-step is-{{ $steps['names'] }}">
+                    <i class="fa {{ $icons[$steps['names']] }}"></i>
+                    <div>
+                        <p class="pd-step-title"><span>Choose the names of the mail server and of the webmail</span> <span class="pd-step-tag">{{ $labels[$steps['names']] }}</span></p>
+                        <p class="pd-step-text">Fill them in the Settings box on the right, then Save.</p>
+                    </div>
+                </div>
+
+                {{-- 2. The DNS --}}
+                <div class="pd-step is-{{ $steps['dns'] }}">
+                    <i class="fa {{ $icons[$steps['dns']] }}"></i>
+                    <div>
+                        <p class="pd-step-title"><span>Point both names to the machine</span> <span class="pd-step-tag">{{ $labels[$steps['dns']] }}</span></p>
+                        <p class="pd-step-text">Where your domain is managed, add an A record for each name, to the IP of the machine that will run the mail server.</p>
+                        @if ($hostname !== '' && $webmail !== '')
+                            <p class="pd-step-text"><code>{{ $hostname }}</code> → {{ implode(', ', $dns[$hostname] ?? []) ?: '?' }} &nbsp; <code>{{ $webmail }}</code> → {{ implode(', ', $dns[$webmail] ?? []) ?: '?' }}</p>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- 3. The install --}}
+                <div class="pd-step is-{{ $steps['install'] }}">
+                    <i class="fa {{ $icons[$steps['install']] }}"></i>
+                    <div style="min-width:0;flex:1">
+                        <p class="pd-step-title"><span>Install the mail server on the machine</span> <span class="pd-step-tag">{{ $labels[$steps['install']] }}</span></p>
+                        @if ($steps['install'] === 'done')
+                            <p class="pd-step-text">The agent is connected.</p>
+                        @elseif ($agent !== null)
+                            <p class="pd-step-text">The agent was installed but does not answer any more. On the machine, look at what it says:</p>
+                            <code class="pd-mail-cmd">journalctl -u pterodactyl-mail-agent -n 50</code>
+                        @else
+                            <p class="pd-step-text">1. Click the button below: it makes the key of the agent and shows the command.</p>
+                            <p class="pd-step-text">2. Connect to the machine in SSH as root (with PuTTY or the terminal), paste the command and press Enter.</p>
+                            <p class="pd-step-text">The machine needs Docker and Nginx (already there if Wings and the panel run on it), and the ports 25, 465, 587 and 993 free.</p>
+                            @if ($command)
+                                <p class="pd-step-text" style="margin-top:10px"><strong>Your command</strong> <span class="pd-mail-help">(shown only now: copy it before leaving the page)</span></p>
+                                <div class="pd-mail-copy">
+                                    <code class="pd-mail-cmd" id="pdMailCommand">{{ $command }}</code>
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('pdMailCommand').textContent.trim()).then(() => { this.textContent = '✓'; })">Copy</button>
+                                </div>
+                            @endif
+                            <form action="{{ route('admin.mail.token') }}" method="POST" style="margin-top:10px">
+                                {!! csrf_field() !!}
+                                <button type="submit" class="btn {{ $command ? 'btn-default' : 'btn-primary' }} btn-sm" @if ($hostname === '') disabled @endif>
+                                    {{ $command ? 'Make another key' : 'Show the install command' }}
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- 4. The start --}}
+                <div class="pd-step is-{{ $steps['start'] }}">
+                    <i class="fa {{ $icons[$steps['start']] }}"></i>
+                    <div>
+                        <p class="pd-step-title"><span>The mail server starts</span> <span class="pd-step-tag">{{ $labels[$steps['start']] }}</span></p>
+                        <p class="pd-step-text">The machine downloads the mail server and the webmail and asks for their certificates: a few minutes, nothing to do. This page shows it when it is done.</p>
+                    </div>
+                </div>
+
+                {{-- 5. The reverse DNS --}}
+                <div class="pd-step is-{{ $steps['ptr'] }}">
+                    <i class="fa {{ $icons[$steps['ptr']] }}"></i>
+                    <div>
+                        <p class="pd-step-title"><span>Set the reverse DNS of the machine</span> <span class="pd-step-tag">{{ $labels[$steps['ptr']] }}</span></p>
+                        <p class="pd-step-text">In the customer area of the host of the machine (often under Network, IP or Reverse DNS), set the reverse of the IP to the name of the mail server. Without it, Gmail and Outlook refuse the mail.</p>
+                        @if ($ip !== '')
+                            <p class="pd-step-text"><code>{{ $ip }}</code> → <span>now:</span> <code>{{ $ptr ?: '—' }}</code> &nbsp; <span>wanted:</span> <code>{{ $hostname }}</code></p>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- 6. Port 25 --}}
+                <div class="pd-step is-{{ $steps['port25'] }}">
+                    <i class="fa {{ $icons[$steps['port25']] }}"></i>
+                    <div>
+                        <p class="pd-step-title"><span>Outgoing port 25 open</span> <span class="pd-step-tag">{{ $labels[$steps['port25']] }}</span></p>
+                        @if ($steps['port25'] === 'now')
+                            <p class="pd-step-text">The host of the machine blocks it: mail comes in but cannot go out. Ask their support to open outgoing port 25 (SMTP).</p>
+                        @else
+                            <p class="pd-step-text">Tested by the agent once it is installed. Many hosts block it at first.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="box">
             <div class="box-header with-border"><h3 class="box-title">Mail server</h3></div>
             <div class="box-body table-responsive no-padding">
                 <table class="table pd-mail-state">
@@ -174,29 +288,6 @@
             </div>
         </form>
 
-        <div class="box">
-            <div class="box-header with-border"><h3 class="box-title">Install the mail server</h3></div>
-            <div class="box-body">
-                <ol class="pd-mail-steps">
-                    <li>Save the two names above, and point both to the machine with an <strong>A</strong> record.</li>
-                    <li>At the host of the machine, set its reverse DNS (PTR) to the name of the mail server, and check that outgoing port 25 is open.</li>
-                    <li>Make a key below, then run the command as root on the machine. It needs Docker, Nginx and the ports 25, 465, 587 and 993.</li>
-                    <li>The client finds an <strong>Email</strong> tab on their website, once their own domain works.</li>
-                </ol>
-                @if ($token)
-                    <p class="pd-mail-help" style="margin-top:12px">The key is shown only now. Run:</p>
-                    <code class="pd-mail-cmd">bash &lt;(curl -s https://raw.githubusercontent.com/{{ config('pterodactyl.theme.repo') }}/main/install.sh) --mail --panel-url={{ $panelUrl }} --mail-token={{ $token }}</code>
-                @endif
-            </div>
-            <div class="box-footer">
-                <form action="{{ route('admin.mail.token') }}" method="POST" style="display:inline">
-                    {!! csrf_field() !!}
-                    <button type="submit" class="btn btn-default btn-sm" @if ($hostname === '') disabled @endif>
-                        {{ $hasToken ? 'Make a new key (the old one stops working)' : 'Make a key' }}
-                    </button>
-                </form>
-            </div>
-        </div>
     </div>
 </div>
 @endsection
