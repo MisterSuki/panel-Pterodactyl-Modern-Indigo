@@ -141,6 +141,93 @@ class ProxmoxClient
         return (string) $this->send('post', $this->vmPath($node, $vmid) . '/status/' . $action);
     }
 
+    /**
+     * The templates (KVM) the new VPS can be cloned from: prepared on Proxmox with a cloud-init drive.
+     *
+     * @return array<int, array{vmid: int, node: string, name: string, disk: int}>
+     */
+    public function templates(): array
+    {
+        $all = (array) $this->get('/cluster/resources', ['type' => 'vm']);
+        $templates = [];
+        foreach ($all as $vm) {
+            if (is_array($vm) && ($vm['type'] ?? '') === 'qemu' && !empty($vm['template'])) {
+                $templates[] = [
+                    'vmid' => (int) ($vm['vmid'] ?? 0),
+                    'node' => (string) ($vm['node'] ?? ''),
+                    'name' => (string) ($vm['name'] ?? ''),
+                    'disk' => (int) ($vm['maxdisk'] ?? 0),
+                ];
+            }
+        }
+        usort($templates, fn ($a, $b) => strcmp($a['name'], $b['name']));
+
+        return $templates;
+    }
+
+    /**
+     * The next free id for a machine on the cluster.
+     */
+    public function nextId(): int
+    {
+        return (int) $this->get('/cluster/nextid');
+    }
+
+    /**
+     * Starts a full copy of a template into a new machine. Proxmox answers at once with the id of the task, which runs
+     * for a while (the disks are copied).
+     */
+    public function cloneVm(string $node, int $template, int $newId, string $name): string
+    {
+        return (string) $this->send('post', $this->vmPath($node, $template) . '/clone', [
+            'newid' => $newId,
+            'name' => $name,
+            'full' => 1,
+        ]);
+    }
+
+    /**
+     * The state of a task: ['running' => bool, 'ok' => bool, 'message' => string].
+     *
+     * @return array{running: bool, ok: bool, message: string}
+     */
+    public function task(string $node, string $upid): array
+    {
+        $data = (array) $this->get('/nodes/' . rawurlencode($node) . '/tasks/' . rawurlencode($upid) . '/status');
+        $running = ($data['status'] ?? '') === 'running';
+        $exit = (string) ($data['exitstatus'] ?? '');
+
+        return ['running' => $running, 'ok' => !$running && $exit === 'OK', 'message' => $exit];
+    }
+
+    /**
+     * Changes the settings of a machine (cores, memory, cloud-init...). Answers with a task id or nothing.
+     */
+    public function setConfig(string $node, int $vmid, array $values): ?string
+    {
+        $result = $this->send('post', $this->vmPath($node, $vmid) . '/config', $values);
+
+        return is_string($result) && $result !== '' ? $result : null;
+    }
+
+    /**
+     * Grows a disk of the machine to the given size ("40G"). Answers with a task id on recent versions of Proxmox.
+     */
+    public function resize(string $node, int $vmid, string $disk, string $size): ?string
+    {
+        $result = $this->send('put', $this->vmPath($node, $vmid) . '/resize', ['disk' => $disk, 'size' => $size]);
+
+        return is_string($result) && $result !== '' ? $result : null;
+    }
+
+    /**
+     * Deletes the machine and its disks for good.
+     */
+    public function destroy(string $node, int $vmid): string
+    {
+        return (string) $this->send('delete', $this->vmPath($node, $vmid), ['purge' => 1, 'destroy-unreferenced-disks' => 1]);
+    }
+
     private function vmPath(string $node, int $vmid): string
     {
         return '/nodes/' . rawurlencode($node) . '/qemu/' . $vmid;
@@ -161,10 +248,13 @@ class ProxmoxClient
     {
         try {
             $request = $this->request($timeout);
-            // Proxmox reads the parameters of a change as a form.
-            $response = $method === 'post'
-                ? $request->asForm()->post($this->base() . $path, $data)
-                : $request->get($this->base() . $path, $data);
+            // Proxmox reads the parameters of a change as a form, and those of a deletion in the address.
+            $response = match ($method) {
+                'post' => $request->asForm()->post($this->base() . $path, $data),
+                'put' => $request->asForm()->put($this->base() . $path, $data),
+                'delete' => $request->delete($this->base() . $path . ($data ? '?' . http_build_query($data) : '')),
+                default => $request->get($this->base() . $path, $data),
+            };
         } catch (ConnectionException) {
             throw new DisplayException('Proxmox does not answer: check the address and that port 8006 is reachable from the panel.');
         }
@@ -173,7 +263,7 @@ class ProxmoxClient
             throw new DisplayException('Proxmox refused the API token: check its ID and its secret.');
         }
         if ($response->status() === 403) {
-            throw new DisplayException('The API token is missing a permission on Proxmox (VM.Audit, VM.PowerMgmt, Sys.Audit, Datastore.Audit).');
+            throw new DisplayException('The API token is missing a permission on Proxmox: use a token of root@pam without "Privilege Separation", or give its user the roles PVEVMAdmin, PVEDatastoreUser and PVEAuditor.');
         }
         if ($response->failed()) {
             $message = trim((string) ($response->json('message') ?? ''));

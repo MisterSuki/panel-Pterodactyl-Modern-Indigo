@@ -51,7 +51,7 @@ const Card = ({ vps }: { vps: Vps }) => {
                         {vps.maxDisk ? ` · ${bytesToString(vps.maxDisk)}` : ''}
                     </p>
                 </div>
-                <VpsStatusPill status={vps.status} />
+                <VpsStatusPill status={vps.status} state={vps.state} />
             </div>
             <div css={tw`mt-5 pt-4 border-t border-neutral-700 grid grid-cols-2 gap-4`}>
                 <Meter

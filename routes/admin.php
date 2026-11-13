@@ -37,6 +37,11 @@ Route::group(['prefix' => 'proxmox', 'middleware' => 'admin.can:settings,manage'
     Route::post('/hosts/{host}/delete', [Admin\ProxmoxController::class, 'delete'])->whereNumber('host')->name('admin.proxmox.hosts.delete');
     Route::post('/hosts/{host}/assign', [Admin\ProxmoxController::class, 'assign'])->whereNumber('host')->name('admin.proxmox.assign');
     Route::post('/vms/{vm}/unassign', [Admin\ProxmoxController::class, 'unassign'])->whereNumber('vm')->name('admin.proxmox.unassign');
+    Route::post('/hosts/{host}/create', [Admin\ProxmoxController::class, 'create'])->whereNumber('host')->name('admin.proxmox.create');
+    Route::post('/hosts/{host}/ips', [Admin\ProxmoxController::class, 'addIps'])->whereNumber('host')->name('admin.proxmox.ips.add');
+    Route::post('/ips/{ip}/delete', [Admin\ProxmoxController::class, 'deleteIp'])->whereNumber('ip')->name('admin.proxmox.ips.delete');
+    Route::post('/vms/{vm}/retry', [Admin\ProxmoxController::class, 'retry'])->whereNumber('vm')->name('admin.proxmox.retry');
+    Route::post('/vms/{vm}/destroy', [Admin\ProxmoxController::class, 'destroy'])->whereNumber('vm')->name('admin.proxmox.destroy');
 });
 
 // Email: the names of the mail server, the limits, and the key of its agent (settings rights needed).

@@ -52,6 +52,8 @@
     .pd-px-table td { vertical-align: middle !important; white-space: nowrap; }
     .pd-px-steps { margin: 6px 0 0; padding-left: 20px; }
     .pd-px-steps li { margin-bottom: 6px; }
+    .pd-px-error { display: block; white-space: normal; font-size: 12px; color: rgba(255, 170, 160, 0.9); max-width: 360px; }
+    .pd-px-cmd { display: block; white-space: pre; overflow-x: auto; padding: 10px 12px; margin-top: 8px; font-size: 11.5px; user-select: all; }
 </style>
 
 <div class="row">
@@ -61,6 +63,8 @@
                 $host = $entry['host'];
                 $overview = $entry['overview'];
                 $assigned = $entry['assigned'];
+                $panelVms = $entry['panelVms'];
+                $ips = $entry['ips'];
             @endphp
             <div class="box box-primary">
                 <div class="box-header with-border">
@@ -166,6 +170,170 @@
                                 </table>
                             </div>
                         @endif
+
+                        {{-- The VPS made or given by the panel on this host, with where their creation is. --}}
+                        @if ($panelVms->count() > 0)
+                            <h4 style="font-size: 14px; margin: 22px 0 8px;"><span>VPS of the panel</span></h4>
+                            <div class="table-responsive">
+                                <table class="table table-hover pd-px-table">
+                                    <thead><tr><th>Name</th><th>User</th><th>IP</th><th>State</th><th></th></tr></thead>
+                                    <tbody>
+                                        @foreach ($panelVms as $pvm)
+                                            <tr>
+                                                <td>{{ $pvm->name }} <small class="text-muted">#{{ $pvm->vmid }}</small></td>
+                                                <td><a href="{{ route('admin.users.view', $pvm->user_id) }}">{{ $pvm->user->username ?? '?' }}</a></td>
+                                                <td>{!! $pvm->ip ? '<code>' . e($pvm->ip->address) . '</code>' : '<span class="text-muted">DHCP</span>' !!}</td>
+                                                <td>
+                                                    @if ($pvm->state === 'ready')
+                                                        <span class="pd-px-dot" style="background: #3ecf8e"></span> <span>Ready</span>
+                                                    @elseif ($pvm->state === 'failed')
+                                                        <span class="pd-px-dot" style="background: #e5484d"></span> <span>Failed</span>
+                                                        <span class="pd-px-error">{{ $pvm->error }}</span>
+                                                    @elseif (in_array($pvm->state, ['stop', 'destroy'], true))
+                                                        <i class="fa fa-spinner fa-spin"></i> <span>Deleting</span>
+                                                    @else
+                                                        <i class="fa fa-spinner fa-spin"></i> <span>{{ ['clone' => 'Copying the template', 'configure' => 'Setting up', 'resize' => 'Growing the disk', 'start' => 'Starting'][$pvm->state] ?? 'Creating' }}</span>
+                                                    @endif
+                                                </td>
+                                                <td class="text-right">
+                                                    @if ($pvm->state === 'failed')
+                                                        <form method="POST" action="{{ route('admin.proxmox.retry', $pvm->id) }}" style="display: inline;">
+                                                            {!! csrf_field() !!}
+                                                            <button type="submit" class="btn btn-xs btn-default"><i class="fa fa-refresh"></i> <span>Try again</span></button>
+                                                        </form>
+                                                    @endif
+                                                    @if (!in_array($pvm->state, ['stop', 'destroy'], true))
+                                                        <form method="POST" action="{{ route('admin.proxmox.destroy', $pvm->id) }}" style="display: inline;" onsubmit="return confirm('Delete this VPS for good? The machine and its disks are destroyed on Proxmox. This cannot be undone.');">
+                                                            {!! csrf_field() !!}
+                                                            <button type="submit" class="btn btn-xs btn-danger"><i class="fa fa-trash"></i> <span>Delete</span></button>
+                                                        </form>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+
+                        <div class="row" style="margin-top: 18px;">
+                            {{-- Creating a VPS: a copy of a template prepared with cloud-init. --}}
+                            <div class="col-md-7">
+                                <h4 style="font-size: 14px; margin: 0 0 10px;"><span>Create a VPS</span></h4>
+                                @if (count($overview['templates']) === 0)
+                                    <div class="callout callout-info">
+                                        <p><span>No template yet. A template is a machine prepared with a cloud-init drive, then turned into a template. For Debian 12, on the Proxmox shell:</span></p>
+                                        <code class="pd-px-cmd">wget https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2
+qm create 9000 --name debian-12 --memory 1024 --net0 virtio,bridge=vmbr0 --scsihw virtio-scsi-pci --agent 1
+qm importdisk 9000 debian-12-genericcloud-amd64.qcow2 local-lvm
+qm set 9000 --scsi0 local-lvm:vm-9000-disk-0 --ide2 local-lvm:cloudinit --boot order=scsi0 --serial0 socket --vga serial0
+qm template 9000</code>
+                                    </div>
+                                @else
+                                    <form method="POST" action="{{ route('admin.proxmox.create', $host->id) }}" autocomplete="off">
+                                        {!! csrf_field() !!}
+                                        <div class="row">
+                                            <div class="form-group col-sm-6">
+                                                <label>User</label>
+                                                <input type="text" name="user" class="form-control input-sm" required placeholder="Email or username" value="{{ old('user') }}">
+                                            </div>
+                                            <div class="form-group col-sm-6">
+                                                <label>Name</label>
+                                                <input type="text" name="name" class="form-control input-sm" required maxlength="63" placeholder="vps-alex" value="{{ old('name') }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>System</label>
+                                            <select name="template" class="form-control input-sm" required>
+                                                @foreach ($overview['templates'] as $template)
+                                                    <option value="{{ $template['vmid'] }}" @selected((int) old('template') === $template['vmid'])>{{ $template['name'] }} ({{ $template['node'] }} · #{{ $template['vmid'] }}{{ $template['disk'] ? ' · ' . $bytes($template['disk']) : '' }})</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="row">
+                                            <div class="form-group col-xs-4">
+                                                <label>vCPU</label>
+                                                <input type="number" name="cores" class="form-control input-sm" min="1" max="64" required value="{{ old('cores', 2) }}">
+                                            </div>
+                                            <div class="form-group col-xs-4">
+                                                <label><span>Memory</span> (MB)</label>
+                                                <input type="number" name="memory" class="form-control input-sm" min="256" step="256" required value="{{ old('memory', 2048) }}">
+                                            </div>
+                                            <div class="form-group col-xs-4">
+                                                <label><span>Disk</span> (GB)</label>
+                                                <input type="number" name="disk" class="form-control input-sm" min="1" required value="{{ old('disk', 20) }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>IP</label>
+                                            <select name="ip" class="form-control input-sm">
+                                                @foreach ($ips->whereNull('vm_id') as $freeIp)
+                                                    <option value="{{ $freeIp->id }}" @selected((int) old('ip') === $freeIp->id)>{{ $freeIp->address }}/{{ $freeIp->cidr }}</option>
+                                                @endforeach
+                                                <option value="" @selected(old('ip') === '')>DHCP</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label><span>SSH key</span> <small class="text-muted">(<span>optional</span>)</small></label>
+                                            <textarea name="ssh_key" class="form-control input-sm" rows="2" placeholder="ssh-ed25519 AAAA...">{{ old('ssh_key') }}</textarea>
+                                        </div>
+                                        <p class="pd-px-help"><span>A root password is made and shown to the user in their panel.</span></p>
+                                        <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-plus"></i> <span>Create the VPS</span></button>
+                                    </form>
+                                @endif
+                            </div>
+
+                            {{-- The public addresses the new VPS can take. --}}
+                            <div class="col-md-5">
+                                <h4 style="font-size: 14px; margin: 0 0 10px;"><span>IP addresses</span> <small>{{ $ips->whereNull('vm_id')->count() }} <span>free</span></small></h4>
+                                @if ($ips->count() > 0)
+                                    <table class="table table-condensed" style="margin-bottom: 12px;">
+                                        <tbody>
+                                            @foreach ($ips as $poolIp)
+                                                <tr>
+                                                    <td><code>{{ $poolIp->address }}/{{ $poolIp->cidr }}</code>@if ($poolIp->mac)<br><small class="text-muted">{{ $poolIp->mac }}</small>@endif</td>
+                                                    <td><small class="text-muted">gw {{ $poolIp->gateway }}</small></td>
+                                                    <td class="text-right">
+                                                        @if ($poolIp->vm)
+                                                            <small>{{ $poolIp->vm->name }}</small>
+                                                        @else
+                                                            <form method="POST" action="{{ route('admin.proxmox.ips.delete', $poolIp->id) }}" style="display: inline;">
+                                                                {!! csrf_field() !!}
+                                                                <button type="submit" class="btn btn-xs btn-default" title="Remove"><i class="fa fa-times"></i></button>
+                                                            </form>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                @endif
+                                <form method="POST" action="{{ route('admin.proxmox.ips.add', $host->id) }}" autocomplete="off">
+                                    {!! csrf_field() !!}
+                                    <div class="form-group">
+                                        <label>Add addresses</label>
+                                        <textarea name="addresses" class="form-control input-sm" rows="3" required placeholder="203.0.113.20&#10;203.0.113.21&#10;203.0.113.22 02:00:00:aa:bb:cc"></textarea>
+                                        <p class="pd-px-help"><span>One per line. Add the virtual MAC address after the IP when your host gave one for it.</span></p>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group col-xs-5">
+                                            <label>Mask</label>
+                                            <select name="cidr" class="form-control input-sm">
+                                                @foreach ([32, 30, 29, 28, 27, 26, 25, 24] as $mask)
+                                                    <option value="{{ $mask }}">/{{ $mask }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="form-group col-xs-7">
+                                            <label>Gateway</label>
+                                            <input type="text" name="gateway" class="form-control input-sm" required placeholder="203.0.113.1">
+                                        </div>
+                                    </div>
+                                    <p class="pd-px-help"><span>Your host tells you the gateway of its additional IPs, and whether each one needs a virtual MAC address.</span></p>
+                                    <button type="submit" class="btn btn-sm btn-default"><i class="fa fa-plus"></i> <span>Add</span></button>
+                                </form>
+                            </div>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -224,8 +392,10 @@
         <div class="box box-primary">
             <div class="box-header with-border"><h3 class="box-title">How it works</h3></div>
             <div class="box-body">
-                <p class="pd-px-help" style="margin-top: 0;"><span>Create the virtual machines on Proxmox as usual, then give each one to a user with the "Give" button. The user sees it in the panel, under VPS: its state, its CPU, memory and network, its IP addresses, and buttons to start, shut down, restart and stop it.</span></p>
-                <p class="pd-px-help"><span>The IP addresses come from the QEMU guest agent: install qemu-guest-agent in the machine and tick "QEMU Guest Agent" in its Options on Proxmox.</span></p>
+                <p class="pd-px-help" style="margin-top: 0;"><span>Create a VPS from a template right here, with "Create a VPS": the panel copies the template, sets its cores, memory, disk, address and root password, and starts it. It shows in the panel of the user at once, as "being created".</span></p>
+                <p class="pd-px-help"><span>Machines made on Proxmox can also be given to a user with the "Give" button.</span></p>
+                <p class="pd-px-help"><span>The user sees it in the panel, under VPS: its state, its CPU, memory and network, its IP addresses, its root password, and buttons to start, shut down, restart and stop it.</span></p>
+                <p class="pd-px-help"><span>Other addresses come from the QEMU guest agent: install qemu-guest-agent in the machine and tick "QEMU Guest Agent" in its Options on Proxmox.</span></p>
             </div>
         </div>
     </div>

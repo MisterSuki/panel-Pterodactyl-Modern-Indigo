@@ -4,10 +4,14 @@ export type VpsStatus = 'running' | 'stopped' | 'paused' | 'busy' | 'unknown';
 
 export type VpsAction = 'start' | 'shutdown' | 'reboot' | 'stop';
 
+// "creating" while the panel makes the machine on Proxmox, "deleting" while it removes it, "failed" when that went wrong.
+export type VpsState = 'ready' | 'creating' | 'deleting' | 'failed';
+
 // A virtual machine of Proxmox given to the person by the administration.
 export interface Vps {
     uuid: string;
     name: string;
+    state: VpsState;
     status: VpsStatus;
     // In percent of the whole machine (all of its cores).
     cpu: number | null;
@@ -27,6 +31,8 @@ export interface VpsDetails extends Vps {
     addresses: string[];
     os: string | null;
     agent: boolean;
+    // The root password set when the panel created the machine, null for a machine made on Proxmox.
+    rootPassword: string | null;
 }
 
 export interface VpsPoint {
@@ -41,6 +47,7 @@ export interface VpsPoint {
 const map = (data: any): Vps => ({
     uuid: data.uuid,
     name: data.name,
+    state: data.state || 'ready',
     status: data.status,
     cpu: data.cpu ?? null,
     cores: data.cores ?? null,
@@ -63,6 +70,7 @@ export const getVps = (uuid: string): Promise<VpsDetails> =>
         addresses: data.data.addresses || [],
         os: data.data.os || null,
         agent: !!data.data.agent,
+        rootPassword: data.data.root_password || null,
     }));
 
 export const getVpsHistory = (uuid: string, range: 'hour' | 'day' | 'week'): Promise<VpsPoint[]> =>

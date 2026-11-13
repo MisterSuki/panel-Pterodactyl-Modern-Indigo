@@ -272,3 +272,7 @@ app/Services/Proxmox/ProxmoxService.php
 app/Http/Controllers/Admin/ProxmoxController.php
 app/Http/Controllers/Api/Client/VpsController.php
 resources/views/admin/proxmox.blade.php
+database/migrations/2026_11_14_000001_add_provisioning_to_proxmox.php
+app/Models/ProxmoxIp.php
+app/Services/Proxmox/ProxmoxProvisioner.php
+app/Jobs/ProxmoxVmJob.php

@@ -6,6 +6,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faArrowLeft,
     faClock,
+    faEye,
+    faEyeSlash,
+    faKey,
     faHdd,
     faMemory,
     faMicrochip,
@@ -115,6 +118,7 @@ export default () => {
     const [range, setRange] = useState<Range>('hour');
     const [pending, setPending] = useState<VpsAction | null>(null);
     const [confirm, setConfirm] = useState<VpsAction | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
 
     const {
         data: vps,
@@ -147,7 +151,8 @@ export default () => {
             .then(() => setPending(null));
     };
 
-    const running = vps?.status === 'running';
+    const ready = vps?.state === 'ready';
+    const running = ready && vps?.status === 'running';
     const points = history || [];
     const last = points.length ? points[points.length - 1] : null;
     const cpuPoints = points.map((p) => p.cpu ?? 0);
@@ -176,7 +181,7 @@ export default () => {
                                 <h1 css={tw`text-2xl font-semibold text-neutral-50 tracking-tight truncate`}>
                                     {vps.name}
                                 </h1>
-                                <VpsStatusPill status={vps.status} />
+                                <VpsStatusPill status={vps.status} state={vps.state} />
                             </div>
                             <p css={tw`text-sm text-neutral-400 mt-1`}>
                                 {[
@@ -189,7 +194,7 @@ export default () => {
                             </p>
                         </div>
                         <div css={tw`flex flex-wrap gap-2`}>
-                            {!running && (
+                            {ready && !running && (
                                 <Button
                                     onClick={() => power('start')}
                                     disabled={!!pending || vps.status === 'busy' || !!vps.error}
@@ -198,7 +203,7 @@ export default () => {
                                     <span>Start</span>
                                 </Button>
                             )}
-                            {running && (
+                            {ready && running && (
                                 <>
                                     <Button.Text onClick={() => power('reboot')} disabled={!!pending}>
                                         <FontAwesomeIcon icon={faRedo} css={tw`mr-2 text-xs`} />
@@ -216,6 +221,65 @@ export default () => {
                             )}
                         </div>
                     </div>
+
+                    {!ready && (
+                        <div className={'pd-neon'} css={tw`relative rounded-xl bg-neutral-800 px-5 py-4 mb-6`}>
+                            <div css={tw`relative flex items-center gap-3`}>
+                                {vps.state === 'failed' ? null : <Spinner size={'small'} />}
+                                <div>
+                                    <p css={tw`text-sm font-medium text-neutral-100`}>
+                                        {vps.state === 'creating'
+                                            ? 'Your VPS is being created.'
+                                            : vps.state === 'deleting'
+                                            ? 'This VPS is being deleted.'
+                                            : 'The creation of this VPS did not finish.'}
+                                    </p>
+                                    <p css={tw`text-sm text-neutral-400 mt-0.5`}>
+                                        {vps.state === 'creating'
+                                            ? 'Its system is copied and set up, then it starts by itself. It takes a few minutes; this page follows it.'
+                                            : vps.state === 'deleting'
+                                            ? 'It will leave the panel in a moment.'
+                                            : 'Open a ticket so the team can start it again.'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {vps.rootPassword && (
+                        <div className={'pd-neon'} css={tw`relative rounded-xl bg-neutral-800 p-4 mb-6`}>
+                            <p css={tw`relative flex items-center gap-2 text-sm font-medium text-neutral-200`}>
+                                <FontAwesomeIcon icon={faKey} css={tw`text-neutral-500 text-xs`} />
+                                <span>Login</span>
+                            </p>
+                            <div css={tw`relative mt-3 flex flex-wrap items-center gap-2`}>
+                                <span
+                                    css={tw`rounded-md border border-neutral-600 px-2.5 py-1 font-mono text-sm text-neutral-100`}
+                                >
+                                    root
+                                </span>
+                                <CopyOnClick text={vps.rootPassword}>
+                                    <span
+                                        css={tw`cursor-pointer rounded-md border border-neutral-600 px-2.5 py-1 font-mono text-sm text-neutral-100 hover:border-neutral-500`}
+                                    >
+                                        {showPassword ? vps.rootPassword : '••••••••••••••••'}
+                                    </span>
+                                </CopyOnClick>
+                                <button
+                                    type={'button'}
+                                    onClick={() => setShowPassword((s) => !s)}
+                                    css={tw`flex items-center justify-center w-8 h-8 rounded-md text-neutral-400 hover:text-neutral-50 hover:bg-neutral-700`}
+                                    aria-label={showPassword ? 'Hide the password' : 'Show the password'}
+                                >
+                                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} css={tw`text-xs`} />
+                                </button>
+                            </div>
+                            <p css={tw`relative mt-2 text-xs text-neutral-500`}>
+                                The password set when the VPS was created: change it inside the machine (passwd). Click
+                                it to copy it.
+                            </p>
+                        </div>
+                    )}
 
                     {vps.error && (
                         <div

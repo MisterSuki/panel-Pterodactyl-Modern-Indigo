@@ -2,7 +2,9 @@
 
 namespace Pterodactyl\Http\Controllers\Api\Client;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
@@ -39,6 +41,17 @@ class VpsController extends ClientApiController
         $vm = $this->find($request, $uuid);
         $client = $this->proxmox->client($vm->host);
 
+        // Being created or deleted: nothing to ask Proxmox yet.
+        if (!$vm->isReady()) {
+            return new JsonResponse(['data' => array_merge($this->proxmox->present($vm, null), [
+                'error' => null,
+                'addresses' => $vm->ip ? [$vm->ip->address] : [],
+                'os' => null,
+                'agent' => false,
+                'root_password' => null,
+            ])]);
+        }
+
         try {
             $live = $client->status($vm->node, $vm->vmid);
             $config = $client->config($vm->node, $vm->vmid);
@@ -48,6 +61,7 @@ class VpsController extends ClientApiController
                 'addresses' => [],
                 'os' => null,
                 'agent' => false,
+                'root_password' => $this->password($vm),
             ])]);
         }
 
@@ -56,7 +70,8 @@ class VpsController extends ClientApiController
         return new JsonResponse(['data' => array_merge($this->proxmox->present($vm, $live), [
             'cores' => (int) ($live['cpus'] ?? 0) ?: (int) ($config['cores'] ?? 1) * (int) ($config['sockets'] ?? 1),
             'error' => null,
-            'addresses' => $running && !empty($config['agent']) ? $client->addresses($vm->node, $vm->vmid) : [],
+            'addresses' => $this->addresses($vm, $running && !empty($config['agent']) ? $client->addresses($vm->node, $vm->vmid) : []),
+            'root_password' => $this->password($vm),
             'os' => isset($config['ostype']) ? (string) $config['ostype'] : null,
             'agent' => !empty($config['agent']),
         ])]);
@@ -69,6 +84,9 @@ class VpsController extends ClientApiController
     public function history(Request $request, string $uuid): JsonResponse
     {
         $vm = $this->find($request, $uuid);
+        if (!$vm->isReady()) {
+            return new JsonResponse(['data' => []]);
+        }
         $range = (string) $request->query('range', 'hour');
         if (!in_array($range, ['hour', 'day', 'week'], true)) {
             $range = 'hour';
@@ -101,6 +119,9 @@ class VpsController extends ClientApiController
     {
         $vm = $this->find($request, $uuid);
         $data = $request->validate(['action' => ['required', 'string', Rule::in(ProxmoxClient::ACTIONS)]]);
+        if (!$vm->isReady()) {
+            throw new DisplayException('The VPS is not ready yet.');
+        }
 
         $this->proxmox->client($vm->host)->power($vm->node, $vm->vmid, $data['action']);
 
@@ -111,10 +132,38 @@ class VpsController extends ClientApiController
         return $this->returnNoContent();
     }
 
+    /**
+     * The root password set when the panel created the machine (null for a machine made on Proxmox). It is the one of
+     * the first start: the owner may have changed it since.
+     */
+    private function password(ProxmoxVm $vm): ?string
+    {
+        if (!$vm->password) {
+            return null;
+        }
+        try {
+            return Crypt::decryptString($vm->password);
+        } catch (DecryptException) {
+            return null;
+        }
+    }
+
+    /**
+     * The address given by the panel first, then the ones the guest agent tells.
+     *
+     * @param array<int, string> $reported
+     *
+     * @return array<int, string>
+     */
+    private function addresses(ProxmoxVm $vm, array $reported): array
+    {
+        return array_values(array_unique(array_merge($vm->ip ? [$vm->ip->address] : [], $reported)));
+    }
+
     private function find(Request $request, string $uuid): ProxmoxVm
     {
         /** @var ProxmoxVm $vm */
-        $vm = ProxmoxVm::query()->with('host')
+        $vm = ProxmoxVm::query()->with(['host', 'ip'])
             ->where('uuid', $uuid)
             ->where('user_id', $request->user()->id)
             ->firstOrFail();

@@ -52,7 +52,7 @@ class ProxmoxService
      * What a host looks like, for the administration: its version, its nodes (with their storage) and its machines.
      * Kept 15 seconds, so that opening the page twice does not ask Proxmox twice.
      *
-     * @return array{ok: bool, error: ?string, version: ?string, nodes: array, vms: array}
+     * @return array{ok: bool, error: ?string, version: ?string, nodes: array, vms: array, templates: array}
      */
     public function overview(ProxmoxHost $host, bool $fresh = false): array
     {
@@ -114,9 +114,9 @@ class ProxmoxService
                 ], $client->vms());
                 usort($vms, fn ($a, $b) => $a['vmid'] <=> $b['vmid']);
 
-                return ['ok' => true, 'error' => null, 'version' => $version, 'nodes' => $nodes, 'vms' => $vms];
+                return ['ok' => true, 'error' => null, 'version' => $version, 'nodes' => $nodes, 'vms' => $vms, 'templates' => $client->templates()];
             } catch (DisplayException $exception) {
-                return ['ok' => false, 'error' => $exception->getMessage(), 'version' => null, 'nodes' => [], 'vms' => []];
+                return ['ok' => false, 'error' => $exception->getMessage(), 'version' => null, 'nodes' => [], 'vms' => [], 'templates' => []];
             }
         });
     }
@@ -156,6 +156,8 @@ class ProxmoxService
         return [
             'uuid' => $vm->uuid,
             'name' => $vm->name,
+            // "ready", "creating", "deleting" or "failed": a VPS that is not ready has no figures yet.
+            'state' => $vm->isReady() ? 'ready' : (in_array($vm->state, ProxmoxVm::CREATING, true) ? 'creating' : (in_array($vm->state, ProxmoxVm::DELETING, true) ? 'deleting' : 'failed')),
             'status' => $live ? $this->status($live) : 'unknown',
             'cpu' => $live ? round((float) ($live['cpu'] ?? 0) * 100, 1) : null,
             'cores' => $live ? (int) ($live['maxcpu'] ?? $live['cpus'] ?? 0) : null,
