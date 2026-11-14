@@ -35,6 +35,7 @@ export default () => {
 
     useEffect(() => {
         let cancelled = false;
+        let retry: number | undefined;
         setState('connecting');
         setMessage(null);
 
@@ -72,6 +73,15 @@ export default () => {
             .catch((error) => {
                 if (cancelled) return;
                 setState('error');
+                if (error && error.response && error.response.status === 429) {
+                    // Too many tries in a short time: try again by itself once the limit lets it.
+                    const seconds = parseInt(String(error.response.headers?.['retry-after'] || ''), 10);
+                    const wait = Math.min(60, Math.max(3, isNaN(seconds) ? 10 : seconds));
+                    setMessage('Too many tries in a short time: the console opens again by itself in a few seconds.');
+                    retry = window.setTimeout(() => setAttempt((a) => a + 1), wait * 1000);
+
+                    return;
+                }
                 setMessage(
                     error && error.response ? httpErrorToHuman(error) : 'The console could not be loaded. Try again.'
                 );
@@ -79,6 +89,7 @@ export default () => {
 
         return () => {
             cancelled = true;
+            window.clearTimeout(retry);
             try {
                 rfb.current?.disconnect();
             } catch {

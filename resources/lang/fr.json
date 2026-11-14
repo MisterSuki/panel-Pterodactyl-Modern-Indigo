@@ -2476,6 +2476,7 @@
  "The connection to the console was lost.": "La connexion à la console a été perdue.",
  "The console refused the connection.": "La console a refusé la connexion.",
  "The console could not be loaded. Try again.": "La console n'a pas pu être chargée. Réessayez.",
+ "Too many tries in a short time: the console opens again by itself in a few seconds.": "Trop d'essais en peu de temps : la console se rouvre toute seule dans quelques secondes.",
  "The console is not set up on the panel yet: the administrator has to run the update of the panel.": "La console n'est pas encore installée sur le panel : l'administrateur doit lancer la mise à jour du panel.",
  "The console cannot be opened: the folder of its sessions cannot be made.": "La console ne peut pas s'ouvrir : le dossier de ses sessions ne peut pas être créé.",
  "The console cannot be opened: its session cannot be written.": "La console ne peut pas s'ouvrir : sa session ne peut pas être écrite.",
