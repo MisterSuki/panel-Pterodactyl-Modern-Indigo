@@ -6,7 +6,7 @@
 
 ### Le panel d'hébergement complet, net et rapide, construit sur Pterodactyl
 
-Serveurs de jeu, **VPS Proxmox**, **sites web**, **boîtes mail**, **boutique**, **bot Discord**, connexion par **Face ID / Windows Hello**…<br>
+Serveurs de jeu, **VPS Proxmox**, **sites web**, **boîtes mail**, **hébergement de fichiers**, **boutique**, **bot Discord**, connexion par **Face ID / Windows Hello**…<br>
 dans une interface sobre façon Vercel / Linear, pour les clients **et** l'administration, installée avec **une seule commande**.
 
 <br>
@@ -22,6 +22,7 @@ dans une interface sobre façon Vercel / Linear, pour les clients **et** l'admin
 
 <br>
 
+[**🆕 Nouveautés**](#-dernières-nouveautés) &nbsp;·&nbsp;
 [**🚀 Installer**](#-installation-en-une-commande) &nbsp;·&nbsp;
 [**✨ Fonctionnalités**](#-fonctionnalités) &nbsp;·&nbsp;
 [**📸 Aperçu**](#-aperçu) &nbsp;·&nbsp;
@@ -38,16 +39,34 @@ dans une interface sobre façon Vercel / Linear, pour les clients **et** l'admin
 
 <table>
 <tr>
-<td align="center" width="16%">🖤<br><b>Design pro</b><br><sub>sobre, net, rapide, Geist, ton logo</sub></td>
-<td align="center" width="16%">🖥️<br><b>VPS Proxmox</b><br><sub>création, console intégrée, stats en direct</sub></td>
-<td align="center" width="17%">🌍<br><b>Sites web</b><br><sub>domaine sans port, HTTPS, WordPress et 7 autres CMS</sub></td>
-<td align="center" width="17%">📧<br><b>E-mails</b><br><sub>boîtes mail sur le domaine du site, avec webmail</sub></td>
-<td align="center" width="17%">🔑<br><b>Passkeys</b><br><sub>connexion Face ID, Touch ID, Windows Hello</sub></td>
-<td align="center" width="17%">🛒<br><b>Boutique</b><br><sub>Stripe, PayPal, SumUp, serveurs créés seuls</sub></td>
+<td align="center" width="25%">🖤<br><b>Design pro</b><br><sub>sobre, net, rapide, Geist, ton logo et tes couleurs</sub></td>
+<td align="center" width="25%">🖥️<br><b>VPS Proxmox</b><br><sub>création, console intégrée, stats en direct, sous-utilisateurs</sub></td>
+<td align="center" width="25%">🌍<br><b>Sites web</b><br><sub>domaine sans port, HTTPS, WordPress et 7 autres CMS</sub></td>
+<td align="center" width="25%">📧<br><b>E-mails</b><br><sub>boîtes mail sur le domaine du site, avec webmail</sub></td>
+</tr>
+<tr>
+<td align="center">☁️<br><b>Mes fichiers</b><br><sub>images, vidéos, dossiers, liens à partager</sub></td>
+<td align="center">🪄<br><b>Installations auto</b><br><sub>Wings, MariaDB, phpMyAdmin depuis le panel</sub></td>
+<td align="center">🛒<br><b>Boutique</b><br><sub>Stripe, PayPal, SumUp, serveurs créés seuls</sub></td>
+<td align="center">🔑<br><b>Passkeys</b><br><sub>connexion Face ID, Touch ID, Windows Hello</sub></td>
 </tr>
 </table>
 
 </div>
+
+<br>
+
+---
+
+## 🆕 Dernières nouveautés
+
+| | |
+| :-: | --- |
+| ☁️ | **[Hébergement de fichiers](#️-hébergement-de-fichiers-mes-fichiers)** : une page *Mes fichiers* pour les images, vidéos et fichiers, dossiers envoyés sans les zipper, tout sélectionner, liens à partager, limites par utilisateur |
+| 🪄 | **Installations automatiques** depuis le panel, journal en direct : [Wings](#️-wings) sur un node, un [serveur MariaDB](#️-phpmyadmin) pour les bases, phpMyAdmin |
+| 🖥️ | **[VPS Proxmox](#️-vps-proxmox)** : console intégrée (zoom, plein écran, « taper un texte » en AZERTY), sous-utilisateurs, chiffres toutes les 2 secondes |
+| 🟢 | **[Page de statut](#-page-de-statut-publique)** refaite : VPS, **maintenances** planifiées qui ne comptent pas dans la disponibilité, menu du panel |
+| 🔔 | Les admins sont **prévenus d'une nouvelle version** (cloche et Discord), mise à jour en un clic avec une page d'attente qui revient toute seule |
 
 <br>
 
@@ -170,6 +189,13 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 - **console noVNC intégrée** à la page, avec **zoom**, plein écran, Ctrl+Alt+Del et « taper un texte » ; le jeton Proxmox ne quitte jamais le serveur
 - **sous-utilisateurs** : le client partage son VPS avec d'autres comptes, avec seulement les droits voulus (alimentation, console, mot de passe root)
 
+### ☁️ Hébergement de fichiers
+
+- une page **Mes fichiers** pour garder **images, vidéos, sons ou n'importe quel fichier**, avec un **lien à partager** (Discord…)
+- envoi par glisser-déposer, **dossiers entiers sans les zipper**, gros fichiers envoyés par morceaux (au-delà de la limite de nginx)
+- **dossiers**, cases à cocher sur les fichiers **et les dossiers**, puis public / privé / déplacer / supprimer, aperçus et lecteur vidéo
+- fermé par défaut : l'admin l'ouvre et fixe l'**espace** et la **taille max**, pour tous ou **par utilisateur**
+
 ### 🔑 Sans mot de passe
 
 - **Face ID, Touch ID, Windows Hello**, un téléphone ou une clé de sécurité, **sans mot de passe**
@@ -199,6 +225,9 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 - **recherche globale Ctrl + K** : serveurs, utilisateurs, nodes, tickets
 - journal de mise à jour **façon terminal**, personnes connectées en temps réel, capacité de chaque node
 - pages **Web Hosting**, **Email** et **Bot Discord**, rôles de staff section par section
+- **installations automatiques depuis le panel**, avec le journal en direct : **Wings** sur un node, un **serveur MariaDB**
+  pour les bases, **phpMyAdmin** (connexion SSH avec un mot de passe utilisé une fois, ou la clé du panel)
+- **notification aux admins** (cloche et Discord) dès qu'une nouvelle version du panel sort
 
 ### Et aussi
 
@@ -284,32 +313,13 @@ Panel, Wings, mise à jour avec **sauvegarde et retour en arrière**, désinstal
 
 ## 📚 Documentation
 
-**Sommaire** &nbsp;
-[Nouveau serveur](#-nouveau-serveur--le-panel-de-a-à-z) ·
-[Wings](#️-wings) ·
-[Mise à jour](#-mettre-à-jour-un-panel-existant) ·
-[Désinstaller](#-désinstaller-le-thème) ·
-[Options](#️-toutes-les-options) ·
-[phpMyAdmin](#️-phpmyadmin) ·
-[Eggs](#-eggs-de-la-communauté) ·
-[FiveM](#-serveurs-fivem) ·
-[Minecraft](#️-serveurs-minecraft) ·
-[Euro Truck](#-euro-truck-simulator-2--american-truck-simulator) ·
-[Boutique](#-boutique-stripe-paypal-sumup) ·
-[Notifications](#-notifications-alertes-et-annonces) ·
-[Statistiques](#-statistiques--joueurs-et-ressources) ·
-[Page de statut](#-page-de-statut-publique) ·
-[VPS Proxmox](#️-vps-proxmox) ·
-[Hébergement web](#-hébergement-web) ·
-[E-mails](#-e-mails-boîtes-mail-des-sites) ·
-[Sous-domaines](#-sous-domaines-cloudflare-bunnynet-powerdns) ·
-[Bases SQLite](#️-bases-sqlite-db-dans-le-gestionnaire-de-fichiers) ·
-[Apparence](#-apparence--fond-animé-image-et-couleurs) ·
-[Console](#-console-et-petits-plus) ·
-[Passkeys](#-connexion-par-passkey) ·
-[Bot Discord](#-bot-discord) ·
-[Discord](#-inscription-et-connexion-discord) ·
-[Rôles](#️-rôles-de-staff)
+| | Thème | Pages |
+| :-: | --- | --- |
+| 🧰 | **Installer et entretenir** | [Nouveau serveur](#-nouveau-serveur--le-panel-de-a-à-z) · [Wings](#️-wings) · [Mise à jour](#-mettre-à-jour-un-panel-existant) · [Désinstaller](#-désinstaller-le-thème) · [Toutes les options](#️-toutes-les-options) |
+| 🎮 | **Jeux** | [Eggs](#-eggs-de-la-communauté) · [FiveM](#-serveurs-fivem) · [Minecraft](#️-serveurs-minecraft) · [Euro Truck](#-euro-truck-simulator-2--american-truck-simulator) · [Joueurs Steam](#-joueurs-connectés-des-jeux-steam) · [Statistiques](#-statistiques-sur-30-jours) |
+| ☁️ | **Hébergement** | [VPS Proxmox](#️-vps-proxmox) · [Mes fichiers](#️-hébergement-de-fichiers-mes-fichiers) · [Sites web](#-hébergement-web) · [E-mails](#-e-mails-boîtes-mail-des-sites) · [Sous-domaines](#-sous-domaines-cloudflare-bunnynet-powerdns) · [phpMyAdmin et MariaDB](#️-phpmyadmin) · [Bases SQLite](#️-bases-sqlite-db-dans-le-gestionnaire-de-fichiers) |
+| 👥 | **Clients** | [Boutique](#-boutique-stripe-paypal-sumup) · [Tickets](#-tickets-de-support) · [Page d'accueil](#-page-daccueil-pour-les-visiteurs) · [Passkeys](#-connexion-par-passkey) · [Discord](#-inscription-et-connexion-discord) · [Photo de profil](#️-photo-de-profil) · [Langues](#-langues) |
+| 🧭 | **Administration** | [Notifications](#-notifications-alertes-et-annonces) · [Page de statut](#-page-de-statut-publique) · [Apparence](#-apparence--fond-animé-image-et-couleurs) · [Rôles de staff](#️-rôles-de-staff) · [Bot Discord](#-bot-discord) · [Suspension](#-suspension-des-serveurs) · [Sauvegardes auto](#-sauvegardes-automatiques) · [Copyright](#️-copyright-personnalisé) · [Console et petits plus](#-console-et-petits-plus) |
 
 ### 🆕 Nouveau serveur : le panel, de A à Z
 
@@ -367,6 +377,15 @@ bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Mo
 
 Il installe Docker, télécharge Wings et crée le service `wings`. Il te reste à coller la configuration du node
 (*Admin → Nodes → ton node → Configuration*) dans `/etc/pterodactyl/config.yml`, puis `systemctl enable --now wings`.
+
+> [!TIP]
+> **Sans rien taper : l'installation automatique.** *Admin → Nodes → ton node → Configuration*, carte **Connecter Wings**,
+> onglet **Automatique** : donne l'adresse de la machine, le port SSH, l'utilisateur (`root`) et son mot de passe (utilisé
+> une seule fois, jamais enregistré) ou la **clé du panel** (une ligne à coller une fois sur la machine). Le panel s'y
+> connecte en SSH, lance l'installateur (Docker, Wings, configuration du node, démarrage) et tu suis le journal **en
+> direct**. En cas d'échec, la cause est expliquée (domaine introuvable, panel injoignable, certificat…). Les onglets
+> *Nouvelle machine* et *Wings déjà installé* donnent la commande à copier, avec le jeton flouté. La page signale aussi
+> un `APP_URL` faux dans le `.env`, avec la commande pour le corriger.
 
 <details>
 <summary><b>Tout faire d'un coup</b></summary>
@@ -521,6 +540,9 @@ besoin) et qui tourne sous nginx :
 bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --phpmyadmin
 ```
 
+Ou sans terminal : *Admin → Bases de données*, bouton **Installer phpMyAdmin** (le panel se connecte en SSH à sa propre
+machine et lance la même commande ; journal en direct). Une fois installé, le bouton devient un lien vers phpMyAdmin.
+
 Il télécharge la dernière version de phpMyAdmin dans `/var/www/phpmyadmin`, la sert à l'adresse
 `https://ton-panel/phpmyadmin/` (une ligne `include` est ajoutée au fichier nginx du panel, testée avec `nginx -t` et
 annulée si nginx la refuse) et renseigne `PHPMYADMIN_URL` et `PHPMYADMIN_SECRET` dans le `.env` du panel. Tu peux le
@@ -539,6 +561,13 @@ nouvel onglet, **déjà connecté**, sans mot de passe à copier.
 > [!NOTE]
 > Le serveur qui héberge les bases (*Admin → Database Hosts*) doit accepter les connexions venant de la machine du
 > panel : adresse de MariaDB/MySQL ouverte, et utilisateur de base autorisé depuis `%`, comme pour Pterodactyl.
+
+**Créer l'hôte de bases automatiquement.** *Admin → Bases de données → Créer automatiquement* : choisis le node (l'adresse
+se remplit), donne le mot de passe root ou la clé du panel. Le panel se connecte en SSH, installe **MariaDB** si besoin,
+le fait écouter sur le réseau (port 3306, ouvert dans `ufw` s'il est actif), crée l'utilisateur `pterodactyl_db` avec un
+**mot de passe aléatoire** et le droit de créer les bases des serveurs, puis **enregistre l'hôte** une fois qu'il arrive
+à s'y connecter. Relancer sur la même machine met à jour son mot de passe au lieu d'en créer un autre. Pense à ouvrir
+le port 3306 chez ton hébergeur.
 
 ### 🥚 Eggs de la communauté
 
@@ -781,8 +810,10 @@ d'utilisateur), **Reprendre** la lui retire sans toucher à la machine.
 **Côté client**, la page d'un VPS montre :
 
 - l'état, les vCPU, la mémoire, le disque, l'**IP principale** et le temps en ligne, mis à jour **toutes les 2 secondes** ;
-- la **console** de la machine (noVNC) directement dans la page, avec un **zoom** (Ajuster, 100 % à 200 %), le plein écran,
-  Ctrl+Alt+Del et « Taper un texte » pour coller un mot de passe ; elle s'ouvre aussi en grand sur sa propre page ;
+- la **console** de la machine (noVNC) directement dans la page, avec un **zoom** (Ajuster, 100 % à 200 %), un vrai
+  **plein écran**, Ctrl+Alt+Del et « Taper un texte » pour coller une commande ou un mot de passe : il appuie sur les
+  bonnes touches pour le **clavier de la machine** (AZERTY ou QWERTY, au choix) ; elle s'ouvre aussi en grand sur sa
+  propre page ;
 - les graphiques **En direct** (3 dernières minutes) ou sur **1 h, 24 h, 7 jours** : CPU, mémoire, réseau ;
 - les boutons **Démarrer, Redémarrer, Éteindre** (propre) et **Arrêter** (comme débrancher la prise) ;
 - les **sous-utilisateurs** : le propriétaire ajoute d'autres comptes du panel par email et coche ce qu'ils peuvent faire
@@ -803,6 +834,37 @@ bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Mo
 > Les **adresses IP** trouvées dans la machine s'affichent une fois l'**agent invité QEMU** installé dedans
 > (`apt install qemu-guest-agent && systemctl enable --now qemu-guest-agent`) et l'option *QEMU Guest Agent* cochée dans
 > Proxmox. L'IP donnée par le panel s'affiche toujours.
+
+### ☁️ Hébergement de fichiers (Mes fichiers)
+
+Fermé par défaut. *Administration → Hébergement de fichiers* (droit de gérer les réglages) :
+
+- **l'ouvrir** : chaque utilisateur a alors une page **Mes fichiers** dans la barre du haut ;
+- l'**espace** de chaque utilisateur et le **fichier le plus gros** (par défaut 1 Go et 500 Mo) ;
+- le tableau **Limites de chaque utilisateur** : tous les comptes (recherche, les plus gros d'abord) avec l'espace qu'ils
+  utilisent, et pour chacun son propre espace et son propre fichier le plus gros (vide = valeur par défaut) ;
+- **n'importe quel fichier**, ou seulement **images, vidéos et sons** (vérifiés par leur vrai contenu, pas par leur nom) ;
+- autoriser ou non les **liens publics** ;
+- les chiffres (fichiers, espace utilisé, place libre sur le disque), qui utilise le plus, et la liste des fichiers avec
+  recherche et suppression.
+
+**Côté utilisateur** : envoi par glisser-déposer ou bouton, **plusieurs fichiers** (3 à la fois) ou **un dossier entier
+sans le zipper** (son arborescence est gardée) ; les fichiers partent **par morceaux de 8 Mo**, donc une vidéo peut
+dépasser la limite d'envoi de nginx. **Dossiers** avec fil d'Ariane, nouveau dossier, recherche dans tous les dossiers,
+filtres Images / Vidéos / Sons / Autres, aperçus et lecteur. Cocher des fichiers **et des dossiers** (un dossier coché
+compte pour tout ce qu'il contient), ou **tout sélectionner**, puis rendre public ou privé, **déplacer** (l'arborescence
+est gardée) ou **supprimer** en une fois. Un petit fichier part en une seule requête ; si le panel demande de ralentir,
+l'envoi attend et reprend tout seul, et un envoi en erreur se **réessaie** d'un clic. Pour chaque fichier : copier le lien, ouvrir, télécharger,
+public / privé, renommer, supprimer, nombre de vues.
+
+**Le lien `/f/…`** : les images, vidéos (avec avance rapide) et sons s'affichent ; tout autre fichier (HTML, SVG, exe…)
+est **téléchargé**, toujours dans un bac à sable strict (CSP `sandbox`, `nosniff`) : un fichier piégé ne peut rien
+exécuter sur le domaine du panel. Un fichier privé n'est visible que par son propriétaire ; ouvrir le lien avec `?dl=1`
+le télécharge. Fermer l'hébergement coupe la page et les liens, sans effacer les fichiers.
+
+> [!NOTE]
+> Les fichiers sont gardés sur le disque du panel (`storage/app/user-files`) : surveille la place libre, affichée dans
+> l'administration.
 
 ### 🌍 Hébergement web
 
@@ -1227,6 +1289,37 @@ Regarde la carte *Console (noVNC)* dans *Administration → Proxmox*. Si le rela
 `bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --console`, puis, s'il ne démarre toujours pas,
 `journalctl -u pterodactyl-vnc-relay -n 30` pour voir pourquoi. La machine doit être **en marche**, et le sous-utilisateur doit
 avoir le droit *Console*.
+
+</details>
+
+<details>
+<summary><b>« Taper un texte » dans la console d'un VPS écrit n'importe quoi</b></summary>
+
+<br>
+
+Choisis le clavier de la machine (AZERTY ou QWERTY) dans la barre « Taper un texte » : chaque caractère est envoyé
+avec la touche qui le donne sur ce clavier.
+
+</details>
+
+<details>
+<summary><b>L'installation automatique de Wings s'arrête à « Configuring Wings »</b></summary>
+
+<br>
+
+La machine du node n'arrive pas à joindre le panel : le message dit pourquoi. Le plus souvent, `APP_URL` dans le
+`.env` du panel est faux (la page *Configuration* du node l'indique, avec la commande pour le corriger), ou le domaine
+du panel n'existe pas dans le DNS.
+
+</details>
+
+<details>
+<summary><b>Un fichier est refusé dans Mes fichiers (« trop gros »)</b></summary>
+
+<br>
+
+Il dépasse le *Fichier le plus gros* fixé dans *Administration → Hébergement de fichiers* (500 Mo par défaut). Monte la
+valeur pour tout le monde, ou seulement pour cet utilisateur dans le tableau *Limites de chaque utilisateur*.
 
 </details>
 
