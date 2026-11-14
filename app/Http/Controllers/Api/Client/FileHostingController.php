@@ -32,7 +32,7 @@ class FileHostingController extends ClientApiController
             'meta' => [
                 'used' => $this->hosting->used($user),
                 'quota' => $this->hosting->quota($user),
-                'max_file' => $config['max_mb'] * 1024 * 1024,
+                'max_file' => $this->hosting->maxFile($user),
                 'chunk' => FileHosting::CHUNK,
                 'media_only' => $config['types'] === 'media',
                 'public_allowed' => $config['public'],
@@ -43,10 +43,14 @@ class FileHostingController extends ClientApiController
     public function begin(Request $request): JsonResponse
     {
         $this->open();
-        $data = $request->validate(['name' => ['required', 'string', 'max:255'], 'size' => ['required', 'integer', 'min:1']]);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'size' => ['required', 'integer', 'min:1'],
+            'folder' => ['nullable', 'string', 'max:500'],
+        ]);
 
         return new JsonResponse(['data' => [
-            'upload' => $this->hosting->begin($request->user(), $data['name'], (int) $data['size']),
+            'upload' => $this->hosting->begin($request->user(), $data['name'], (int) $data['size'], (string) ($data['folder'] ?? '')),
             'chunk' => FileHosting::CHUNK,
         ]]);
     }
@@ -90,6 +94,34 @@ class FileHostingController extends ClientApiController
         $file->save();
 
         return new JsonResponse(['data' => $this->hosting->present($file)]);
+    }
+
+    /**
+     * The same change on several files at once: delete them, share them or not, move them to a folder.
+     */
+    public function bulk(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'action' => ['required', 'in:delete,public,private,move'],
+            'files' => ['required', 'array', 'min:1', 'max:1000'],
+            'files.*' => ['string', 'uuid'],
+            'folder' => ['nullable', 'string', 'max:500'],
+        ]);
+        $user = $request->user();
+        $files = UserFile::query()->where('user_id', $user->id)->whereIn('uuid', $data['files'])->get();
+
+        if ($data['action'] === 'delete') {
+            $files->each(fn (UserFile $file) => $this->hosting->delete($file));
+        } elseif ($data['action'] === 'move') {
+            $this->hosting->move($user, $files->pluck('uuid')->all(), (string) ($data['folder'] ?? ''));
+        } else {
+            if ($data['action'] === 'public' && !$this->hosting->config()['public']) {
+                throw new DisplayException('Public links are turned off by the administration.');
+            }
+            UserFile::query()->whereIn('id', $files->pluck('id'))->update(['public' => $data['action'] === 'public']);
+        }
+
+        return new JsonResponse(['data' => ['count' => $files->count()]]);
     }
 
     public function delete(Request $request, string $uuid): Response

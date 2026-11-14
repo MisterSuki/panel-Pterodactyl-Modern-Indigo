@@ -4,6 +4,8 @@ import http from '@/api/http';
 export interface HostedFile {
     uuid: string;
     name: string;
+    // "" for the top, "Holidays/2026" for a folder in a folder.
+    folder: string;
     mime: string;
     kind: 'image' | 'video' | 'audio' | 'other';
     // True when the browser shows it (a safe picture, video or sound); other files are downloaded.
@@ -28,6 +30,7 @@ export interface HostingMeta {
 const map = (data: any): HostedFile => ({
     uuid: data.uuid,
     name: data.name,
+    folder: data.folder || '',
     mime: data.mime,
     kind: data.kind,
     inline: !!data.inline,
@@ -57,10 +60,15 @@ export const getHostedFiles = (): Promise<{ files: HostedFile[]; meta: HostingMe
  */
 export const uploadHostedFile = async (
     file: File,
+    folder: string,
     onProgress: (sent: number) => void,
     signal: { cancelled: boolean }
 ): Promise<HostedFile> => {
-    const { data: begin } = await http.post('/api/client/hosting/uploads', { name: file.name, size: file.size });
+    const { data: begin } = await http.post('/api/client/hosting/uploads', {
+        name: file.name,
+        size: file.size,
+        folder,
+    });
     const id: string = begin.data.upload;
     const chunk: number = begin.data.chunk;
 
@@ -89,3 +97,8 @@ export const updateHostedFile = (uuid: string, values: { name?: string; public?:
 
 export const deleteHostedFile = (uuid: string): Promise<void> =>
     http.delete(`/api/client/hosting/${uuid}`).then(() => undefined);
+
+export type BulkAction = 'delete' | 'public' | 'private' | 'move';
+
+export const bulkHostedFiles = (action: BulkAction, files: string[], folder?: string): Promise<number> =>
+    http.post('/api/client/hosting/bulk', { action, files, folder }).then(({ data }) => data.data.count);

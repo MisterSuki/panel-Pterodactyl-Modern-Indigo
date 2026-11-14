@@ -43,7 +43,8 @@ class FileHostingController extends Controller
                 'users' => UserFile::query()->distinct()->count('user_id'),
                 'free' => @disk_free_space(storage_path('app')) ?: null,
             ],
-            'quotas' => User::query()->whereNotNull('file_quota')->orderBy('username')->limit(100)->get(['id', 'username', 'email', 'file_quota']),
+            'quotas' => User::query()->where(fn ($q) => $q->whereNotNull('file_quota')->orWhereNotNull('file_max'))
+                ->orderBy('username')->limit(100)->get(['id', 'username', 'email', 'file_quota', 'file_max']),
             'top' => UserFile::query()->select('user_id', DB::raw('SUM(size) as total'), DB::raw('COUNT(*) as files'))
                 ->groupBy('user_id')->orderByDesc('total')->limit(10)->with('user:id,username')->get(),
         ]);
@@ -67,6 +68,7 @@ class FileHostingController extends Controller
         $data = $request->validate([
             'user' => ['required', 'string', 'max:191'],
             'quota_mb' => ['nullable', 'integer', 'min:0', 'max:1048576'],
+            'max_mb' => ['nullable', 'integer', 'min:1', 'max:1048576'],
         ]);
         $user = User::query()->where('email', $data['user'])->orWhere('username', $data['user'])->first();
         if (!$user) {
@@ -75,7 +77,10 @@ class FileHostingController extends Controller
             return redirect()->route('admin.files');
         }
         // Only this column: the rest of the user is not touched (nor validated again).
-        User::query()->whereKey($user->id)->update(['file_quota' => $data['quota_mb'] === null ? null : (int) $data['quota_mb'] * 1024 * 1024]);
+        User::query()->whereKey($user->id)->update([
+            'file_quota' => $data['quota_mb'] === null ? null : (int) $data['quota_mb'] * 1024 * 1024,
+            'file_max' => ($data['max_mb'] ?? null) === null ? null : (int) $data['max_mb'] * 1024 * 1024,
+        ]);
         $this->alert->success('The space of the user was saved.')->flash();
 
         return redirect()->route('admin.files');

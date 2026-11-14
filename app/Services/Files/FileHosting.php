@@ -74,6 +74,43 @@ class FileHosting
         return $own !== null ? (int) $own : $this->config()['quota_mb'] * self::MB;
     }
 
+    /**
+     * The biggest file a user may send, in bytes: their own when the administration set one, the default one otherwise.
+     */
+    public function maxFile(User $user): int
+    {
+        $own = $user->getAttribute('file_max');
+
+        return $own !== null ? (int) $own : $this->config()['max_mb'] * self::MB;
+    }
+
+    /**
+     * A folder as it is kept: parts separated by "/", without "." or "..", each part cleaned, 10 levels at most.
+     */
+    public function cleanFolder(string $folder): string
+    {
+        $parts = [];
+        foreach (explode('/', str_replace('\\', '/', $folder)) as $part) {
+            $part = trim((string) preg_replace('/[\x00-\x1F\x7F]/u', '', $part));
+            if ($part === '' || $part === '.' || $part === '..') {
+                continue;
+            }
+            $parts[] = mb_substr($part, 0, 60);
+        }
+
+        return mb_substr(implode('/', array_slice($parts, 0, 10)), 0, 191);
+    }
+
+    /**
+     * Moves files of a user into a folder ("" for the top).
+     *
+     * @param array<int, string> $uuids
+     */
+    public function move(User $user, array $uuids, string $folder): int
+    {
+        return UserFile::query()->where('user_id', $user->id)->whereIn('uuid', $uuids)->update(['folder' => $this->cleanFolder($folder)]);
+    }
+
     public function used(User $user): int
     {
         return (int) UserFile::query()->where('user_id', $user->id)->sum('size');
@@ -84,7 +121,7 @@ class FileHosting
      *
      * @throws DisplayException
      */
-    public function begin(User $user, string $name, int $size): string
+    public function begin(User $user, string $name, int $size, string $folder = ''): string
     {
         $config = $this->config();
         if (!$config['enabled']) {
@@ -94,8 +131,8 @@ class FileHosting
         if ($size <= 0) {
             throw new DisplayException('This file is empty.');
         }
-        if ($size > $config['max_mb'] * self::MB) {
-            throw new DisplayException('This file is too big: ' . $config['max_mb'] . ' MB at most.');
+        if ($size > $this->maxFile($user)) {
+            throw new DisplayException('This file is bigger than the biggest file you may send.');
         }
         if ($config['types'] === 'media' && !in_array(strtolower(pathinfo($name, PATHINFO_EXTENSION)), self::MEDIA_EXTENSIONS, true)) {
             throw new DisplayException('Only pictures, videos and sounds can be sent here.');
@@ -107,7 +144,7 @@ class FileHosting
         $id = Str::random(32);
         $this->directory('tmp');
         touch($this->tmpPath($id));
-        Cache::put($this->key($id), ['user' => $user->id, 'name' => $name, 'size' => $size, 'received' => 0, 'chunks' => 0], now()->addDay());
+        Cache::put($this->key($id), ['user' => $user->id, 'name' => $name, 'folder' => $this->cleanFolder($folder), 'size' => $size, 'received' => 0, 'chunks' => 0], now()->addDay());
         $pending = Cache::get('file-upload-pending:' . $user->id, []);
         $pending[$id] = $size;
         Cache::put('file-upload-pending:' . $user->id, $pending, now()->addDay());
@@ -180,6 +217,7 @@ class FileHosting
             'uuid' => $uuid,
             'user_id' => $user->id,
             'name' => $upload['name'],
+            'folder' => (string) ($upload['folder'] ?? ''),
             'path' => $relative,
             'mime' => mb_substr($mime, 0, 100),
             'size' => $upload['size'],
@@ -220,6 +258,7 @@ class FileHosting
         return [
             'uuid' => $file->uuid,
             'name' => $file->name,
+            'folder' => (string) $file->folder,
             'mime' => $file->mime,
             'kind' => preg_match('#^(image|video|audio)/#', $file->mime, $m) ? $m[1] : 'other',
             'inline' => $this->inline($file),

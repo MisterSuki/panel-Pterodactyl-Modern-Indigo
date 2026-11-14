@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $uuid
  * @property int $user_id
  * @property string $name
+ * @property string $folder "" for the top, "Holidays/2026" for a folder in a folder
  * @property string $path relative to storage/app
  * @property string $mime
  * @property int $size
@@ -26,7 +27,7 @@ class UserFile extends Model
 {
     protected $table = 'user_files';
 
-    protected $fillable = ['uuid', 'user_id', 'name', 'path', 'mime', 'size', 'token', 'public', 'views'];
+    protected $fillable = ['uuid', 'user_id', 'name', 'folder', 'path', 'mime', 'size', 'token', 'public', 'views'];
 
     protected $casts = ['user_id' => 'integer', 'size' => 'integer', 'public' => 'boolean', 'views' => 'integer'];
 

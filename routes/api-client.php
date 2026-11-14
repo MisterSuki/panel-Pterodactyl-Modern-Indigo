@@ -59,6 +59,7 @@ Route::prefix('/hosting')->group(function () {
     Route::post('/uploads/{upload}', [Client\FileHostingController::class, 'chunk'])->where('upload', '[A-Za-z0-9]{32}')->middleware('throttle:900,1,hosting-chunk');
     Route::post('/uploads/{upload}/complete', [Client\FileHostingController::class, 'complete'])->where('upload', '[A-Za-z0-9]{32}')->middleware('throttle:60,1,hosting-upload');
     Route::delete('/uploads/{upload}', [Client\FileHostingController::class, 'cancel'])->where('upload', '[A-Za-z0-9]{32}');
+    Route::post('/bulk', [Client\FileHostingController::class, 'bulk'])->middleware('throttle:60,1,hosting-edit');
     Route::patch('/{uuid}', [Client\FileHostingController::class, 'update'])->whereUuid('uuid')->middleware('throttle:60,1,hosting-edit');
     Route::delete('/{uuid}', [Client\FileHostingController::class, 'delete'])->whereUuid('uuid')->middleware('throttle:60,1,hosting-edit');
 });

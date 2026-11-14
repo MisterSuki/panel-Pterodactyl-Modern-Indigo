@@ -60,6 +60,7 @@ app/Console/Commands/Maintenance/InstallDatabaseHostCommand.php
 app/Http/Controllers/Admin/DatabaseHostInstallController.php
 resources/views/admin/databases/index.blade.php
 database/migrations/2026_11_15_000001_create_user_files.php
+database/migrations/2026_11_15_000002_add_folders_to_user_files.php
 app/Models/UserFile.php
 app/Services/Files/FileHosting.php
 app/Http/Controllers/Api/Client/FileHostingController.php

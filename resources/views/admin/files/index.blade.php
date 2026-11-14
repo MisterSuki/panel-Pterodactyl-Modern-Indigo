@@ -82,21 +82,29 @@
             <div class="box box-primary">
                 <div class="box-header with-border"><h3 class="box-title">Space of one user</h3></div>
                 <div class="box-body">
+                    <div class="form-group">
+                        <label for="pdFhUser">Email or username</label>
+                        <input type="text" id="pdFhUser" name="user" class="form-control" required>
+                    </div>
                     <div class="row">
-                        <div class="col-sm-7 form-group">
-                            <label for="pdFhUser">Email or username</label>
-                            <input type="text" id="pdFhUser" name="user" class="form-control" required>
-                        </div>
-                        <div class="col-sm-5 form-group">
+                        <div class="col-sm-6 form-group">
                             <label for="pdFhUserQuota">Space (MB)</label>
-                            <input type="number" id="pdFhUserQuota" name="quota_mb" class="form-control" min="0" placeholder="Default">
+                            <input type="number" id="pdFhUserQuota" name="quota_mb" class="form-control" min="0" placeholder="{{ $config['quota_mb'] }}">
+                        </div>
+                        <div class="col-sm-6 form-group">
+                            <label for="pdFhUserMax">Biggest file (MB)</label>
+                            <input type="number" id="pdFhUserMax" name="max_mb" class="form-control" min="1" placeholder="{{ $config['max_mb'] }}">
                         </div>
                     </div>
-                    <p class="pd-fh-help" style="margin-top: 0;"><span>Leave the space empty to give the user the default space again.</span></p>
+                    <p class="pd-fh-help" style="margin-top: 0;"><span>Leave a field empty to give the user the default value again.</span></p>
                     @if (count($quotas) > 0)
                         <table class="table table-condensed" style="margin: 10px 0 0;">
                             @foreach ($quotas as $person)
-                                <tr><td>{{ $person->username }}</td><td class="text-right"><code>{{ $pdSize($person->file_quota) }}</code></td></tr>
+                                <tr>
+                                    <td><a href="#" data-pd-fh-edit="{{ $person->email }}" data-quota="{{ $person->file_quota !== null ? intdiv((int) $person->file_quota, 1048576) : '' }}" data-max="{{ $person->file_max !== null ? intdiv((int) $person->file_max, 1048576) : '' }}">{{ $person->username }}</a></td>
+                                    <td class="text-right"><span class="text-muted small">Space</span> <code>{{ $person->file_quota !== null ? $pdSize($person->file_quota) : '—' }}</code></td>
+                                    <td class="text-right"><span class="text-muted small">Biggest file</span> <code>{{ $person->file_max !== null ? $pdSize($person->file_max) : '—' }}</code></td>
+                                </tr>
                             @endforeach
                         </table>
                     @endif
@@ -165,4 +173,20 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('footer-scripts')
+    @parent
+    <script>
+        // A user of the list: their values in the form, to change them.
+        document.querySelectorAll('[data-pd-fh-edit]').forEach(function (link) {
+            link.addEventListener('click', function (event) {
+                event.preventDefault();
+                document.getElementById('pdFhUser').value = link.getAttribute('data-pd-fh-edit');
+                document.getElementById('pdFhUserQuota').value = link.getAttribute('data-quota');
+                document.getElementById('pdFhUserMax').value = link.getAttribute('data-max');
+                document.getElementById('pdFhUserQuota').focus();
+            });
+        });
+    </script>
 @endsection
