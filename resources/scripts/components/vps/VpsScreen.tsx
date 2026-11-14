@@ -85,6 +85,20 @@ export default ({ uuid, active, height, embedded }: Props) => {
     const [typing, setTyping] = useState(false);
     // The keyboard layout of the machine, to press the right keys for each character of a text.
     const [layout, setLayout] = useState<Layout>(defaultLayout);
+    // In full screen, the screen of the machine takes the whole display (and noVNC sizes it again).
+    const [full, setFull] = useState(false);
+
+    useEffect(() => {
+        const changed = () => {
+            setFull(!!frame.current && document.fullscreenElement === frame.current);
+            // noVNC sizes the screen again on a resize of the window, once the new layout is drawn.
+            window.requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+            window.setTimeout(() => window.dispatchEvent(new Event('resize')), 250);
+        };
+        document.addEventListener('fullscreenchange', changed);
+
+        return () => document.removeEventListener('fullscreenchange', changed);
+    }, []);
     const [text, setText] = useState('');
     const [zoom, setZoom] = useState<Zoom>(savedZoom);
     const zoomRef = useRef<Zoom>(zoom);
@@ -257,6 +271,7 @@ export default ({ uuid, active, height, embedded }: Props) => {
             ref={frame}
             className={'pd-neon'}
             css={tw`relative flex flex-col overflow-hidden rounded-xl bg-neutral-900`}
+            style={full ? { width: '100vw', height: '100vh', borderRadius: 0, background: '#000' } : undefined}
         >
             <div
                 css={tw`relative flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b border-neutral-700 bg-neutral-800`}
@@ -370,7 +385,10 @@ export default ({ uuid, active, height, embedded }: Props) => {
                 </div>
             )}
 
-            <div css={tw`relative bg-black`} style={{ height, minHeight: 280 }}>
+            <div
+                css={tw`relative bg-black`}
+                style={full ? { flex: '1 1 auto', minHeight: 0 } : { height, minHeight: 280 }}
+            >
                 <div ref={screen} css={tw`absolute inset-0`} />
                 {!connected && (
                     <div css={tw`absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6`}>
