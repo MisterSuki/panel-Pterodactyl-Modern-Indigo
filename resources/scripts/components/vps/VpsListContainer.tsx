@@ -48,6 +48,13 @@ const Card = ({ vps }: { vps: Vps }) => {
                             .join(' · ') || 'VPS'}
                     </p>
                 </div>
+                {!vps.owner && (
+                    <span
+                        css={tw`flex-shrink-0 rounded-full border border-neutral-600 px-2 py-0.5 text-xs text-neutral-400`}
+                    >
+                        Shared
+                    </span>
+                )}
                 <VpsStatusPill status={vps.status} state={vps.state} />
             </div>
             <div css={tw`mt-5 pt-4 border-t border-neutral-700 grid grid-cols-2 gap-4`}>

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import tw from 'twin.macro';
 import useSWR from 'swr';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faArrowLeft,
@@ -14,6 +14,7 @@ import {
     faPowerOff,
     faRedo,
     faServer,
+    faSignOutAlt,
     faStop,
 } from '@fortawesome/free-solid-svg-icons';
 import PageContentBlock from '@/components/elements/PageContentBlock';
@@ -25,7 +26,8 @@ import Sparkline from '@/components/server/console/Sparkline';
 import VpsStatusPill from '@/components/vps/VpsStatusPill';
 import VpsMeter from '@/components/vps/VpsMeter';
 import VpsScreen from '@/components/vps/VpsScreen';
-import { getVps, getVpsHistory, sendVpsPower, VpsAction, VpsDetails, VpsPoint } from '@/api/vps';
+import VpsUsers from '@/components/vps/VpsUsers';
+import { getVps, getVpsHistory, removeVpsUser, sendVpsPower, VpsAction, VpsDetails, VpsPoint } from '@/api/vps';
 import { bytesToString } from '@/lib/formatters';
 import { accentHex } from '@/lib/helpers';
 import useFlash from '@/plugins/useFlash';
@@ -99,6 +101,8 @@ export default () => {
     const [pending, setPending] = useState<VpsAction | null>(null);
     const [confirm, setConfirm] = useState<VpsAction | null>(null);
     const [showPassword, setShowPassword] = useState(false);
+    const [leaving, setLeaving] = useState(false);
+    const navigation = useHistory();
 
     const {
         data: vps,
@@ -161,6 +165,16 @@ export default () => {
     };
 
     const ready = vps?.state === 'ready';
+    const can = (permission: string) => !!vps && vps.permissions.includes(permission);
+
+    // A sub-user leaves the VPS: it disappears from their list.
+    const leave = () => {
+        setLeaving(false);
+        if (!vps?.subuserId) return;
+        removeVpsUser(uuid, vps.subuserId)
+            .then(() => navigation.push('/vps'))
+            .catch((e) => clearAndAddHttpError({ key: 'vps:view', error: e }));
+    };
     const running = ready && vps?.status === 'running';
     const points = range === 'live' ? live : history || [];
     const now = live.length ? live[live.length - 1] : null;
@@ -187,8 +201,7 @@ export default () => {
             {!vps ? (
                 <div css={tw`grid grid-cols-1 lg:grid-cols-3 gap-4`}>
                     <div className={'pd-skeleton'} css={tw`h-16 rounded-xl lg:col-span-3`} />
-                    <div className={'pd-skeleton'} css={tw`h-96 rounded-xl lg:col-span-2`} />
-                    <div className={'pd-skeleton'} css={tw`h-96 rounded-xl`} />
+                    <div className={'pd-skeleton'} css={tw`h-96 rounded-xl lg:col-span-3`} />
                 </div>
             ) : (
                 <>
@@ -206,6 +219,13 @@ export default () => {
                                         {vps.name}
                                     </h1>
                                     <VpsStatusPill status={vps.status} state={vps.state} />
+                                    {!vps.owner && (
+                                        <span
+                                            css={tw`flex-shrink-0 rounded-full border border-neutral-600 px-2 py-0.5 text-xs text-neutral-400`}
+                                        >
+                                            Shared with you
+                                        </span>
+                                    )}
                                 </div>
                                 <p css={tw`flex flex-wrap items-center gap-x-2 text-sm text-neutral-400 mt-1`}>
                                     <span>
@@ -231,7 +251,13 @@ export default () => {
                             </div>
                         </div>
                         <div css={tw`flex flex-wrap gap-2`}>
-                            {ready && !running && (
+                            {!vps.owner && vps.subuserId && (
+                                <Button.Text onClick={() => setLeaving(true)}>
+                                    <FontAwesomeIcon icon={faSignOutAlt} css={tw`mr-2 text-xs`} />
+                                    <span>Leave this VPS</span>
+                                </Button.Text>
+                            )}
+                            {ready && !running && can('power') && (
                                 <Button
                                     onClick={() => power('start')}
                                     disabled={!!pending || vps.status === 'busy' || !!vps.error}
@@ -240,7 +266,7 @@ export default () => {
                                     <span>Start</span>
                                 </Button>
                             )}
-                            {ready && running && (
+                            {ready && running && can('power') && (
                                 <>
                                     <Button.Text onClick={() => power('reboot')} disabled={!!pending}>
                                         <FontAwesomeIcon icon={faRedo} css={tw`mr-2 text-xs`} />
@@ -291,22 +317,26 @@ export default () => {
                         </div>
                     )}
 
-                    <div css={tw`grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8`}>
-                        <div css={tw`lg:col-span-2 min-w-0`}>
-                            {ready ? (
-                                <VpsScreen uuid={uuid} active={running} height={'min(62vh, 560px)'} embedded />
-                            ) : (
-                                <div
-                                    className={'pd-neon'}
-                                    css={tw`relative flex items-center justify-center rounded-xl bg-neutral-900 text-sm text-neutral-500`}
-                                    style={{ height: 'min(62vh, 560px)' }}
-                                >
-                                    <span>The console opens once the VPS is ready.</span>
-                                </div>
-                            )}
-                        </div>
+                    <div css={tw`mb-4 min-w-0`}>
+                        {ready && can('console') ? (
+                            <VpsScreen uuid={uuid} active={running} height={'min(72vh, 760px)'} embedded />
+                        ) : (
+                            <div
+                                className={'pd-neon'}
+                                css={tw`relative flex items-center justify-center rounded-xl bg-neutral-900 px-6 text-center text-sm text-neutral-500`}
+                                style={{ height: ready ? 120 : 'min(40vh, 320px)' }}
+                            >
+                                <span>
+                                    {ready
+                                        ? 'The owner of this VPS has not given you access to its console.'
+                                        : 'The console opens once the VPS is ready.'}
+                                </span>
+                            </div>
+                        )}
+                    </div>
 
-                        <div css={tw`flex flex-col gap-4 min-w-0`}>
+                    <div css={tw`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-4 items-start`}>
+                        <>
                             <div className={'pd-neon'} css={card}>
                                 <p css={tw`relative flex items-center gap-2 text-sm font-medium text-neutral-200`}>
                                     <FontAwesomeIcon icon={faServer} css={tw`text-neutral-500 text-xs`} />
@@ -420,8 +450,15 @@ export default () => {
                                     </p>
                                 </div>
                             )}
-                        </div>
+                        </>
                     </div>
+
+                    {vps.owner && (
+                        <div css={tw`mb-8`}>
+                            <VpsUsers uuid={uuid} />
+                        </div>
+                    )}
+                    {!vps.owner && <div css={tw`mb-4`} />}
 
                     <div css={tw`flex items-center justify-between gap-3 mb-3`}>
                         <h2 css={tw`flex items-center gap-2 text-base font-semibold text-neutral-50`}>
@@ -495,6 +532,16 @@ export default () => {
                             />
                         </div>
                     )}
+
+                    <Dialog.Confirm
+                        open={leaving}
+                        title={'Leave this VPS?'}
+                        confirm={'Leave'}
+                        onClose={() => setLeaving(false)}
+                        onConfirmed={leave}
+                    >
+                        You will no longer see this VPS. Its owner can give you access again.
+                    </Dialog.Confirm>
 
                     <Dialog.Confirm
                         open={confirm !== null}

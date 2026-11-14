@@ -25,6 +25,11 @@ return [
         'vps' => [
             'console' => 'Opened the console of the VPS :name',
             'power' => 'Sent ":action" to the VPS :name',
+            'subuser' => [
+                'create' => 'Added :email as a sub-user of the VPS :name',
+                'update' => 'Changed the permissions of :email on the VPS :name',
+                'delete' => 'Removed :email from the sub-users of the VPS :name',
+            ],
         ],
         'user' => [
             'create' => 'Created a new user :email',

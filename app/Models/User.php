@@ -230,7 +230,7 @@ class User extends Model implements
     public function vpsCount(): int
     {
         try {
-            return ProxmoxVm::query()->where('user_id', $this->id)->count();
+            return ProxmoxVm::query()->accessibleBy($this)->count();
         } catch (\Throwable) {
             return 0;
         }

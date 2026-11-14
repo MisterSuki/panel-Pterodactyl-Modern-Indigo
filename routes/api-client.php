@@ -61,6 +61,10 @@ Route::prefix('/vps')->group(function () {
     Route::get('/{uuid}/history', [Client\VpsController::class, 'history'])->whereUuid('uuid')->middleware('throttle:30,1,vps-history');
     Route::post('/{uuid}/power', [Client\VpsController::class, 'power'])->whereUuid('uuid')->middleware('throttle:10,1,vps-power');
     Route::post('/{uuid}/console', [Client\VpsController::class, 'console'])->whereUuid('uuid')->middleware('throttle:30,1,vps-console');
+    Route::get('/{uuid}/users', [Client\VpsController::class, 'users'])->whereUuid('uuid')->middleware('throttle:60,1,vps-users');
+    Route::post('/{uuid}/users', [Client\VpsController::class, 'addUser'])->whereUuid('uuid')->middleware('throttle:20,1,vps-users-edit');
+    Route::put('/{uuid}/users/{id}', [Client\VpsController::class, 'updateUser'])->whereUuid('uuid')->whereNumber('id')->middleware('throttle:20,1,vps-users-edit');
+    Route::delete('/{uuid}/users/{id}', [Client\VpsController::class, 'removeUser'])->whereUuid('uuid')->whereNumber('id')->middleware('throttle:20,1,vps-users-edit');
 });
 
 // Somebody of the staff asks to see the screen: the person answers here, and only about their own session.

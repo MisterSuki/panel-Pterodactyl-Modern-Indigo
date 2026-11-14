@@ -12,6 +12,24 @@ const NOVNC = 'https://cdn.jsdelivr.net/npm/@novnc/novnc@1.4.0/core/rfb.js';
 
 type State = 'off' | 'connecting' | 'connected' | 'closed' | 'error';
 
+// "fit": the whole screen of the machine in the frame; a number: its size times that, with scroll bars when larger.
+type Zoom = 'fit' | number;
+
+const ZOOMS: Zoom[] = ['fit', 1, 1.25, 1.5, 2];
+
+const ZOOM_KEY = 'pd:vps-zoom';
+
+const savedZoom = (): Zoom => {
+    try {
+        const value = window.localStorage.getItem(ZOOM_KEY);
+        const number = value ? parseFloat(value) : NaN;
+
+        return ZOOMS.includes(number) ? number : 'fit';
+    } catch {
+        return 'fit';
+    }
+};
+
 // The keysym of a character, for typing a text into the machine (Latin-1 as it is, the rest as Unicode).
 const keysym = (char: string): number => {
     const code = char.codePointAt(0) || 0;
@@ -65,6 +83,27 @@ export default ({ uuid, active, height, embedded }: Props) => {
     const [attempt, setAttempt] = useState(0);
     const [typing, setTyping] = useState(false);
     const [text, setText] = useState('');
+    const [zoom, setZoom] = useState<Zoom>(savedZoom);
+    const zoomRef = useRef<Zoom>(zoom);
+
+    // noVNC only knows "fit" or the real size: a chosen zoom is applied each time it sizes the screen again.
+    const applyZoom = (client: any) => {
+        if (!client) return;
+        client.scaleViewport = zoomRef.current === 'fit';
+        if (zoomRef.current !== 'fit' && client._display) {
+            client._display.scale = zoomRef.current;
+        }
+    };
+
+    useEffect(() => {
+        zoomRef.current = zoom;
+        try {
+            window.localStorage.setItem(ZOOM_KEY, String(zoom));
+        } catch {
+            // Not kept: the default comes back next time.
+        }
+        applyZoom(rfb.current);
+    }, [zoom]);
 
     useEffect(() => {
         if (!active) {
@@ -97,7 +136,14 @@ export default ({ uuid, active, height, embedded }: Props) => {
                     credentials: { password: session.password },
                     wsProtocols: ['binary'],
                 });
-                client.scaleViewport = true;
+                const updateScale = client._updateScale?.bind(client);
+                if (updateScale) {
+                    client._updateScale = () => {
+                        if (zoomRef.current === 'fit' || !client._display) return updateScale();
+                        client._display.scale = zoomRef.current;
+                    };
+                }
+                applyZoom(client);
                 client.resizeSession = false;
                 client.background = '#000000';
                 // A small dot where the mouse is when the machine draws no pointer (a text console has none).
@@ -239,6 +285,19 @@ export default ({ uuid, active, height, embedded }: Props) => {
                             <span css={tw`hidden sm:inline`}>Reconnect</span>
                         </ToolButton>
                     )}
+                    <select
+                        value={String(zoom)}
+                        onChange={(e) => setZoom(e.target.value === 'fit' ? 'fit' : parseFloat(e.target.value))}
+                        title={'Zoom'}
+                        aria-label={'Zoom'}
+                        css={tw`h-7 rounded-md border border-neutral-600 bg-neutral-900 pl-2 pr-6 text-xs text-neutral-200 outline-none cursor-pointer hover:border-neutral-500`}
+                    >
+                        {ZOOMS.map((value) => (
+                            <option key={String(value)} value={String(value)}>
+                                {value === 'fit' ? 'Fit to the frame' : `${Math.round(value * 100)} %`}
+                            </option>
+                        ))}
+                    </select>
                     <ToolButton label={'Full screen'} disabled={state === 'off'} onClick={fullscreen}>
                         <FontAwesomeIcon icon={faExpand} css={tw`text-xs`} />
                     </ToolButton>

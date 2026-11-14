@@ -276,7 +276,7 @@ class ProxmoxProvisioner
     private function forget(ProxmoxVm $vm): void
     {
         ProxmoxIp::query()->where('vm_id', $vm->id)->update(['vm_id' => null]);
-        $vm->delete();
+        $vm->forgetWithSubusers();
     }
 
     /**

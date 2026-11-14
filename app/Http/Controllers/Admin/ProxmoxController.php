@@ -13,6 +13,7 @@ use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\Models\ProxmoxHost;
 use Pterodactyl\Models\ProxmoxIp;
 use Pterodactyl\Models\ProxmoxVm;
+use Pterodactyl\Models\ProxmoxVmUser;
 use Pterodactyl\Models\User;
 use Pterodactyl\Services\Proxmox\ProxmoxProvisioner;
 use Pterodactyl\Services\Proxmox\ProxmoxService;
@@ -89,6 +90,7 @@ class ProxmoxController extends Controller
 
     public function delete(ProxmoxHost $host): RedirectResponse
     {
+        ProxmoxVmUser::query()->whereIn('vm_id', $host->vms()->select('id'))->delete();
         $host->vms()->delete();
         $host->delete();
         $this->alert->success('The Proxmox host was removed. Its VPS are no longer shown to their users.')->flash();
@@ -136,6 +138,12 @@ class ProxmoxController extends Controller
             $this->alert->danger('This machine was not found on the Proxmox host.')->flash();
 
             return redirect()->route('admin.proxmox');
+        }
+
+        // Given to someone else: the sub-users of the former owner lose their access.
+        $existing = ProxmoxVm::query()->where('host_id', $host->id)->where('vmid', (int) $data['vmid'])->first();
+        if ($existing && $existing->user_id !== $user->id) {
+            $existing->subusers()->delete();
         }
 
         ProxmoxVm::query()->updateOrCreate(
@@ -271,7 +279,8 @@ class ProxmoxController extends Controller
 
     public function unassign(ProxmoxVm $vm): RedirectResponse
     {
-        $vm->delete();
+        ProxmoxIp::query()->where('vm_id', $vm->id)->update(['vm_id' => null]);
+        $vm->forgetWithSubusers();
         $this->alert->success('The VPS was taken back. The machine itself is untouched on Proxmox.')->flash();
 
         return redirect()->route('admin.proxmox');

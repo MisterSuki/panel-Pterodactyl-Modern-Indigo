@@ -2,8 +2,10 @@
 
 namespace Pterodactyl\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
@@ -29,6 +31,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property ProxmoxHost $host
  * @property User $user
  * @property ProxmoxIp|null $ip
+ * @property \Illuminate\Database\Eloquent\Collection<int, ProxmoxVmUser> $subusers
  */
 class ProxmoxVm extends Model
 {
@@ -64,5 +67,48 @@ class ProxmoxVm extends Model
     public function ip(): HasOne
     {
         return $this->hasOne(ProxmoxIp::class, 'vm_id');
+    }
+
+    public function subusers(): HasMany
+    {
+        return $this->hasMany(ProxmoxVmUser::class, 'vm_id');
+    }
+
+    /**
+     * The VPS a person can see: the ones they own and the ones they are a sub-user of.
+     */
+    public function scopeAccessibleBy(Builder $query, User $user): Builder
+    {
+        return $query->where(function (Builder $query) use ($user) {
+            $query->where('user_id', $user->id)
+                ->orWhereIn('id', ProxmoxVmUser::query()->select('vm_id')->where('user_id', $user->id));
+        });
+    }
+
+    /**
+     * What the person may do on this VPS: everything for the owner ("owner" included), the permissions given to a
+     * sub-user, nothing for anyone else.
+     *
+     * @return array<int, string>
+     */
+    public function permissionsFor(User $user): array
+    {
+        if ($this->user_id === $user->id) {
+            return array_merge(['owner'], ProxmoxVmUser::PERMISSIONS);
+        }
+
+        /** @var ProxmoxVmUser|null $subuser */
+        $subuser = $this->subusers()->where('user_id', $user->id)->first();
+
+        return $subuser ? array_values(array_intersect(ProxmoxVmUser::PERMISSIONS, (array) $subuser->permissions)) : [];
+    }
+
+    /**
+     * Removes the machine from the panel, with its sub-users (the database removes them too where it can).
+     */
+    public function forgetWithSubusers(): void
+    {
+        $this->subusers()->delete();
+        $this->delete();
     }
 }

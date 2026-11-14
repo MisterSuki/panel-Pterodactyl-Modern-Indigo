@@ -23,6 +23,25 @@ export interface Vps {
     netOut: number | null;
     // Seconds since it started.
     uptime: number | null;
+    // False when the person is a sub-user of the VPS.
+    owner: boolean;
+}
+
+// What a sub-user may do: start, stop and restart it; open its console; see the root password.
+export type VpsPermission = 'power' | 'console' | 'password';
+
+export const VPS_PERMISSIONS: { value: VpsPermission; label: string; description: string }[] = [
+    { value: 'power', label: 'Power', description: 'Start, shut down, restart and stop the machine' },
+    { value: 'console', label: 'Console', description: 'Open the screen of the machine and use it' },
+    { value: 'password', label: 'Root password', description: 'See the root password set when the VPS was created' },
+];
+
+export interface VpsSubuser {
+    id: number;
+    username: string;
+    email: string;
+    permissions: VpsPermission[];
+    createdAt: Date | null;
 }
 
 export interface VpsDetails extends Vps {
@@ -35,6 +54,10 @@ export interface VpsDetails extends Vps {
     rootPassword: string | null;
     // True when the console relay runs on the panel, so the console (noVNC) can be opened.
     console: boolean;
+    // "owner" plus every permission for the owner, the permissions given to a sub-user.
+    permissions: string[];
+    // The sub-user line of the person, so they can leave the VPS (null for the owner).
+    subuserId: number | null;
 }
 
 export interface VpsPoint {
@@ -59,6 +82,7 @@ const map = (data: any): Vps => ({
     netIn: data.net_in ?? null,
     netOut: data.net_out ?? null,
     uptime: data.uptime ?? null,
+    owner: data.owner !== false,
 });
 /* eslint-enable camelcase */
 
@@ -74,7 +98,29 @@ export const getVps = (uuid: string): Promise<VpsDetails> =>
         agent: !!data.data.agent,
         rootPassword: data.data.root_password || null,
         console: !!data.data.console,
+        permissions: data.data.permissions || [],
+        subuserId: data.data.subuser_id ?? null,
     }));
+
+const mapSubuser = (data: any): VpsSubuser => ({
+    id: data.id,
+    username: data.username,
+    email: data.email,
+    permissions: data.permissions || [],
+    createdAt: data.created_at ? new Date(data.created_at) : null,
+});
+
+export const getVpsUsers = (uuid: string): Promise<VpsSubuser[]> =>
+    http.get(`/api/client/vps/${uuid}/users`).then(({ data }) => (data.data || []).map(mapSubuser));
+
+export const addVpsUser = (uuid: string, email: string, permissions: VpsPermission[]): Promise<VpsSubuser> =>
+    http.post(`/api/client/vps/${uuid}/users`, { email, permissions }).then(({ data }) => mapSubuser(data.data));
+
+export const updateVpsUser = (uuid: string, id: number, permissions: VpsPermission[]): Promise<VpsSubuser> =>
+    http.put(`/api/client/vps/${uuid}/users/${id}`, { permissions }).then(({ data }) => mapSubuser(data.data));
+
+export const removeVpsUser = (uuid: string, id: number): Promise<void> =>
+    http.delete(`/api/client/vps/${uuid}/users/${id}`).then(() => undefined);
 
 export const getVpsHistory = (uuid: string, range: 'hour' | 'day' | 'week'): Promise<VpsPoint[]> =>
     http.get(`/api/client/vps/${uuid}/history`, { params: { range } }).then(({ data }) =>

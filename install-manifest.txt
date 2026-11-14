@@ -277,3 +277,5 @@ app/Models/ProxmoxIp.php
 app/Services/Proxmox/ProxmoxProvisioner.php
 app/Jobs/ProxmoxVmJob.php
 resources/views/admin/proxmox/host.blade.php
+database/migrations/2026_11_14_000002_create_proxmox_vm_users.php
+app/Models/ProxmoxVmUser.php

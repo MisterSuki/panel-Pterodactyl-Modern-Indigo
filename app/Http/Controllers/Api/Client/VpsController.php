@@ -12,8 +12,11 @@ use Illuminate\Validation\Rule;
 use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Facades\Activity;
 use Pterodactyl\Models\ProxmoxVm;
+use Pterodactyl\Models\ProxmoxVmUser;
+use Pterodactyl\Models\User;
 use Pterodactyl\Services\Proxmox\ProxmoxClient;
 use Pterodactyl\Services\Proxmox\ProxmoxService;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * The VPS of the person who is signed in (virtual machines of Proxmox given to them by the administration): the list,
@@ -21,6 +24,8 @@ use Pterodactyl\Services\Proxmox\ProxmoxService;
  */
 class VpsController extends ClientApiController
 {
+    private const MAX_SUBUSERS = 20;
+
     public function __construct(private ProxmoxService $proxmox)
     {
         parent::__construct();
@@ -28,12 +33,16 @@ class VpsController extends ClientApiController
 
     public function index(Request $request): JsonResponse
     {
-        $vms = ProxmoxVm::query()->with('host')->where('user_id', $request->user()->id)->orderBy('name')->limit(100)->get();
+        $user = $request->user();
+        $vms = ProxmoxVm::query()->with('host')->accessibleBy($user)->orderBy('name')->limit(100)->get();
         $live = $vms->isEmpty() ? [] : $this->proxmox->live($vms);
 
         return new JsonResponse([
             'object' => 'list',
-            'data' => $vms->map(fn (ProxmoxVm $vm) => $this->proxmox->present($vm, $live[$vm->id] ?? null))->all(),
+            'data' => $vms->map(fn (ProxmoxVm $vm) => array_merge(
+                $this->proxmox->present($vm, $live[$vm->id] ?? null),
+                ['owner' => $vm->user_id === $user->id],
+            ))->all(),
         ]);
     }
 
@@ -41,6 +50,13 @@ class VpsController extends ClientApiController
     {
         $vm = $this->find($request, $uuid);
         $client = $this->proxmox->client($vm->host);
+        $permissions = $vm->permissionsFor($request->user());
+        $access = [
+            'owner' => in_array('owner', $permissions, true),
+            'permissions' => $permissions,
+            // The sub-user line of the person, so they can leave the VPS (null for the owner).
+            'subuser_id' => $vm->user_id === $request->user()->id ? null : $vm->subusers()->where('user_id', $request->user()->id)->value('id'),
+        ];
 
         // Being created or deleted: nothing to ask Proxmox yet.
         if (!$vm->isReady()) {
@@ -50,7 +66,7 @@ class VpsController extends ClientApiController
                 'os' => null,
                 'agent' => false,
                 'root_password' => null,
-            ])]);
+            ], $access)]);
         }
 
         try {
@@ -70,8 +86,8 @@ class VpsController extends ClientApiController
                 'addresses' => [],
                 'os' => null,
                 'agent' => false,
-                'root_password' => $this->password($vm),
-            ])]);
+                'root_password' => in_array('password', $permissions, true) ? $this->password($vm) : null,
+            ], $access)]);
         }
 
         $running = $this->proxmox->status($live) === 'running';
@@ -83,11 +99,11 @@ class VpsController extends ClientApiController
             'addresses' => $this->addresses($vm, $running && !empty($config['agent'])
                 ? Cache::remember('vps-addresses:' . $vm->id, 30, fn () => $client->addresses($vm->node, $vm->vmid))
                 : []),
-            'root_password' => $this->password($vm),
+            'root_password' => in_array('password', $permissions, true) ? $this->password($vm) : null,
             'os' => isset($config['ostype']) ? (string) $config['ostype'] : null,
             'agent' => !empty($config['agent']),
             'console' => $this->proxmox->consoleAvailable(),
-        ])]);
+        ], $access)]);
     }
 
     /**
@@ -131,6 +147,7 @@ class VpsController extends ClientApiController
     public function power(Request $request, string $uuid): Response
     {
         $vm = $this->find($request, $uuid);
+        $this->allow($request, $vm, 'power');
         $data = $request->validate(['action' => ['required', 'string', Rule::in(ProxmoxClient::ACTIONS)]]);
         if (!$vm->isReady()) {
             throw new DisplayException('The VPS is not ready yet.');
@@ -152,6 +169,7 @@ class VpsController extends ClientApiController
     public function console(Request $request, string $uuid): JsonResponse
     {
         $vm = $this->find($request, $uuid);
+        $this->allow($request, $vm, 'console');
         if (!$vm->isReady()) {
             throw new DisplayException('The VPS is not ready yet.');
         }
@@ -169,6 +187,117 @@ class VpsController extends ClientApiController
             'path' => '/vnc-relay/' . $console['session'],
             'password' => $console['password'],
         ]]);
+    }
+
+    /**
+     * The sub-users of the VPS, for its owner.
+     */
+    public function users(Request $request, string $uuid): JsonResponse
+    {
+        $vm = $this->find($request, $uuid);
+        $this->allow($request, $vm, 'owner');
+
+        $subusers = $vm->subusers()->with('user')->orderBy('id')->get();
+
+        return new JsonResponse(['data' => $subusers->map(fn (ProxmoxVmUser $subuser) => $this->presentSubuser($subuser))->all()]);
+    }
+
+    /**
+     * Gives another person of the panel access to the VPS, found by their email.
+     */
+    public function addUser(Request $request, string $uuid): JsonResponse
+    {
+        $vm = $this->find($request, $uuid);
+        $this->allow($request, $vm, 'owner');
+        $data = $request->validate([
+            'email' => ['required', 'string', 'email', 'max:191'],
+            'permissions' => ['present', 'array'],
+            'permissions.*' => ['string', Rule::in(ProxmoxVmUser::PERMISSIONS)],
+        ]);
+
+        /** @var User|null $user */
+        $user = User::query()->where('email', $data['email'])->first();
+        if (!$user) {
+            throw new DisplayException('No account of the panel has this email: the person has to create one first.');
+        }
+        if ($user->id === $vm->user_id) {
+            throw new DisplayException('This person owns the VPS already.');
+        }
+        if ($vm->subusers()->where('user_id', $user->id)->exists()) {
+            throw new DisplayException('This person is a sub-user of the VPS already.');
+        }
+        if ($vm->subusers()->count() >= self::MAX_SUBUSERS) {
+            throw new DisplayException('A VPS can have 20 sub-users at most.');
+        }
+
+        /** @var ProxmoxVmUser $subuser */
+        $subuser = $vm->subusers()->create(['user_id' => $user->id, 'permissions' => array_values(array_unique($data['permissions']))]);
+        $subuser->setRelation('user', $user);
+
+        Activity::event('user:vps.subuser.create')
+            ->property(['name' => $vm->name, 'email' => $user->email])
+            ->log();
+
+        return new JsonResponse(['data' => $this->presentSubuser($subuser)]);
+    }
+
+    public function updateUser(Request $request, string $uuid, int $id): JsonResponse
+    {
+        $vm = $this->find($request, $uuid);
+        $this->allow($request, $vm, 'owner');
+        $data = $request->validate([
+            'permissions' => ['present', 'array'],
+            'permissions.*' => ['string', Rule::in(ProxmoxVmUser::PERMISSIONS)],
+        ]);
+
+        /** @var ProxmoxVmUser $subuser */
+        $subuser = $vm->subusers()->with('user')->findOrFail($id);
+        $subuser->update(['permissions' => array_values(array_unique($data['permissions']))]);
+
+        Activity::event('user:vps.subuser.update')
+            ->property(['name' => $vm->name, 'email' => $subuser->user->email])
+            ->log();
+
+        return new JsonResponse(['data' => $this->presentSubuser($subuser)]);
+    }
+
+    /**
+     * Takes the access away: the owner removes a sub-user, or a sub-user leaves the VPS.
+     */
+    public function removeUser(Request $request, string $uuid, int $id): Response
+    {
+        $vm = $this->find($request, $uuid);
+
+        /** @var ProxmoxVmUser $subuser */
+        $subuser = $vm->subusers()->with('user')->findOrFail($id);
+        if ($vm->user_id !== $request->user()->id && $subuser->user_id !== $request->user()->id) {
+            throw new AccessDeniedHttpException('Only the owner of the VPS can do this.');
+        }
+        $subuser->delete();
+
+        Activity::event('user:vps.subuser.delete')
+            ->property(['name' => $vm->name, 'email' => $subuser->user->email])
+            ->log();
+
+        return $this->returnNoContent();
+    }
+
+    private function allow(Request $request, ProxmoxVm $vm, string $permission): void
+    {
+        if (!in_array($permission, $vm->permissionsFor($request->user()), true)) {
+            throw new AccessDeniedHttpException($permission === 'owner' ? 'Only the owner of the VPS can do this.' : 'You are not allowed to do this on this VPS.');
+        }
+    }
+
+    private function presentSubuser(ProxmoxVmUser $subuser): array
+    {
+        return [
+            'id' => $subuser->id,
+            'username' => $subuser->user->username,
+            'email' => $subuser->user->email,
+            'permissions' => array_values(array_intersect(ProxmoxVmUser::PERMISSIONS, (array) $subuser->permissions)),
+            'created_at' => $subuser->created_at?->toAtomString(),
+        ];
     }
 
     /**
@@ -204,7 +333,7 @@ class VpsController extends ClientApiController
         /** @var ProxmoxVm $vm */
         $vm = ProxmoxVm::query()->with(['host', 'ip'])
             ->where('uuid', $uuid)
-            ->where('user_id', $request->user()->id)
+            ->accessibleBy($request->user())
             ->firstOrFail();
 
         return $vm;

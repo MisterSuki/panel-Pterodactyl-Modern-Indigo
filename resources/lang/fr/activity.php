@@ -25,6 +25,11 @@ return [
         'vps' => [
             'console' => 'Console du VPS :name ouverte',
             'power' => 'Action « :action » envoyée au VPS :name',
+            'subuser' => [
+                'create' => ':email ajouté comme sous-utilisateur du VPS :name',
+                'update' => 'Permissions de :email modifiées sur le VPS :name',
+                'delete' => ':email retiré des sous-utilisateurs du VPS :name',
+            ],
         ],
         'user' => [
             'create' => 'Nouvel utilisateur créé : :email',
