@@ -55,6 +55,30 @@ class FileHostingController extends ClientApiController
         ]]);
     }
 
+    /**
+     * A file no bigger than one piece, sent in a single request (the name, size and folder in the address, the file in
+     * the body): a folder of many small files does not need three requests per file.
+     */
+    public function direct(Request $request): JsonResponse
+    {
+        $this->open();
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'size' => ['required', 'integer', 'min:1', 'max:' . FileHosting::CHUNK],
+            'folder' => ['nullable', 'string', 'max:500'],
+        ]);
+        $user = $request->user();
+        $id = $this->hosting->begin($user, $data['name'], (int) $data['size'], (string) ($data['folder'] ?? ''));
+        try {
+            $this->hosting->chunk($user, $id, 0, $request->getContent(true));
+
+            return new JsonResponse(['data' => $this->hosting->present($this->hosting->complete($user, $id))]);
+        } catch (\Throwable $exception) {
+            $this->hosting->cancel($user, $id);
+            throw $exception;
+        }
+    }
+
     public function chunk(Request $request, string $upload): Response
     {
         $this->open();

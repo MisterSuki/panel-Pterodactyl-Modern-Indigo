@@ -55,8 +55,30 @@ export const getHostedFiles = (): Promise<{ files: HostedFile[]; meta: HostingMe
     }));
 /* eslint-enable camelcase */
 
+// The size of one piece (the same as the panel): a file this small goes in a single request.
+const PIECE = 8 * 1024 * 1024;
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
- * Sends a file in pieces (so it can be bigger than the upload limit of the web server), telling how far it is.
+ * Runs a request again when the panel says "too many requests" (a folder of many files), after the time it asks for.
+ */
+const patiently = async <T>(request: () => Promise<T>, signal: { cancelled: boolean }): Promise<T> => {
+    for (let attempt = 0; ; attempt++) {
+        try {
+            return await request();
+        } catch (error: any) {
+            const status = error && error.response ? error.response.status : 0;
+            if (status !== 429 || attempt >= 20 || signal.cancelled) throw error;
+            const after = parseInt(String(error.response.headers?.['retry-after'] || ''), 10);
+            await wait(Math.min(60, Math.max(2, isNaN(after) ? 5 : after)) * 1000 + Math.random() * 1000);
+        }
+    }
+};
+
+/**
+ * Sends a file: in one request when it is small, in pieces otherwise (so it can be bigger than the upload limit of the
+ * web server), telling how far it is.
  */
 export const uploadHostedFile = async (
     file: File,
@@ -64,11 +86,25 @@ export const uploadHostedFile = async (
     onProgress: (sent: number) => void,
     signal: { cancelled: boolean }
 ): Promise<HostedFile> => {
-    const { data: begin } = await http.post('/api/client/hosting/uploads', {
-        name: file.name,
-        size: file.size,
-        folder,
-    });
+    if (file.size <= PIECE) {
+        const { data } = await patiently(
+            () =>
+                http.post('/api/client/hosting/uploads/direct', file, {
+                    params: { name: file.name, size: file.size, folder },
+                    headers: { 'Content-Type': 'application/octet-stream' },
+                    onUploadProgress: (event) => onProgress(event.loaded || 0),
+                }),
+            signal
+        );
+        onProgress(file.size);
+
+        return map(data.data);
+    }
+
+    const { data: begin } = await patiently(
+        () => http.post('/api/client/hosting/uploads', { name: file.name, size: file.size, folder }),
+        signal
+    );
     const id: string = begin.data.upload;
     const chunk: number = begin.data.chunk;
 
@@ -76,14 +112,19 @@ export const uploadHostedFile = async (
         for (let index = 0, offset = 0; offset < file.size; index++, offset += chunk) {
             if (signal.cancelled) throw new Error('cancelled');
             const piece = file.slice(offset, Math.min(file.size, offset + chunk));
-            await http.post(`/api/client/hosting/uploads/${id}`, piece, {
-                params: { index },
-                headers: { 'Content-Type': 'application/octet-stream' },
-                onUploadProgress: (event) => onProgress(offset + (event.loaded || 0)),
-            });
+            const start = offset;
+            await patiently(
+                () =>
+                    http.post(`/api/client/hosting/uploads/${id}`, piece, {
+                        params: { index },
+                        headers: { 'Content-Type': 'application/octet-stream' },
+                        onUploadProgress: (event) => onProgress(start + (event.loaded || 0)),
+                    }),
+                signal
+            );
             onProgress(Math.min(file.size, offset + piece.size));
         }
-        const { data } = await http.post(`/api/client/hosting/uploads/${id}/complete`);
+        const { data } = await patiently(() => http.post(`/api/client/hosting/uploads/${id}/complete`), signal);
 
         return map(data.data);
     } catch (error) {

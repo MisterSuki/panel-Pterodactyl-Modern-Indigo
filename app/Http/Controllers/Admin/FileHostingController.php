@@ -43,10 +43,8 @@ class FileHostingController extends Controller
                 'users' => UserFile::query()->distinct()->count('user_id'),
                 'free' => @disk_free_space(storage_path('app')) ?: null,
             ],
-            'quotas' => User::query()->where(fn ($q) => $q->whereNotNull('file_quota')->orWhereNotNull('file_max'))
-                ->orderBy('username')->limit(100)->get(['id', 'username', 'email', 'file_quota', 'file_max']),
-            'top' => UserFile::query()->select('user_id', DB::raw('SUM(size) as total'), DB::raw('COUNT(*) as files'))
-                ->groupBy('user_id')->orderByDesc('total')->limit(10)->with('user:id,username')->get(),
+            'people' => $this->people(trim((string) $request->query('users', ''))),
+            'userSearch' => trim((string) $request->query('users', '')),
         ]);
     }
 
@@ -61,6 +59,41 @@ class FileHostingController extends Controller
         $this->alert->success('The file hosting was saved.')->flash();
 
         return redirect()->route('admin.files');
+    }
+
+    /**
+     * The limits of one user, from the table of the users: empty = the default value.
+     */
+    public function limits(Request $request, User $user): RedirectResponse
+    {
+        $data = $request->validate([
+            'quota_mb' => ['nullable', 'integer', 'min:0', 'max:1048576'],
+            'max_mb' => ['nullable', 'integer', 'min:1', 'max:1048576'],
+        ]);
+        // Only these columns: the rest of the user is not touched (nor validated again).
+        User::query()->whereKey($user->id)->update([
+            'file_quota' => blank($data['quota_mb'] ?? null) ? null : (int) $data['quota_mb'] * 1024 * 1024,
+            'file_max' => blank($data['max_mb'] ?? null) ? null : (int) $data['max_mb'] * 1024 * 1024,
+        ]);
+        $this->alert->success('The limits of ' . $user->username . ' were saved.')->flash();
+
+        return redirect()->back();
+    }
+
+    /**
+     * Every user with the space they use and their own limits, the ones using the most first.
+     */
+    private function people(string $search)
+    {
+        $usage = UserFile::query()->selectRaw('user_id, SUM(size) as used, COUNT(*) as files')->groupBy('user_id');
+
+        return User::query()
+            ->leftJoinSub($usage, 'fh_usage', 'fh_usage.user_id', '=', 'users.id')
+            ->select(['users.id', 'users.username', 'users.email', 'users.file_quota', 'users.file_max'])
+            ->addSelect(DB::raw('COALESCE(fh_usage.used, 0) as used'), DB::raw('COALESCE(fh_usage.files, 0) as files'))
+            ->when($search !== '', fn ($query) => $query->where(fn ($q) => $q->where('users.username', 'like', '%' . $search . '%')->orWhere('users.email', 'like', '%' . $search . '%')))
+            ->orderByDesc('used')->orderBy('users.username')
+            ->paginate(15, ['*'], 'users_page')->withQueryString();
     }
 
     public function quota(Request $request): RedirectResponse
@@ -78,8 +111,8 @@ class FileHostingController extends Controller
         }
         // Only this column: the rest of the user is not touched (nor validated again).
         User::query()->whereKey($user->id)->update([
-            'file_quota' => $data['quota_mb'] === null ? null : (int) $data['quota_mb'] * 1024 * 1024,
-            'file_max' => ($data['max_mb'] ?? null) === null ? null : (int) $data['max_mb'] * 1024 * 1024,
+            'file_quota' => blank($data['quota_mb'] ?? null) ? null : (int) $data['quota_mb'] * 1024 * 1024,
+            'file_max' => blank($data['max_mb'] ?? null) ? null : (int) $data['max_mb'] * 1024 * 1024,
         ]);
         $this->alert->success('The space of the user was saved.')->flash();
 

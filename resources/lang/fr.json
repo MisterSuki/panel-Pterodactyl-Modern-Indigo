@@ -2714,5 +2714,16 @@
  "This file is bigger than the biggest file you may send.": "Ce fichier dépasse la taille maximale que vous pouvez envoyer.",
  "Leave a field empty to give the user the default value again.": "Laissez un champ vide pour redonner à l'utilisateur la valeur par défaut.",
  "Space": "Espace",
- "Biggest file": "Fichier le plus gros"
+ "Biggest file": "Fichier le plus gros",
+ "Retry": "Réessayer",
+ "Retry all": "Tout réessayer",
+ "files selected": "fichiers sélectionnés",
+ "including": "dont",
+ "Limits of each user": "Limites de chaque utilisateur",
+ "Username or email...": "Nom d'utilisateur ou email…",
+ "Leave a field empty for the default value": "Laissez un champ vide pour la valeur par défaut",
+ "of space": "d'espace",
+ "for the biggest file": "pour le plus gros fichier",
+ "A user with their own value has it shown in the field.": "Un utilisateur avec sa propre valeur l'a affichée dans le champ.",
+ "Used": "Utilisé"
 }

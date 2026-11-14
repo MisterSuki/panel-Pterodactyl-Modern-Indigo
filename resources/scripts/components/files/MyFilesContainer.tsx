@@ -20,6 +20,7 @@ import {
     faPlay,
     faSearch,
     faTimes,
+    faRedo,
     faTrashAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import PageContentBlock from '@/components/elements/PageContentBlock';
@@ -237,6 +238,8 @@ export default () => {
     // Folders made here and still empty (a folder exists on the panel once a file is in it).
     const [emptyFolders, setEmptyFolders] = useState<string[]>([]);
     const [selected, setSelected] = useState<Set<string>>(new Set());
+    // Folders checked: everything inside them (sub-folders too) is part of the selection.
+    const [selectedFolders, setSelectedFolders] = useState<Set<string>>(new Set());
     const picker = useRef<HTMLInputElement>(null);
     const folderPicker = useRef<HTMLInputElement>(null);
     const counter = useRef(0);
@@ -245,7 +248,12 @@ export default () => {
         if (error) clearAndAddHttpError({ key: 'files', error });
     }, [error]);
 
-    useEffect(() => setSelected(new Set()), [path]);
+    const unselect = () => {
+        setSelected(new Set());
+        setSelectedFolders(new Set());
+    };
+
+    useEffect(unselect, [path]);
 
     const all = data?.files || [];
     const meta = data?.meta;
@@ -394,7 +402,7 @@ export default () => {
         clearFlashes('files');
         return bulkHostedFiles(action, uuids, folder)
             .then(() => {
-                setSelected(new Set());
+                unselect();
                 return mutate();
             })
             .catch((e) => clearAndAddHttpError({ key: 'files', error: e }));
@@ -424,8 +432,64 @@ export default () => {
             return next;
         });
 
-    const allSelected = files.length > 0 && files.every((f) => selected.has(f.uuid));
-    const selection = all.filter((f) => selected.has(f.uuid));
+    const toggleFolder = (folder: string) =>
+        setSelectedFolders((current) => {
+            const next = new Set(current);
+            if (next.has(folder)) next.delete(folder);
+            else next.add(folder);
+            return next;
+        });
+
+    // The checked folder a file is in (the highest one), if any.
+    const inFolder = (file: HostedFile) =>
+        Array.from(selectedFolders)
+            .filter((d) => file.folder === d || file.folder.startsWith(`${d}/`))
+            .sort((a, b) => a.length - b.length)[0];
+
+    const folderPaths = folders.map(([name]) => join(path, name));
+    const allSelected =
+        files.length + folderPaths.length > 0 &&
+        files.every((f) => selected.has(f.uuid)) &&
+        folderPaths.every((d) => selectedFolders.has(d));
+    const selection = all.filter((f) => selected.has(f.uuid) || !!inFolder(f));
+    const selecting = selected.size + selectedFolders.size > 0;
+
+    const selectAll = () => {
+        if (allSelected) {
+            unselect();
+        } else {
+            setSelected(new Set(files.map((f) => f.uuid)));
+            setSelectedFolders(new Set(folderPaths));
+        }
+    };
+
+    // Moving keeps the tree: a checked folder goes into the target with what it holds.
+    const moveTo = (destination: string) => {
+        const groups = new Map<string, string[]>();
+        selection.forEach((file) => {
+            const folder = inFolder(file);
+            const next = folder
+                ? join(destination, folder.split('/').pop() || '', file.folder.slice(folder.length + 1))
+                : destination;
+            groups.set(next, [...(groups.get(next) || []), file.uuid]);
+        });
+        clearFlashes('files');
+        Promise.all(Array.from(groups.entries()).map(([folder, uuids]) => bulkHostedFiles('move', uuids, folder)))
+            .then(() => {
+                unselect();
+                return mutate();
+            })
+            .catch((e) => clearAndAddHttpError({ key: 'files', error: e }));
+    };
+
+    const retry = (ids?: number[]) =>
+        setUploads((list) =>
+            list.map((u) =>
+                u.error && (!ids || ids.includes(u.id))
+                    ? { ...u, error: null, started: false, sent: 0, signal: { cancelled: false } }
+                    : u
+            )
+        );
     const crumbs = path ? path.split('/') : [];
 
     return (
@@ -542,13 +606,22 @@ export default () => {
                                     {uploads.filter((u) => !u.error).length} <span>files being sent</span>
                                 </span>
                                 {uploads.some((u) => u.error) && (
-                                    <button
-                                        type={'button'}
-                                        css={tw`hover:text-neutral-100`}
-                                        onClick={() => setUploads((list) => list.filter((u) => !u.error))}
-                                    >
-                                        <span>Clear the errors</span>
-                                    </button>
+                                    <span css={tw`flex items-center gap-4`}>
+                                        <button
+                                            type={'button'}
+                                            css={tw`hover:text-neutral-100`}
+                                            onClick={() => retry()}
+                                        >
+                                            <span>Retry all</span>
+                                        </button>
+                                        <button
+                                            type={'button'}
+                                            css={tw`hover:text-neutral-100`}
+                                            onClick={() => setUploads((list) => list.filter((u) => !u.error))}
+                                        >
+                                            <span>Clear the errors</span>
+                                        </button>
+                                    </span>
                                 )}
                             </div>
                         )}
@@ -587,6 +660,9 @@ export default () => {
                                         </div>
                                     )}
                                 </div>
+                                {upload.error && upload.size > 0 && (
+                                    <IconButton title={'Retry'} icon={faRedo} onClick={() => retry([upload.id])} />
+                                )}
                                 <IconButton
                                     title={upload.error ? 'Close' : 'Cancel'}
                                     icon={faTimes}
@@ -641,20 +717,25 @@ export default () => {
                     css={tw`flex flex-wrap items-center justify-between gap-3 mb-4 rounded-lg px-3 py-1.5`}
                     style={{
                         minHeight: '2.25rem',
-                        background: selected.size > 0 ? 'rgb(var(--pd-accent-500) / 0.12)' : 'transparent',
-                        border:
-                            selected.size > 0 ? '1px solid rgb(var(--pd-accent-500) / 0.35)' : '1px solid transparent',
+                        background: selecting ? 'rgb(var(--pd-accent-500) / 0.12)' : 'transparent',
+                        border: selecting ? '1px solid rgb(var(--pd-accent-500) / 0.35)' : '1px solid transparent',
                     }}
                 >
                     <div css={tw`flex items-center gap-3 min-w-0`}>
                         <Check
                             checked={allSelected}
                             label={allSelected ? 'Unselect all' : 'Select all'}
-                            onClick={() => setSelected(allSelected ? new Set() : new Set(files.map((f) => f.uuid)))}
+                            onClick={selectAll}
                         />
-                        {selected.size > 0 ? (
+                        {selecting ? (
                             <span css={tw`text-sm text-neutral-100`}>
-                                {selected.size} <span>selected</span>
+                                {selection.length} <span>files selected</span>
+                                {selectedFolders.size > 0 && (
+                                    <span css={tw`text-neutral-400`}>
+                                        {' '}
+                                        (<span>including</span> {selectedFolders.size} <span>folders</span>)
+                                    </span>
+                                )}
                                 <span css={tw`text-neutral-400`}>
                                     {' · '}
                                     {bytesToString(selection.reduce((t, f) => t + f.size, 0))}
@@ -689,12 +770,17 @@ export default () => {
                             </nav>
                         )}
                     </div>
-                    {selected.size > 0 && (
+                    {selecting && (
                         <div css={tw`flex flex-wrap items-center gap-1`}>
                             {meta?.publicAllowed && (
                                 <Button.Text
                                     size={Button.Sizes.Small}
-                                    onClick={() => bulk('public', Array.from(selected))}
+                                    onClick={() =>
+                                        bulk(
+                                            'public',
+                                            selection.map((f) => f.uuid)
+                                        )
+                                    }
                                 >
                                     <FontAwesomeIcon icon={faGlobe} css={tw`mr-2 text-xs`} />
                                     <span>Public</span>
@@ -702,7 +788,12 @@ export default () => {
                             )}
                             <Button.Text
                                 size={Button.Sizes.Small}
-                                onClick={() => bulk('private', Array.from(selected))}
+                                onClick={() =>
+                                    bulk(
+                                        'private',
+                                        selection.map((f) => f.uuid)
+                                    )
+                                }
                             >
                                 <FontAwesomeIcon icon={faLock} css={tw`mr-2 text-xs`} />
                                 <span>Private</span>
@@ -717,11 +808,29 @@ export default () => {
                                 <FontAwesomeIcon icon={faArrowRight} css={tw`mr-2 text-xs`} />
                                 <span>Move</span>
                             </Button.Text>
-                            <Button.Danger size={Button.Sizes.Small} onClick={() => setRemoving(selection)}>
+                            <Button.Danger
+                                size={Button.Sizes.Small}
+                                onClick={() => {
+                                    if (selection.length > 0) {
+                                        setRemoving(selection);
+                                    } else {
+                                        // Only empty folders made here: nothing to delete on the panel.
+                                        setEmptyFolders((list) =>
+                                            list.filter(
+                                                (d) =>
+                                                    !Array.from(selectedFolders).some(
+                                                        (x) => d === x || d.startsWith(`${x}/`)
+                                                    )
+                                            )
+                                        );
+                                        unselect();
+                                    }
+                                }}
+                            >
                                 <FontAwesomeIcon icon={faTrashAlt} css={tw`mr-2 text-xs`} />
                                 <span>Delete</span>
                             </Button.Danger>
-                            <IconButton title={'Unselect all'} icon={faTimes} onClick={() => setSelected(new Set())} />
+                            <IconButton title={'Unselect all'} icon={faTimes} onClick={unselect} />
                         </div>
                     )}
                 </div>
@@ -750,13 +859,27 @@ export default () => {
                         {folders.length > 0 && (
                             <div css={tw`grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 mb-4`}>
                                 {folders.map(([name, info]) => (
-                                    <button
+                                    <div
                                         key={name}
-                                        type={'button'}
-                                        onClick={() => setPath(join(path, name))}
+                                        role={'button'}
+                                        tabIndex={0}
+                                        onClick={() =>
+                                            selecting ? toggleFolder(join(path, name)) : setPath(join(path, name))
+                                        }
+                                        onKeyDown={(e) => e.key === 'Enter' && setPath(join(path, name))}
                                         className={'pd-neon'}
-                                        css={tw`relative flex items-center gap-3 rounded-xl bg-neutral-800 px-4 py-3 text-left hover:bg-neutral-700 transition-colors duration-150`}
+                                        css={tw`relative flex items-center gap-3 rounded-xl bg-neutral-800 pl-3 pr-4 py-3 text-left cursor-pointer hover:bg-neutral-700 transition-colors duration-150`}
+                                        style={
+                                            selectedFolders.has(join(path, name))
+                                                ? { boxShadow: '0 0 0 2px rgb(var(--pd-accent-500))' }
+                                                : undefined
+                                        }
                                     >
+                                        <Check
+                                            checked={selectedFolders.has(join(path, name))}
+                                            label={'Select'}
+                                            onClick={() => toggleFolder(join(path, name))}
+                                        />
                                         <FontAwesomeIcon
                                             icon={faFolder}
                                             css={tw`text-xl`}
@@ -770,13 +893,13 @@ export default () => {
                                                 {info.files} <span>files</span> · {bytesToString(info.size)}
                                             </span>
                                         </span>
-                                    </button>
+                                    </div>
                                 ))}
                             </div>
                         )}
                         <div css={tw`grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4`}>
                             {files.map((file) => {
-                                const isSelected = selected.has(file.uuid);
+                                const isSelected = selected.has(file.uuid) || !!inFolder(file);
 
                                 return (
                                     <div
@@ -791,7 +914,7 @@ export default () => {
                                     >
                                         <button
                                             type={'button'}
-                                            onClick={() => (selected.size > 0 ? toggle(file.uuid) : setViewing(file))}
+                                            onClick={() => (selecting ? toggle(file.uuid) : setViewing(file))}
                                             css={tw`relative block w-full bg-neutral-900 overflow-hidden`}
                                             style={{ aspectRatio: '16 / 10' }}
                                             aria-label={file.name}
@@ -925,7 +1048,7 @@ export default () => {
                     onSubmit={(e) => {
                         e.preventDefault();
                         setMoving(false);
-                        bulk('move', Array.from(selected), target.trim());
+                        moveTo(target.trim());
                     }}
                 >
                     <Input.Text
@@ -949,7 +1072,7 @@ export default () => {
                     <Button
                         onClick={() => {
                             setMoving(false);
-                            bulk('move', Array.from(selected), target.trim());
+                            moveTo(target.trim());
                         }}
                     >
                         Move

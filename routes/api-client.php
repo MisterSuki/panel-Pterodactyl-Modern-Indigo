@@ -55,9 +55,11 @@ Route::prefix('/shop')->group(function () {
 // The file hosting of the person (pictures, videos, any file), when the administration opened it.
 Route::prefix('/hosting')->group(function () {
     Route::get('/', [Client\FileHostingController::class, 'index'])->middleware('throttle:120,1,hosting-list');
-    Route::post('/uploads', [Client\FileHostingController::class, 'begin'])->middleware('throttle:60,1,hosting-upload');
+    // A small file in one request; a big one in pieces (begin, the pieces, complete).
+    Route::post('/uploads/direct', [Client\FileHostingController::class, 'direct'])->middleware('throttle:600,1,hosting-direct');
+    Route::post('/uploads', [Client\FileHostingController::class, 'begin'])->middleware('throttle:300,1,hosting-upload');
     Route::post('/uploads/{upload}', [Client\FileHostingController::class, 'chunk'])->where('upload', '[A-Za-z0-9]{32}')->middleware('throttle:900,1,hosting-chunk');
-    Route::post('/uploads/{upload}/complete', [Client\FileHostingController::class, 'complete'])->where('upload', '[A-Za-z0-9]{32}')->middleware('throttle:60,1,hosting-upload');
+    Route::post('/uploads/{upload}/complete', [Client\FileHostingController::class, 'complete'])->where('upload', '[A-Za-z0-9]{32}')->middleware('throttle:300,1,hosting-upload');
     Route::delete('/uploads/{upload}', [Client\FileHostingController::class, 'cancel'])->where('upload', '[A-Za-z0-9]{32}');
     Route::post('/bulk', [Client\FileHostingController::class, 'bulk'])->middleware('throttle:60,1,hosting-edit');
     Route::patch('/{uuid}', [Client\FileHostingController::class, 'update'])->whereUuid('uuid')->middleware('throttle:60,1,hosting-edit');

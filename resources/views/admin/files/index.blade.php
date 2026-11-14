@@ -76,59 +76,6 @@
                 <div class="box-footer"><button type="submit" class="btn btn-primary pull-right"><i class="fa fa-save"></i> <span>Save</span></button></div>
             </div>
         </form>
-
-        <form action="{{ route('admin.files.quota') }}" method="POST">
-            {!! csrf_field() !!}
-            <div class="box box-primary">
-                <div class="box-header with-border"><h3 class="box-title">Space of one user</h3></div>
-                <div class="box-body">
-                    <div class="form-group">
-                        <label for="pdFhUser">Email or username</label>
-                        <input type="text" id="pdFhUser" name="user" class="form-control" required>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-6 form-group">
-                            <label for="pdFhUserQuota">Space (MB)</label>
-                            <input type="number" id="pdFhUserQuota" name="quota_mb" class="form-control" min="0" placeholder="{{ $config['quota_mb'] }}">
-                        </div>
-                        <div class="col-sm-6 form-group">
-                            <label for="pdFhUserMax">Biggest file (MB)</label>
-                            <input type="number" id="pdFhUserMax" name="max_mb" class="form-control" min="1" placeholder="{{ $config['max_mb'] }}">
-                        </div>
-                    </div>
-                    <p class="pd-fh-help" style="margin-top: 0;"><span>Leave a field empty to give the user the default value again.</span></p>
-                    @if (count($quotas) > 0)
-                        <table class="table table-condensed" style="margin: 10px 0 0;">
-                            @foreach ($quotas as $person)
-                                <tr>
-                                    <td><a href="#" data-pd-fh-edit="{{ $person->email }}" data-quota="{{ $person->file_quota !== null ? intdiv((int) $person->file_quota, 1048576) : '' }}" data-max="{{ $person->file_max !== null ? intdiv((int) $person->file_max, 1048576) : '' }}">{{ $person->username }}</a></td>
-                                    <td class="text-right"><span class="text-muted small">Space</span> <code>{{ $person->file_quota !== null ? $pdSize($person->file_quota) : '—' }}</code></td>
-                                    <td class="text-right"><span class="text-muted small">Biggest file</span> <code>{{ $person->file_max !== null ? $pdSize($person->file_max) : '—' }}</code></td>
-                                </tr>
-                            @endforeach
-                        </table>
-                    @endif
-                </div>
-                <div class="box-footer"><button type="submit" class="btn btn-default pull-right"><i class="fa fa-save"></i> <span>Save</span></button></div>
-            </div>
-        </form>
-
-        @if (count($top) > 0)
-            <div class="box box-primary">
-                <div class="box-header with-border"><h3 class="box-title">Who uses the most</h3></div>
-                <div class="box-body table-responsive no-padding">
-                    <table class="table">
-                        @foreach ($top as $row)
-                            <tr>
-                                <td>{{ $row->user?->username ?? '—' }}</td>
-                                <td class="text-right">{{ $row->files }} <span>files</span></td>
-                                <td class="text-right"><code>{{ $pdSize($row->total) }}</code></td>
-                            </tr>
-                        @endforeach
-                    </table>
-                </div>
-            </div>
-        @endif
     </div>
 
     <div class="col-md-7">
@@ -173,20 +120,53 @@
         </div>
     </div>
 </div>
+
+<div class="box box-primary">
+    <div class="box-header with-border">
+        <h3 class="box-title"><i class="fa fa-users"></i> <span>Limits of each user</span></h3>
+        <div class="box-tools">
+            <form method="GET" action="{{ route('admin.files') }}" style="display: flex; gap: 6px;">
+                @if ($search !== '')<input type="hidden" name="search" value="{{ $search }}">@endif
+                <input type="text" name="users" class="form-control input-sm" value="{{ $userSearch }}" placeholder="Username or email..." style="width: 200px;">
+                <button type="submit" class="btn btn-sm btn-default"><i class="fa fa-search"></i></button>
+            </form>
+        </div>
+    </div>
+    <div class="box-body" style="padding-bottom: 0;">
+        <p class="pd-fh-help" style="margin: 0 0 10px;"><span>Leave a field empty for the default value</span> ({{ $config['quota_mb'] }} MB <span>of space</span>, {{ $config['max_mb'] }} MB <span>for the biggest file</span>). <span>A user with their own value has it shown in the field.</span></p>
+    </div>
+    <div class="box-body table-responsive no-padding">
+        <table class="table table-hover" style="margin: 0;">
+            <tr><th>User</th><th class="text-right">Used</th><th style="width: 170px;">Space (MB)</th><th style="width: 170px;">Biggest file (MB)</th><th style="width: 110px;"></th></tr>
+            @foreach ($people as $person)
+                <tr>
+                    <td>
+                        <strong>{{ $person->username }}</strong><br>
+                        <small class="text-muted">{{ $person->email }}</small>
+                    </td>
+                    <td class="text-right" style="vertical-align: middle;">
+                        <code>{{ $pdSize($person->used) }}</code><br>
+                        <small class="text-muted">{{ $person->files }} <span>files</span></small>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <input form="pdFhLimits{{ $person->id }}" type="number" name="quota_mb" class="form-control input-sm" min="0" placeholder="{{ $config['quota_mb'] }}" value="{{ $person->file_quota !== null ? intdiv((int) $person->file_quota, 1048576) : '' }}">
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <input form="pdFhLimits{{ $person->id }}" type="number" name="max_mb" class="form-control input-sm" min="1" placeholder="{{ $config['max_mb'] }}" value="{{ $person->file_max !== null ? intdiv((int) $person->file_max, 1048576) : '' }}">
+                    </td>
+                    <td class="text-right" style="vertical-align: middle;">
+                        <form id="pdFhLimits{{ $person->id }}" action="{{ route('admin.files.limits', $person->id) }}" method="POST">
+                            {!! csrf_field() !!}
+                            <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-save"></i> <span>Save</span></button>
+                        </form>
+                    </td>
+                </tr>
+            @endforeach
+        </table>
+    </div>
+    @if ($people->hasPages())
+        <div class="box-footer">{{ $people->links() }}</div>
+    @endif
+</div>
 @endsection
 
-@section('footer-scripts')
-    @parent
-    <script>
-        // A user of the list: their values in the form, to change them.
-        document.querySelectorAll('[data-pd-fh-edit]').forEach(function (link) {
-            link.addEventListener('click', function (event) {
-                event.preventDefault();
-                document.getElementById('pdFhUser').value = link.getAttribute('data-pd-fh-edit');
-                document.getElementById('pdFhUserQuota').value = link.getAttribute('data-quota');
-                document.getElementById('pdFhUserMax').value = link.getAttribute('data-max');
-                document.getElementById('pdFhUserQuota').focus();
-            });
-        });
-    </script>
-@endsection
