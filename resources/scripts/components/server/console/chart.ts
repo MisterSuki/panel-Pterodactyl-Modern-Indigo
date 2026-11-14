@@ -25,6 +25,8 @@ const DELAY_SECONDS = 1.6;
 
 const options: ChartOptions<'line'> = {
     responsive: true,
+    // The height is the one of the block (compact), not a ratio of the width.
+    maintainAspectRatio: false,
     animation: false,
     // The points are given as {x, y} with the time as x, so Chart.js has nothing to parse or sort.
     parsing: false,
@@ -358,6 +360,13 @@ function draw(chart: ChartJS<'line'> | null, samples: Sample[], state: DrawState
             } else if (!next) {
                 next = sample;
             }
+        }
+
+        // Just after the page opens, the line starts from the left edge at its first value, instead of being a short
+        // piece at the right.
+        const first = points[0];
+        if (first && first.x > start) {
+            points.unshift({ x: start, y: first.y });
         }
 
         const last = points[points.length - 1];

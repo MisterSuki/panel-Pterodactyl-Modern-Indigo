@@ -36,6 +36,8 @@ export default () => {
         options: {
             scales: {
                 y: {
+                    // At least 1 KiB/s high: a server doing nothing shows "0 / 512 B / 1 KiB", not "1 Bytes/s".
+                    suggestedMax: 1024,
                     ticks: {
                         callback(value) {
                             return bytesToString(typeof value === 'string' ? parseInt(value, 10) : value) + '/s';
@@ -57,6 +59,8 @@ export default () => {
         options: {
             scales: {
                 y: {
+                    // At least 1 KiB/s high: a server doing nothing shows "0 / 512 B / 1 KiB", not "1 Bytes/s".
+                    suggestedMax: 1024,
                     ticks: {
                         callback(value) {
                             return bytesToString(typeof value === 'string' ? parseInt(value, 10) : value) + '/s';
@@ -127,6 +131,8 @@ export default () => {
                 title={'CPU Load'}
                 color={accentHex(400)}
                 value={offline ? null : formatValue(cpu.latest(), (value) => `${value.toFixed(1)}%`)}
+                detail={limits.cpu ? `/ ${limits.cpu}%` : null}
+                offline={offline}
             >
                 <Line {...cpu.props} plugins={plugins} />
             </ChartBlock>
@@ -134,6 +140,8 @@ export default () => {
                 title={'Memory'}
                 color={theme('colors.cyan.400')}
                 value={offline ? null : formatValue(memory.latest(), (value) => bytesToString(mbToBytes(value)))}
+                detail={limits.memory ? `/ ${bytesToString(mbToBytes(limits.memory))}` : null}
+                offline={offline}
             >
                 <Line {...memory.props} plugins={plugins} />
             </ChartBlock>
@@ -141,12 +149,14 @@ export default () => {
                 title={'Disk write'}
                 color={theme('colors.green.400')}
                 value={offline ? null : formatValue(disk.latest(), (value) => `${bytesToString(value)}/s`)}
+                offline={offline}
             >
                 <Line {...disk.props} plugins={plugins} />
             </ChartBlock>
             <ChartBlock
                 title={'Network'}
                 color={theme('colors.yellow.400')}
+                offline={offline}
                 legend={
                     <>
                         <span className={'flex items-center gap-1.5 mr-3 text-xs text-gray-300 tabular-nums'}>
