@@ -196,6 +196,8 @@ Route::group(['prefix' => 'databases', 'middleware' => 'admin.can:databases'], f
     Route::get('/view/{host:id}', [Admin\DatabaseController::class, 'view'])->name('admin.databases.view');
 
     Route::post('/', [Admin\DatabaseController::class, 'create']);
+    Route::get('/auto', [Admin\DatabaseHostInstallController::class, 'status'])->name('admin.databases.auto');
+    Route::post('/auto', [Admin\DatabaseHostInstallController::class, 'start'])->middleware('throttle:10,1,database-host-install');
     Route::patch('/view/{host:id}', [Admin\DatabaseController::class, 'update']);
     Route::delete('/view/{host:id}', [Admin\DatabaseController::class, 'delete']);
 });

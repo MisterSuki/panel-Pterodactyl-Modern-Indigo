@@ -2610,5 +2610,22 @@
  "The installation could not start on the panel (the PHP command line is missing, or exec() is disabled).": "L'installation n'a pas pu démarrer sur le panel (PHP en ligne de commande manquant, ou exec() désactivé).",
  "APP_URL in the .env of the panel": "APP_URL dans le .env du panel",
  "is not the address you use": "n'est pas l'adresse que vous utilisez",
- "Wings, the e-mails and the links use it: fix it as root on the machine of the panel:": "Wings, les e-mails et les liens l'utilisent : corrigez-le en root sur la machine du panel :"
+ "Wings, the e-mails and the links use it: fix it as root on the machine of the panel:": "Wings, les e-mails et les liens l'utilisent : corrigez-le en root sur la machine du panel :",
+ "Create automatically": "Créer automatiquement",
+ "Create a database host automatically": "Créer un hôte de bases de données automatiquement",
+ "The panel connects to the machine with SSH, installs MariaDB if needed, lets it listen on the network, creates a user able to create the databases of the servers (with a random password) and saves the host here.": "Le panel se connecte en SSH à la machine, installe MariaDB si besoin, le fait écouter sur le réseau, crée un utilisateur capable de créer les bases des serveurs (avec un mot de passe aléatoire) et enregistre l'hôte ici.",
+ "More options": "Plus d'options",
+ "Database user": "Utilisateur de la base",
+ "Made on the machine, with a random password.": "Créé sur la machine, avec un mot de passe aléatoire.",
+ "Address of MySQL for the panel": "Adresse de MySQL pour le panel",
+ "Only if the panel reaches it at another address (a private IP...).": "Seulement si le panel le joint par une autre adresse (une IP privée…).",
+ "Port 3306 must be open on the firewall of the host so the panel and the game servers can reach MariaDB.": "Le port 3306 doit être ouvert sur le pare-feu de l'hébergeur pour que le panel et les serveurs de jeu joignent MariaDB.",
+ "See the host": "Voir l'hôte",
+ "The database host is ready.": "L'hôte de bases de données est prêt.",
+ "The creation failed.": "La création a échoué.",
+ "The creation could not be started.": "La création n'a pas pu démarrer.",
+ "A database host is already being made.": "Un hôte de bases de données est déjà en cours de création.",
+ "MySQL asks a password for root on this machine: the panel cannot create the user. Create it by hand, or let root connect through the socket.": "MySQL demande un mot de passe pour root sur cette machine : le panel ne peut pas créer l'utilisateur. Créez-le à la main, ou laissez root se connecter par le socket.",
+ "MariaDB could not be installed: the machine must run Debian or Ubuntu.": "MariaDB n'a pas pu être installé : la machine doit être sous Debian ou Ubuntu.",
+ "This user cannot use sudo without a password: use root, or allow sudo without password.": "Cet utilisateur ne peut pas utiliser sudo sans mot de passe : utilisez root, ou autorisez sudo sans mot de passe."
 }

@@ -55,6 +55,10 @@ app/Console/Commands/Node/InstallWingsCommand.php
 app/Http/Controllers/Admin/Nodes/WingsInstallController.php
 app/Services/Admin/UpdateNotifier.php
 app/Console/Commands/Maintenance/CheckThemeUpdateCommand.php
+app/Services/Databases/Hosts/DatabaseHostInstaller.php
+app/Console/Commands/Maintenance/InstallDatabaseHostCommand.php
+app/Http/Controllers/Admin/DatabaseHostInstallController.php
+resources/views/admin/databases/index.blade.php
 app/Services/Databases/PhpMyAdminSignOn.php
 app/Http/Controllers/Api/PhpMyAdminRedeemController.php
 app/Http/Controllers/Api/Client/Servers/DatabasePhpMyAdminController.php

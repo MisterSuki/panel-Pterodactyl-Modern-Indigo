@@ -53,6 +53,16 @@ class WingsInstaller
     }
 
     /**
+     * The file of the private key of the panel (made by publicKey()).
+     */
+    public function privateKeyPath(): string
+    {
+        $this->publicKey();
+
+        return $this->directory() . '/id_ed25519';
+    }
+
+    /**
      * Where the installation of a node is: its state and the last lines it wrote.
      */
     public function status(Node $node): array
@@ -175,10 +185,10 @@ class WingsInstaller
         $script = 'export DEBIAN_FRONTEND=noninteractive; '
             . 'command -v curl >/dev/null 2>&1 || { apt-get update -qq && apt-get install -y -qq curl; } ; '
             . $installer . ' --wings --yes'
-            . ' --panel-url=' . escapeshellarg($panelUrl)
-            . ' --wings-token=' . escapeshellarg($token)
+            . ' --panel-url=' . $this->quote($panelUrl)
+            . ' --wings-token=' . $this->quote($token)
             . ' --node-id=' . (int) $node->id;
-        $command = 'bash -c ' . escapeshellarg($script);
+        $command = 'bash -c ' . $this->quote($script);
         if ($request['user'] !== 'root') {
             $command = 'sudo -n ' . $command;
         }
@@ -246,6 +256,14 @@ class WingsInstaller
         }
 
         return 'The installer stopped with an error (code ' . $status . '): see the log above.';
+    }
+
+    /**
+     * Quotes a word for the bash of the machine (always a Linux machine, whatever the system of the panel).
+     */
+    private function quote(string $value): string
+    {
+        return "'" . str_replace("'", "'\''", $value) . "'";
     }
 
     private function fingerprint(string $hostKey): string
