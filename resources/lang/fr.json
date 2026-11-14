@@ -2528,5 +2528,20 @@
  "Only the owner of the VPS can do this.": "Seul le propriétaire du VPS peut faire cela.",
  "You are not allowed to do this on this VPS.": "Vous n'avez pas la permission de faire cela sur ce VPS.",
  "Shared": "Partagé",
- "My account": "Mon compte"
+ "My account": "Mon compte",
+ "Refreshed every minute": "Actualisé chaque minute",
+ "No problem is known at the moment.": "Aucun problème connu pour le moment.",
+ "Some services may be unavailable for a few minutes.": "Certains services peuvent être indisponibles quelques minutes.",
+ "The team knows about it and is working on it.": "L'équipe est au courant et s'en occupe.",
+ "Nodes online": "Nodes en ligne",
+ "Availability over 7 days": "Disponibilité sur 7 jours",
+ "Last 24 hours": "Dernières 24 heures",
+ "Not watched yet": "Pas encore surveillé",
+ "Cut for a moment": "Coupure passagère",
+ "No data": "Pas de données",
+ "No announcement at the moment.": "Aucune annonce pour le moment.",
+ "Panel update": "Mise à jour",
+ "Incident": "Incident",
+ "Notice": "Avertissement",
+ "Resolved": "Résolu"
 }

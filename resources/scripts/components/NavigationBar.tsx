@@ -7,7 +7,6 @@ import {
     faChevronDown,
     faCode,
     faDesktop,
-    faExternalLinkAlt,
     faHistory,
     faKey,
     faPalette,
@@ -58,10 +57,6 @@ const Bar = styled.header`
 
             & > svg {
                 ${tw`w-3.5 h-3.5 text-neutral-500 transition-colors duration-150`};
-            }
-
-            & > .pd-ext {
-                ${tw`w-2.5 h-2.5 -ml-0.5 opacity-60`};
             }
 
             &:hover {
@@ -300,10 +295,9 @@ export default () => {
                 </NavLink>
             )}
             {statusOpen && (
-                <a href={'/status'} target={'_blank'} rel={'noopener noreferrer'}>
+                <a href={'/status'}>
                     <FontAwesomeIcon icon={faSignal} />
                     <span>Status</span>
-                    <FontAwesomeIcon icon={faExternalLinkAlt} className={'pd-ext'} />
                 </a>
             )}
             {adminAccess && (
