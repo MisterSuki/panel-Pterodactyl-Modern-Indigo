@@ -8,9 +8,17 @@
     $timezone = config('app.timezone');
 
     // The figures at the top: nodes online, average availability over 7 days, announcements.
-    $watched = collect($nodes)->filter(fn ($node) => $node['online'] !== null);
+    $everything = collect($nodes)->merge($vps);
+    $watched = $everything->filter(fn ($node) => $node['online'] !== null);
     $onlineCount = $watched->filter(fn ($node) => $node['online'])->count();
-    $uptimes = collect($nodes)->pluck('uptime')->filter(fn ($value) => $value !== null);
+    $uptimes = $everything->pluck('uptime')->filter(fn ($value) => $value !== null);
+    $activeMaintenance = $maintenances['active']->first();
+    $describe = function ($maintenance) use ($timezone) {
+        $start = $maintenance->starts_at->copy()->timezone($timezone);
+        $end = $maintenance->ends_at->copy()->timezone($timezone);
+
+        return $start->format('d/m H:i') . ' → ' . ($end->isSameDay($start) ? $end->format('H:i') : $end->format('d/m H:i'));
+    };
     $averageUptime = $uptimes->isEmpty() ? null : $uptimes->avg();
 
     // Each bar is half an hour; the last one is the current half hour.
@@ -54,7 +62,7 @@
         @font-face { font-family: 'Geist Mono'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('/fonts/geist/geist-mono-latin-wght-normal.woff2') format('woff2'); }
         :root {
             --text: #ededed; --muted: #a1a1a1; --faint: #737373; --line: rgba(255, 255, 255, 0.08);
-            --card: rgb(17 17 17 / 0.88); --ok: #3ecf8e; --warn: #f5a524; --down: #e5484d;
+            --card: rgb(17 17 17 / 0.88); --ok: #3ecf8e; --warn: #f5a524; --down: #e5484d; --info: #3b82f6;
             --accent: rgb(var(--pd-accent-500, 99 102 241)); --accent-soft: rgb(var(--pd-accent-400, 129 140 248));
         }
         * { box-sizing: border-box; }
@@ -127,7 +135,7 @@
         .bars { display: flex; gap: 3px; margin-top: 12px; height: 32px; }
         .bars span { position: relative; flex: 1; border-radius: 3px; transition: transform .1s, filter .1s; }
         .bars span:hover { transform: scaleY(1.12); filter: brightness(1.2); }
-        .bars .up { background: var(--ok); } .bars .partial { background: var(--warn); } .bars .down { background: var(--down); } .bars .none { background: #262626; }
+        .bars .up { background: var(--ok); } .bars .partial { background: var(--warn); } .bars .down { background: var(--down); } .bars .none { background: #262626; } .bars .maintenance { background: var(--info); }
         .bars span::after { content: attr(data-label); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-family: 'Geist Mono', ui-monospace, monospace; padding: 4px 8px; border-radius: 6px; background: #262626; border: 1px solid #404040; color: #e5e5e5; opacity: 0; pointer-events: none; transition: opacity .1s; z-index: 2; }
         .bars span:hover::after { opacity: 1; }
         .legend { display: flex; justify-content: space-between; font-size: 11px; color: var(--faint); margin-top: 8px; }
@@ -148,6 +156,21 @@
         .ann time { margin-left: auto; font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
         .ann p { margin: 6px 0 0; color: #d4d4d4; white-space: pre-line; line-height: 1.55; }
         .empty { margin: 0; color: var(--muted); }
+        .mt { border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; border: 1px solid; }
+        .mt.now { border-color: rgb(245 165 36 / .35); background: linear-gradient(180deg, rgb(245 165 36 / .09), rgb(245 165 36 / .03)), var(--card); }
+        .mt.soon { border-color: rgb(59 130 246 / .35); background: linear-gradient(180deg, rgb(59 130 246 / .08), rgb(59 130 246 / .02)), var(--card); }
+        .mt-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .mt-head strong { font-weight: 600; font-size: 15px; }
+        .mt-when { margin-left: auto; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; color: var(--muted); }
+        .mt p { margin: 8px 0 0; color: #d4d4d4; white-space: pre-line; line-height: 1.55; }
+        .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .chip { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; background: rgba(255, 255, 255, .02); }
+        .badge.info { color: #93c5fd; border-color: rgb(59 130 246 / .35); background: rgb(59 130 246 / .08); }
+        .panel-row { display: flex; align-items: center; gap: 10px; }
+        .past { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+        .past:first-of-type { border-top: 0; padding-top: 0; }
+        .past:last-child { padding-bottom: 0; }
+        .past span:last-child { margin-left: auto; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; color: var(--faint); }
         footer { text-align: center; color: var(--faint); font-size: 12px; margin-top: 28px; }
         footer a { text-decoration: none; }
         footer a:hover { color: var(--text); }
@@ -162,7 +185,7 @@
             .stat p { font-size: 11px; }
             .stat strong { font-size: 16px; }
             .wrap { padding-top: 28px; }
-            .ann time { margin-left: 0; width: 100%; }
+            .ann time, .mt-when { margin-left: 0; width: 100%; }
         }
     </style>
 </head>
@@ -244,7 +267,11 @@
                 <p class="hero-sub">No problem is known at the moment.</p>
             @elseif ($state === 'maintenance')
                 <p class="hero-title">Maintenance in progress</p>
-                <p class="hero-sub">Some services may be unavailable for a few minutes.</p>
+                @if ($activeMaintenance)
+                    <p class="hero-sub">{{ $activeMaintenance->title }} &middot; <span>until</span> {{ $activeMaintenance->ends_at->copy()->timezone($timezone)->format('H:i') }}</p>
+                @else
+                    <p class="hero-sub">Some services may be unavailable for a few minutes.</p>
+                @endif
             @else
                 <p class="hero-title">Some services are disrupted</p>
                 <p class="hero-sub">The team knows about it and is working on it.</p>
@@ -252,11 +279,42 @@
         </div>
     </section>
 
-    @if (count($nodes) > 0)
+    @foreach ($maintenances['active'] as $maintenance)
+        <section class="mt now">
+            <div class="mt-head">
+                <span class="badge warn">In progress</span>
+                <strong>{{ $maintenance->title }}</strong>
+                <span class="mt-when">{{ $describe($maintenance) }}</span>
+            </div>
+            @if ($maintenance->body)<p>{{ $maintenance->body }}</p>@endif
+            <div class="chips">
+                @foreach ((array) $maintenance->components as $key)
+                    <span class="chip">{{ $components[$key] ?? $key }}</span>
+                @endforeach
+            </div>
+        </section>
+    @endforeach
+    @foreach ($maintenances['upcoming'] as $maintenance)
+        <section class="mt soon">
+            <div class="mt-head">
+                <span class="badge info">Planned maintenance</span>
+                <strong>{{ $maintenance->title }}</strong>
+                <span class="mt-when">{{ $describe($maintenance) }}</span>
+            </div>
+            @if ($maintenance->body)<p>{{ $maintenance->body }}</p>@endif
+            <div class="chips">
+                @foreach ((array) $maintenance->components as $key)
+                    <span class="chip">{{ $components[$key] ?? $key }}</span>
+                @endforeach
+            </div>
+        </section>
+    @endforeach
+
+    @if ($everything->isNotEmpty())
         <div class="stats">
             <div class="stat">
                 <p>Nodes online</p>
-                <strong>{{ $onlineCount }} / {{ $watched->count() ?: count($nodes) }}</strong>
+                <strong>{{ $onlineCount }} / {{ $watched->count() ?: $everything->count() }}</strong>
             </div>
             <div class="stat">
                 <p>Availability over 7 days</p>
@@ -268,48 +326,45 @@
             </div>
         </div>
 
+    @endif
+
+    <section class="card">
+        <h2><span>Panel</span></h2>
+        <div class="panel-row">
+            @if ($panel['maintenance'])
+                <span class="dot warn"></span><span class="node-name">{{ $name }}</span><span class="state-text warn"><span>Maintenance</span></span>
+            @else
+                <span class="dot ok"></span><span class="node-name">{{ $name }}</span><span class="state-text ok"><span>Online</span></span>
+            @endif
+        </div>
+    </section>
+
+    @if (count($nodes) > 0)
         <section class="card">
-            <h2><span>Nodes</span> <small>Last 24 hours</small></h2>
-            @foreach ($nodes as $node)
-                @php
-                    $status = $node['maintenance'] ? 'warn' : ($node['online'] === null ? 'none' : ($node['online'] ? 'ok' : 'down'));
-                    $barCount = count($node['bars']);
-                @endphp
-                <div class="node">
-                    <div class="node-head">
-                        <span class="dot {{ $status }}"></span>
-                        <span class="node-name">{{ $node['name'] }}</span>
-                        @if ($node['location'])<span class="tag">{{ $node['location'] }}</span>@endif
-                        <span class="state-text {{ $status }}">
-                            @if ($status === 'warn')
-                                <span>Maintenance</span>
-                            @elseif ($status === 'ok')
-                                <span>Online</span>
-                            @elseif ($status === 'down')
-                                <span>Offline</span>
-                            @else
-                                <span>Not watched yet</span>
-                            @endif
-                        </span>
-                        @if ($node['uptime'] !== null)
-                            <span class="uptime">{{ number_format($node['uptime'], 2) }} % <span>over 7 days</span></span>
-                        @endif
-                    </div>
-                    <div class="bars">
-                        @foreach ($node['bars'] as $index => $bar)
-                            <span class="{{ $bar ?? 'none' }}" data-label="{{ $slotLabel($index, $barCount) }}"></span>
-                        @endforeach
-                    </div>
-                    <div class="legend"><span>24 hours ago</span><span>Now</span></div>
-                </div>
+            <h2><span>Game servers</span> <small>Last 24 hours</small></h2>
+            @foreach ($nodes as $item)
+                @include('status.row', ['item' => $item, 'slotLabel' => $slotLabel])
             @endforeach
-            <div class="key">
-                <span><i style="background: var(--ok)"></i><span>Online</span></span>
-                <span><i style="background: var(--warn)"></i><span>Cut for a moment</span></span>
-                <span><i style="background: var(--down)"></i><span>Offline</span></span>
-                <span><i style="background: #262626"></i><span>No data</span></span>
-            </div>
         </section>
+    @endif
+
+    @if (count($vps) > 0)
+        <section class="card">
+            <h2><span>VPS</span> <small>Last 24 hours</small></h2>
+            @foreach ($vps as $item)
+                @include('status.row', ['item' => $item, 'slotLabel' => $slotLabel])
+            @endforeach
+        </section>
+    @endif
+
+    @if ($everything->isNotEmpty())
+        <div class="key" style="border-top: 0; margin: -4px 0 16px; padding: 0 4px;">
+            <span><i style="background: var(--ok)"></i><span>Online</span></span>
+            <span><i style="background: var(--warn)"></i><span>Cut for a moment</span></span>
+            <span><i style="background: var(--down)"></i><span>Offline</span></span>
+            <span><i style="background: var(--info)"></i><span>Maintenance</span></span>
+            <span><i style="background: #262626"></i><span>No data</span></span>
+        </div>
     @endif
 
     <section class="card">
@@ -330,6 +385,19 @@
             <p class="empty">No announcement at the moment.</p>
         @endforelse
     </section>
+
+    @if (count($maintenances['recent']) > 0)
+        <section class="card">
+            <h2><span>Recent maintenances</span> <small>Last 7 days</small></h2>
+            @foreach ($maintenances['recent'] as $maintenance)
+                <div class="past">
+                    <span class="dot none"></span>
+                    <span>{{ $maintenance->title }}</span>
+                    <span>{{ $describe($maintenance) }}</span>
+                </div>
+            @endforeach
+        </section>
+    @endif
 
     <footer><a href="{{ url('/') }}">{{ $name }}</a> &middot; {{ date('Y') }}</footer>
 </main>

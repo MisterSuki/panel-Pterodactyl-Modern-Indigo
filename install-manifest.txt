@@ -279,3 +279,7 @@ app/Jobs/ProxmoxVmJob.php
 resources/views/admin/proxmox/host.blade.php
 database/migrations/2026_11_14_000002_create_proxmox_vm_users.php
 app/Models/ProxmoxVmUser.php
+database/migrations/2026_11_15_000000_create_status_maintenances.php
+app/Models/StatusMaintenance.php
+app/Services/Proxmox/ProxmoxWatcher.php
+resources/views/admin/announcements/maintenances.blade.php

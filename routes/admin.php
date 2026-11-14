@@ -79,6 +79,9 @@ Route::group(['prefix' => 'announcements', 'middleware' => 'admin.can:settings,m
     Route::post('/', [Admin\AnnouncementController::class, 'store']);
     Route::post('/status', [Admin\AnnouncementController::class, 'saveStatus'])->name('admin.announcements.status');
     Route::post('/{id}/delete', [Admin\AnnouncementController::class, 'delete'])->whereNumber('id')->name('admin.announcements.delete');
+    Route::post('/maintenances', [Admin\AnnouncementController::class, 'storeMaintenance'])->name('admin.announcements.maintenances');
+    Route::post('/maintenances/{id}/end', [Admin\AnnouncementController::class, 'endMaintenance'])->whereNumber('id')->name('admin.announcements.maintenances.end');
+    Route::post('/maintenances/{id}/delete', [Admin\AnnouncementController::class, 'deleteMaintenance'])->whereNumber('id')->name('admin.announcements.maintenances.delete');
 });
 
 // The theme update with one button (full administrators only, checked in the controller).

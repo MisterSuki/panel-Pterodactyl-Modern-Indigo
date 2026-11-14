@@ -31,6 +31,8 @@
 
 <div class="row">
     <div class="col-md-7">
+        @include('admin.announcements.maintenances')
+
         <form action="{{ route('admin.announcements') }}" method="POST">
             {!! csrf_field() !!}
             <div class="box box-primary">
@@ -108,6 +110,8 @@
                     </div>
                     <label class="pd-switch"><input type="checkbox" name="show_nodes" value="1" @checked($statusNodes)><i class="pd-switch-track"></i><span>Show the nodes and their uptime</span></label>
                     <p class="pd-an-help"><span>Each node is checked every minute; the page shows the last 24 hours and the uptime of the week.</span></p>
+                    <label class="pd-switch" style="margin-top: 10px;"><input type="checkbox" name="show_vps" value="1" @checked($statusVps)><i class="pd-switch-track"></i><span>Show the VPS (the nodes of the Proxmox hosts)</span></label>
+                    <p class="pd-an-help"><span>Each Proxmox host is asked every five minutes which of its nodes are online.</span></p>
                 </div>
                 <div class="box-footer">
                     <button type="submit" class="btn btn-primary pull-right"><i class="fa fa-save"></i> <span>Save</span></button>
