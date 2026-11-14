@@ -53,6 +53,8 @@ resources/views/admin/nodes/view/configuration.blade.php
 app/Services/Nodes/WingsInstaller.php
 app/Console/Commands/Node/InstallWingsCommand.php
 app/Http/Controllers/Admin/Nodes/WingsInstallController.php
+app/Services/Admin/UpdateNotifier.php
+app/Console/Commands/Maintenance/CheckThemeUpdateCommand.php
 app/Services/Databases/PhpMyAdminSignOn.php
 app/Http/Controllers/Api/PhpMyAdminRedeemController.php
 app/Http/Controllers/Api/Client/Servers/DatabasePhpMyAdminController.php

@@ -54,6 +54,9 @@ class Kernel extends ConsoleKernel
         // Alerts of the servers, player statistics and the status of the nodes (one request per node a minute).
         $schedule->command(WatchServersCommand::class)->everyMinute()->withoutOverlapping(5)->runInBackground();
 
+        // A new version of the theme on GitHub: the full administrators are told once (bell and Discord).
+        $schedule->command(\Pterodactyl\Console\Commands\Maintenance\CheckThemeUpdateCommand::class)->hourlyAt(17)->withoutOverlapping()->runInBackground();
+
         // Automatic backups: makes the ones that are due and removes the old ones.
         $schedule->command(RunAutoBackupsCommand::class)->everyMinute()->withoutOverlapping();
 

@@ -81,6 +81,14 @@ class AlertTexts
             'en' => ['Open in the panel', ''],
             'fr' => ['Ouvrir dans le panel', ''],
         ],
+        'open_admin' => [
+            'en' => ['Open the administration', ''],
+            'fr' => ['Ouvrir l’administration', ''],
+        ],
+        'theme_update' => [
+            'en' => ['Version {version} of the panel is out', 'You have version {installed}. Update it in one click: Administration → Overview → Update now.'],
+            'fr' => ['La version {version} du panel est sortie', 'Vous avez la version {installed}. Mettez-la à jour en un clic : Administration → Vue d’ensemble → Mettre à jour maintenant.'],
+        ],
         'ticket_reply' => [
             'en' => ['New answer to your ticket', '#{id} {subject}'],
             'fr' => ['Nouvelle réponse à votre ticket', '#{id} {subject}'],

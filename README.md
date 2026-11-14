@@ -394,6 +394,10 @@ bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Mo
 > le panel est en retard (pour les administrateurs complets). Il lance la même mise à jour (Pterodactyl compris) et montre
 > son avancement en direct ; le panel passe en maintenance quelques minutes puis revient tout seul.
 >
+> **Prévenu tout seul.** Dès qu'une nouvelle version sort, les administrateurs complets reçoivent une notification dans la
+> cloche du panel (et un message privé du bot Discord si leur compte Discord est lié), une seule fois par version. Le panel
+> vérifie toutes les heures (commande `p:theme:check-update`, lancée par la tâche planifiée habituelle).
+>
 > Comment ça marche : le site web n'a pas le droit de modifier le panel, donc l'installateur ajoute un petit service
 > systemd (`pterodactyl-theme-update.path`) qui tourne en root. Le bouton dépose seulement un fichier signal ; le service
 > le voit, télécharge `install.sh` depuis ce dépôt et lance `--update --yes`. Le contenu du fichier n'est jamais lu, et le
@@ -702,6 +706,7 @@ Sur un serveur dédié ETS2 ou ATS, un onglet **Euro Truck** permet de régler l
 - les **réponses du staff** à ses tickets ;
 - la **boutique** : serveur suspendu parce que sa durée est écoulée ;
 - les **annonces de l'administration** : maintenance, mise à jour, nouveauté.
+- pour les administrateurs complets : **une nouvelle version du panel** est sortie, avec le lien vers la mise à jour en un clic.
 
 *Administration → Annonces* envoie une annonce **à tous les utilisateurs** (information, maintenance, mise à jour, avertissement,
 bonne nouvelle), avec un lien si besoin. Ceux qui s'inscrivent ensuite la voient aussi pendant 30 jours. Le bouton **Mettre à
