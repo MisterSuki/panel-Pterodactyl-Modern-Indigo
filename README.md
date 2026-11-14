@@ -6,7 +6,7 @@
 
 ### Le panel d'hébergement complet, net et rapide, construit sur Pterodactyl
 
-Serveurs de jeu, **sites web**, **boîtes mail**, **boutique**, **bot Discord**, connexion par **Face ID / Windows Hello**…<br>
+Serveurs de jeu, **VPS Proxmox**, **sites web**, **boîtes mail**, **boutique**, **bot Discord**, connexion par **Face ID / Windows Hello**…<br>
 dans une interface sobre façon Vercel / Linear, pour les clients **et** l'administration, installée avec **une seule commande**.
 
 <br>
@@ -38,11 +38,12 @@ dans une interface sobre façon Vercel / Linear, pour les clients **et** l'admin
 
 <table>
 <tr>
-<td align="center" width="20%">🖤<br><b>Design pro</b><br><sub>sobre, net, rapide, Geist, aucun reste de Pterodactyl</sub></td>
-<td align="center" width="20%">🌍<br><b>Sites web</b><br><sub>domaine sans port, HTTPS, WordPress et 7 autres CMS</sub></td>
-<td align="center" width="20%">📧<br><b>E-mails</b><br><sub>boîtes mail sur le domaine du site, avec webmail</sub></td>
-<td align="center" width="20%">🔑<br><b>Passkeys</b><br><sub>connexion Face ID, Touch ID, Windows Hello</sub></td>
-<td align="center" width="20%">🛒<br><b>Boutique</b><br><sub>Stripe, PayPal, SumUp, serveurs créés seuls</sub></td>
+<td align="center" width="16%">🖤<br><b>Design pro</b><br><sub>sobre, net, rapide, Geist, ton logo</sub></td>
+<td align="center" width="16%">🖥️<br><b>VPS Proxmox</b><br><sub>création, console intégrée, stats en direct</sub></td>
+<td align="center" width="17%">🌍<br><b>Sites web</b><br><sub>domaine sans port, HTTPS, WordPress et 7 autres CMS</sub></td>
+<td align="center" width="17%">📧<br><b>E-mails</b><br><sub>boîtes mail sur le domaine du site, avec webmail</sub></td>
+<td align="center" width="17%">🔑<br><b>Passkeys</b><br><sub>connexion Face ID, Touch ID, Windows Hello</sub></td>
+<td align="center" width="17%">🛒<br><b>Boutique</b><br><sub>Stripe, PayPal, SumUp, serveurs créés seuls</sub></td>
 </tr>
 </table>
 
@@ -73,6 +74,7 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 | **7** | 🗄️ Installer **phpMyAdmin** pour ouvrir les bases depuis le panel | `--phpmyadmin` |
 | **8** | 🌍 Installer l'**hébergement web** sur un autre node que celui du panel | `--web` |
 | **9** | 📧 Installer le **serveur mail** (commande toute faite dans *Admin → Email*) | `--mail` |
+| **10** | 🖥️ Installer ou relancer le **relais de la console des VPS** (fait aussi par `--update`) | `--console` |
 
 > [!TIP]
 > S'il détecte déjà un panel dans `/var/www/pterodactyl`, le script passe directement à la mise à jour.
@@ -159,6 +161,15 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 - **facturation d'hébergeur** : ClientXCMS, et WHMCS avec ton fichier, chacun avec ta propre licence
 - **aperçu** du site, **version de PHP** au choix, sous-domaines gratuits, et vente par la boutique
 
+### 🖥️ Des VPS Proxmox
+
+- relie un ou plusieurs **hôtes Proxmox** avec un jeton d'API : nodes, CPU, mémoire, stockage et machines **en direct**
+- **crée des VPS** depuis un modèle cloud-init : vCPU, mémoire, disque, **adresse IP** prise dans ta liste, mot de passe root et clé SSH, démarrage tout seul
+- ou **donne** une machine déjà faite sur Proxmox à un client
+- côté client : chiffres **toutes les 2 secondes**, graphiques en direct et sur 1 h, 24 h, 7 jours, **Démarrer / Redémarrer / Éteindre / Arrêter**
+- **console noVNC intégrée** à la page, avec **zoom**, plein écran, Ctrl+Alt+Del et « taper un texte » ; le jeton Proxmox ne quitte jamais le serveur
+- **sous-utilisateurs** : le client partage son VPS avec d'autres comptes, avec seulement les droits voulus (alimentation, console, mot de passe root)
+
 ### 🔑 Sans mot de passe
 
 - **Face ID, Touch ID, Windows Hello**, un téléphone ou une clé de sécurité, **sans mot de passe**
@@ -178,7 +189,8 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 ### 🔔 Alertes, cloche et bot Discord
 
 - **alertes** de crash, mémoire, disque, démarrage et arrêt, dans la cloche, sur **Discord** (cartes Components V2) et en **message privé**
-- une **cloche** de notifications (supprimables) et des **annonces** à tous ; une **page de statut publique**
+- une **cloche** de notifications (supprimables) et des **annonces** à tous
+- une **page de statut publique** : serveurs de jeu, **VPS**, et des **maintenances** que tu planifies (sans compter dans la disponibilité)
 - **bot Discord** : `/servers`, `/status`, `/start`, `/restart`, `/stop` pour piloter **ses** serveurs, avec ses droits du panel
 
 ### 🧭 Une administration à la hauteur
@@ -287,6 +299,7 @@ Panel, Wings, mise à jour avec **sauvegarde et retour en arrière**, désinstal
 [Notifications](#-notifications-alertes-et-annonces) ·
 [Statistiques](#-statistiques--joueurs-et-ressources) ·
 [Page de statut](#-page-de-statut-publique) ·
+[VPS Proxmox](#️-vps-proxmox) ·
 [Hébergement web](#-hébergement-web) ·
 [E-mails](#-e-mails-boîtes-mail-des-sites) ·
 [Sous-domaines](#-sous-domaines-cloudflare-bunnynet-powerdns) ·
@@ -397,7 +410,8 @@ toutes les fonctionnalités ci-dessus. Il :
 2. si ton Pterodactyl est **plus ancien** que la version prévue par le thème, il le **met à jour d'abord** avec la version
    officielle (comme le guide de Pterodactyl), après avoir sauvegardé **tout le panel** ;
 3. **sauvegarde** chaque fichier qu'il va remplacer (dans `/var/backups/pterodactyl-theme/`) ;
-4. met le panel en maintenance et copie les fichiers ;
+4. met le panel en maintenance (une page d'attente aux couleurs du panel s'affiche, et se recharge toute seule dès qu'il
+   revient) et copie les fichiers ;
 5. lance les migrations de la base de données ;
 6. installe les dépendances et compile le dashboard ;
 7. vide les caches, redémarre la file d'attente et remet le panel en ligne.
@@ -468,7 +482,7 @@ perdu** : serveurs, utilisateurs, nodes, allocations, sauvegardes, bases de donn
 
 | Option | Effet |
 | --- | --- |
-| `--panel`, `--wings`, `--update`, `--restore`, `--uninstall`, `--phpmyadmin`, `--web`, `--mail` | Ce qu'il faut faire (sinon, menu) |
+| `--panel`, `--wings`, `--update`, `--restore`, `--uninstall`, `--phpmyadmin`, `--web`, `--mail`, `--console` | Ce qu'il faut faire (sinon, menu) |
 | `-y`, `--yes` | Ne pose aucune question |
 | `--dry-run` | Vérifie tout et affiche le plan, sans rien changer |
 | `--fqdn=`, `--email=` | Domaine (ou IP) et email, pour un nouveau panel |
@@ -712,9 +726,78 @@ Tout est relevé toutes les 5 minutes pendant que le serveur tourne (une seule r
 
 ### 🟢 Page de statut publique
 
-Activée dans *Administration → Annonces*, elle est à l'adresse `/status` de ton panel, sans compte : l'état général (tout
-fonctionne, maintenance en cours, services perturbés), les **annonces** que tu rends publiques, et chaque **node** avec ses
-dernières 24 heures et sa **disponibilité sur 7 jours**. Elle se rafraîchit toute seule chaque minute.
+Activée dans *Administration → Annonces*, elle est à l'adresse `/status` de ton panel, sans compte, avec le même menu que le panel
+(les visiteurs voient un bouton *Se connecter*). Elle montre :
+
+- l'**état général** (tout fonctionne, maintenance en cours, services perturbés) et trois chiffres : nodes en ligne,
+  disponibilité moyenne sur 7 jours, annonces ;
+- les **maintenances** en cours (en orange) et prévues (en bleu), avec leurs horaires et ce qu'elles concernent, puis celles des
+  7 derniers jours ;
+- le **panel**, chaque **node de jeu** et chaque **node Proxmox** (section *VPS*) avec ses dernières 24 heures en barres d'une
+  demi-heure (l'horaire s'affiche au survol) et sa **disponibilité sur 7 jours** ;
+- les **annonces** que tu rends publiques, avec leur type (mise à jour, maintenance, incident, résolu…).
+
+Elle se rafraîchit toute seule chaque minute. Les nodes Proxmox sont interrogés toutes les 5 minutes ; la section *VPS* se cache
+avec un interrupteur.
+
+**Maintenances** (*Administration → Annonces*, carte *Maintenances*) : un titre, un message, le **début** et la **fin** (dans le
+fuseau du panel ; mets l'heure actuelle pour commencer tout de suite), et ce qu'elle concerne : le panel, chaque node, chaque hôte
+Proxmox. Une case **prévient tous les utilisateurs** dans la cloche, horaires compris. Pendant la maintenance, ce qu'elle concerne
+affiche *Maintenance* au lieu d'une panne, ses barres passent en bleu et **ce temps ne compte pas** dans la disponibilité. Une
+maintenance en cours se **termine maintenant** d'un clic ; une maintenance prévue s'**annule**.
+
+### 🖥️ VPS Proxmox
+
+*Administration → Proxmox* (droit de gérer les réglages) relie un ou plusieurs hôtes Proxmox VE, puis donne ou crée des VPS
+pour tes clients. Le lien **VPS** apparaît dans le menu d'un client dès qu'il en a un.
+
+**1. Relier un hôte.** Sur Proxmox, crée un **jeton d'API** (*Datacenter → Permissions → API Tokens*) :
+
+- le plus simple : un jeton de `root@pam` **sans** *Privilege Separation* ;
+- ou un jeton séparé avec les rôles **PVEVMAdmin**, **PVEDatastoreUser** et **PVEAuditor** sur `/`.
+
+Dans le panel, donne un nom, l'adresse (`https://ip-de-proxmox:8006`), l'ID du jeton (`root@pam!panel`) et son secret, puis
+**Tester**. Laisse « Vérifier le certificat » décoché si Proxmox garde le certificat qu'il crée lui-même. Le secret est chiffré avec la clé du
+panel. La page affiche ensuite chaque node (CPU, mémoire, stockage, en ligne depuis) et toutes les machines.
+
+**2. Les adresses IP.** Ajoute les IP publiques que tu loues avec leur **masque** (`/32` pour une IP seule), leur **passerelle**
+et, si ton hébergeur l'exige (IP failover), leur **adresse MAC virtuelle**. Chaque nouveau VPS en prend une libre.
+
+**3. Créer un VPS.** Il faut un **modèle cloud-init** sur Proxmox (la page donne les commandes pour en faire un avec Debian 12
+s'il n'y en a pas). Choisis le client, le modèle, les vCPU, la mémoire, le disque et l'IP : le panel copie le modèle, règle
+cloud-init (utilisateur `root`, mot de passe créé au hasard, ta clé SSH si tu en donnes une, adresse IP, DNS), agrandit le disque
+et démarre la machine. Le client suit la création sur sa page et voit ensuite son **mot de passe root**. En cas d'échec, l'étape
+est retentée 5 fois, puis le bouton **Réessayer** la relance. Supprimer un VPS l'arrête puis le **détruit sur Proxmox**, disques
+compris.
+
+**Ou donner une machine existante** : dans le tableau des machines, **Donner** l'attribue à un client (par email ou nom
+d'utilisateur), **Reprendre** la lui retire sans toucher à la machine.
+
+**Côté client**, la page d'un VPS montre :
+
+- l'état, les vCPU, la mémoire, le disque, l'**IP principale** et le temps en ligne, mis à jour **toutes les 2 secondes** ;
+- la **console** de la machine (noVNC) directement dans la page, avec un **zoom** (Ajuster, 100 % à 200 %), le plein écran,
+  Ctrl+Alt+Del et « Taper un texte » pour coller un mot de passe ; elle s'ouvre aussi en grand sur sa propre page ;
+- les graphiques **En direct** (3 dernières minutes) ou sur **1 h, 24 h, 7 jours** : CPU, mémoire, réseau ;
+- les boutons **Démarrer, Redémarrer, Éteindre** (propre) et **Arrêter** (comme débrancher la prise) ;
+- les **sous-utilisateurs** : le propriétaire ajoute d'autres comptes du panel par email et coche ce qu'ils peuvent faire
+  (**alimentation**, **console**, **voir le mot de passe root**). Sans case cochée, ils voient seulement l'état et les chiffres.
+  Le panel vérifie ces droits à chaque action, et un sous-utilisateur peut quitter le VPS. Reprendre ou supprimer un VPS retire
+  ses sous-utilisateurs.
+
+**La console.** Le navigateur ne parle jamais directement à Proxmox : le panel ouvre une session à usage unique (30 secondes)
+et un petit relais sur la machine du panel (`pterodactyl-vnc-relay`, service systemd, joint par nginx sur `/vnc-relay/`) la
+relie à Proxmox avec le jeton, qui reste sur le serveur. Il est installé par `--update`. *Administration → Proxmox* indique s'il
+tourne ; sinon, installe-le ou relance-le seul, en root :
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --console
+```
+
+> [!TIP]
+> Les **adresses IP** trouvées dans la machine s'affichent une fois l'**agent invité QEMU** installé dedans
+> (`apt install qemu-guest-agent && systemctl enable --now qemu-guest-agent`) et l'option *QEMU Guest Agent* cochée dans
+> Proxmox. L'IP donnée par le panel s'affiche toujours.
 
 ### 🌍 Hébergement web
 
@@ -840,6 +923,10 @@ Chaque utilisateur a une page *Compte → Apparence* : il choisit sa **couleur d
 vert, sarcelle, graphite), et **son propre fond** si l'admin le permet (interrupteur « Laisser les utilisateurs choisir leur fond »).
 Il peut aussi **figer les animations** pour économiser la batterie. Ses choix sont gardés sur son compte, donc sur tous ses appareils.
 
+**Ton logo** : dans la même page, envoie un logo (png, jpeg, webp, gif ou svg simple, 2 Mo maximum). Il remplace le carré de couleur dans la
+barre du haut, l'administration, les pages de connexion, la page d'accueil, la page de statut et la page de mise à jour, et sert
+d'icône d'onglet. Un SVG est refusé s'il contient du script ou des liens externes.
+
 > [!NOTE]
 > L'image de fond est servie à tout le monde (la page de connexion l'affiche aussi) : n'y mettez rien de privé.
 
@@ -912,6 +999,8 @@ injoignable ou occupé est réessayé 15 minutes plus tard sans gêner les autre
 
 | | Ce que ça fait |
 | --- | --- |
+| 🧭 **Menu du haut** | Liens avec icônes dans un groupe (l'onglet actif est rempli, à ta couleur d'accent), et un **menu de compte** : avatar et nom, puis Mon compte, Apparence, Identifiants API, Clés SSH, Activité, Administration et Se déconnecter |
+| ⏳ **Page de mise à jour** | Pendant une mise à jour, une page aux couleurs du panel (ton logo, la durée écoulée) rappelle que les serveurs et VPS continuent de tourner, vérifie toutes les 5 secondes et **se recharge toute seule** quand le panel revient |
 | 🔠 **Nom du panel** | Le nom (*Admin → Settings → Company Name*) s'affiche dans la barre du haut, sur les pages de connexion et en bas de chaque page, à la place des mentions de Pterodactyl |
 | 🎛️ **Administration relookée** | Même style que le panel : menu plat, compteurs (serveurs, utilisateurs, nodes), cartes, tableaux, boutons, champs, fenêtres et pagination ; recherche **Ctrl + K** ; liste des serveurs en direct |
 | 🎫 **Tickets de support** | Conversation en temps réel entre l'utilisateur et le staff, notes internes, priorités, prise en charge, transcription en texte ou à imprimer (voir [Tickets de support](#-tickets-de-support)) |
@@ -1121,6 +1210,28 @@ déjà présent (Google, Microsoft…) doit recevoir `mx` au lieu d'un deuxième
 <br>
 
 Les passkeys demandent le **HTTPS** et un navigateur récent. Ouvre le panel par son adresse en `https://` (pas par l'IP).
+
+</details>
+
+<details>
+<summary><b>La console d'un VPS ne s'ouvre pas</b></summary>
+
+<br>
+
+Regarde la carte *Console (noVNC)* dans *Administration → Proxmox*. Si le relais ne tourne pas, lance en root
+`bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Modern-Indigo/main/install.sh) --console`, puis, s'il ne démarre toujours pas,
+`journalctl -u pterodactyl-vnc-relay -n 30` pour voir pourquoi. La machine doit être **en marche**, et le sous-utilisateur doit
+avoir le droit *Console*.
+
+</details>
+
+<details>
+<summary><b>La page Proxmox dit « 401 » ou « 403 »</b></summary>
+
+<br>
+
+**401** : l'ID ou le secret du jeton est faux. **403** : le jeton n'a pas les droits. Prends un jeton de `root@pam` sans
+*Privilege Separation*, ou donne au jeton les rôles **PVEVMAdmin**, **PVEDatastoreUser** et **PVEAuditor** sur `/`.
 
 </details>
 
