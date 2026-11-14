@@ -53,6 +53,8 @@ export default () => {
                 client.scaleViewport = true;
                 client.resizeSession = false;
                 client.background = '#000000';
+                // A small dot where the mouse is when the machine draws no pointer (a text console has none).
+                client.showDotCursor = true;
                 client.addEventListener('connect', () => {
                     setState('connected');
                     client.focus();
