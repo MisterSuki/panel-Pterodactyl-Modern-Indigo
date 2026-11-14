@@ -311,6 +311,8 @@ Route::group(['prefix' => 'nodes', 'middleware' => 'admin.can:nodes'], function 
     Route::post('/view/{node:id}/allocation/remove', [Admin\NodesController::class, 'allocationRemoveBlock'])->name('admin.nodes.view.allocation.removeBlock');
     Route::post('/view/{node:id}/allocation/alias', [Admin\NodesController::class, 'allocationSetAlias'])->name('admin.nodes.view.allocation.setAlias');
     Route::post('/view/{node:id}/settings/token', Admin\NodeAutoDeployController::class)->name('admin.nodes.view.configuration.token');
+    Route::get('/view/{node:id}/wings-install', [Admin\Nodes\WingsInstallController::class, 'status'])->name('admin.nodes.view.wings-install')->middleware('admin.can:nodes,manage');
+    Route::post('/view/{node:id}/wings-install', [Admin\Nodes\WingsInstallController::class, 'start'])->middleware(['admin.can:nodes,manage', 'throttle:10,1,wings-install']);
 
     Route::patch('/view/{node:id}/settings', [Admin\NodesController::class, 'updateSettings']);
 
