@@ -26,6 +26,7 @@ Route::group(['prefix' => 'web-hosting', 'middleware' => 'admin.can:settings,man
     Route::get('/', [Admin\WebHostingController::class, 'index'])->name('admin.web-hosting');
     Route::post('/eggs', [Admin\WebHostingController::class, 'eggs'])->name('admin.web-hosting.eggs');
     Route::post('/settings', [Admin\WebHostingController::class, 'settings'])->name('admin.web-hosting.settings');
+    Route::post('/sites', [Admin\WebHostingController::class, 'create'])->name('admin.web-hosting.create');
 });
 
 // Proxmox: the hosts, their nodes and the virtual machines given to users as VPS (settings rights needed).

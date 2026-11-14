@@ -869,8 +869,11 @@ le télécharge. Fermer l'hébergement coupe la page et les liens, sans effacer 
 
 ### 🌍 Hébergement web
 
-Un site est un serveur créé avec un egg du nest **Web Hosting** : **Site PHP / HTML**, **Site Node.js** ou **Site Python**.
-Le client y trouve un onglet **Site web**.
+Un site se crée **en quelques champs**, sans choisir d'egg : *Admin → Web Hosting → Créer un site* (nom, propriétaire,
+mémoire et disque en Go ou Mo, CPU ; le node et le port sont trouvés tout seuls), ou par une offre de la boutique. Le client
+y trouve un onglet **Site web**, où il choisit lui-même le **type de son site** : **PHP / HTML**, **Node.js** ou **Python**,
+avec sa version (PHP 8.4, Node.js 24…). Il peut en changer quand il veut : ses fichiers sont gardés, et les fichiers
+d'exemple du nouveau type ne sont ajoutés que là où il n'y a rien.
 
 **Mise en route** (*Admin → Web Hosting*) :
 
@@ -882,7 +885,7 @@ Le client y trouve un onglet **Site web**.
    `/var/lib/pterodactyl-web/images.log`).
 2. Vérifie que le node est **Connecté** sur la page *Web Hosting*.
 3. Ajoute un **hôte de bases de données** que les conteneurs peuvent joindre : c'est là que vont les bases des CMS.
-4. Crée un serveur (ou une offre dans la boutique) avec un de ces eggs, et **au moins 1 base de données**.
+4. Crée un site avec le formulaire **Créer un site** (1 base de données comprise), ou une offre dans la boutique.
 
 **Comment ça marche.** Un service, `pterodactyl-web-agent`, tourne sur chaque node. Il demande au panel quels domaines
 vont vers quels conteneurs (avec le jeton de Wings), écrit ses propres sites Nginx (`ptero-web-*.conf`), obtient les
@@ -898,6 +901,7 @@ voie l'adresse du serveur. Un site a **un seul domaine** (domaine perso ou sous-
 s'installent en un clic, base de données comprise, et se **désinstallent** de la même façon. L'onglet montre un **aperçu** du site.
 
 **Node.js et Python.** L'application doit écouter sur la variable `PORT`. Sa commande est dans l'onglet *Démarrage*.
+Les CMS en un clic sont pour les sites PHP.
 
 **E-mails.** Les sites peuvent avoir des boîtes mail sur leur domaine : voir [E-mails](#-e-mails-boîtes-mail-des-sites).
 

@@ -16,6 +16,7 @@ use Pterodactyl\Models\SubdomainDomain;
 use Pterodactyl\Services\Subdomains\SubdomainService;
 use Pterodactyl\Services\WebHosting\WebHostingService;
 use Pterodactyl\Services\WebHosting\WebInstaller;
+use Pterodactyl\Services\WebHosting\WebsiteService;
 
 /**
  * The Website tab of a site: its domains and the installation of a CMS. Seeing it needs the right to see the network of
@@ -83,6 +84,39 @@ class WebHostingController extends ClientApiController
         Activity::event('server:subdomain.custom-remove')->property(['domain' => $model->hostname])->log();
 
         return new JsonResponse($this->payload($server));
+    }
+
+    /**
+     * The kind of the site (PHP / HTML, Node.js, Python) and its version, with the other kinds offered.
+     */
+    public function kind(Request $request, Server $server): JsonResponse
+    {
+        $this->authorizeFor($request, $server, Permission::ACTION_STARTUP_READ);
+        if (!WebHostingService::isWebsite($server)) {
+            throw new DisplayException('This server is not a website.');
+        }
+
+        return new JsonResponse(app(WebsiteService::class)->present($server));
+    }
+
+    /**
+     * Changes the kind or the version of the site. The files are kept; the example files of the new kind are added
+     * only where nothing is there yet.
+     */
+    public function switchKind(Request $request, Server $server): JsonResponse
+    {
+        $this->authorizeFor($request, $server, Permission::ACTION_STARTUP_DOCKER_IMAGE);
+        $this->authorizeFor($request, $server, Permission::ACTION_SETTINGS_REINSTALL);
+        $data = $request->validate([
+            'egg' => ['required', 'integer'],
+            'image' => ['nullable', 'string', 'max:191'],
+        ]);
+
+        $sites = app(WebsiteService::class);
+        $server = $sites->switchKind($server, (int) $data['egg'], $data['image'] ?? null);
+        Activity::event('server:web.kind')->property(['kind' => $server->egg->name, 'image' => $server->image])->log();
+
+        return new JsonResponse($sites->present($server));
     }
 
     public function install(Request $request, Server $server): JsonResponse

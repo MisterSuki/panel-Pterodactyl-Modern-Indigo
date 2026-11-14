@@ -162,6 +162,7 @@ return [
         ],
         'web' => [
             'install' => 'Installed :app on the site',
+            'kind' => 'Changed the site to :kind',
             'uninstall' => 'Removed the CMS of the site',
         ],
         'subuser' => [

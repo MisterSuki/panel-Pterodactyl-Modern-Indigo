@@ -96,18 +96,77 @@
                 <ol class="pd-web-steps">
                     <li>Install the eggs, with the button below. They are in the <strong>Web Hosting</strong> nest.</li>
                     <li>Add a database host, so a CMS can have its database.</li>
-                    <li>Create a server from one of the eggs, with at least 1 database, or an offer in the shop.</li>
-                    <li>The client finds a <strong>Website</strong> tab: domains, HTTPS and CMS.</li>
+                    <li>Create a website with the form below (or sell it with an offer in the shop).</li>
+                    <li>The client finds a <strong>Website</strong> tab: the kind of site (PHP, Node.js, Python), domains, HTTPS and CMS.</li>
                 </ol>
             </div>
             <div class="box-footer">
                 <form action="{{ route('admin.web-hosting.eggs') }}" method="POST">
                     {!! csrf_field() !!}
                     <button type="submit" class="btn btn-success btn-sm">{{ $eggsInstalled ? 'Update the eggs' : 'Install the eggs' }}</button>
-                    <a href="{{ route('admin.servers.new') }}" class="btn btn-primary btn-sm">Create a website</a>
                 </form>
             </div>
         </div>
+
+        @if ($eggsInstalled)
+            <form action="{{ route('admin.web-hosting.create') }}" method="POST">
+                {!! csrf_field() !!}
+                <div class="box box-primary">
+                    <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-plus"></i> <span>Create a website</span></h3></div>
+                    <div class="box-body">
+                        <p class="pd-web-help" style="margin: 0 0 12px;"><span>No egg to choose: the client picks the kind of their site (PHP / HTML, Node.js, Python) in their panel, and can change it later. The node and the port are found alone.</span></p>
+                        <div class="form-group">
+                            <label for="pdSiteName">Name of the site</label>
+                            <input type="text" id="pdSiteName" name="name" class="form-control" maxlength="60" required value="{{ old('name') }}" placeholder="monsite.fr">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdSiteUser">Owner (email or username)</label>
+                            <input type="text" id="pdSiteUser" name="user" class="form-control" required value="{{ old('user') }}" list="pdSiteUsers">
+                            <datalist id="pdSiteUsers">
+                                @foreach (\Pterodactyl\Models\User::query()->orderBy('username')->limit(500)->get(['username', 'email']) as $person)
+                                    <option value="{{ $person->email }}">{{ $person->username }}</option>
+                                @endforeach
+                            </datalist>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-6 form-group">
+                                <label for="pdSiteMemory">Memory</label>
+                                <div style="display: flex; gap: 6px;">
+                                    <input type="number" id="pdSiteMemory" name="memory" class="form-control" min="0.125" step="any" required value="{{ old('memory', 1) }}">
+                                    <select name="memory_unit" class="form-control" style="width: 70px;"><option value="GB">GB</option><option value="MB" @selected(old('memory_unit') === 'MB')>MB</option></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-6 form-group">
+                                <label for="pdSiteDisk">Disk</label>
+                                <div style="display: flex; gap: 6px;">
+                                    <input type="number" id="pdSiteDisk" name="disk" class="form-control" min="0.125" step="any" required value="{{ old('disk', 5) }}">
+                                    <select name="disk_unit" class="form-control" style="width: 70px;"><option value="GB">GB</option><option value="MB" @selected(old('disk_unit') === 'MB')>MB</option></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-6 form-group">
+                                <label for="pdSiteCpu">CPU (%)</label>
+                                <input type="number" id="pdSiteCpu" name="cpu" class="form-control" min="0" required value="{{ old('cpu', 100) }}">
+                                <p class="pd-web-help">100 = <span>one core</span>, 0 = <span>no limit</span></p>
+                            </div>
+                            <div class="col-xs-6 form-group">
+                                <label for="pdSiteNode">Node</label>
+                                <select id="pdSiteNode" name="node_id" class="form-control">
+                                    <option value="">Automatic</option>
+                                    @foreach ($nodes as $entry)
+                                        <option value="{{ $entry['node']->id }}" @selected((string) old('node_id') === (string) $entry['node']->id)>{{ $entry['node']->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-primary pull-right"><i class="fa fa-plus"></i> <span>Create the website</span></button>
+                    </div>
+                </div>
+            </form>
+        @endif
 
         <form action="{{ route('admin.web-hosting.settings') }}" method="POST">
             {!! csrf_field() !!}

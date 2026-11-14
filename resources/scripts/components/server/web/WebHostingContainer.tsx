@@ -22,8 +22,7 @@ import { Dialog } from '@/components/elements/dialog';
 import Can from '@/components/elements/Can';
 import { ServerContext } from '@/state/server';
 import { useFlashKey } from '@/plugins/useFlash';
-import getServerStartup from '@/api/swr/getServerStartup';
-import setSelectedDockerImage from '@/api/server/setSelectedDockerImage';
+import SiteKind from '@/components/server/web/SiteKind';
 import {
     addWebDomain,
     addWebSubdomain,
@@ -323,51 +322,8 @@ const Preview = ({ url, temporary }: { url: string | null; temporary: string | n
     );
 };
 
-const PhpVersion = ({ uuid, image }: { uuid: string; image: string }) => {
-    const { data, mutate } = getServerStartup(uuid);
-    const setServerFromState = ServerContext.useStoreActions((actions) => actions.server.setServerFromState);
-    const { clearAndAddHttpError } = useFlashKey('server:web');
-    const [saved, setSaved] = useState(false);
-
-    if (!data || Object.keys(data.dockerImages).length < 2) {
-        return null;
-    }
-
-    const change = (value: string) => {
-        setSaved(false);
-        setSelectedDockerImage(uuid, value)
-            .then(() => {
-                setServerFromState((s) => ({ ...s, dockerImage: value }));
-                setSaved(true);
-                mutate();
-            })
-            .catch((error) => clearAndAddHttpError(error));
-    };
-
-    return (
-        <div css={card}>
-            <div css={tw`flex flex-wrap items-center gap-4 px-4 py-3`}>
-                <div css={tw`flex-1 min-w-0`}>
-                    <h2 css={tw`text-base text-neutral-50 font-semibold`}>PHP version</h2>
-                    <p css={tw`text-xs text-neutral-400`}>
-                        {saved ? 'Saved: restart the site to use it.' : 'Takes effect the next time the site starts.'}
-                    </p>
-                </div>
-                <select css={[field, tw`w-auto`]} value={image} onChange={(e) => change(e.currentTarget.value)}>
-                    {Object.entries(data.dockerImages).map(([name, value]) => (
-                        <option key={value} value={value}>
-                            {name}
-                        </option>
-                    ))}
-                </select>
-            </div>
-        </div>
-    );
-};
-
 export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
-    const image = ServerContext.useStoreState((state) => state.server.data!.dockerImage);
     const { clearFlashes, clearAndAddHttpError } = useFlashKey('server:web');
 
     const [page, setPage] = useState<WebPage | null>(null);
@@ -572,7 +528,7 @@ export default () => {
 
                     <Preview url={page.url} temporary={page.preview} />
 
-                    {page.php && <PhpVersion uuid={uuid} image={image} />}
+                    <SiteKind />
 
                     {page.php && (
                         <div css={[card, tw`pb-4`]}>

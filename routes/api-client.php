@@ -219,6 +219,8 @@ Route::group([
     Route::group(['prefix' => '/web'], function () {
         Route::get('/', [Client\Servers\WebHostingController::class, 'index']);
         Route::get('/status', [Client\Servers\WebHostingController::class, 'status']);
+        Route::get('/kind', [Client\Servers\WebHostingController::class, 'kind']);
+        Route::post('/kind', [Client\Servers\WebHostingController::class, 'switchKind'])->middleware('throttle:10,1,web-kind');
         Route::post('/domains', [Client\Servers\WebHostingController::class, 'addDomain'])->middleware('throttle:subdomains');
         Route::post('/subdomains', [Client\Servers\WebHostingController::class, 'addSubdomain'])->middleware('throttle:subdomains');
         Route::post('/domains/{domain}/check', [Client\Servers\WebHostingController::class, 'checkDomain'])->whereNumber('domain')->middleware('throttle:subdomains');
