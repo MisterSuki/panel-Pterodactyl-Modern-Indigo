@@ -108,6 +108,14 @@
                     <button type="button" data-pd-wg-tab="existing"><span>Wings already installed</span></button>
                 </div>
 
+                <div class="pd-wg-warn" data-pd-appurl hidden style="margin: 0 0 14px;">
+                    <i class="fa fa-exclamation-triangle" style="margin-top: 2px;"></i>
+                    <div style="min-width: 0;">
+                        <span><span>APP_URL in the .env of the panel</span> (<code data-pd-appurl-now></code>) <span>is not the address you use</span> (<code data-pd-appurl-real></code>). <span>Wings, the e-mails and the links use it: fix it as root on the machine of the panel:</span></span>
+                        <div class="pd-wg-cmd"><code data-pd-appurl-cmd></code><button type="button" class="btn btn-xs btn-default" data-pd-appurl-copy title="Copy"><i class="fa fa-clipboard"></i></button></div>
+                    </div>
+                </div>
+
                 <div data-pd-wg-pane="auto">
                     <p class="text-muted" style="margin-top: 0;"><span>The panel connects to the machine of this node with SSH, installs Docker and Wings with the configuration of this node, and starts it. You follow it live here.</span></p>
                     <form data-pd-auto-form autocomplete="off">
@@ -143,6 +151,7 @@
                                 <div class="pd-wg-cmd" style="margin-bottom: 12px;"><code>{{ $pdAuthorize }}</code><button type="button" class="btn btn-xs btn-default" data-pd-copy-text="{{ $pdAuthorize }}" title="Copy"><i class="fa fa-clipboard"></i></button></div>
                             </div>
                         @endif
+                        <input type="hidden" name="panel_url" data-pd-panel-url>
                         <button type="submit" class="btn btn-success btn-block" data-pd-auto-start><i class="fa fa-download"></i> <span>Install Wings automatically</span></button>
                     </form>
 
@@ -294,6 +303,22 @@
             button.addEventListener('click', function () { copy(button.getAttribute('data-pd-copy-text'), button); });
         });
 
+        // APP_URL against the address in the bar of the browser.
+        (function () {
+            var appUrl = @json(rtrim((string) config('app.url'), '/'));
+            var real = window.location.origin;
+            document.querySelector('[data-pd-panel-url]').value = real;
+            var same = false;
+            try { same = new URL(appUrl).origin === real; } catch (e) { same = false; }
+            if (same) return;
+            var command = "cd /var/www/pterodactyl && sed -i 's#^APP_URL=.*#APP_URL=" + real + "#' .env && php artisan config:clear";
+            document.querySelector('[data-pd-appurl-now]').textContent = appUrl || '—';
+            document.querySelector('[data-pd-appurl-real]').textContent = real;
+            document.querySelector('[data-pd-appurl-cmd]').textContent = command;
+            document.querySelector('[data-pd-appurl-copy]').addEventListener('click', function () { copy(command, this); });
+            document.querySelector('[data-pd-appurl]').hidden = false;
+        })();
+
         // The automatic installation: start it, then follow its log until it is done.
         var form = document.querySelector('[data-pd-auto-form]');
         var live = document.querySelector('[data-pd-auto-live]');
@@ -371,7 +396,7 @@
                 url: @json(route('admin.nodes.view.configuration.token', $node->id)),
                 headers: { 'X-CSRF-TOKEN': @json(csrf_token()) },
             }).done(function (data) {
-                var url = @json($pdPanelUrl);
+                var url = window.location.origin;
                 show('new', @json($pdInstaller) + ' --wings --yes --panel-url=' + url + ' --wings-token=', data.token, ' --node-id=' + data.node);
                 show('existing', 'cd /etc/pterodactyl && wings configure --panel-url ' + url + ' --token ', data.token, ' --node ' + data.node + @json($pdInsecure) + ' && systemctl restart wings');
                 document.querySelector('[data-pd-wg-result]').hidden = false;

@@ -30,6 +30,7 @@ class WingsInstallController extends Controller
             'user' => ['required', 'string', 'max:32', 'regex:/^[a-z_][a-z0-9_.-]*$/'],
             'method' => ['required', 'in:password,key'],
             'password' => ['nullable', 'required_if:method,password', 'string', 'max:500'],
+            'panel_url' => ['nullable', 'string', 'max:191', 'regex:#^https?://[A-Za-z0-9.\-]+(:\d+)?$#'],
         ]);
 
         $this->installer->start(
@@ -39,6 +40,7 @@ class WingsInstallController extends Controller
             (int) $data['port'],
             $data['user'],
             $data['method'] === 'password' ? (string) $data['password'] : null,
+            $data['panel_url'] ?? null,
         );
 
         return new JsonResponse($this->installer->status($node));

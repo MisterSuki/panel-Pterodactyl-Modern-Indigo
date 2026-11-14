@@ -96,7 +96,7 @@ class WingsInstaller
      *
      * @throws DisplayException
      */
-    public function start(Node $node, User $admin, string $host, int $port, string $user, ?string $password): void
+    public function start(Node $node, User $admin, string $host, int $port, string $user, ?string $password, ?string $panelUrl = null): void
     {
         $state = $this->readState($node->id);
         if (($state['state'] ?? null) === 'running' && time() - (int) ($state['started_at'] ?? 0) < self::LIMIT) {
@@ -110,6 +110,8 @@ class WingsInstaller
             'user' => $user,
             'password' => $password,
             'token' => $this->deployToken($admin),
+            // The address the admin opened the panel with (APP_URL can be wrong); Wings uses it to reach the panel.
+            'panel_url' => rtrim($panelUrl ?: (string) config('app.url'), '/'),
         ])));
         @chmod($this->path($node->id, 'request'), 0600);
         $this->writeState($node->id, ['state' => 'running', 'message' => null, 'host' => $host, 'fingerprint' => null, 'started_at' => time(), 'finished_at' => null]);
@@ -168,11 +170,12 @@ class WingsInstaller
         $this->writeState($node->id, array_merge($this->readState($node->id), ['fingerprint' => $fingerprint]));
         $log('✓ Connected. Key of the machine: ' . $fingerprint . "\n\n");
 
+        $panelUrl = rtrim((string) ($request['panel_url'] ?? config('app.url')), '/');
         $installer = str_replace(' --update', '', $this->versions->updateCommand());
         $script = 'export DEBIAN_FRONTEND=noninteractive; '
             . 'command -v curl >/dev/null 2>&1 || { apt-get update -qq && apt-get install -y -qq curl; } ; '
             . $installer . ' --wings --yes'
-            . ' --panel-url=' . escapeshellarg(rtrim((string) config('app.url'), '/'))
+            . ' --panel-url=' . escapeshellarg($panelUrl)
             . ' --wings-token=' . escapeshellarg($token)
             . ' --node-id=' . (int) $node->id;
         $command = 'bash -c ' . escapeshellarg($script);
@@ -190,7 +193,7 @@ class WingsInstaller
         $ssh->disconnect();
 
         if ($status !== 0) {
-            return $fail($status === false ? 'The installation did not finish in time.' : 'The installer stopped with an error (code ' . $status . '): see the log above.');
+            return $fail($status === false ? 'The installation did not finish in time.' : $this->explain($node->id, $panelUrl, (int) $status));
         }
 
         $log("\n✓ Wings is installed and started.\n");
@@ -219,6 +222,30 @@ class WingsInstaller
         }
 
         return $key->identifier . $this->encrypter->decrypt($key->token);
+    }
+
+    /**
+     * Why the installer stopped, in words, from the usual errors at the end of its log.
+     */
+    private function explain(int $node, string $panelUrl, int $status): string
+    {
+        $end = mb_strtolower(mb_substr($this->tail($node), -4000));
+        $host = (string) (parse_url($panelUrl, PHP_URL_HOST) ?: $panelUrl);
+
+        if (str_contains($end, 'no such host') || str_contains($end, 'could not resolve host')) {
+            return 'The machine of the node cannot find the address of the panel (' . $host . '): check that this domain exists in the DNS and points to the panel, or that APP_URL in the .env of the panel is right.';
+        }
+        if (str_contains($end, 'connection refused') || str_contains($end, 'i/o timeout') || str_contains($end, 'connection timed out')) {
+            return 'The machine of the node cannot reach the panel at ' . $panelUrl . ': check the firewall and that the panel answers at this address.';
+        }
+        if (str_contains($end, 'x509') || str_contains($end, 'certificate')) {
+            return 'The certificate of the panel (' . $host . ') is not valid for the machine of the node: check the HTTPS certificate of the panel.';
+        }
+        if (str_contains($end, '401') || str_contains($end, '403') || str_contains($end, 'unauthorized')) {
+            return 'The panel refused the key of the installation: generate the command again, or remove the deployment key in Application API and try again.';
+        }
+
+        return 'The installer stopped with an error (code ' . $status . '): see the log above.';
     }
 
     private function fingerprint(string $hostKey): string

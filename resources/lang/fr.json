@@ -2607,5 +2607,8 @@
  "The machine refused the key of the panel: add it to the authorized keys of the user first.": "La machine a refusé la clé du panel : ajoutez-la d'abord aux clés autorisées de l'utilisateur.",
  "The installation did not finish in time.": "L'installation ne s'est pas terminée à temps.",
  "The installation stopped without an answer.": "L'installation s'est arrêtée sans réponse.",
- "The installation could not start on the panel (the PHP command line is missing, or exec() is disabled).": "L'installation n'a pas pu démarrer sur le panel (PHP en ligne de commande manquant, ou exec() désactivé)."
+ "The installation could not start on the panel (the PHP command line is missing, or exec() is disabled).": "L'installation n'a pas pu démarrer sur le panel (PHP en ligne de commande manquant, ou exec() désactivé).",
+ "APP_URL in the .env of the panel": "APP_URL dans le .env du panel",
+ "is not the address you use": "n'est pas l'adresse que vous utilisez",
+ "Wings, the e-mails and the links use it: fix it as root on the machine of the panel:": "Wings, les e-mails et les liens l'utilisent : corrigez-le en root sur la machine du panel :"
 }
