@@ -206,6 +206,8 @@ Route::group(['prefix' => 'databases', 'middleware' => 'admin.can:databases'], f
     Route::post('/', [Admin\DatabaseController::class, 'create']);
     Route::get('/auto', [Admin\DatabaseHostInstallController::class, 'status'])->name('admin.databases.auto');
     Route::post('/auto', [Admin\DatabaseHostInstallController::class, 'start'])->middleware('throttle:10,1,database-host-install');
+    Route::get('/phpmyadmin', [Admin\PhpMyAdminInstallController::class, 'status'])->name('admin.databases.phpmyadmin');
+    Route::post('/phpmyadmin', [Admin\PhpMyAdminInstallController::class, 'start'])->middleware('throttle:10,1,phpmyadmin-install');
     Route::patch('/view/{host:id}', [Admin\DatabaseController::class, 'update']);
     Route::delete('/view/{host:id}', [Admin\DatabaseController::class, 'delete']);
 });

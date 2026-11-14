@@ -14,6 +14,8 @@
 
 @section('content')
 @php
+    $pdPma = \Pterodactyl\Services\Databases\PhpMyAdminSignOn::enabled();
+    $pdPmaUrl = \Pterodactyl\Services\Databases\PhpMyAdminSignOn::url();
     try {
         $pdPublicKey = app(\Pterodactyl\Services\Databases\Hosts\DatabaseHostInstaller::class)->publicKey();
     } catch (\Throwable $e) {
@@ -37,7 +39,7 @@
     @keyframes pdDbPulse { 50% { opacity: .3; } }
     .pd-db-term { margin: 0; height: 260px; overflow: auto; padding: 10px 12px; border-radius: 8px; background: #050505; border: 1px solid rgba(255, 255, 255, 0.1); color: #d4d4d4; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 11.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
     .pd-db-msg { font-size: 12.5px; margin: 8px 0 0; } .pd-db-msg.failed { color: #fca5a5; } .pd-db-msg.done { color: #86efac; }
-    [data-pd-db-for][hidden], [data-pd-db-live][hidden], [data-pd-db-advanced][hidden], [data-pd-db-reload][hidden] { display: none !important; }
+    [data-pd-t-for][hidden], [data-pd-t-live][hidden], [data-pd-db-advanced][hidden], [data-pd-t-reload][hidden] { display: none !important; }
 </style>
 <div class="row">
     <div class="col-xs-12">
@@ -45,6 +47,11 @@
             <div class="box-header with-border">
                 <h3 class="box-title">Host List</h3>
                 <div class="box-tools">
+                    @if ($pdPma && $pdPmaUrl)
+                        <a class="btn btn-sm btn-default" href="{{ $pdPmaUrl }}" target="_blank" rel="noopener"><i class="fa fa-check" style="color: #3ecf8e"></i> <span>phpMyAdmin</span></a>
+                    @else
+                        <button class="btn btn-sm btn-default" data-toggle="modal" data-target="#pmaModal"><i class="fa fa-download"></i> <span>Install phpMyAdmin</span></button>
+                    @endif
                     <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#autoHostModal"><i class="fa fa-magic"></i> <span>Create automatically</span></button>
                     <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#newHostModal">Create New</button>
                 </div>
@@ -84,10 +91,65 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="pmaModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form data-pd-task="{{ route('admin.databases.phpmyadmin') }}" data-pd-done="phpMyAdmin is installed." data-pd-failed="The installation failed." autocomplete="off">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title"><i class="fa fa-download"></i> <span>Install phpMyAdmin</span></h4>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted" style="margin-top: 0;"><span>The panel connects with SSH to its own machine and installs phpMyAdmin next to it: the databases of the servers then open in it with one click, already signed in.</span></p>
+                    <div class="pd-db-grid">
+                        <div class="form-group">
+                            <label for="pdPmaHost">Address of the machine of the panel</label>
+                            <input type="text" id="pdPmaHost" name="host" class="form-control" required value="{{ parse_url((string) config('app.url'), PHP_URL_HOST) }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdPmaPort">SSH port</label>
+                            <input type="number" id="pdPmaPort" name="port" class="form-control" required min="1" max="65535" value="22">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="pdPmaUser">User</label>
+                        <input type="text" id="pdPmaUser" name="user" class="form-control" required value="root">
+                    </div>
+                    <div class="pd-db-methods" data-pd-t-methods>
+                        <label class="is-active"><input type="radio" name="method" value="password" checked> <i class="fa fa-key"></i> <span>Password</span></label>
+                        @if ($pdPublicKey)
+                            <label><input type="radio" name="method" value="key"> <i class="fa fa-lock"></i> <span>Key of the panel</span></label>
+                        @endif
+                    </div>
+                    <div data-pd-t-for="password">
+                        <input type="password" name="password" class="form-control" autocomplete="new-password" placeholder="Password of the user">
+                        <p class="pd-db-help" style="margin-bottom: 12px;"><span>Used once to connect, never saved.</span></p>
+                    </div>
+                    @if ($pdPublicKey)
+                        <div data-pd-t-for="key" hidden>
+                            <p class="pd-db-help" style="margin: 0;"><span>Run this once on the machine, as the user above, to let the panel in without password:</span></p>
+                            <div class="pd-db-cmd"><code>{{ $pdAuthorize }}</code><button type="button" class="btn btn-xs btn-default" data-pd-t-copy="{{ $pdAuthorize }}" title="Copy"><i class="fa fa-clipboard"></i></button></div>
+                        </div>
+                    @endif
+                    <div data-pd-t-live hidden>
+                        <div class="pd-db-state" data-pd-t-state><span class="dot"></span><span data-pd-t-label>Installing…</span></div>
+                        <pre class="pd-db-term" data-pd-t-term></pre>
+                        <p class="pd-db-msg" data-pd-t-msg></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-sm pull-left" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default btn-sm" data-pd-t-reload hidden><i class="fa fa-refresh"></i> <span>Reload the page</span></button>
+                    <button type="submit" class="btn btn-success btn-sm" data-pd-t-start><i class="fa fa-download"></i> <span>Install phpMyAdmin</span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="autoHostModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form data-pd-db-form autocomplete="off">
+            <form data-pd-t-form data-pd-task="{{ route('admin.databases.auto') }}" data-pd-done="The database host is ready." data-pd-failed="The creation failed." autocomplete="off">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     <h4 class="modal-title"><i class="fa fa-magic"></i> <span>Create a database host automatically</span></h4>
@@ -127,20 +189,20 @@
                         <label for="pdDbUser">User</label>
                         <input type="text" id="pdDbUser" name="user" class="form-control" required value="root">
                     </div>
-                    <div class="pd-db-methods" data-pd-db-methods>
+                    <div class="pd-db-methods" data-pd-t-methods>
                         <label class="is-active"><input type="radio" name="method" value="password" checked> <i class="fa fa-key"></i> <span>Password</span></label>
                         @if ($pdPublicKey)
                             <label><input type="radio" name="method" value="key"> <i class="fa fa-lock"></i> <span>Key of the panel</span></label>
                         @endif
                     </div>
-                    <div data-pd-db-for="password">
+                    <div data-pd-t-for="password">
                         <input type="password" name="password" class="form-control" autocomplete="new-password" placeholder="Password of the user">
                         <p class="pd-db-help" style="margin-bottom: 12px;"><span>Used once to connect, never saved.</span></p>
                     </div>
                     @if ($pdPublicKey)
-                        <div data-pd-db-for="key" hidden>
+                        <div data-pd-t-for="key" hidden>
                             <p class="pd-db-help" style="margin: 0;"><span>Run this once on the machine, as the user above, to let the panel in without password:</span></p>
-                            <div class="pd-db-cmd"><code>{{ $pdAuthorize }}</code><button type="button" class="btn btn-xs btn-default" data-pd-db-copy="{{ $pdAuthorize }}" title="Copy"><i class="fa fa-clipboard"></i></button></div>
+                            <div class="pd-db-cmd"><code>{{ $pdAuthorize }}</code><button type="button" class="btn btn-xs btn-default" data-pd-t-copy="{{ $pdAuthorize }}" title="Copy"><i class="fa fa-clipboard"></i></button></div>
                         </div>
                     @endif
                     <p style="margin: 0 0 10px;"><a href="#" data-pd-db-toggle-advanced><i class="fa fa-sliders"></i> <span>More options</span></a></p>
@@ -157,17 +219,17 @@
                         </div>
                     </div>
 
-                    <div data-pd-db-live hidden>
-                        <div class="pd-db-state" data-pd-db-state><span class="dot"></span><span data-pd-db-label>Installing…</span></div>
-                        <pre class="pd-db-term" data-pd-db-term></pre>
-                        <p class="pd-db-msg" data-pd-db-msg></p>
+                    <div data-pd-t-live hidden>
+                        <div class="pd-db-state" data-pd-t-state><span class="dot"></span><span data-pd-t-label>Installing…</span></div>
+                        <pre class="pd-db-term" data-pd-t-term></pre>
+                        <p class="pd-db-msg" data-pd-t-msg></p>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <p class="text-muted small text-left"><span>Port 3306 must be open on the firewall of the host so the panel and the game servers can reach MariaDB.</span></p>
                     <button type="button" class="btn btn-default btn-sm pull-left" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-default btn-sm" data-pd-db-reload hidden><i class="fa fa-refresh"></i> <span>See the host</span></button>
-                    <button type="submit" class="btn btn-success btn-sm" data-pd-db-start><i class="fa fa-magic"></i> <span>Create automatically</span></button>
+                    <button type="button" class="btn btn-default btn-sm" data-pd-t-reload hidden><i class="fa fa-refresh"></i> <span>See the host</span></button>
+                    <button type="submit" class="btn btn-success btn-sm" data-pd-t-start><i class="fa fa-magic"></i> <span>Create automatically</span></button>
                 </div>
             </form>
         </div>
@@ -243,47 +305,33 @@
     <script>
         $('#pNodeId').select2();
 
-        (function () {
-            var form = document.querySelector('[data-pd-db-form]');
-            if (!form) return;
-            var url = @json(route('admin.databases.auto'));
-            var live = form.querySelector('[data-pd-db-live]');
-            var term = form.querySelector('[data-pd-db-term]');
-            var stateBox = form.querySelector('[data-pd-db-state]');
-            var label = form.querySelector('[data-pd-db-label]');
-            var msg = form.querySelector('[data-pd-db-msg]');
-            var start = form.querySelector('[data-pd-db-start]');
-            var reload = form.querySelector('[data-pd-db-reload]');
+        // Every form that runs a task over SSH (database host, phpMyAdmin): start it, follow its log.
+        document.querySelectorAll('[data-pd-task]').forEach(function (form) {
+            var url = form.getAttribute('data-pd-task');
+            var live = form.querySelector('[data-pd-t-live]');
+            var term = form.querySelector('[data-pd-t-term]');
+            var stateBox = form.querySelector('[data-pd-t-state]');
+            var label = form.querySelector('[data-pd-t-label]');
+            var msg = form.querySelector('[data-pd-t-msg]');
+            var start = form.querySelector('[data-pd-t-start]');
+            var reload = form.querySelector('[data-pd-t-reload]');
+            var modal = $(form).closest('.modal');
             var timer = null;
             var texts = {
                 running: @json('Installing…'),
-                done: @json('The database host is ready.'),
-                failed: @json('The creation failed.'),
+                done: form.getAttribute('data-pd-done'),
+                failed: form.getAttribute('data-pd-failed'),
             };
 
-            // Picking a node fills the address of the machine with the one of the node.
-            form.querySelector('[data-pd-db-node]').addEventListener('change', function () {
-                var option = this.options[this.selectedIndex];
-                var fqdn = option ? option.getAttribute('data-fqdn') : '';
-                if (fqdn) form.querySelector('[name="host"]').value = fqdn;
-                if (option && option.value && form.querySelector('[name="name"]').value === 'MariaDB') {
-                    form.querySelector('[name="name"]').value = 'MariaDB ' + option.textContent.trim();
-                }
-            });
-            form.querySelectorAll('[data-pd-db-methods] input').forEach(function (input) {
+            form.querySelectorAll('[data-pd-t-methods] input').forEach(function (input) {
                 input.addEventListener('change', function () {
-                    form.querySelectorAll('[data-pd-db-methods] label').forEach(function (l) { l.classList.toggle('is-active', l.querySelector('input').checked); });
-                    form.querySelectorAll('[data-pd-db-for]').forEach(function (b) { b.hidden = b.getAttribute('data-pd-db-for') !== input.value; });
+                    form.querySelectorAll('[data-pd-t-methods] label').forEach(function (l) { l.classList.toggle('is-active', l.querySelector('input').checked); });
+                    form.querySelectorAll('[data-pd-t-for]').forEach(function (b) { b.hidden = b.getAttribute('data-pd-t-for') !== input.value; });
                 });
             });
-            form.querySelector('[data-pd-db-toggle-advanced]').addEventListener('click', function (event) {
-                event.preventDefault();
-                var box = form.querySelector('[data-pd-db-advanced]');
-                box.hidden = !box.hidden;
-            });
-            form.querySelectorAll('[data-pd-db-copy]').forEach(function (button) {
+            form.querySelectorAll('[data-pd-t-copy]').forEach(function (button) {
                 button.addEventListener('click', function () {
-                    var text = button.getAttribute('data-pd-db-copy');
+                    var text = button.getAttribute('data-pd-t-copy');
                     if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text); }
                     button.querySelector('i').className = 'fa fa-check';
                     setTimeout(function () { button.querySelector('i').className = 'fa fa-clipboard'; }, 1500);
@@ -317,14 +365,15 @@
                 start.disabled = true;
                 $.ajax({ method: 'POST', url: url, data: $(form).serialize(), headers: { 'X-CSRF-TOKEN': @json(csrf_token()) } })
                     .done(function (status) {
-                        form.querySelector('[name="password"]').value = '';
+                        var password = form.querySelector('[name="password"]');
+                        if (password) password.value = '';
                         term.textContent = '';
                         render(status);
                     })
                     .fail(function (xhr) {
                         start.disabled = false;
                         var body = xhr.responseJSON || {};
-                        var text = body.errors && body.errors[0] && body.errors[0].detail ? body.errors[0].detail : (body.message || @json('The creation could not be started.'));
+                        var text = body.errors && body.errors[0] && body.errors[0].detail ? body.errors[0].detail : (body.message || @json('The installation could not be started.'));
                         live.hidden = false;
                         stateBox.className = 'pd-db-state failed';
                         label.textContent = texts.failed;
@@ -333,12 +382,31 @@
                     });
             });
 
-            // A creation already running (the page was reloaded): show it.
+            // One already running (the page was reloaded): show it.
             $.getJSON(url).done(function (status) {
                 if (status && status.state === 'running') {
-                    $('#autoHostModal').modal('show');
+                    modal.modal('show');
                     render(status);
                 }
+            });
+        });
+
+        // The database form: picking a node fills the address, "More options".
+        (function () {
+            var form = document.querySelector('[data-pd-db-form]');
+            if (!form) return;
+            form.querySelector('[data-pd-db-node]').addEventListener('change', function () {
+                var option = this.options[this.selectedIndex];
+                var fqdn = option ? option.getAttribute('data-fqdn') : '';
+                if (fqdn) form.querySelector('[name="host"]').value = fqdn;
+                if (option && option.value && form.querySelector('[name="name"]').value === 'MariaDB') {
+                    form.querySelector('[name="name"]').value = 'MariaDB ' + option.textContent.trim();
+                }
+            });
+            form.querySelector('[data-pd-db-toggle-advanced]').addEventListener('click', function (event) {
+                event.preventDefault();
+                var box = form.querySelector('[data-pd-db-advanced]');
+                box.hidden = !box.hidden;
             });
         })();
     </script>

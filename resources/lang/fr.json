@@ -2685,5 +2685,12 @@
  "Remove this file?": "Supprimer ce fichier ?",
  "The file hosting was saved.": "L'hébergement de fichiers est enregistré.",
  "The space of the user was saved.": "L'espace de l'utilisateur est enregistré.",
- "The file was removed.": "Le fichier a été supprimé."
+ "The file was removed.": "Le fichier a été supprimé.",
+ "Install phpMyAdmin": "Installer phpMyAdmin",
+ "The panel connects with SSH to its own machine and installs phpMyAdmin next to it: the databases of the servers then open in it with one click, already signed in.": "Le panel se connecte en SSH à sa propre machine et installe phpMyAdmin à côté : les bases des serveurs s'y ouvrent ensuite en un clic, déjà connectées.",
+ "Address of the machine of the panel": "Adresse de la machine du panel",
+ "phpMyAdmin is installed.": "phpMyAdmin est installé.",
+ "An installation is already running.": "Une installation est déjà en cours.",
+ "This machine is not the one of the panel: phpMyAdmin is installed next to the panel. Use the address of the machine of the panel.": "Cette machine n'est pas celle du panel : phpMyAdmin s'installe à côté du panel. Utilisez l'adresse de la machine du panel.",
+ "phpMyAdmin is only set up with nginx, which was not found on this machine.": "phpMyAdmin ne s'installe qu'avec nginx, introuvable sur cette machine."
 }

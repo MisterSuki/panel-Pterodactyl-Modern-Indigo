@@ -66,6 +66,10 @@ app/Http/Controllers/Api/Client/FileHostingController.php
 app/Http/Controllers/Base/UserFileController.php
 app/Http/Controllers/Admin/FileHostingController.php
 resources/views/admin/files/index.blade.php
+app/Services/Remote/SshTask.php
+app/Services/Databases/PhpMyAdminInstaller.php
+app/Console/Commands/Maintenance/InstallPhpMyAdminCommand.php
+app/Http/Controllers/Admin/PhpMyAdminInstallController.php
 app/Services/Databases/PhpMyAdminSignOn.php
 app/Http/Controllers/Api/PhpMyAdminRedeemController.php
 app/Http/Controllers/Api/Client/Servers/DatabasePhpMyAdminController.php
