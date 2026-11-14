@@ -194,7 +194,7 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 - une page **Mes fichiers** pour garder **images, vidéos, sons ou n'importe quel fichier**, avec un **lien à partager** (Discord…)
 - envoi par glisser-déposer, **dossiers entiers sans les zipper**, gros fichiers envoyés par morceaux (au-delà de la limite de nginx)
 - **dossiers**, cases à cocher sur les fichiers **et les dossiers**, puis public / privé / déplacer / supprimer, aperçus et lecteur vidéo
-- fermé par défaut : l'admin l'ouvre et fixe l'**espace** et la **taille max**, pour tous ou **par utilisateur**
+- fermé par défaut : l'admin l'ouvre et fixe l'**espace** (en Mo ou Go), pour tous ou **par utilisateur**
 
 ### 🔑 Sans mot de passe
 
@@ -840,9 +840,10 @@ bash <(curl -s https://raw.githubusercontent.com/MisterSuki/panel-Pterodactyl-Mo
 Fermé par défaut. *Administration → Hébergement de fichiers* (droit de gérer les réglages) :
 
 - **l'ouvrir** : chaque utilisateur a alors une page **Mes fichiers** dans la barre du haut ;
-- l'**espace** de chaque utilisateur et le **fichier le plus gros** (par défaut 1 Go et 500 Mo) ;
+- l'**espace** de chaque utilisateur, en Mo ou en Go (1 Go par défaut). Pas de limite par fichier : un fichier peut
+  être aussi gros que l'espace qui reste ;
 - le tableau **Limites de chaque utilisateur** : tous les comptes (recherche, les plus gros d'abord) avec l'espace qu'ils
-  utilisent, et pour chacun son propre espace et son propre fichier le plus gros (vide = valeur par défaut) ;
+  utilisent, et pour chacun son propre espace en Mo ou Go (vide = valeur par défaut) ;
 - **n'importe quel fichier**, ou seulement **images, vidéos et sons** (vérifiés par leur vrai contenu, pas par leur nom) ;
 - autoriser ou non les **liens publics** ;
 - les chiffres (fichiers, espace utilisé, place libre sur le disque), qui utilise le plus, et la liste des fichiers avec
@@ -1314,12 +1315,12 @@ du panel n'existe pas dans le DNS.
 </details>
 
 <details>
-<summary><b>Un fichier est refusé dans Mes fichiers (« trop gros »)</b></summary>
+<summary><b>Un fichier est refusé dans Mes fichiers (« pas assez d'espace »)</b></summary>
 
 <br>
 
-Il dépasse le *Fichier le plus gros* fixé dans *Administration → Hébergement de fichiers* (500 Mo par défaut). Monte la
-valeur pour tout le monde, ou seulement pour cet utilisateur dans le tableau *Limites de chaque utilisateur*.
+Il ne reste pas assez de place dans l'espace de l'utilisateur. Augmente l'*Espace de chaque utilisateur* dans
+*Administration → Hébergement de fichiers*, ou seulement le sien dans le tableau *Limites de chaque utilisateur*.
 
 </details>
 

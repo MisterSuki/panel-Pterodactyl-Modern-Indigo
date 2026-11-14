@@ -51,11 +51,16 @@ class FileHostingController extends Controller
     public function save(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'quota_mb' => ['required', 'integer', 'min:1', 'max:1048576'],
-            'max_mb' => ['required', 'integer', 'min:1', 'max:1048576'],
+            'quota' => ['required', 'numeric', 'min:0.001', 'max:1048576'],
+            'unit' => ['required', 'in:MB,GB'],
             'types' => ['required', 'in:all,media'],
         ]);
-        $this->hosting->save(array_merge($data, ['enabled' => $request->boolean('enabled'), 'public' => $request->boolean('public')]));
+        $this->hosting->save([
+            'enabled' => $request->boolean('enabled'),
+            'public' => $request->boolean('public'),
+            'types' => $data['types'],
+            'quota_mb' => max(1, (int) round((float) $data['quota'] * ($data['unit'] === 'GB' ? 1024 : 1))),
+        ]);
         $this->alert->success('The file hosting was saved.')->flash();
 
         return redirect()->route('admin.files');
@@ -67,15 +72,13 @@ class FileHostingController extends Controller
     public function limits(Request $request, User $user): RedirectResponse
     {
         $data = $request->validate([
-            'quota_mb' => ['nullable', 'integer', 'min:0', 'max:1048576'],
-            'max_mb' => ['nullable', 'integer', 'min:1', 'max:1048576'],
+            'quota' => ['nullable', 'numeric', 'min:0', 'max:1048576'],
+            'unit' => ['required', 'in:MB,GB'],
         ]);
-        // Only these columns: the rest of the user is not touched (nor validated again).
-        User::query()->whereKey($user->id)->update([
-            'file_quota' => blank($data['quota_mb'] ?? null) ? null : (int) $data['quota_mb'] * 1024 * 1024,
-            'file_max' => blank($data['max_mb'] ?? null) ? null : (int) $data['max_mb'] * 1024 * 1024,
-        ]);
-        $this->alert->success('The limits of ' . $user->username . ' were saved.')->flash();
+        // Only this column: the rest of the user is not touched (nor validated again).
+        $bytes = blank($data['quota'] ?? null) ? null : (int) round((float) $data['quota'] * ($data['unit'] === 'GB' ? 1073741824 : 1048576));
+        User::query()->whereKey($user->id)->update(['file_quota' => $bytes, 'file_max' => null]);
+        $this->alert->success('The space of ' . $user->username . ' was saved.')->flash();
 
         return redirect()->back();
     }
@@ -96,28 +99,6 @@ class FileHostingController extends Controller
             ->paginate(15, ['*'], 'users_page')->withQueryString();
     }
 
-    public function quota(Request $request): RedirectResponse
-    {
-        $data = $request->validate([
-            'user' => ['required', 'string', 'max:191'],
-            'quota_mb' => ['nullable', 'integer', 'min:0', 'max:1048576'],
-            'max_mb' => ['nullable', 'integer', 'min:1', 'max:1048576'],
-        ]);
-        $user = User::query()->where('email', $data['user'])->orWhere('username', $data['user'])->first();
-        if (!$user) {
-            $this->alert->danger('No user has this email or username.')->flash();
-
-            return redirect()->route('admin.files');
-        }
-        // Only this column: the rest of the user is not touched (nor validated again).
-        User::query()->whereKey($user->id)->update([
-            'file_quota' => blank($data['quota_mb'] ?? null) ? null : (int) $data['quota_mb'] * 1024 * 1024,
-            'file_max' => blank($data['max_mb'] ?? null) ? null : (int) $data['max_mb'] * 1024 * 1024,
-        ]);
-        $this->alert->success('The space of the user was saved.')->flash();
-
-        return redirect()->route('admin.files');
-    }
 
     public function delete(UserFile $file): RedirectResponse
     {

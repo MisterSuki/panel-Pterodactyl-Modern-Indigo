@@ -2725,5 +2725,12 @@
  "of space": "d'espace",
  "for the biggest file": "pour le plus gros fichier",
  "A user with their own value has it shown in the field.": "Un utilisateur avec sa propre valeur l'a affichée dans le champ.",
- "Used": "Utilisé"
+ "Used": "Utilisé",
+ "Space of each user": "Espace de chaque utilisateur",
+ "There is no limit for one file: a user may send a file as big as their space.": "Pas de limite par fichier : un utilisateur peut envoyer un fichier aussi gros que son espace.",
+ "Leave the space empty for the default value": "Laissez l'espace vide pour la valeur par défaut",
+ "A user with their own space has it shown in the field.": "Un utilisateur avec son propre espace l'a affiché dans le champ.",
+ "Free:": "Libre :",
+ "GB": "Go",
+ "MB": "Mo"
 }

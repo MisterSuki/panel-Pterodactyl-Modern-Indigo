@@ -77,7 +77,6 @@ Route::group(['prefix' => 'subdomains', 'middleware' => 'admin.can:settings,mana
 Route::group(['prefix' => 'file-hosting', 'middleware' => 'admin.can:settings'], function () {
     Route::get('/', [Admin\FileHostingController::class, 'index'])->name('admin.files');
     Route::post('/', [Admin\FileHostingController::class, 'save'])->middleware('admin.can:settings,manage');
-    Route::post('/quota', [Admin\FileHostingController::class, 'quota'])->name('admin.files.quota')->middleware('admin.can:settings,manage');
     Route::post('/limits/{user:id}', [Admin\FileHostingController::class, 'limits'])->name('admin.files.limits')->middleware('admin.can:settings,manage');
     Route::post('/{file:id}/delete', [Admin\FileHostingController::class, 'delete'])->name('admin.files.delete')->middleware('admin.can:settings,manage');
 });

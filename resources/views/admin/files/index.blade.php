@@ -14,6 +14,13 @@
 
 @section('content')
 @php
+    // A space in MB as a number and its unit: in GB when it is a whole number of GB.
+    $pdAmount = function ($mb) {
+        $mb = (float) $mb;
+
+        return $mb >= 1024 && fmod($mb, 1024) === 0.0 ? [(int) ($mb / 1024), 'GB'] : [rtrim(rtrim(number_format($mb, 2, '.', ''), '0'), '.'), 'MB'];
+    };
+    $pdDefault = $pdAmount($config['quota_mb']);
     $pdSize = function ($bytes) {
         $bytes = (float) $bytes;
         foreach (['B', 'KB', 'MB', 'GB', 'TB'] as $unit) {
@@ -52,15 +59,16 @@
                 <div class="box-body">
                     <label class="pd-switch"><input type="checkbox" name="enabled" value="1" @checked($config['enabled'])><i class="pd-switch-track"></i><span>Open the file hosting</span></label>
                     <p class="pd-fh-help"><span>Every user gets a "My files" page in the top bar. Off: the page and the links of the files stop working (the files are kept).</span></p>
-                    <div class="row" style="margin-top: 14px;">
-                        <div class="col-sm-6 form-group">
-                            <label for="pdFhQuota">Space of each user (MB)</label>
-                            <input type="number" id="pdFhQuota" name="quota_mb" class="form-control" min="1" required value="{{ $config['quota_mb'] }}">
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="pdFhQuota">Space of each user</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" id="pdFhQuota" name="quota" class="form-control" min="0.001" step="any" required value="{{ $pdDefault[0] }}">
+                            <select name="unit" class="form-control" style="width: 90px;">
+                                <option value="GB" @selected($pdDefault[1] === 'GB')>GB</option>
+                                <option value="MB" @selected($pdDefault[1] === 'MB')>MB</option>
+                            </select>
                         </div>
-                        <div class="col-sm-6 form-group">
-                            <label for="pdFhMax">Biggest file (MB)</label>
-                            <input type="number" id="pdFhMax" name="max_mb" class="form-control" min="1" required value="{{ $config['max_mb'] }}">
-                        </div>
+                        <p class="pd-fh-help"><span>There is no limit for one file: a user may send a file as big as their space.</span></p>
                     </div>
                     <div class="form-group">
                         <label for="pdFhTypes">What can be sent</label>
@@ -133,11 +141,11 @@
         </div>
     </div>
     <div class="box-body" style="padding-bottom: 0;">
-        <p class="pd-fh-help" style="margin: 0 0 10px;"><span>Leave a field empty for the default value</span> ({{ $config['quota_mb'] }} MB <span>of space</span>, {{ $config['max_mb'] }} MB <span>for the biggest file</span>). <span>A user with their own value has it shown in the field.</span></p>
+        <p class="pd-fh-help" style="margin: 0 0 10px;"><span>Leave the space empty for the default value</span> ({{ $pdDefault[0] }} {{ $pdDefault[1] }}). <span>A user with their own space has it shown in the field.</span></p>
     </div>
     <div class="box-body table-responsive no-padding">
         <table class="table table-hover" style="margin: 0;">
-            <tr><th>User</th><th class="text-right">Used</th><th style="width: 170px;">Space (MB)</th><th style="width: 170px;">Biggest file (MB)</th><th style="width: 110px;"></th></tr>
+            <tr><th>User</th><th class="text-right">Used</th><th style="width: 260px;">Space</th><th style="width: 110px;"></th></tr>
             @foreach ($people as $person)
                 <tr>
                     <td>
@@ -149,10 +157,16 @@
                         <small class="text-muted">{{ $person->files }} <span>files</span></small>
                     </td>
                     <td style="vertical-align: middle;">
-                        <input form="pdFhLimits{{ $person->id }}" type="number" name="quota_mb" class="form-control input-sm" min="0" placeholder="{{ $config['quota_mb'] }}" value="{{ $person->file_quota !== null ? intdiv((int) $person->file_quota, 1048576) : '' }}">
-                    </td>
-                    <td style="vertical-align: middle;">
-                        <input form="pdFhLimits{{ $person->id }}" type="number" name="max_mb" class="form-control input-sm" min="1" placeholder="{{ $config['max_mb'] }}" value="{{ $person->file_max !== null ? intdiv((int) $person->file_max, 1048576) : '' }}">
+                        @php
+                            $pdOwn = $person->file_quota !== null ? $pdAmount((int) $person->file_quota / 1048576) : null;
+                        @endphp
+                        <div style="display: flex; gap: 6px;">
+                            <input form="pdFhLimits{{ $person->id }}" type="number" name="quota" class="form-control input-sm" min="0" step="any" placeholder="{{ $pdDefault[0] }}" value="{{ $pdOwn ? $pdOwn[0] : '' }}">
+                            <select form="pdFhLimits{{ $person->id }}" name="unit" class="form-control input-sm" style="width: 72px;">
+                                <option value="GB" @selected(($pdOwn ? $pdOwn[1] : $pdDefault[1]) === 'GB')>GB</option>
+                                <option value="MB" @selected(($pdOwn ? $pdOwn[1] : $pdDefault[1]) === 'MB')>MB</option>
+                            </select>
+                        </div>
                     </td>
                     <td class="text-right" style="vertical-align: middle;">
                         <form id="pdFhLimits{{ $person->id }}" action="{{ route('admin.files.limits', $person->id) }}" method="POST">

@@ -42,14 +42,13 @@ class FileHosting
     }
 
     /**
-     * @return array{enabled: bool, quota_mb: int, max_mb: int, types: string, public: bool}
+     * @return array{enabled: bool, quota_mb: int, types: string, public: bool}
      */
     public function config(): array
     {
         return [
             'enabled' => $this->enabled(),
             'quota_mb' => max(1, (int) $this->settings->get('files:quota_mb', '1024')),
-            'max_mb' => max(1, (int) $this->settings->get('files:max_mb', '500')),
             'types' => $this->settings->get('files:types', 'all') === 'media' ? 'media' : 'all',
             'public' => $this->settings->get('files:public', '1') === '1',
         ];
@@ -59,7 +58,6 @@ class FileHosting
     {
         $this->settings->set('files:enabled', !empty($values['enabled']) ? '1' : '0');
         $this->settings->set('files:quota_mb', (string) max(1, min(1048576, (int) $values['quota_mb'])));
-        $this->settings->set('files:max_mb', (string) max(1, min(1048576, (int) $values['max_mb'])));
         $this->settings->set('files:types', ($values['types'] ?? 'all') === 'media' ? 'media' : 'all');
         $this->settings->set('files:public', !empty($values['public']) ? '1' : '0');
     }
@@ -81,7 +79,8 @@ class FileHosting
     {
         $own = $user->getAttribute('file_max');
 
-        return $own !== null ? (int) $own : $this->config()['max_mb'] * self::MB;
+        // No limit for one file: only the space of the user counts (a big file that fills it is their choice).
+        return $this->quota($user);
     }
 
     /**
@@ -130,9 +129,6 @@ class FileHosting
         $name = $this->cleanName($name);
         if ($size <= 0) {
             throw new DisplayException('This file is empty.');
-        }
-        if ($size > $this->maxFile($user)) {
-            throw new DisplayException('This file is bigger than the biggest file you may send.');
         }
         if ($config['types'] === 'media' && !in_array(strtolower(pathinfo($name, PATHINFO_EXTENSION)), self::MEDIA_EXTENSIONS, true)) {
             throw new DisplayException('Only pictures, videos and sounds can be sent here.');

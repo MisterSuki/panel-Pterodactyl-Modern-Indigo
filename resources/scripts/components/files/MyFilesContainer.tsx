@@ -339,12 +339,7 @@ export default () => {
             size: file.size,
             sent: 0,
             started: false,
-            error:
-                meta && file.size > meta.maxFile
-                    ? 'This file is bigger than the biggest file you may send.'
-                    : file.size === 0
-                    ? 'This file is empty.'
-                    : null,
+            error: file.size === 0 ? 'This file is empty.' : null,
             signal: { cancelled: false },
             file,
         }));
@@ -572,7 +567,7 @@ export default () => {
                                 <span>used of</span> <span css={tw`font-mono`}>{bytesToString(meta.quota)}</span>
                             </span>
                             <span css={tw`text-xs text-neutral-500`}>
-                                <span>Biggest file:</span> {bytesToString(meta.maxFile)}
+                                <span>Free:</span> {bytesToString(Math.max(0, meta.quota - meta.used))}
                                 {meta.mediaOnly && (
                                     <>
                                         {' · '}
