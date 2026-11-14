@@ -6,6 +6,7 @@ import { faExpand, faExternalLinkAlt, faKeyboard, faPlug, faPowerOff, faRedo } f
 import { Button } from '@/components/elements/button/index';
 import { httpErrorToHuman } from '@/api/http';
 import { openVpsConsole } from '@/api/vps';
+import { defaultLayout, Layout, LAYOUTS, saveLayout, strokeFor } from '@/components/vps/keyboardLayouts';
 
 // noVNC, the VNC client of Proxmox itself, loaded from its published files when the console opens (only then).
 const NOVNC = 'https://cdn.jsdelivr.net/npm/@novnc/novnc@1.4.0/core/rfb.js';
@@ -82,6 +83,8 @@ export default ({ uuid, active, height, embedded }: Props) => {
     const [message, setMessage] = useState<string | null>(null);
     const [attempt, setAttempt] = useState(0);
     const [typing, setTyping] = useState(false);
+    // The keyboard layout of the machine, to press the right keys for each character of a text.
+    const [layout, setLayout] = useState<Layout>(defaultLayout);
     const [text, setText] = useState('');
     const [zoom, setZoom] = useState<Zoom>(savedZoom);
     const zoomRef = useRef<Zoom>(zoom);
@@ -211,7 +214,26 @@ export default ({ uuid, active, height, embedded }: Props) => {
         const client = rfb.current;
         if (!client || !text) return;
         for (const char of Array.from(text)) {
-            client.sendKey(keysym(char));
+            if (char === '\n') {
+                client.sendKey(0xff0d, 'Enter');
+                continue;
+            }
+            if (char === '\t') {
+                client.sendKey(0xff09, 'Tab');
+                continue;
+            }
+            const stroke = strokeFor(char, layout);
+            if (!stroke) {
+                // No key for it on this layout: sent as a character, the machine may or may not understand it.
+                client.sendKey(keysym(char));
+                continue;
+            }
+            if (stroke.altgr) client.sendKey(0xfe03, 'AltRight', true);
+            if (stroke.shift) client.sendKey(0xffe1, 'ShiftLeft', true);
+            client.sendKey(stroke.keysym, stroke.code, true);
+            client.sendKey(stroke.keysym, stroke.code, false);
+            if (stroke.shift) client.sendKey(0xffe1, 'ShiftLeft', false);
+            if (stroke.altgr) client.sendKey(0xfe03, 'AltRight', false);
         }
         setText('');
         setTyping(false);
@@ -325,6 +347,23 @@ export default ({ uuid, active, height, embedded }: Props) => {
                         placeholder={'The text is typed into the machine, key by key'}
                         css={tw`flex-1 min-w-0 h-8 rounded-md border border-neutral-600 bg-neutral-900 px-3 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:border-neutral-500`}
                     />
+                    <select
+                        value={layout}
+                        onChange={(e) => {
+                            const value = e.target.value as Layout;
+                            setLayout(value);
+                            saveLayout(value);
+                        }}
+                        title={'Keyboard of the machine'}
+                        aria-label={'Keyboard of the machine'}
+                        css={tw`h-8 rounded-md border border-neutral-600 bg-neutral-900 pl-2 pr-6 text-xs text-neutral-200 outline-none cursor-pointer hover:border-neutral-500`}
+                    >
+                        {LAYOUTS.map((item) => (
+                            <option key={item.value} value={item.value}>
+                                {item.label}
+                            </option>
+                        ))}
+                    </select>
                     <Button size={Button.Sizes.Small} onClick={typeText} disabled={!text}>
                         <span>Type</span>
                     </Button>
