@@ -871,7 +871,7 @@ le télécharge. Fermer l'hébergement coupe la page et les liens, sans effacer 
 
 Un site se crée **en quelques champs**, sans choisir d'egg : *Admin → Web Hosting → Créer un site* (nom, propriétaire,
 mémoire et disque en Go ou Mo, CPU ; le node et le port sont trouvés tout seuls), ou par une offre de la boutique. Le client
-y trouve un onglet **Site web**, où il choisit lui-même le **type de son site** : **PHP / HTML**, **Node.js** ou **Python**,
+y trouve un onglet **Site web**, où il choisit lui-même le **type de son site** : **PHP / HTML**, **Node.js**, **Python** ou **Emby** (serveur multimédia : films, séries, musique),
 avec sa version (PHP 8.4, Node.js 24…). Il peut en changer quand il veut : ses fichiers sont gardés, et les fichiers
 d'exemple du nouveau type ne sont ajoutés que là où il n'y a rien.
 
@@ -902,6 +902,8 @@ s'installent en un clic, base de données comprise, et se **désinstallent** de 
 
 **Node.js et Python.** L'application doit écouter sur la variable `PORT`. Sa commande est dans l'onglet *Démarrage*.
 Les CMS en un clic sont pour les sites PHP.
+
+**Emby.** La carte *Emby* de la liste des CMS (ou le type *Emby*) prépare le site pour Emby : la dernière version est téléchargée depuis GitHub, elle écoute sur le port du site et le domaine du site y mène en HTTPS. Les films et séries vont dans le dossier `media` ; les réglages et la bibliothèque dans `data`, gardés quand on réinstalle (ce qui met Emby à jour). Prévois au moins 2 Go de mémoire.
 
 **E-mails.** Les sites peuvent avoir des boîtes mail sur leur domaine : voir [E-mails](#-e-mails-boîtes-mail-des-sites).
 

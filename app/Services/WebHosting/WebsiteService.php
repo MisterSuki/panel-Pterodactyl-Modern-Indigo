@@ -40,7 +40,7 @@ class WebsiteService
     {
         return Egg::query()->with('variables')->whereHas('nest', fn ($q) => $q->where('name', WebHostingSetup::NEST))->get()
             ->filter(fn (Egg $egg) => in_array(WebHostingService::FEATURE, (array) $egg->inherit_features, true))
-            ->sortBy(fn (Egg $egg) => str_contains(strtolower($egg->name), 'php') ? 0 : (str_contains(strtolower($egg->name), 'node') ? 1 : 2))
+            ->sortBy(fn (Egg $egg) => ['php' => 0, 'nodejs' => 1, 'python' => 2, 'emby' => 3][$this->key($egg)] ?? 4)
             ->values();
     }
 
@@ -179,6 +179,12 @@ class WebsiteService
     {
         $name = strtolower($egg->name);
 
-        return str_contains($name, 'node') ? 'nodejs' : (str_contains($name, 'python') ? 'python' : (str_contains($name, 'php') ? 'php' : 'other'));
+        return match (true) {
+            str_contains($name, 'emby') => 'emby',
+            str_contains($name, 'node') => 'nodejs',
+            str_contains($name, 'python') => 'python',
+            str_contains($name, 'php') => 'php',
+            default => 'other',
+        };
     }
 }

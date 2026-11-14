@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import tw from 'twin.macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faCode, faCube, faFileCode } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faCode, faCube, faFileCode, faFilm } from '@fortawesome/free-solid-svg-icons';
 import http from '@/api/http';
 import { Button } from '@/components/elements/button/index';
 import { Dialog } from '@/components/elements/dialog';
@@ -11,7 +11,7 @@ import { useFlashKey } from '@/plugins/useFlash';
 interface Kind {
     id: number;
     name: string;
-    key: 'php' | 'nodejs' | 'python' | 'other';
+    key: 'php' | 'nodejs' | 'python' | 'emby' | 'other';
     versions: { label: string; image: string }[];
 }
 
@@ -21,12 +21,13 @@ interface KindPage {
     kinds: Kind[];
 }
 
-const ICONS = { php: faFileCode, nodejs: faCube, python: faCode, other: faCode };
+const ICONS = { php: faFileCode, nodejs: faCube, python: faCode, emby: faFilm, other: faCode };
 
 const DESCRIPTIONS: Record<string, string> = {
     php: 'Pages in HTML or PHP, WordPress and the other CMS.',
     nodejs: 'An application in JavaScript (Express, Next.js...).',
     python: 'An application in Python (Flask, Django, FastAPI...).',
+    emby: 'Your films, series and music, watched in the browser or the Emby apps.',
     other: '',
 };
 
@@ -70,7 +71,7 @@ export default () => {
                     Choose what your site runs. You can change it later: your files are kept.
                 </p>
             </div>
-            <div css={tw`grid grid-cols-1 md:grid-cols-3 gap-3 p-4`}>
+            <div css={tw`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 p-4`}>
                 {page.kinds.map((kind) => {
                     const active = kind.id === page.current;
                     const version = active ? page.image : kind.versions[0]?.image || '';

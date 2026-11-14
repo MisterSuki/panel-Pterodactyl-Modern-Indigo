@@ -23,6 +23,7 @@ import Can from '@/components/elements/Can';
 import { ServerContext } from '@/state/server';
 import { useFlashKey } from '@/plugins/useFlash';
 import SiteKind from '@/components/server/web/SiteKind';
+import EmbyCard, { EmbyHelp, useKinds } from '@/components/server/web/EmbyCard';
 import {
     addWebDomain,
     addWebSubdomain,
@@ -325,6 +326,8 @@ const Preview = ({ url, temporary }: { url: string | null; temporary: string | n
 export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
     const { clearFlashes, clearAndAddHttpError } = useFlashKey('server:web');
+    const { data: kinds } = useKinds();
+    const isEmby = kinds?.kinds.find((k) => k.id === kinds.current)?.key === 'emby';
 
     const [page, setPage] = useState<WebPage | null>(null);
     const [busy, setBusy] = useState(false);
@@ -566,11 +569,14 @@ export default () => {
                                         </Button.Text>
                                     </div>
                                 ))}
+                                <EmbyCard disabled={busy || installing} />
                             </div>
                         </div>
                     )}
 
-                    {!page.php && (
+                    {!page.php && <EmbyHelp />}
+
+                    {!page.php && !isEmby && (
                         <div css={card}>
                             <div css={tw`px-4 py-3`}>
                                 <h2 css={tw`text-base text-neutral-50 font-semibold`}>Your application</h2>

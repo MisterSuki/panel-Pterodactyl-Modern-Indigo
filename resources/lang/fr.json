@@ -2757,5 +2757,16 @@
  "This version is not offered for this kind of site.": "Cette version n'est pas proposée pour ce type de site.",
  "This node has no free port left: add ports (allocations) to it.": "Ce node n'a plus de port libre : ajoutez-lui des ports (allocations).",
  "No node has a free port left: add ports (allocations) to a node.": "Aucun node n'a de port libre : ajoutez des ports (allocations) à un node.",
- "The web hosting is not set up yet: install its eggs first (button above).": "L'hébergement web n'est pas prêt : installez d'abord ses eggs (bouton au-dessus)."
+ "The web hosting is not set up yet: install its eggs first (button above).": "L'hébergement web n'est pas prêt : installez d'abord ses eggs (bouton au-dessus).",
+ "Your films, series and music, watched in the browser or the Emby apps.": "Vos films, séries et musiques, dans le navigateur ou les applis Emby.",
+ "Media server: your films, series and music in the browser and the Emby apps. The site becomes an Emby site.": "Serveur multimédia : vos films, séries et musiques dans le navigateur et les applis Emby. Le site devient un site Emby.",
+ "Turn the site into Emby?": "Passer le site en Emby ?",
+ "Install Emby": "Installer Emby",
+ "The site is set up again for Emby: its files are kept, Emby is downloaded (a few minutes). Then start the site from the Console and open its domain to set Emby up. Give it at least 2 GB of memory.": "Le site est préparé pour Emby : ses fichiers sont gardés, Emby est téléchargé (quelques minutes). Démarrez ensuite le site depuis la Console et ouvrez son domaine pour configurer Emby. Prévoyez au moins 2 Go de mémoire.",
+ "Your Emby server": "Votre serveur Emby",
+ "Start the site from the Console (the first start takes a minute).": "Démarrez le site depuis la Console (le premier démarrage prend une minute).",
+ "Open the domain of the site: Emby asks for your language and creates your account.": "Ouvrez le domaine du site : Emby demande votre langue et crée votre compte.",
+ "Put your films, series and music in the": "Mettez vos films, séries et musiques dans le dossier",
+ "folder (Files tab or SFTP), then add it as a library in Emby.": "(onglet Fichiers ou SFTP), puis ajoutez-le comme bibliothèque dans Emby.",
+ "Its settings and its library are kept in the data folder. Reinstalling the site from Settings updates Emby and keeps them.": "Ses réglages et sa bibliothèque sont gardés dans le dossier data. Réinstaller le site depuis Paramètres met Emby à jour et les garde."
 }
