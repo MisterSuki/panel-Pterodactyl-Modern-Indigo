@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Facades\Activity;
@@ -78,7 +79,10 @@ class VpsController extends ClientApiController
         return new JsonResponse(['data' => array_merge($this->proxmox->present($vm, $live), [
             'cores' => (int) ($live['cpus'] ?? 0) ?: (int) ($config['cores'] ?? 1) * (int) ($config['sockets'] ?? 1),
             'error' => null,
-            'addresses' => $this->addresses($vm, $running && !empty($config['agent']) ? $client->addresses($vm->node, $vm->vmid) : []),
+            // The page asks every 2 seconds: the addresses (asked to the agent inside the machine) are kept 30 seconds.
+            'addresses' => $this->addresses($vm, $running && !empty($config['agent'])
+                ? Cache::remember('vps-addresses:' . $vm->id, 30, fn () => $client->addresses($vm->node, $vm->vmid))
+                : []),
             'root_password' => $this->password($vm),
             'os' => isset($config['ostype']) ? (string) $config['ostype'] : null,
             'agent' => !empty($config['agent']),

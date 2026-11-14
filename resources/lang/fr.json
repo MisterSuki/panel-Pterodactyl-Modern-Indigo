@@ -2485,5 +2485,14 @@
  "The console relay is running: users can open the screen of their VPS.": "Le relais de la console tourne : les utilisateurs peuvent ouvrir l'écran de leur VPS.",
  "The console relay is not running.": "Le relais de la console ne tourne pas.",
  "The console of the VPS goes through a small relay on this machine. Install it (or start it again) as root on the machine of the panel:": "La console des VPS passe par un petit relais sur cette machine. Installez-le (ou relancez-le) en root sur la machine du panel :",
- "Then, if it still does not run, look at what it says:": "Ensuite, s'il ne tourne toujours pas, regardez ce qu'il dit :"
+ "Then, if it still does not run, look at what it says:": "Ensuite, s'il ne tourne toujours pas, regardez ce qu'il dit :",
+ "The machine is off": "La machine est éteinte",
+ "Start the machine to see its screen.": "Démarrez la machine pour voir son écran.",
+ "Open large": "Ouvrir en grand",
+ "The console opens once the VPS is ready.": "La console s'ouvre une fois le VPS prêt.",
+ "The live figures are coming...": "Les chiffres en direct arrivent…",
+ "Start the machine to follow it live.": "Démarrez la machine pour la suivre en direct.",
+ "Running for": "En marche depuis",
+ "Machine off": "Éteinte",
+ "See the VPS": "Voir le VPS"
 }

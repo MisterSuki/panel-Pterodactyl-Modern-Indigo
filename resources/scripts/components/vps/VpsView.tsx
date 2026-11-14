@@ -1,23 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import tw from 'twin.macro';
 import useSWR from 'swr';
 import { Link, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faArrowLeft,
-    faClock,
+    faDesktop,
     faEye,
     faEyeSlash,
     faKey,
-    faHdd,
-    faMemory,
-    faMicrochip,
     faNetworkWired,
     faPlay,
     faPowerOff,
     faRedo,
+    faServer,
     faStop,
-    faTerminal,
 } from '@fortawesome/free-solid-svg-icons';
 import PageContentBlock from '@/components/elements/PageContentBlock';
 import Spinner from '@/components/elements/Spinner';
@@ -26,14 +23,17 @@ import { Button } from '@/components/elements/button/index';
 import { Dialog } from '@/components/elements/dialog';
 import Sparkline from '@/components/server/console/Sparkline';
 import VpsStatusPill from '@/components/vps/VpsStatusPill';
+import VpsMeter from '@/components/vps/VpsMeter';
+import VpsScreen from '@/components/vps/VpsScreen';
 import { getVps, getVpsHistory, sendVpsPower, VpsAction, VpsDetails, VpsPoint } from '@/api/vps';
 import { bytesToString } from '@/lib/formatters';
 import { accentHex } from '@/lib/helpers';
 import useFlash from '@/plugins/useFlash';
 
-type Range = 'hour' | 'day' | 'week';
+type Range = 'live' | 'hour' | 'day' | 'week';
 
 const RANGES: { value: Range; label: string }[] = [
+    { value: 'live', label: 'Live' },
     { value: 'hour', label: '1 h' },
     { value: 'day', label: '24 h' },
     { value: 'week', label: '7 d' },
@@ -61,31 +61,7 @@ const system = (os: string | null): string | null => {
     return null;
 };
 
-const Tile = ({
-    icon,
-    label,
-    value,
-    detail,
-    children,
-}: {
-    icon: typeof faClock;
-    label: string;
-    value: React.ReactNode;
-    detail?: React.ReactNode;
-    children?: React.ReactNode;
-}) => (
-    <div className={'pd-neon'} css={tw`relative overflow-hidden rounded-xl bg-neutral-800 px-4 pt-3 pb-8 min-w-0`}>
-        <p css={tw`relative flex items-center gap-2 text-xs text-neutral-400`}>
-            <FontAwesomeIcon icon={icon} css={tw`text-neutral-500`} fixedWidth />
-            <span>{label}</span>
-        </p>
-        <p css={tw`relative mt-1.5 text-xl font-semibold text-neutral-50 tabular-nums tracking-tight truncate`}>
-            {value}
-            {detail && <span css={tw`ml-1.5 text-sm font-normal text-neutral-500`}>{detail}</span>}
-        </p>
-        {children}
-    </div>
-);
+const LIVE_POINTS = 90;
 
 const Chart = ({
     title,
@@ -116,7 +92,10 @@ const Chart = ({
 export default () => {
     const { uuid } = useParams<{ uuid: string }>();
     const { addFlash, clearFlashes, clearAndAddHttpError } = useFlash();
-    const [range, setRange] = useState<Range>('hour');
+    const [range, setRange] = useState<Range>('live');
+    // The live figures, one every 2 seconds for the last 3 minutes (the network as bytes per second).
+    const [live, setLive] = useState<VpsPoint[]>([]);
+    const previous = useRef<{ at: number; netIn: number; netOut: number } | null>(null);
     const [pending, setPending] = useState<VpsAction | null>(null);
     const [confirm, setConfirm] = useState<VpsAction | null>(null);
     const [showPassword, setShowPassword] = useState(false);
@@ -126,14 +105,43 @@ export default () => {
         error,
         mutate,
     } = useSWR<VpsDetails>(['vps', uuid], () => getVps(uuid), {
-        refreshInterval: 4000,
+        refreshInterval: 2000,
+        dedupingInterval: 1000,
         revalidateOnFocus: false,
     });
-    const { data: history } = useSWR<VpsPoint[]>(['vps-history', uuid, range], () => getVpsHistory(uuid, range), {
-        refreshInterval: 60000,
-        revalidateOnFocus: false,
-        shouldRetryOnError: false,
-    });
+    const { data: history } = useSWR<VpsPoint[]>(
+        range === 'live' ? null : ['vps-history', uuid, range],
+        () => getVpsHistory(uuid, range as 'hour' | 'day' | 'week'),
+        { refreshInterval: 60000, revalidateOnFocus: false, shouldRetryOnError: false }
+    );
+
+    useEffect(() => {
+        setLive([]);
+        previous.current = null;
+    }, [uuid]);
+
+    // Each new answer adds a point; the network rate comes from the counters of the machine between two answers.
+    useEffect(() => {
+        if (!vps || vps.state !== 'ready' || vps.status !== 'running' || vps.cpu === null) {
+            previous.current = null;
+
+            return;
+        }
+        const now = Date.now();
+        const before = previous.current;
+        const seconds = before ? (now - before.at) / 1000 : 0;
+        const rate = (value: number | null, old: number | undefined) =>
+            before && value !== null && old !== undefined && seconds > 0 && value >= old ? (value - old) / seconds : 0;
+        const point: VpsPoint = {
+            at: new Date(now),
+            cpu: vps.cpu,
+            memory: vps.memory,
+            netIn: rate(vps.netIn, before?.netIn),
+            netOut: rate(vps.netOut, before?.netOut),
+        };
+        previous.current = { at: now, netIn: vps.netIn || 0, netOut: vps.netOut || 0 };
+        setLive((points) => [...points, point].slice(-LIVE_POINTS));
+    }, [vps]);
 
     useEffect(() => {
         if (error) clearAndAddHttpError({ key: 'vps:view', error });
@@ -154,13 +162,17 @@ export default () => {
 
     const ready = vps?.state === 'ready';
     const running = ready && vps?.status === 'running';
-    const points = history || [];
+    const points = range === 'live' ? live : history || [];
+    const now = live.length ? live[live.length - 1] : null;
     const last = points.length ? points[points.length - 1] : null;
     const cpuPoints = points.map((p) => p.cpu ?? 0);
     const memPoints = points.map((p) => p.memory ?? 0);
     const inPoints = points.map((p) => p.netIn ?? 0);
     const outPoints = points.map((p) => p.netOut ?? 0);
     const netMax = Math.max(1, ...inPoints, ...outPoints) * 1.2;
+
+    const card = tw`relative rounded-xl bg-neutral-800 p-4`;
+    const chip = tw`cursor-pointer rounded-md border border-neutral-600 px-2.5 py-1 font-mono text-sm text-neutral-100 hover:border-neutral-500`;
 
     return (
         <PageContentBlock title={vps?.name || 'VPS'} showFlashKey={'vps:view'}>
@@ -173,26 +185,50 @@ export default () => {
             </Link>
 
             {!vps ? (
-                <Spinner centered size={'large'} />
+                <div css={tw`grid grid-cols-1 lg:grid-cols-3 gap-4`}>
+                    <div className={'pd-skeleton'} css={tw`h-16 rounded-xl lg:col-span-3`} />
+                    <div className={'pd-skeleton'} css={tw`h-96 rounded-xl lg:col-span-2`} />
+                    <div className={'pd-skeleton'} css={tw`h-96 rounded-xl`} />
+                </div>
             ) : (
                 <>
-                    <div css={tw`flex flex-wrap items-start justify-between gap-4 mb-6`}>
-                        <div css={tw`min-w-0`}>
-                            <div css={tw`flex items-center gap-3`}>
-                                <h1 css={tw`text-2xl font-semibold text-neutral-50 tracking-tight truncate`}>
-                                    {vps.name}
-                                </h1>
-                                <VpsStatusPill status={vps.status} state={vps.state} />
+                    <div css={tw`flex flex-wrap items-center justify-between gap-4 mb-6`}>
+                        <div css={tw`flex items-center gap-4 min-w-0`}>
+                            <div
+                                css={tw`flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-xl text-white text-lg`}
+                                style={{ background: 'rgb(var(--pd-accent-600))' }}
+                            >
+                                <FontAwesomeIcon icon={faDesktop} />
                             </div>
-                            <p css={tw`text-sm text-neutral-400 mt-1`}>
-                                {[
-                                    system(vps.os),
-                                    vps.cores ? `${vps.cores} vCPU` : null,
-                                    vps.maxMemory ? bytesToString(vps.maxMemory) : null,
-                                ]
-                                    .filter(Boolean)
-                                    .join(' · ')}
-                            </p>
+                            <div css={tw`min-w-0`}>
+                                <div css={tw`flex items-center gap-3 min-w-0`}>
+                                    <h1 css={tw`text-2xl font-semibold text-neutral-50 tracking-tight truncate`}>
+                                        {vps.name}
+                                    </h1>
+                                    <VpsStatusPill status={vps.status} state={vps.state} />
+                                </div>
+                                <p css={tw`flex flex-wrap items-center gap-x-2 text-sm text-neutral-400 mt-1`}>
+                                    <span>
+                                        {[
+                                            system(vps.os),
+                                            vps.cores ? `${vps.cores} vCPU` : null,
+                                            vps.maxMemory ? `${bytesToString(vps.maxMemory)} RAM` : null,
+                                            vps.maxDisk ? `${bytesToString(vps.maxDisk)} SSD` : null,
+                                        ]
+                                            .filter(Boolean)
+                                            .join(' · ')}
+                                    </span>
+                                    {vps.addresses[0] && (
+                                        <CopyOnClick text={vps.addresses[0]}>
+                                            <span
+                                                css={tw`cursor-pointer font-mono text-neutral-300 hover:text-neutral-50`}
+                                            >
+                                                · {vps.addresses[0]}
+                                            </span>
+                                        </CopyOnClick>
+                                    )}
+                                </p>
+                            </div>
                         </div>
                         <div css={tw`flex flex-wrap gap-2`}>
                             {ready && !running && (
@@ -203,14 +239,6 @@ export default () => {
                                     <FontAwesomeIcon icon={faPlay} css={tw`mr-2 text-xs`} />
                                     <span>Start</span>
                                 </Button>
-                            )}
-                            {ready && running && (
-                                <Link to={`/vps/${uuid}/console`} css={tw`no-underline`}>
-                                    <Button>
-                                        <FontAwesomeIcon icon={faTerminal} css={tw`mr-2 text-xs`} />
-                                        <span>Console</span>
-                                    </Button>
-                                </Link>
                             )}
                             {ready && running && (
                                 <>
@@ -232,7 +260,7 @@ export default () => {
                     </div>
 
                     {!ready && (
-                        <div className={'pd-neon'} css={tw`relative rounded-xl bg-neutral-800 px-5 py-4 mb-6`}>
+                        <div className={'pd-neon'} css={[card, tw`px-5 mb-6`]}>
                             <div css={tw`relative flex items-center gap-3`}>
                                 {vps.state === 'failed' ? null : <Spinner size={'small'} />}
                                 <div>
@@ -255,41 +283,6 @@ export default () => {
                         </div>
                     )}
 
-                    {vps.rootPassword && (
-                        <div className={'pd-neon'} css={tw`relative rounded-xl bg-neutral-800 p-4 mb-6`}>
-                            <p css={tw`relative flex items-center gap-2 text-sm font-medium text-neutral-200`}>
-                                <FontAwesomeIcon icon={faKey} css={tw`text-neutral-500 text-xs`} />
-                                <span>Login</span>
-                            </p>
-                            <div css={tw`relative mt-3 flex flex-wrap items-center gap-2`}>
-                                <span
-                                    css={tw`rounded-md border border-neutral-600 px-2.5 py-1 font-mono text-sm text-neutral-100`}
-                                >
-                                    root
-                                </span>
-                                <CopyOnClick text={vps.rootPassword}>
-                                    <span
-                                        css={tw`cursor-pointer rounded-md border border-neutral-600 px-2.5 py-1 font-mono text-sm text-neutral-100 hover:border-neutral-500`}
-                                    >
-                                        {showPassword ? vps.rootPassword : '••••••••••••••••'}
-                                    </span>
-                                </CopyOnClick>
-                                <button
-                                    type={'button'}
-                                    onClick={() => setShowPassword((s) => !s)}
-                                    css={tw`flex items-center justify-center w-8 h-8 rounded-md text-neutral-400 hover:text-neutral-50 hover:bg-neutral-700`}
-                                    aria-label={showPassword ? 'Hide the password' : 'Show the password'}
-                                >
-                                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} css={tw`text-xs`} />
-                                </button>
-                            </div>
-                            <p css={tw`relative mt-2 text-xs text-neutral-500`}>
-                                The password set when the VPS was created: change it inside the machine (passwd). Click
-                                it to copy it.
-                            </p>
-                        </div>
-                    )}
-
                     {vps.error && (
                         <div
                             css={tw`mb-6 rounded-xl border border-red-500 bg-red-500/10 px-4 py-3 text-sm text-red-200`}
@@ -298,53 +291,153 @@ export default () => {
                         </div>
                     )}
 
-                    <div css={tw`grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6`}>
-                        <Tile
-                            icon={faMicrochip}
-                            label={'CPU'}
-                            value={running && vps.cpu !== null ? `${vps.cpu.toFixed(1)} %` : '—'}
-                            detail={vps.cores ? `${vps.cores} vCPU` : undefined}
-                        />
-                        <Tile
-                            icon={faMemory}
-                            label={'Memory'}
-                            value={running && vps.memory !== null ? bytesToString(vps.memory) : '—'}
-                            detail={vps.maxMemory ? `/ ${bytesToString(vps.maxMemory)}` : undefined}
-                        />
-                        <Tile icon={faHdd} label={'Disk'} value={vps.maxDisk ? bytesToString(vps.maxDisk) : '—'} />
-                        <Tile icon={faClock} label={'Uptime'} value={running ? duration(vps.uptime) : '—'} />
-                    </div>
+                    <div css={tw`grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8`}>
+                        <div css={tw`lg:col-span-2 min-w-0`}>
+                            {ready ? (
+                                <VpsScreen uuid={uuid} active={running} height={'min(62vh, 560px)'} embedded />
+                            ) : (
+                                <div
+                                    className={'pd-neon'}
+                                    css={tw`relative flex items-center justify-center rounded-xl bg-neutral-900 text-sm text-neutral-500`}
+                                    style={{ height: 'min(62vh, 560px)' }}
+                                >
+                                    <span>The console opens once the VPS is ready.</span>
+                                </div>
+                            )}
+                        </div>
 
-                    <div className={'pd-neon'} css={tw`relative rounded-xl bg-neutral-800 p-4 mb-6`}>
-                        <p css={tw`relative flex items-center gap-2 text-sm font-medium text-neutral-200`}>
-                            <FontAwesomeIcon icon={faNetworkWired} css={tw`text-neutral-500 text-xs`} />
-                            <span>IP addresses</span>
-                        </p>
-                        {vps.addresses.length > 0 ? (
-                            <div css={tw`relative mt-3 flex flex-wrap gap-2`}>
-                                {vps.addresses.map((address) => (
-                                    <CopyOnClick key={address} text={address}>
-                                        <span
-                                            css={tw`cursor-pointer rounded-md border border-neutral-600 px-2.5 py-1 font-mono text-sm text-neutral-100 hover:border-neutral-500`}
-                                        >
-                                            {address}
-                                        </span>
-                                    </CopyOnClick>
-                                ))}
+                        <div css={tw`flex flex-col gap-4 min-w-0`}>
+                            <div className={'pd-neon'} css={card}>
+                                <p css={tw`relative flex items-center gap-2 text-sm font-medium text-neutral-200`}>
+                                    <FontAwesomeIcon icon={faServer} css={tw`text-neutral-500 text-xs`} />
+                                    <span>Resources</span>
+                                </p>
+                                <div css={tw`relative mt-4 flex flex-col gap-4`}>
+                                    <VpsMeter
+                                        label={'CPU'}
+                                        value={running && vps.cpu !== null ? `${vps.cpu.toFixed(1)} %` : '—'}
+                                        detail={vps.cores ? `${vps.cores} vCPU` : undefined}
+                                        ratio={running && vps.cpu !== null ? vps.cpu / 100 : null}
+                                    />
+                                    <VpsMeter
+                                        label={'Memory'}
+                                        value={running && vps.memory !== null ? bytesToString(vps.memory) : '—'}
+                                        detail={vps.maxMemory ? `/ ${bytesToString(vps.maxMemory)}` : undefined}
+                                        ratio={
+                                            running && vps.memory !== null && vps.maxMemory
+                                                ? vps.memory / vps.maxMemory
+                                                : null
+                                        }
+                                    />
+                                    <div css={tw`min-w-0`}>
+                                        <p css={tw`text-xs text-neutral-500`}>Network</p>
+                                        <p css={tw`mt-0.5 font-mono text-sm tabular-nums truncate`}>
+                                            {running && now ? (
+                                                <>
+                                                    <span style={{ color: '#3ecf8e' }}>
+                                                        ↓ {bytesToString(now.netIn || 0)}/s
+                                                    </span>{' '}
+                                                    <span style={{ color: '#a78bfa' }}>
+                                                        ↑ {bytesToString(now.netOut || 0)}/s
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <span css={tw`text-neutral-50`}>—</span>
+                                            )}
+                                        </p>
+                                    </div>
+                                    <div css={tw`grid grid-cols-2 gap-4 pt-1`}>
+                                        <div css={tw`min-w-0`}>
+                                            <p css={tw`text-xs text-neutral-500`}>Disk</p>
+                                            <p css={tw`mt-0.5 font-mono text-sm text-neutral-50 truncate`}>
+                                                {vps.maxDisk ? bytesToString(vps.maxDisk) : '—'}
+                                            </p>
+                                        </div>
+                                        <div css={tw`min-w-0`}>
+                                            <p css={tw`text-xs text-neutral-500`}>Uptime</p>
+                                            <p css={tw`mt-0.5 font-mono text-sm text-neutral-50 truncate`}>
+                                                {running ? duration(vps.uptime) : '—'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        ) : (
-                            <p css={tw`relative mt-2 text-sm text-neutral-400`}>
-                                {!running
-                                    ? 'Start the machine to see its addresses.'
-                                    : vps.agent
-                                    ? 'The machine has not told its addresses yet: the QEMU guest agent must be running inside it.'
-                                    : 'The addresses show once the QEMU guest agent is installed in the machine.'}
-                            </p>
-                        )}
+
+                            <div className={'pd-neon'} css={card}>
+                                <p css={tw`relative flex items-center gap-2 text-sm font-medium text-neutral-200`}>
+                                    <FontAwesomeIcon icon={faNetworkWired} css={tw`text-neutral-500 text-xs`} />
+                                    <span>IP addresses</span>
+                                </p>
+                                {vps.addresses.length > 0 ? (
+                                    <div css={tw`relative mt-3 flex flex-wrap gap-2`}>
+                                        {vps.addresses.map((address) => (
+                                            <CopyOnClick key={address} text={address}>
+                                                <span css={chip}>{address}</span>
+                                            </CopyOnClick>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p css={tw`relative mt-2 text-sm text-neutral-400`}>
+                                        {!running
+                                            ? 'Start the machine to see its addresses.'
+                                            : vps.agent
+                                            ? 'The machine has not told its addresses yet: the QEMU guest agent must be running inside it.'
+                                            : 'The addresses show once the QEMU guest agent is installed in the machine.'}
+                                    </p>
+                                )}
+                            </div>
+
+                            {vps.rootPassword && (
+                                <div className={'pd-neon'} css={card}>
+                                    <p css={tw`relative flex items-center gap-2 text-sm font-medium text-neutral-200`}>
+                                        <FontAwesomeIcon icon={faKey} css={tw`text-neutral-500 text-xs`} />
+                                        <span>Login</span>
+                                    </p>
+                                    <div css={tw`relative mt-3 flex flex-wrap items-center gap-2`}>
+                                        <span
+                                            css={tw`rounded-md border border-neutral-600 px-2.5 py-1 font-mono text-sm text-neutral-100`}
+                                        >
+                                            root
+                                        </span>
+                                        <CopyOnClick text={vps.rootPassword}>
+                                            <span css={chip}>{showPassword ? vps.rootPassword : '••••••••••••'}</span>
+                                        </CopyOnClick>
+                                        <button
+                                            type={'button'}
+                                            onClick={() => setShowPassword((s) => !s)}
+                                            css={tw`flex items-center justify-center w-8 h-8 rounded-md text-neutral-400 hover:text-neutral-50 hover:bg-neutral-700`}
+                                            aria-label={showPassword ? 'Hide the password' : 'Show the password'}
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={showPassword ? faEyeSlash : faEye}
+                                                css={tw`text-xs`}
+                                            />
+                                        </button>
+                                    </div>
+                                    <p css={tw`relative mt-2 text-xs text-neutral-500`}>
+                                        The password set when the VPS was created: change it inside the machine
+                                        (passwd). Click it to copy it.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div css={tw`flex items-center justify-between gap-3 mb-3`}>
-                        <h2 css={tw`text-base font-semibold text-neutral-50`}>History</h2>
+                        <h2 css={tw`flex items-center gap-2 text-base font-semibold text-neutral-50`}>
+                            <span>History</span>
+                            {range === 'live' && running && (
+                                <span
+                                    css={tw`inline-flex items-center gap-1.5 rounded-full border border-neutral-600 px-2 py-0.5 text-xs font-medium text-neutral-300`}
+                                >
+                                    <span
+                                        css={tw`w-1.5 h-1.5 rounded-full animate-pulse`}
+                                        style={{ background: '#e5484d' }}
+                                    />
+                                    <span>Live</span>
+                                </span>
+                            )}
+                        </h2>
                         <div css={tw`flex items-center gap-0.5 rounded-md border border-neutral-600 p-0.5`}>
                             {RANGES.map((item) => (
                                 <button
@@ -363,10 +456,16 @@ export default () => {
                             ))}
                         </div>
                     </div>
-                    {!history ? (
+                    {range !== 'live' && !history ? (
                         <div className={'pd-skeleton'} css={tw`h-44 rounded-xl`} />
                     ) : points.length < 2 ? (
-                        <p css={tw`text-sm text-neutral-400`}>No history yet.</p>
+                        <p css={tw`text-sm text-neutral-400`}>
+                            {range !== 'live'
+                                ? 'No history yet.'
+                                : running
+                                ? 'The live figures are coming...'
+                                : 'Start the machine to follow it live.'}
+                        </p>
                     ) : (
                         <div css={tw`grid grid-cols-1 lg:grid-cols-3 gap-3`}>
                             <Chart
