@@ -59,6 +59,13 @@ app/Services/Databases/Hosts/DatabaseHostInstaller.php
 app/Console/Commands/Maintenance/InstallDatabaseHostCommand.php
 app/Http/Controllers/Admin/DatabaseHostInstallController.php
 resources/views/admin/databases/index.blade.php
+database/migrations/2026_11_15_000001_create_user_files.php
+app/Models/UserFile.php
+app/Services/Files/FileHosting.php
+app/Http/Controllers/Api/Client/FileHostingController.php
+app/Http/Controllers/Base/UserFileController.php
+app/Http/Controllers/Admin/FileHostingController.php
+resources/views/admin/files/index.blade.php
 app/Services/Databases/PhpMyAdminSignOn.php
 app/Http/Controllers/Api/PhpMyAdminRedeemController.php
 app/Http/Controllers/Api/Client/Servers/DatabasePhpMyAdminController.php

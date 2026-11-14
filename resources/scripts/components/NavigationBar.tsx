@@ -5,6 +5,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faChevronDown,
+    faCloudUploadAlt,
     faCode,
     faDesktop,
     faHistory,
@@ -246,6 +247,7 @@ export default () => {
     const shopOpen = useStoreState((state: ApplicationStore) => !!state.settings.data?.shop?.enabled);
     const vpsCount = useStoreState((state: ApplicationStore) => state.user.data?.vpsCount || 0);
     const statusOpen = useStoreState((state: ApplicationStore) => !!state.settings.data?.status?.enabled);
+    const filesOpen = useStoreState((state: ApplicationStore) => !!state.settings.data?.files?.enabled);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const { pathname } = useLocation();
 
@@ -286,6 +288,12 @@ export default () => {
                 <NavLink to={'/vps'}>
                     <FontAwesomeIcon icon={faDesktop} />
                     <span>VPS</span>
+                </NavLink>
+            )}
+            {filesOpen && (
+                <NavLink to={'/files'}>
+                    <FontAwesomeIcon icon={faCloudUploadAlt} />
+                    <span>My files</span>
                 </NavLink>
             )}
             {shopOpen && (

@@ -23,6 +23,10 @@ export interface SiteSettings {
     shop?: {
         enabled: boolean;
     };
+    // True when the file hosting of the users is open ("My files").
+    files?: {
+        enabled: boolean;
+    };
 }
 
 export interface SettingsStore {

@@ -8,6 +8,7 @@ import ShopContainer from '@/components/shop/ShopContainer';
 import VpsListContainer from '@/components/vps/VpsListContainer';
 import VpsView from '@/components/vps/VpsView';
 import VpsConsole from '@/components/vps/VpsConsole';
+import MyFilesContainer from '@/components/files/MyFilesContainer';
 import { NotFound } from '@/components/elements/ScreenBlock';
 import TransitionRouter from '@/TransitionRouter';
 import SubNavigation, { TabIcon } from '@/components/elements/SubNavigation';
@@ -37,6 +38,9 @@ export default () => {
                     </Route>
                     <Route path={'/vps/:uuid/console'} exact>
                         <VpsConsole />
+                    </Route>
+                    <Route path={'/files'} exact>
+                        <MyFilesContainer />
                     </Route>
                     <Route path={'/tickets'} exact>
                         <TicketsContainer />

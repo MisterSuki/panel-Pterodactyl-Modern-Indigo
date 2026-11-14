@@ -73,6 +73,14 @@ Route::group(['prefix' => 'subdomains', 'middleware' => 'admin.can:settings,mana
     Route::post('/custom/{custom}/delete', [Admin\SubdomainController::class, 'deleteCustom'])->whereNumber('custom')->name('admin.subdomains.custom.delete');
 });
 
+// The file hosting of the users: open it, its limits, and the files kept.
+Route::group(['prefix' => 'file-hosting', 'middleware' => 'admin.can:settings'], function () {
+    Route::get('/', [Admin\FileHostingController::class, 'index'])->name('admin.files');
+    Route::post('/', [Admin\FileHostingController::class, 'save'])->middleware('admin.can:settings,manage');
+    Route::post('/quota', [Admin\FileHostingController::class, 'quota'])->name('admin.files.quota')->middleware('admin.can:settings,manage');
+    Route::post('/{file:id}/delete', [Admin\FileHostingController::class, 'delete'])->name('admin.files.delete')->middleware('admin.can:settings,manage');
+});
+
 // Announcements to every user (the bell, the status page) and the settings of the public status page.
 Route::group(['prefix' => 'announcements', 'middleware' => 'admin.can:settings,manage'], function () {
     Route::get('/', [Admin\AnnouncementController::class, 'index'])->name('admin.announcements');

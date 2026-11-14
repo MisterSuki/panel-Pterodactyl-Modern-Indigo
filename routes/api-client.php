@@ -52,6 +52,17 @@ Route::prefix('/shop')->group(function () {
     Route::put('/servers/{server}/resources', [Client\ShopController::class, 'updateResources'])->middleware('throttle:30,1');
 });
 
+// The file hosting of the person (pictures, videos, any file), when the administration opened it.
+Route::prefix('/hosting')->group(function () {
+    Route::get('/', [Client\FileHostingController::class, 'index'])->middleware('throttle:120,1,hosting-list');
+    Route::post('/uploads', [Client\FileHostingController::class, 'begin'])->middleware('throttle:60,1,hosting-upload');
+    Route::post('/uploads/{upload}', [Client\FileHostingController::class, 'chunk'])->where('upload', '[A-Za-z0-9]{32}')->middleware('throttle:900,1,hosting-chunk');
+    Route::post('/uploads/{upload}/complete', [Client\FileHostingController::class, 'complete'])->where('upload', '[A-Za-z0-9]{32}')->middleware('throttle:60,1,hosting-upload');
+    Route::delete('/uploads/{upload}', [Client\FileHostingController::class, 'cancel'])->where('upload', '[A-Za-z0-9]{32}');
+    Route::patch('/{uuid}', [Client\FileHostingController::class, 'update'])->whereUuid('uuid')->middleware('throttle:60,1,hosting-edit');
+    Route::delete('/{uuid}', [Client\FileHostingController::class, 'delete'])->whereUuid('uuid')->middleware('throttle:60,1,hosting-edit');
+});
+
 // The VPS of the person (virtual machines of Proxmox given to them by the administration). Each limit has its own
 // counter (the third parameter): without it, every "throttle" of a person shares one, and the page that refreshes every
 // few seconds would use up the limit of the power buttons and of the console.

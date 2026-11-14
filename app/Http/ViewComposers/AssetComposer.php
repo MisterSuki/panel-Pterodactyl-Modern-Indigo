@@ -48,6 +48,10 @@ class AssetComposer
             'shop' => [
                 'enabled' => app(\Pterodactyl\Services\Shop\ShopSettings::class)->enabled(),
             ],
+            // The file hosting of the users ("My files" in the top bar) while it is open.
+            'files' => [
+                'enabled' => app(\Pterodactyl\Services\Files\FileHosting::class)->enabled(),
+            ],
         ]);
     }
 }
