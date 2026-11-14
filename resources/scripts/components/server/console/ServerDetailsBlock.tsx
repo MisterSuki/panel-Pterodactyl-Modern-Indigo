@@ -38,10 +38,15 @@ const getBackgroundColor = (value: number, max: number | null): string | undefin
     return undefined;
 };
 
+// The value, and its limit on a line of its own under it: on the same line, a narrow block cut the limit off.
 const Limit = ({ limit, children }: { limit: string | null; children: React.ReactNode }) => (
     <>
-        {children}
-        <span className={'ml-1 text-gray-300 text-[70%] select-none'}>/ {limit || <>&infin;</>}</span>
+        <span className={'block truncate'}>{children}</span>
+        <span
+            className={'block mt-0.5 text-xs leading-4 font-normal tracking-normal text-gray-400 truncate select-none'}
+        >
+            / {limit || <>&infin;</>}
+        </span>
     </>
 );
 
@@ -183,14 +188,11 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                     }
                 >
                     {fivem.data?.online && fivem.data.players !== null ? (
-                        <>
-                            {fivem.data.players}
-                            {fivem.data.maxPlayers ? (
-                                <span className={'ml-1 text-gray-300 text-[70%] select-none'}>
-                                    / {fivem.data.maxPlayers}
-                                </span>
-                            ) : null}
-                        </>
+                        fivem.data.maxPlayers ? (
+                            <Limit limit={String(fivem.data.maxPlayers)}>{fivem.data.players}</Limit>
+                        ) : (
+                            <>{fivem.data.players}</>
+                        )
                     ) : (
                         <span className={'text-gray-400'}>{status === 'offline' ? 'Offline' : 'Waiting...'}</span>
                     )}
@@ -203,12 +205,11 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                     color={gamePlayers !== null && gameSlots ? getBackgroundColor(gamePlayers, gameSlots) : undefined}
                 >
                     {gamePlayers !== null ? (
-                        <>
-                            {gamePlayers}
-                            {gameSlots ? (
-                                <span className={'ml-1 text-gray-300 text-[70%] select-none'}>/ {gameSlots}</span>
-                            ) : null}
-                        </>
+                        gameSlots ? (
+                            <Limit limit={String(gameSlots)}>{gamePlayers}</Limit>
+                        ) : (
+                            <>{gamePlayers}</>
+                        )
                     ) : (
                         <span className={'text-gray-400'}>
                             {status === 'offline' ? 'Offline' : game.data ? 'Unavailable' : 'Waiting...'}
