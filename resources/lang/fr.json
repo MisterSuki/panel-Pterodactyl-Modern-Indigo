@@ -2527,5 +2527,6 @@
  "A VPS can have 20 sub-users at most.": "Un VPS peut avoir 20 sous-utilisateurs au maximum.",
  "Only the owner of the VPS can do this.": "Seul le propriétaire du VPS peut faire cela.",
  "You are not allowed to do this on this VPS.": "Vous n'avez pas la permission de faire cela sur ce VPS.",
- "Shared": "Partagé"
+ "Shared": "Partagé",
+ "My account": "Mon compte"
 }

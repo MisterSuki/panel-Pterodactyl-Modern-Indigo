@@ -1,8 +1,23 @@
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Menu, Transition } from '@headlessui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+    faChevronDown,
+    faCode,
+    faDesktop,
+    faExternalLinkAlt,
+    faHistory,
+    faKey,
+    faPalette,
+    faServer,
+    faShieldAlt,
+    faSignal,
+    faSignOutAlt,
+    faStore,
+    faUser,
+} from '@fortawesome/free-solid-svg-icons';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
 import SearchContainer from '@/components/dashboard/search/SearchContainer';
@@ -10,7 +25,6 @@ import tw from 'twin.macro';
 import styled from 'styled-components/macro';
 import http from '@/api/http';
 import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
-import Tooltip from '@/components/elements/tooltip/Tooltip';
 import Avatar from '@/components/Avatar';
 import BrandTitle from '@/components/elements/BrandTitle';
 import NotificationBell from '@/components/NotificationBell';
@@ -29,39 +43,51 @@ const Bar = styled.header`
         ${tw`items-center gap-0.5`};
 
         &.pd-links-wide {
-            ${tw`hidden md:flex`};
+            ${tw`hidden md:flex p-1 rounded-lg`};
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         &.pd-links-phone {
-            ${tw`flex md:hidden`};
+            ${tw`flex md:hidden overflow-x-auto`};
+            scrollbar-width: none;
         }
 
         & > a {
-            ${tw`relative px-2.5 py-1.5 rounded-md text-sm no-underline text-neutral-300 transition-colors duration-150`};
+            ${tw`relative flex flex-shrink-0 items-center gap-2 h-7 px-3 rounded-md text-sm font-medium no-underline text-neutral-400 transition-colors duration-150`};
+
+            & > svg {
+                ${tw`w-3.5 h-3.5 text-neutral-500 transition-colors duration-150`};
+            }
+
+            & > .pd-ext {
+                ${tw`w-2.5 h-2.5 -ml-0.5 opacity-60`};
+            }
 
             &:hover {
-                ${tw`text-neutral-50 bg-neutral-700`};
+                ${tw`text-neutral-100`};
+                background: rgba(255, 255, 255, 0.05);
+
+                & > svg {
+                    ${tw`text-neutral-300`};
+                }
             }
 
             &.active {
                 ${tw`text-neutral-50`};
+                background: rgba(255, 255, 255, 0.09);
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.4);
 
-                &::after {
-                    content: '';
-                    position: absolute;
-                    left: 0.625rem;
-                    right: 0.625rem;
-                    bottom: -0.625rem;
-                    height: 2px;
-                    border-radius: 2px;
-                    background: rgb(var(--pd-accent-500));
+                & > svg {
+                    color: rgb(var(--pd-accent-400));
                 }
             }
         }
+    }
 
-        &.pd-links-phone > a.active::after {
-            bottom: -0.5rem;
-        }
+    & .pd-divider {
+        ${tw`hidden sm:block w-px h-5 mx-1.5`};
+        background: rgba(255, 255, 255, 0.1);
     }
 
     & .pd-search {
@@ -102,6 +128,124 @@ const RightNavigation = styled.div`
     }
 `;
 
+const AccountMenu = ({ adminAccess, onLogout }: { adminAccess: boolean; onLogout: () => void }) => {
+    const username = useStoreState((state: ApplicationStore) => state.user.data?.username || '');
+    const email = useStoreState((state: ApplicationStore) => state.user.data?.email || '');
+    const item = (active: boolean, danger?: boolean) =>
+        [
+            'flex items-center gap-3 w-full px-2.5 py-2 rounded-md text-sm no-underline text-left transition-colors duration-100',
+            danger
+                ? active
+                    ? 'bg-red-500 text-white'
+                    : 'text-red-400'
+                : active
+                ? 'bg-neutral-700 text-neutral-50'
+                : 'text-neutral-300',
+        ].join(' ');
+    const links = [
+        { to: '/account', icon: faUser, label: 'My account', exact: true },
+        { to: '/account/appearance', icon: faPalette, label: 'Appearance' },
+        { to: '/account/api', icon: faCode, label: 'API Credentials' },
+        { to: '/account/ssh', icon: faKey, label: 'SSH Keys' },
+        { to: '/account/activity', icon: faHistory, label: 'Activity' },
+    ];
+
+    return (
+        <Menu as={'div'} className={'relative'}>
+            {({ open }) => (
+                <>
+                    <Menu.Button
+                        className={[
+                            'flex items-center gap-2 h-8 pl-1 pr-2 rounded-full border transition-colors duration-150',
+                            open
+                                ? 'border-neutral-500 bg-neutral-700'
+                                : 'border-neutral-700 hover:border-neutral-600 hover:bg-neutral-800',
+                        ].join(' ')}
+                        aria-label={'Account Settings'}
+                    >
+                        <span className={'flex items-center w-6 h-6 rounded-full overflow-hidden'}>
+                            <Avatar.User />
+                        </span>
+                        <span className={'hidden lg:block max-w-[8rem] truncate text-sm font-medium text-neutral-200'}>
+                            {username}
+                        </span>
+                        <FontAwesomeIcon
+                            icon={faChevronDown}
+                            className={[
+                                'w-2.5 h-2.5 text-neutral-500 transition-transform duration-150',
+                                open ? 'rotate-180' : '',
+                            ].join(' ')}
+                        />
+                    </Menu.Button>
+                    <Transition
+                        as={Fragment}
+                        enter={'transition duration-100 ease-out'}
+                        enterFrom={'opacity-0 -translate-y-1'}
+                        enterTo={'opacity-100 translate-y-0'}
+                        leave={'transition duration-75 ease-in'}
+                        leaveFrom={'opacity-100'}
+                        leaveTo={'opacity-0'}
+                    >
+                        <Menu.Items
+                            className={
+                                'absolute right-0 mt-2 w-64 origin-top-right rounded-xl border border-neutral-700 bg-neutral-800 p-1.5 shadow-xl focus:outline-none z-50'
+                            }
+                            style={{ background: 'rgb(23 23 23 / 0.98)', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.55)' }}
+                        >
+                            <div
+                                className={'flex items-center gap-3 px-2.5 pt-2 pb-3 mb-1 border-b border-neutral-700'}
+                            >
+                                <span className={'flex-shrink-0 w-9 h-9 rounded-full overflow-hidden'}>
+                                    <Avatar.User />
+                                </span>
+                                <div className={'min-w-0'}>
+                                    <p className={'text-sm font-semibold text-neutral-50 truncate'}>{username}</p>
+                                    <p className={'text-xs text-neutral-400 truncate'}>{email}</p>
+                                </div>
+                            </div>
+                            {links.map((link) => (
+                                <Menu.Item key={link.to}>
+                                    {({ active }) => (
+                                        <Link to={link.to} className={item(active)}>
+                                            <FontAwesomeIcon
+                                                icon={link.icon}
+                                                className={'w-3.5 h-3.5 text-neutral-500'}
+                                            />
+                                            <span>{link.label}</span>
+                                        </Link>
+                                    )}
+                                </Menu.Item>
+                            ))}
+                            {adminAccess && (
+                                <Menu.Item>
+                                    {({ active }) => (
+                                        <a href={'/admin'} className={item(active)}>
+                                            <FontAwesomeIcon
+                                                icon={faShieldAlt}
+                                                className={'w-3.5 h-3.5 text-neutral-500'}
+                                            />
+                                            <span>Administration</span>
+                                        </a>
+                                    )}
+                                </Menu.Item>
+                            )}
+                            <div className={'my-1 border-t border-neutral-700'} />
+                            <Menu.Item>
+                                {({ active }) => (
+                                    <button type={'button'} onClick={onLogout} className={item(active, true)}>
+                                        <FontAwesomeIcon icon={faSignOutAlt} className={'w-3.5 h-3.5'} />
+                                        <span>Sign Out</span>
+                                    </button>
+                                )}
+                            </Menu.Item>
+                        </Menu.Items>
+                    </Transition>
+                </>
+            )}
+        </Menu>
+    );
+};
+
 export default () => {
     const adminAccess = useStoreState((state: ApplicationStore) => state.user.data!.adminAccess);
     const shopOpen = useStoreState((state: ApplicationStore) => !!state.settings.data?.shop?.enabled);
@@ -136,21 +280,36 @@ export default () => {
         });
     };
 
+    // The servers page also stays active on the page of a server.
     const links = (
         <>
-            <NavLink to={'/'} exact>
-                Servers
+            <NavLink to={'/'} exact isActive={() => pathname === '/' || pathname.startsWith('/server/')}>
+                <FontAwesomeIcon icon={faServer} />
+                <span>Servers</span>
             </NavLink>
-            {vpsCount > 0 && <NavLink to={'/vps'}>VPS</NavLink>}
-            {shopOpen && <NavLink to={'/shop'}>Shop</NavLink>}
+            {vpsCount > 0 && (
+                <NavLink to={'/vps'}>
+                    <FontAwesomeIcon icon={faDesktop} />
+                    <span>VPS</span>
+                </NavLink>
+            )}
+            {shopOpen && (
+                <NavLink to={'/shop'}>
+                    <FontAwesomeIcon icon={faStore} />
+                    <span>Shop</span>
+                </NavLink>
+            )}
             {statusOpen && (
                 <a href={'/status'} target={'_blank'} rel={'noopener noreferrer'}>
-                    Status
+                    <FontAwesomeIcon icon={faSignal} />
+                    <span>Status</span>
+                    <FontAwesomeIcon icon={faExternalLinkAlt} className={'pd-ext'} />
                 </a>
             )}
             {adminAccess && (
                 <a href={'/admin'} rel={'noreferrer'}>
-                    Admin
+                    <FontAwesomeIcon icon={faShieldAlt} />
+                    <span>Admin</span>
                 </a>
             )}
         </>
@@ -178,18 +337,8 @@ export default () => {
                     <RightNavigation className={'flex h-14 flex-shrink-0 items-center justify-center gap-0.5 sm:gap-1'}>
                         <SearchContainer />
                         <NotificationBell />
-                        <Tooltip placement={'bottom'} content={'Account Settings'}>
-                            <NavLink to={'/account'}>
-                                <span className={'flex items-center w-5 h-5'}>
-                                    <Avatar.User />
-                                </span>
-                            </NavLink>
-                        </Tooltip>
-                        <Tooltip placement={'bottom'} content={'Sign Out'}>
-                            <button onClick={onTriggerLogout}>
-                                <FontAwesomeIcon icon={faSignOutAlt} />
-                            </button>
-                        </Tooltip>
+                        <span className={'pd-divider'} />
+                        <AccountMenu adminAccess={adminAccess} onLogout={onTriggerLogout} />
                     </RightNavigation>
                 </div>
                 {/* On a phone, the links get their own row under the name and the tools. */}
