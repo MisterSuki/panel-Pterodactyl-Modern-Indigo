@@ -170,6 +170,19 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             className={classNames('grid gap-3', className)}
             style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}
         >
+            <StatBlock
+                icon={faClock}
+                title={'Uptime'}
+                color={getBackgroundColor(status === 'running' ? 0 : status !== 'offline' ? 9 : 10, 10)}
+            >
+                {status === null ? (
+                    'Offline'
+                ) : stats.uptime > 0 ? (
+                    <UptimeDuration uptime={stats.uptime / 1000} />
+                ) : (
+                    capitalize(status)
+                )}
+            </StatBlock>
             {fivem.isFiveM && (
                 <StatBlock
                     icon={faUsers}
@@ -210,19 +223,6 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                     )}
                 </StatBlock>
             )}
-            <StatBlock
-                icon={faClock}
-                title={'Uptime'}
-                color={getBackgroundColor(status === 'running' ? 0 : status !== 'offline' ? 9 : 10, 10)}
-            >
-                {status === null ? (
-                    'Offline'
-                ) : stats.uptime > 0 ? (
-                    <UptimeDuration uptime={stats.uptime / 1000} />
-                ) : (
-                    capitalize(status)
-                )}
-            </StatBlock>
             <StatBlock
                 icon={faMicrochip}
                 title={'CPU Load'}
