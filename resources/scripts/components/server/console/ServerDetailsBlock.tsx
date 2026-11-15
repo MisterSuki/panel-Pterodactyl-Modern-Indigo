@@ -45,16 +45,15 @@ const getBackgroundColor = (value: number, max: number | null): string | undefin
     return undefined;
 };
 
-// The value, and its limit on a line of its own under it: on the same line, a narrow block cut the limit off.
+// The value and its limit on the same line, smaller and aligned on the bottom of the figures. In a narrow block the
+// limit is cut (with "...") before the value.
 const Limit = ({ limit, children }: { limit: string | null; children: React.ReactNode }) => (
-    <>
-        <span className={'block truncate'}>{children}</span>
-        <span
-            className={'block mt-0.5 text-xs leading-4 font-normal tracking-normal text-gray-400 truncate select-none'}
-        >
+    <span className={'flex items-baseline gap-1 min-w-0'}>
+        <span className={'flex-shrink-0 whitespace-nowrap'}>{children}</span>
+        <span className={'min-w-0 truncate text-xs font-normal tracking-normal text-gray-400 select-none'}>
             / {limit || <>&infin;</>}
         </span>
-    </>
+    </span>
 );
 
 // A speed in bytes per second, short enough for a narrow block.
