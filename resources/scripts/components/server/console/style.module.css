@@ -1,7 +1,23 @@
 .stat_block {
     @apply flex items-center rounded-xl border border-gray-700 bg-gray-800 relative;
-    @apply px-4 py-3;
+    @apply px-3.5 py-3;
     @apply transition-colors duration-150 hover:border-gray-600;
+}
+
+/* The figures of a block follow its width (a container query): in a narrow block the value and its limit get a bit
+   smaller together, instead of the limit being cut or going under the value. */
+.stat_body {
+    container-type: inline-size;
+}
+
+.stat_value {
+    font-size: 1.25rem;
+    font-size: clamp(0.8rem, 13cqw, 1.25rem);
+}
+
+.stat_limit {
+    font-size: 0.75rem;
+    font-size: clamp(0.6rem, 7.5cqw, 0.75rem);
 }
 
 .terminal {

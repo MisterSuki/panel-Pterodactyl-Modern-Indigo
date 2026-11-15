@@ -16,6 +16,7 @@ import { ServerContext } from '@/state/server';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
 import UptimeDuration from '@/components/server/UptimeDuration';
 import StatBlock from '@/components/server/console/StatBlock';
+import styles from '@/components/server/console/style.module.css';
 import useFiveM from '@/components/server/console/useFiveM';
 import useGameStatus from '@/components/server/console/useGameStatus';
 import useConnectionCount from '@/components/server/console/useConnectionCount';
@@ -45,12 +46,17 @@ const getBackgroundColor = (value: number, max: number | null): string | undefin
     return undefined;
 };
 
-// The value and its limit on the same line, smaller and aligned on the bottom of the figures. In a narrow block the
-// limit is cut (with "...") before the value.
+// The value and its limit on the same line, smaller and aligned on the bottom of the figures. Both follow the width
+// of the block (see .stat_value / .stat_limit), so the limit is not cut.
 const Limit = ({ limit, children }: { limit: string | null; children: React.ReactNode }) => (
     <span className={'flex items-baseline gap-1 min-w-0'}>
         <span className={'flex-shrink-0 whitespace-nowrap'}>{children}</span>
-        <span className={'min-w-0 truncate text-xs font-normal tracking-normal text-gray-400 select-none'}>
+        <span
+            className={classNames(
+                styles.stat_limit,
+                'whitespace-nowrap font-normal tracking-normal text-gray-400 select-none'
+            )}
+        >
             / {limit || <>&infin;</>}
         </span>
     </span>
@@ -60,9 +66,9 @@ const Limit = ({ limit, children }: { limit: string | null; children: React.Reac
 const speed = (bytes: number): string => `${bytesToString(bytes, bytes >= 1024 * 1024 ? 1 : 0)}/s`;
 
 // One direction of the network: an arrow in its colour (green coming in, yellow going out, as in the Network chart),
-// then the speed. The title of the block says which is which, in the same order.
+// then the speed (the word shows when the mouse is over it).
 const Flow = ({ up, value }: { up?: boolean; value: number }) => (
-    <span className={'flex items-center gap-1.5 text-base leading-6 min-w-0'}>
+    <span className={'flex items-center gap-1.5 leading-6 min-w-0'} title={up ? 'Out' : 'In'}>
         <Icon
             icon={up ? faArrowUp : faArrowDown}
             className={classNames('w-3 h-3 flex-shrink-0', up ? 'text-yellow-400' : 'text-green-400')}
@@ -275,7 +281,7 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             </StatBlock>
             <StatBlock
                 icon={faExchangeAlt}
-                title={'In / Out'}
+                title={'Network'}
                 sparkline={
                     status !== 'offline' && (
                         <>

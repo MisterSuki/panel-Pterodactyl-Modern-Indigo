@@ -21,7 +21,12 @@ export default ({ title, copyOnClick, icon, color, className, children, sparklin
         <CopyOnClick text={copyOnClick}>
             <div className={classNames(styles.stat_block, 'pd-neon overflow-hidden', className)}>
                 {sparkline}
-                <div className={'relative flex flex-col justify-center overflow-hidden w-full'}>
+                <div
+                    className={classNames(
+                        styles.stat_body,
+                        'relative flex flex-col justify-center overflow-hidden w-full'
+                    )}
+                >
                     <p className={'flex items-center gap-2 leading-tight text-xs text-gray-400'}>
                         <Icon icon={icon} className={'w-3 h-3 text-gray-500'} />
                         <span className={'truncate'}>{title}</span>
@@ -31,9 +36,10 @@ export default ({ title, copyOnClick, icon, color, className, children, sparklin
                     </p>
                     {/* Plain CSS sizing: the old fit-to-width script measured the page again on every stats update. */}
                     <div
-                        className={
-                            'w-full mt-1.5 text-lg sm:text-xl leading-7 font-semibold text-gray-50 truncate tabular-nums tracking-tight'
-                        }
+                        className={classNames(
+                            styles.stat_value,
+                            'w-full mt-1.5 leading-7 font-semibold text-gray-50 truncate tabular-nums tracking-tight'
+                        )}
                     >
                         {children}
                     </div>
