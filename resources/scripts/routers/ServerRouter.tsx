@@ -21,8 +21,9 @@ import ConflictStateRenderer from '@/components/server/ConflictStateRenderer';
 import PermissionRoute from '@/components/elements/PermissionRoute';
 import routes from '@/routers/routes';
 import { detectEts2 } from '@/api/server/ets2';
+import ServerAddress from '@/components/server/ServerAddress';
 
-// The name of the server above its tabs, with a dot of its state and its game.
+// The name of the server above its tabs, with a dot of its state, its game and its address.
 const ServerHeader = () => {
     const name = ServerContext.useStoreState((state) => state.server.data?.name || '');
     const egg = ServerContext.useStoreState((state) => state.server.data?.eggName || '');
@@ -37,11 +38,12 @@ const ServerHeader = () => {
             : '#454545';
 
     return (
-        <div className={'flex items-center gap-2.5 px-2.5 min-w-0'}>
-            <span className={'w-2 h-2 rounded-full flex-shrink-0'} style={{ background: color }} />
-            <div className={'min-w-0'}>
+        <div className={'flex items-start gap-2.5 px-2.5 min-w-0'}>
+            <span className={'w-2 h-2 mt-1.5 rounded-full flex-shrink-0'} style={{ background: color }} />
+            <div className={'min-w-0 flex-1'}>
                 <p className={'text-sm font-semibold text-gray-50 truncate'}>{name}</p>
                 {egg && <p className={'text-xs text-gray-500 truncate'}>{egg}</p>}
+                <ServerAddress />
             </div>
         </div>
     );

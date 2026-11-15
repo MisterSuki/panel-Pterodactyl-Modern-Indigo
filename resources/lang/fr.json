@@ -2768,5 +2768,6 @@
  "Open the domain of the site: Emby asks for your language and creates your account.": "Ouvrez le domaine du site : Emby demande votre langue et crée votre compte.",
  "Put your films, series and music in the": "Mettez vos films, séries et musiques dans le dossier",
  "folder (Files tab or SFTP), then add it as a library in Emby.": "(onglet Fichiers ou SFTP), puis ajoutez-le comme bibliothèque dans Emby.",
- "Its settings and its library are kept in the data folder. Reinstalling the site from Settings updates Emby and keeps them.": "Ses réglages et sa bibliothèque sont gardés dans le dossier data. Réinstaller le site depuis Paramètres met Emby à jour et les garde."
+ "Its settings and its library are kept in the data folder. Reinstalling the site from Settings updates Emby and keeps them.": "Ses réglages et sa bibliothèque sont gardés dans le dossier data. Réinstaller le site depuis Paramètres met Emby à jour et les garde.",
+ "In / Out": "Entrant / Sortant"
 }

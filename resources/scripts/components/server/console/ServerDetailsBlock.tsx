@@ -1,14 +1,21 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { accentHex } from '@/lib/helpers';
-import { faClock, faHdd, faMemory, faMicrochip, faUsers, faWifi } from '@fortawesome/free-solid-svg-icons';
-import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
+import {
+    faArrowDown,
+    faArrowUp,
+    faClock,
+    faExchangeAlt,
+    faHdd,
+    faMemory,
+    faMicrochip,
+    faUsers,
+} from '@fortawesome/free-solid-svg-icons';
+import Icon from '@/components/elements/Icon';
+import { bytesToString, mbToBytes } from '@/lib/formatters';
 import { ServerContext } from '@/state/server';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
 import UptimeDuration from '@/components/server/UptimeDuration';
 import StatBlock from '@/components/server/console/StatBlock';
-import tw from 'twin.macro';
-import HiddenAddress from '@/components/elements/HiddenAddress';
-import { getSubdomains } from '@/api/server/subdomains';
 import useFiveM from '@/components/server/console/useFiveM';
 import useGameStatus from '@/components/server/console/useGameStatus';
 import useConnectionCount from '@/components/server/console/useConnectionCount';
@@ -50,13 +57,34 @@ const Limit = ({ limit, children }: { limit: string | null; children: React.Reac
     </>
 );
 
+// A speed in bytes per second, short enough for a narrow block.
+const speed = (bytes: number): string => `${bytesToString(bytes, bytes >= 1024 * 1024 ? 1 : 0)}/s`;
+
+// One direction of the network: an arrow in its colour (green coming in, yellow going out, as in the Network chart),
+// then the speed. The title of the block says which is which, in the same order.
+const Flow = ({ up, value }: { up?: boolean; value: number }) => (
+    <span className={'flex items-center gap-1.5 text-base leading-6 min-w-0'}>
+        <Icon
+            icon={up ? faArrowUp : faArrowDown}
+            className={classNames('w-3 h-3 flex-shrink-0', up ? 'text-yellow-400' : 'text-green-400')}
+        />
+        <span className={'truncate'}>{speed(value)}</span>
+    </span>
+);
+
 const ServerDetailsBlock = ({ className }: { className?: string }) => {
     const [stats, setStats] = useState<Stats>({ memory: 0, cpu: 0, disk: 0, uptime: 0 });
-    const [history, setHistory] = useState<Record<'cpu' | 'memory' | 'disk', number[]>>({
+    const [history, setHistory] = useState<Record<'cpu' | 'memory' | 'disk' | 'rx' | 'tx', number[]>>({
         cpu: [],
         memory: [],
         disk: [],
+        rx: [],
+        tx: [],
     });
+    // The network speeds (bytes per second): Wings gives totals since the start, the speed is the difference between
+    // two readings over the time between them.
+    const [network, setNetwork] = useState({ rx: 0, tx: 0 });
+    const lastNetwork = useRef<{ rx: number; tx: number; at: number } | null>(null);
 
     const status = ServerContext.useStoreState((state) => state.status.value);
     const fivem = useFiveM();
@@ -82,45 +110,6 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
         [limits]
     );
 
-    const allocationHost = ServerContext.useStoreState((state) => {
-        const match = state.server.data!.allocations.find((allocation) => allocation.isDefault);
-
-        return !match ? null : match.alias || ip(match.ip);
-    });
-    const allocationPort = ServerContext.useStoreState(
-        (state) => state.server.data!.allocations.find((allocation) => allocation.isDefault)?.port
-    );
-    const allocationId = ServerContext.useStoreState(
-        (state) => state.server.data!.allocations.find((allocation) => allocation.isDefault)?.id
-    );
-    const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
-
-    // A name that leads to the main address (an own domain that points at the server, or a subdomain of the panel):
-    // shown instead of the IP, since it is what players type.
-    const [hostname, setHostname] = useState<string | null>(null);
-    useEffect(() => {
-        let alive = true;
-        getSubdomains(uuid)
-            .then((page) => {
-                if (!alive) return;
-                const own = page.custom.data.find((d) => d.verified && d.allocationId === allocationId);
-                const sub = page.data.find((d) => d.allocationId === allocationId);
-                setHostname(own?.hostname || sub?.fqdn || null);
-            })
-            .catch(() => alive && setHostname(null));
-
-        return () => {
-            alive = false;
-        };
-    }, [uuid, allocationId]);
-    // Only the name: the SRV record (or the default port of the game) takes players to the right port.
-    const named = hostname || null;
-
-    // What gets copied is always the real address, even while it is hidden on screen.
-    const allocation =
-        named ??
-        (allocationHost === null || allocationPort === undefined ? 'n/a' : `${allocationHost}:${allocationPort}`);
-
     useEffect(() => {
         if (!connected || !instance) {
             return;
@@ -143,17 +132,36 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             disk: stats.disk_bytes,
             uptime: stats.uptime || 0,
         });
+        const now = Date.now() / 1000;
+        const rxTotal = Number(stats.network?.rx_bytes) || 0;
+        const txTotal = Number(stats.network?.tx_bytes) || 0;
+        const before = lastNetwork.current;
+        // A total that went down means the server restarted: that reading only starts again from it.
+        const rates =
+            before && rxTotal >= before.rx && txTotal >= before.tx
+                ? {
+                      rx: (rxTotal - before.rx) / Math.max(0.5, now - before.at),
+                      tx: (txTotal - before.tx) / Math.max(0.5, now - before.at),
+                  }
+                : { rx: 0, tx: 0 };
+        lastNetwork.current = { rx: rxTotal, tx: txTotal, at: now };
+        setNetwork(rates);
+
         setHistory((prev) => ({
             cpu: pushHistory(prev.cpu, stats.cpu_absolute || 0),
             memory: pushHistory(prev.memory, stats.memory_bytes || 0),
             disk: pushHistory(prev.disk, stats.disk_bytes || 0),
+            rx: pushHistory(prev.rx, rates.rx),
+            tx: pushHistory(prev.tx, rates.tx),
         }));
     });
 
     // When the server stops, the little trend lines are cleared so they do not show a stale minute.
     useEffect(() => {
         if (status === 'offline') {
-            setHistory({ cpu: [], memory: [], disk: [] });
+            setHistory({ cpu: [], memory: [], disk: [], rx: [], tx: [] });
+            setNetwork({ rx: 0, tx: 0 });
+            lastNetwork.current = null;
         }
     }, [status]);
 
@@ -161,22 +169,8 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
         // A row of figures above the console, as many columns as fit.
         <div
             className={classNames('grid gap-3', className)}
-            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}
+            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}
         >
-            <StatBlock icon={faWifi} title={'Address'} copyOnClick={allocation}>
-                {named ? (
-                    <span
-                        css={tw`block whitespace-normal break-all text-sm sm:text-base leading-snug`}
-                        title={allocationHost ? `${allocationHost}:${allocationPort}` : undefined}
-                    >
-                        {named}
-                    </span>
-                ) : allocationHost === null || allocationPort === undefined ? (
-                    allocation
-                ) : (
-                    <HiddenAddress host={allocationHost} port={allocationPort} />
-                )}
-            </StatBlock>
             {fivem.isFiveM && (
                 <StatBlock
                     icon={faUsers}
@@ -279,6 +273,35 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                 }
             >
                 <Limit limit={textLimits.disk}>{bytesToString(stats.disk)}</Limit>
+            </StatBlock>
+            <StatBlock
+                icon={faExchangeAlt}
+                title={'In / Out'}
+                sparkline={
+                    status !== 'offline' && (
+                        <>
+                            <Sparkline
+                                points={history.rx}
+                                max={Math.max(1024, ...history.rx, ...history.tx)}
+                                color={theme('colors.green.400')}
+                            />
+                            <Sparkline
+                                points={history.tx}
+                                max={Math.max(1024, ...history.rx, ...history.tx)}
+                                color={theme('colors.yellow.400')}
+                            />
+                        </>
+                    )
+                }
+            >
+                {status === 'offline' ? (
+                    <span className={'text-gray-400'}>Offline</span>
+                ) : (
+                    <>
+                        <Flow value={network.rx} />
+                        <Flow up value={network.tx} />
+                    </>
+                )}
             </StatBlock>
         </div>
     );
