@@ -27,7 +27,7 @@ class FileHosting
     public const INLINE = [
         'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'image/bmp',
         'video/mp4', 'video/webm', 'video/ogg',
-        'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/x-wav', 'audio/webm', 'audio/mp4', 'audio/aac', 'audio/flac', 'audio/x-flac',
+        'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/x-wav', 'audio/webm', 'audio/mp4', 'audio/aac', 'audio/flac', 'audio/x-flac', 'audio/x-m4a',
     ];
 
     // The names a "media only" hosting accepts.
@@ -294,6 +294,45 @@ class FileHosting
             'path' => $relative,
             'mime' => mb_substr($mime, 0, 100),
             'size' => $upload['size'],
+            'token' => Str::random(24),
+            'public' => $this->config()['public'],
+        ]);
+
+        return $file;
+    }
+
+    /**
+     * Keeps a file made on the panel (a conversion) as a file of the user, in the given folder: it must fit in the
+     * space left. The file is moved (it is gone from its first place afterwards).
+     *
+     * @throws DisplayException
+     */
+    public function adopt(User $user, string $path, string $name, string $folder): UserFile
+    {
+        $size = (int) @filesize($path);
+        if ($size < 1) {
+            throw new DisplayException('The converted file is empty.');
+        }
+        if ($this->used($user) + $size > $this->quota($user)) {
+            throw new DisplayException('There is not enough space left for the converted file.');
+        }
+
+        $uuid = (string) Str::uuid();
+        $relative = 'user-files/' . $user->id . '/' . $uuid;
+        $this->directory((string) $user->id);
+        if (!@rename($path, storage_path('app/' . $relative))) {
+            throw new DisplayException('The file could not be written on the panel.');
+        }
+
+        /** @var UserFile $file */
+        $file = UserFile::query()->create([
+            'uuid' => $uuid,
+            'user_id' => $user->id,
+            'name' => $this->cleanName($name),
+            'folder' => $this->cleanFolder($folder),
+            'path' => $relative,
+            'mime' => mb_substr($this->detect(storage_path('app/' . $relative)), 0, 100),
+            'size' => $size,
             'token' => Str::random(24),
             'public' => $this->config()['public'],
         ]);

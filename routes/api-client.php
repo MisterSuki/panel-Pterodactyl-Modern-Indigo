@@ -63,6 +63,8 @@ Route::prefix('/hosting')->group(function () {
     Route::delete('/uploads/{upload}', [Client\FileHostingController::class, 'cancel'])->where('upload', '[A-Za-z0-9]{32}');
     Route::post('/bulk', [Client\FileHostingController::class, 'bulk'])->middleware('throttle:60,1,hosting-edit');
     Route::post('/shares', [Client\FileHostingController::class, 'share'])->middleware('throttle:60,1,hosting-edit');
+    Route::get('/conversions', [Client\FileHostingController::class, 'conversions'])->middleware('throttle:120,1,hosting-conversions');
+    Route::post('/{uuid}/convert', [Client\FileHostingController::class, 'convert'])->whereUuid('uuid')->middleware('throttle:30,1,hosting-convert');
     Route::patch('/{uuid}', [Client\FileHostingController::class, 'update'])->whereUuid('uuid')->middleware('throttle:60,1,hosting-edit');
     Route::delete('/{uuid}', [Client\FileHostingController::class, 'delete'])->whereUuid('uuid')->middleware('throttle:60,1,hosting-edit');
 });

@@ -823,6 +823,7 @@ run_update() {
         ok "Database up to date"
         artisan p:web:setup >/dev/null 2>&1 || warn "The eggs of the websites could not be created: use the Web Hosting page of the admin area."
     fi
+    install_ffmpeg
     INSTALLING=false
 
     local env_file="$PANEL_PATH/.env"
@@ -1698,6 +1699,19 @@ apt_install() {
     DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$@"
 }
 
+# ffmpeg, for the converter of "My files" (pictures, videos and sounds into another format). Not fatal: without it
+# the converter is simply not offered.
+install_ffmpeg() {
+    command -v ffmpeg >/dev/null 2>&1 && return 0
+    command -v apt-get >/dev/null 2>&1 || { warn "ffmpeg is not installed: the converter of My files stays off."; return 0; }
+    info "Installing ffmpeg (the converter of My files)"
+    if { apt-get update -qq && apt_install ffmpeg; } >/dev/null 2>&1; then
+        ok "ffmpeg installed"
+    else
+        warn "ffmpeg could not be installed: the converter of My files stays off (apt-get install ffmpeg)."
+    fi
+}
+
 # ---------------------------------------------------------------------------------------------
 # NEW PANEL install
 # ---------------------------------------------------------------------------------------------
@@ -1738,6 +1752,7 @@ install_packages() {
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
     apt_install ca-certificates curl gnupg tar unzip git openssl cron
+    apt_install ffmpeg || warn "ffmpeg could not be installed: the converter of My files stays off."
 
     if [[ "$OS_ID" == "ubuntu" ]]; then
         apt_install software-properties-common

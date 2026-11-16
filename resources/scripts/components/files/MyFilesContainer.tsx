@@ -9,6 +9,7 @@ import {
     faCloudUploadAlt,
     faCopy,
     faDownload,
+    faExchangeAlt,
     faExternalLinkAlt,
     faFile,
     faFileAudio,
@@ -32,6 +33,7 @@ import {
     bulkHostedFiles,
     BulkAction,
     deleteHostedFile,
+    convertTargets,
     getHostedFiles,
     HostedFile,
     HostingMeta,
@@ -42,6 +44,7 @@ import { bytesToString } from '@/lib/formatters';
 import { httpErrorToHuman } from '@/api/http';
 import useFlash from '@/plugins/useFlash';
 import FolderShareDialog from '@/components/files/FolderShareDialog';
+import { ConversionsPanel, ConvertDialog } from '@/components/files/FileConversions';
 
 type Filter = 'all' | 'image' | 'video' | 'audio' | 'other';
 
@@ -227,6 +230,9 @@ export default () => {
     const [path, setPath] = useState('');
     // The folder whose public link is being looked at.
     const [sharing, setSharing] = useState<string | null>(null);
+    // The file whose formats are being chosen, and a counter to look at the conversions at once after one started.
+    const [converting, setConverting] = useState<HostedFile | null>(null);
+    const [conversionsSeen, setConversionsSeen] = useState(0);
     const [filter, setFilter] = useState<Filter>('all');
     const [search, setSearch] = useState('');
     const [uploads, setUploads] = useState<Upload[]>([]);
@@ -597,6 +603,8 @@ export default () => {
                         </div>
                     </div>
                 )}
+
+                {meta?.converter && <ConversionsPanel refreshKey={conversionsSeen} onDone={() => mutate()} />}
 
                 {uploads.length > 0 && (
                     <div css={tw`flex flex-col gap-2 mb-6`}>
@@ -1005,6 +1013,13 @@ export default () => {
                                                         onClick={() => togglePublic(file)}
                                                     />
                                                 )}
+                                                {meta?.converter && convertTargets(file).length > 0 && (
+                                                    <IconButton
+                                                        title={'Convert'}
+                                                        icon={faExchangeAlt}
+                                                        onClick={() => setConverting(file)}
+                                                    />
+                                                )}
                                                 <IconButton
                                                     title={'Rename'}
                                                     icon={faPen}
@@ -1149,6 +1164,12 @@ export default () => {
                     </Button>
                 </Dialog.Footer>
             </Dialog>
+
+            <ConvertDialog
+                file={converting}
+                onClose={() => setConverting(null)}
+                onStarted={() => setConversionsSeen((n) => n + 1)}
+            />
 
             <FolderShareDialog
                 folder={sharing}

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Models\UserFile;
+use Pterodactyl\Services\Files\FileConverter;
 use Pterodactyl\Services\Files\FileHosting;
 
 /**
@@ -15,7 +16,7 @@ use Pterodactyl\Services\Files\FileHosting;
  */
 class FileHostingController extends ClientApiController
 {
-    public function __construct(private FileHosting $hosting)
+    public function __construct(private FileHosting $hosting, private FileConverter $converter)
     {
         parent::__construct();
     }
@@ -37,6 +38,7 @@ class FileHostingController extends ClientApiController
                 'media_only' => $config['types'] === 'media',
                 'public_allowed' => $config['public'],
                 'shares' => $this->hosting->shares($user),
+                'converter' => $this->converter->available(),
             ],
         ]);
     }
@@ -164,6 +166,28 @@ class FileHostingController extends ClientApiController
         }
 
         return new JsonResponse(['data' => $this->hosting->shares($user)]);
+    }
+
+    /**
+     * Converts a file into another format (in the background); the new file appears next to it.
+     */
+    public function convert(Request $request, string $uuid): JsonResponse
+    {
+        $this->open();
+        $data = $request->validate(['format' => ['required', 'string', 'in:' . implode(',', array_keys(FileConverter::FORMATS))]]);
+        $conversion = $this->converter->start($request->user(), $this->find($request, $uuid), $data['format']);
+
+        return new JsonResponse(['data' => $this->converter->present($conversion)]);
+    }
+
+    /**
+     * The conversions of the last day, to follow them.
+     */
+    public function conversions(Request $request): JsonResponse
+    {
+        $this->open();
+
+        return new JsonResponse(['data' => $this->converter->recent($request->user())]);
     }
 
     public function delete(Request $request, string $uuid): Response

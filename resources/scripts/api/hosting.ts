@@ -32,6 +32,21 @@ export interface HostingMeta {
     mediaOnly: boolean;
     publicAllowed: boolean;
     shares: FolderShare[];
+    // ffmpeg is on the panel: files can be converted.
+    converter: boolean;
+}
+
+// A file being turned into another format, or turned into it in the last day.
+export interface FileConversion {
+    id: number;
+    name: string;
+    format: string;
+    state: 'queued' | 'running' | 'done' | 'failed';
+    progress: number;
+    error: string | null;
+    // The uuid of the new file, once it is made.
+    result: string | null;
+    createdAt: Date | null;
 }
 
 /* eslint-disable camelcase */
@@ -60,6 +75,7 @@ export const getHostedFiles = (): Promise<{ files: HostedFile[]; meta: HostingMe
             mediaOnly: !!data.meta.media_only,
             publicAllowed: !!data.meta.public_allowed,
             shares: data.meta.shares || [],
+            converter: !!data.meta.converter,
         },
     }));
 /* eslint-enable camelcase */
@@ -151,6 +167,54 @@ export const deleteHostedFile = (uuid: string): Promise<void> =>
 // Shares a folder with a public link, or stops sharing it; gives the shared folders back.
 export const shareHostedFolder = (folder: string, share: boolean): Promise<FolderShare[]> =>
     http.post('/api/client/hosting/shares', { folder, share }).then(({ data }) => data.data || []);
+
+// The formats a file can be turned into: the same list as the panel (FileConverter::targets).
+export const convertTargets = (file: HostedFile): string[] => {
+    const mime = file.mime;
+    let list: string[] = [];
+    if (mime === 'image/svg+xml') list = [];
+    else if (mime === 'image/gif') list = ['mp4', 'webm', 'png'];
+    else if (mime.startsWith('image/')) list = ['png', 'jpg', 'webp', 'gif'];
+    else if (mime.startsWith('video/')) list = ['mp4', 'webm', 'gif', 'mp3'];
+    else if (mime.startsWith('audio/')) list = ['mp3', 'ogg', 'wav', 'm4a', 'flac'];
+    const same: Record<string, string> = {
+        'image/png': 'png',
+        'image/jpeg': 'jpg',
+        'image/webp': 'webp',
+        'image/gif': 'gif',
+        'video/mp4': 'mp4',
+        'video/webm': 'webm',
+        'audio/mpeg': 'mp3',
+        'audio/mp3': 'mp3',
+        'audio/ogg': 'ogg',
+        'audio/wav': 'wav',
+        'audio/x-wav': 'wav',
+        'audio/mp4': 'm4a',
+        'audio/flac': 'flac',
+        'audio/x-flac': 'flac',
+    };
+
+    return list.filter((format) => format !== same[mime]);
+};
+
+/* eslint-disable camelcase */
+const mapConversion = (data: any): FileConversion => ({
+    id: data.id,
+    name: data.name,
+    format: data.format,
+    state: data.state,
+    progress: data.progress || 0,
+    error: data.error || null,
+    result: data.result || null,
+    createdAt: data.created_at ? new Date(data.created_at) : null,
+});
+/* eslint-enable camelcase */
+
+export const convertHostedFile = (uuid: string, format: string): Promise<FileConversion> =>
+    http.post(`/api/client/hosting/${uuid}/convert`, { format }).then(({ data }) => mapConversion(data.data));
+
+export const getConversions = (): Promise<FileConversion[]> =>
+    http.get('/api/client/hosting/conversions').then(({ data }) => (data.data || []).map(mapConversion));
 
 export type BulkAction = 'delete' | 'public' | 'private' | 'move';
 
