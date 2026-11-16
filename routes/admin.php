@@ -251,6 +251,8 @@ Route::group(['prefix' => 'users', 'middleware' => 'admin.can:users'], function 
 
     Route::patch('/view/{user:id}', [Admin\UserController::class, 'update']);
     Route::delete('/view/{user:id}', [Admin\UserController::class, 'delete'])->name('admin.users.delete');
+    // Open the panel as this user (root administrators only, checked by the controller).
+    Route::post('/view/{user:id}/impersonate', [\Pterodactyl\Http\Controllers\Auth\ImpersonationController::class, 'start'])->name('admin.users.impersonate');
 });
 
 /*

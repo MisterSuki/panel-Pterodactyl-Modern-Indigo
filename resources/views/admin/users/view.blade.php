@@ -132,6 +132,24 @@
     <div class="col-xs-12">
         @include('admin.partials.user-live', ['liveUser' => $user, 'live' => $live])
     </div>
+    @if(Auth::user()->root_admin && !$user->root_admin && Auth::user()->id !== $user->id)
+        <div class="col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Open this account</h3>
+                </div>
+                <div class="box-body">
+                    <p class="no-margin">Opens the panel as this user, to see exactly what they see. A banner at the top of the page brings you back to your account. It is written in the activity log.</p>
+                </div>
+                <div class="box-footer">
+                    <form action="{{ route('admin.users.impersonate', $user->id) }}" method="POST">
+                        {!! csrf_field() !!}
+                        <button type="submit" class="btn btn-sm btn-primary pull-right"><i class="fa fa-sign-in"></i> <span>Log in as</span> {{ $user->username }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
     <div class="col-xs-12">
         <div class="box box-danger">
             <div class="box-header with-border">

@@ -2795,5 +2795,13 @@
  "This folder is empty.": "Ce dossier est vide.",
  "Date created": "Date de création",
  "All owners": "Tous les propriétaires",
- "Sort by": "Trier par"
+ "Sort by": "Trier par",
+ "You are using the account of": "Vous utilisez le compte de",
+ "Back to my account": "Revenir à mon compte",
+ "Open this account": "Ouvrir ce compte",
+ "This is your own account.": "C'est votre propre compte.",
+ "The account of another root administrator cannot be opened.": "Le compte d'un autre administrateur principal ne peut pas être ouvert.",
+ "Only a root administrator can open the account of a user.": "Seul un administrateur principal peut ouvrir le compte d'un utilisateur.",
+ "Opens the panel as this user, to see exactly what they see. A banner at the top of the page brings you back to your account. It is written in the activity log.": "Ouvre le panel avec le compte de cet utilisateur, pour voir exactement ce qu'il voit. Un bandeau en haut de la page vous ramène à votre compte. C'est noté dans le journal d'activité.",
+ "Log in as": "Se connecter en tant que"
 }

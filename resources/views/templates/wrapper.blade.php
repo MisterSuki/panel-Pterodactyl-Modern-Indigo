@@ -29,6 +29,9 @@
                 <script>
                     window.PterodactylUser = {!! json_encode(Auth::user()->toVueObject()) !!};
                 </script>
+                @if(session()->has(\Pterodactyl\Http\Controllers\Auth\ImpersonationController::SESSION))
+                    <script>window.PterodactylImpersonating = true;</script>
+                @endif
             @endif
             @if(!empty($siteConfiguration))
                 <script>

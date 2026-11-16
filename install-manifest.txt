@@ -68,6 +68,7 @@ app/Services/Files/FileHosting.php
 app/Http/Controllers/Api/Client/FileHostingController.php
 app/Http/Controllers/Base/UserFileController.php
 app/Http/Controllers/Base/UserFolderController.php
+app/Http/Controllers/Auth/ImpersonationController.php
 resources/views/files/folder.blade.php
 app/Http/Controllers/Admin/FileHostingController.php
 app/Services/WebHosting/WebsiteService.php

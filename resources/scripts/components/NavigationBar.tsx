@@ -1,4 +1,5 @@
 import * as React from 'react';
+import ImpersonationBanner from '@/components/elements/ImpersonationBanner';
 import { Fragment, useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, Transition } from '@headlessui/react';
@@ -327,6 +328,7 @@ export default () => {
 
     return (
         <>
+            <ImpersonationBanner />
             <SupportBubble />
             <ScreenShare />
             <Bar>

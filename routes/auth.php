@@ -65,5 +65,11 @@ Route::post('/logout', [Auth\LoginController::class, 'logout'])
     ->middleware('auth')
     ->name('auth.logout');
 
+// Back to the account of the administrator who opened the account of a user.
+Route::post('/impersonate/stop', [Auth\ImpersonationController::class, 'stop'])
+    ->withoutMiddleware('guest')
+    ->middleware('auth')
+    ->name('auth.impersonate.stop');
+
 // Catch any other combinations of routes and pass them off to the React component.
 Route::fallback([Auth\LoginController::class, 'index']);
