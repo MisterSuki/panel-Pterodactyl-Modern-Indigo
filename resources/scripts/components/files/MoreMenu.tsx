@@ -35,7 +35,12 @@ export default ({ items }: { items: (MoreMenuItem | null | false)[] }) => (
             leaveFrom={'transform scale-100 opacity-100'}
             leaveTo={'transform scale-95 opacity-0'}
         >
-            <Menu.Items className={classNames(styles.items_container, 'w-60 z-30 outline-none bottom-full mb-2 !mt-0 origin-bottom-right')}>
+            <Menu.Items
+                className={classNames(
+                    styles.items_container,
+                    'w-60 z-30 outline-none bottom-full mb-2 !mt-0 origin-bottom-right'
+                )}
+            >
                 <div className={'p-1'}>
                     {items.map((item, index) =>
                         item ? (
