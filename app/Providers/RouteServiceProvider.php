@@ -45,6 +45,8 @@ class RouteServiceProvider extends ServiceProvider
                 Route::get('/status', [\Pterodactyl\Http\Controllers\Base\StatusPageController::class, 'show'])->name('status');
                 // The link of a hosted file, for anyone when it is public.
                 Route::get('/f/{token}', [\Pterodactyl\Http\Controllers\Base\UserFileController::class, 'show'])->where('token', '[A-Za-z0-9]{24}')->middleware('throttle:600,1,hosted-files')->name('files.show');
+                // The page of a shared folder, for anyone with the link.
+                Route::get('/d/{token}', [\Pterodactyl\Http\Controllers\Base\UserFolderController::class, 'show'])->where('token', '[A-Za-z0-9]{24}')->middleware('throttle:120,1,hosted-folders')->name('files.folder');
 
                 Route::middleware([ShowLandingToGuests::class, 'auth.session', RequireTwoFactorAuthentication::class])
                     ->group(base_path('routes/base.php'));

@@ -11,7 +11,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * The link of a hosted file (/f/<token>): anyone with the link when the file is public, only its owner otherwise.
+ * The link of a hosted file (/f/<token>): anyone with the link when the file is public or in a shared folder, only its
+ * owner otherwise.
  * Safe pictures, videos and sounds are shown (videos can be sought); every other file is downloaded, always inside a
  * strict sandbox, so nothing in a file can run on the domain of the panel.
  */
@@ -28,7 +29,8 @@ class UserFileController extends Controller
         if (!$file || !$this->hosting->enabled() || !is_file($this->hosting->path($file))) {
             throw new NotFoundHttpException();
         }
-        if (!$file->public && $request->user()?->id !== $file->user_id) {
+        // A private file is seen by its owner, and by anyone while it is in a shared folder.
+        if (!$file->public && $request->user()?->id !== $file->user_id && !$this->hosting->inSharedFolder($file)) {
             throw new NotFoundHttpException();
         }
 
@@ -44,6 +46,7 @@ class UserFileController extends Controller
             'X-Content-Type-Options' => 'nosniff',
             'Content-Security-Policy' => "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox",
             'Referrer-Policy' => 'no-referrer',
+            // Not kept by caches unless the file itself is public: a folder can stop being shared.
             'Cache-Control' => $file->public ? 'public, max-age=86400' : 'private, no-store',
         ], true, null, false, false);
         $fallback = (string) preg_replace('/[^A-Za-z0-9._-]/', '_', Str::ascii($file->name)) ?: 'file';

@@ -2777,5 +2777,20 @@
  "Search a website...": "Rechercher un site...",
  "No website matches your search.": "Aucun site ne correspond à votre recherche.",
  "There are no other websites to display.": "Aucun autre site web à afficher.",
- "There are no websites associated with your account.": "Aucun site web n'est associé à votre compte."
+ "There are no websites associated with your account.": "Aucun site web n'est associé à votre compte.",
+ "Share the folder": "Partager le dossier",
+ "Anyone with the link sees the files of this folder and of its folders, and can download them.": "Toute personne qui a le lien voit les fichiers de ce dossier et de ses sous-dossiers, et peut les télécharger.",
+ "Opened": "Ouvert",
+ "times": "fois",
+ "Only you see this folder. Share it to get a link: anyone with it will see its files and the files of its folders, and can download them.": "Vous seul voyez ce dossier. Partagez-le pour obtenir un lien : toute personne qui l'a verra ses fichiers et ceux de ses sous-dossiers, et pourra les télécharger.",
+ "Stop sharing": "Arrêter le partage",
+ "Share with a link": "Partager avec un lien",
+ "Shared with a link": "Partagé avec un lien",
+ "Share this folder": "Partager ce dossier",
+ "Share": "Partager",
+ "Choose a folder to share.": "Choisissez un dossier à partager.",
+ "Shared folder": "Dossier partagé",
+ "Shared by": "Partagé par",
+ "file": "fichier",
+ "This folder is empty.": "Ce dossier est vide."
 }

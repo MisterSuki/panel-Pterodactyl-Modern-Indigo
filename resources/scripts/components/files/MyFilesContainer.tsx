@@ -21,6 +21,7 @@ import {
     faSearch,
     faTimes,
     faRedo,
+    faShareAlt,
     faTrashAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import PageContentBlock from '@/components/elements/PageContentBlock';
@@ -40,6 +41,7 @@ import {
 import { bytesToString } from '@/lib/formatters';
 import { httpErrorToHuman } from '@/api/http';
 import useFlash from '@/plugins/useFlash';
+import FolderShareDialog from '@/components/files/FolderShareDialog';
 
 type Filter = 'all' | 'image' | 'video' | 'audio' | 'other';
 
@@ -223,6 +225,8 @@ export default () => {
         revalidateOnFocus: false,
     });
     const [path, setPath] = useState('');
+    // The folder whose public link is being looked at.
+    const [sharing, setSharing] = useState<string | null>(null);
     const [filter, setFilter] = useState<Filter>('all');
     const [search, setSearch] = useState('');
     const [uploads, setUploads] = useState<Upload[]>([]);
@@ -257,6 +261,7 @@ export default () => {
 
     const all = data?.files || [];
     const meta = data?.meta;
+    const isShared = (folder: string) => !!meta?.shares.some((share) => share.folder === folder);
     const ratio = meta && meta.quota > 0 ? Math.min(1, meta.used / meta.quota) : 0;
     const words = search.trim().toLowerCase();
 
@@ -765,6 +770,15 @@ export default () => {
                             </nav>
                         )}
                     </div>
+                    {!selecting && path && (
+                        <Button.Text size={Button.Sizes.Small} onClick={() => setSharing(path)}>
+                            <FontAwesomeIcon
+                                icon={isShared(path) ? faGlobe : faShareAlt}
+                                css={[tw`mr-2`, isShared(path) && tw`text-green-400`]}
+                            />
+                            <span>{isShared(path) ? 'Shared with a link' : 'Share this folder'}</span>
+                        </Button.Text>
+                    )}
                     {selecting && (
                         <div css={tw`flex flex-wrap items-center gap-1`}>
                             {meta?.publicAllowed && (
@@ -880,7 +894,7 @@ export default () => {
                                             css={tw`text-xl`}
                                             style={{ color: '#f5a524' }}
                                         />
-                                        <span css={tw`min-w-0`}>
+                                        <span css={tw`min-w-0 flex-1`}>
                                             <span css={tw`block truncate text-sm font-medium text-neutral-100`}>
                                                 {name}
                                             </span>
@@ -888,6 +902,26 @@ export default () => {
                                                 {info.files} <span>files</span> · {bytesToString(info.size)}
                                             </span>
                                         </span>
+                                        <button
+                                            type={'button'}
+                                            title={isShared(join(path, name)) ? 'Shared with a link' : 'Share'}
+                                            aria-label={'Share'}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSharing(join(path, name));
+                                            }}
+                                            css={[
+                                                tw`flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-150`,
+                                                isShared(join(path, name))
+                                                    ? tw`text-green-400 bg-green-500/10 hover:bg-green-500/20`
+                                                    : tw`text-neutral-400 hover:text-neutral-100 hover:bg-neutral-600`,
+                                            ]}
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={isShared(join(path, name)) ? faGlobe : faShareAlt}
+                                                css={tw`text-sm`}
+                                            />
+                                        </button>
                                     </div>
                                 ))}
                             </div>
@@ -1115,6 +1149,16 @@ export default () => {
                     </Button>
                 </Dialog.Footer>
             </Dialog>
+
+            <FolderShareDialog
+                folder={sharing}
+                shares={meta?.shares || []}
+                allowed={!!meta?.publicAllowed}
+                onClose={() => setSharing(null)}
+                onChange={(shares) =>
+                    mutate((current) => current && { ...current, meta: { ...current.meta, shares } }, false)
+                }
+            />
 
             <Dialog.Confirm
                 open={removing !== null}

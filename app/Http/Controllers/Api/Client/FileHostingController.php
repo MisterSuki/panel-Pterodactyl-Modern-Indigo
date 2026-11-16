@@ -36,6 +36,7 @@ class FileHostingController extends ClientApiController
                 'chunk' => FileHosting::CHUNK,
                 'media_only' => $config['types'] === 'media',
                 'public_allowed' => $config['public'],
+                'shares' => $this->hosting->shares($user),
             ],
         ]);
     }
@@ -146,6 +147,23 @@ class FileHostingController extends ClientApiController
         }
 
         return new JsonResponse(['data' => ['count' => $files->count()]]);
+    }
+
+    /**
+     * Shares a folder (and its folders) with a public link, or stops sharing it.
+     */
+    public function share(Request $request): JsonResponse
+    {
+        $this->open();
+        $data = $request->validate(['folder' => ['required', 'string', 'max:500'], 'share' => ['required', 'boolean']]);
+        $user = $request->user();
+        if ($data['share']) {
+            $this->hosting->shareFolder($user, $data['folder']);
+        } else {
+            $this->hosting->unshareFolder($user, $data['folder']);
+        }
+
+        return new JsonResponse(['data' => $this->hosting->shares($user)]);
     }
 
     public function delete(Request $request, string $uuid): Response

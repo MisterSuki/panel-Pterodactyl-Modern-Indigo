@@ -8,6 +8,7 @@ use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
 use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Models\User;
 use Pterodactyl\Models\UserFile;
+use Pterodactyl\Models\UserFolderShare;
 
 /**
  * The file hosting of the users: pictures, videos, sounds or any file kept on the panel, with a link to share them.
@@ -108,6 +109,82 @@ class FileHosting
     public function move(User $user, array $uuids, string $folder): int
     {
         return UserFile::query()->where('user_id', $user->id)->whereIn('uuid', $uuids)->update(['folder' => $this->cleanFolder($folder)]);
+    }
+
+    /**
+     * Shares a folder with a public link (the same link if it was already shared).
+     *
+     * @throws DisplayException
+     */
+    public function shareFolder(User $user, string $folder): UserFolderShare
+    {
+        if (!$this->config()['public']) {
+            throw new DisplayException('Public links are turned off by the administration.');
+        }
+        $folder = $this->cleanFolder($folder);
+        if ($folder === '') {
+            throw new DisplayException('Choose a folder to share.');
+        }
+
+        /** @var UserFolderShare $share */
+        $share = UserFolderShare::query()->firstOrCreate(
+            ['user_id' => $user->id, 'folder' => $folder],
+            ['token' => Str::random(24)]
+        );
+
+        return $share;
+    }
+
+    /**
+     * Stops sharing a folder: its link no longer works (files shared one by one keep their own link).
+     */
+    public function unshareFolder(User $user, string $folder): void
+    {
+        UserFolderShare::query()->where('user_id', $user->id)->where('folder', $this->cleanFolder($folder))->delete();
+    }
+
+    /**
+     * The shared folders of a user, with their link.
+     *
+     * @return array<int, array{folder: string, url: string, views: int}>
+     */
+    public function shares(User $user): array
+    {
+        return UserFolderShare::query()->where('user_id', $user->id)->orderBy('folder')->get()
+            ->map(fn (UserFolderShare $share) => $this->presentShare($share))->values()->all();
+    }
+
+    /**
+     * @return array{folder: string, url: string, views: int}
+     */
+    public function presentShare(UserFolderShare $share): array
+    {
+        return [
+            'folder' => $share->folder,
+            'url' => rtrim((string) config('app.url'), '/') . '/d/' . $share->token,
+            'views' => $share->views,
+        ];
+    }
+
+    /**
+     * Whether a file is in a shared folder of its owner (in it, or in one of its folders), while public links are on.
+     */
+    public function inSharedFolder(UserFile $file): bool
+    {
+        if (!$this->config()['public'] || (string) $file->folder === '') {
+            return false;
+        }
+
+        return UserFolderShare::query()->where('user_id', $file->user_id)->pluck('folder')
+            ->contains(fn (string $shared) => $this->within((string) $file->folder, $shared));
+    }
+
+    /**
+     * Whether a folder is the given one or inside it ("A/B" is within "A", "AB" is not).
+     */
+    public function within(string $folder, string $parent): bool
+    {
+        return $folder === $parent || str_starts_with($folder, $parent . '/');
     }
 
     public function used(User $user): int

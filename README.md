@@ -194,6 +194,7 @@ Le script te propose un menu, ou tu lui donnes directement ce que tu veux :
 - une page **Mes fichiers** pour garder **images, vidéos, sons ou n'importe quel fichier**, avec un **lien à partager** (Discord…)
 - envoi par glisser-déposer, **dossiers entiers sans les zipper**, gros fichiers envoyés par morceaux (au-delà de la limite de nginx)
 - **dossiers**, cases à cocher sur les fichiers **et les dossiers**, puis public / privé / déplacer / supprimer, aperçus et lecteur vidéo
+- **partage d'un dossier entier** avec un lien public (`/d/…`) : une page avec ses fichiers et ses sous-dossiers, aperçus et téléchargement, jusqu'à ce qu'on arrête le partage
 - fermé par défaut : l'admin l'ouvre et fixe l'**espace** (en Mo ou Go), pour tous ou **par utilisateur**
 
 ### 🔑 Sans mot de passe

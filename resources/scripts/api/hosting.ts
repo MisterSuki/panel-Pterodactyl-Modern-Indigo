@@ -17,6 +17,13 @@ export interface HostedFile {
     createdAt: Date | null;
 }
 
+// A folder shared with a public link (its files and those of its folders).
+export interface FolderShare {
+    folder: string;
+    url: string;
+    views: number;
+}
+
 export interface HostingMeta {
     used: number;
     quota: number;
@@ -24,6 +31,7 @@ export interface HostingMeta {
     chunk: number;
     mediaOnly: boolean;
     publicAllowed: boolean;
+    shares: FolderShare[];
 }
 
 /* eslint-disable camelcase */
@@ -51,6 +59,7 @@ export const getHostedFiles = (): Promise<{ files: HostedFile[]; meta: HostingMe
             chunk: data.meta.chunk,
             mediaOnly: !!data.meta.media_only,
             publicAllowed: !!data.meta.public_allowed,
+            shares: data.meta.shares || [],
         },
     }));
 /* eslint-enable camelcase */
@@ -138,6 +147,10 @@ export const updateHostedFile = (uuid: string, values: { name?: string; public?:
 
 export const deleteHostedFile = (uuid: string): Promise<void> =>
     http.delete(`/api/client/hosting/${uuid}`).then(() => undefined);
+
+// Shares a folder with a public link, or stops sharing it; gives the shared folders back.
+export const shareHostedFolder = (folder: string, share: boolean): Promise<FolderShare[]> =>
+    http.post('/api/client/hosting/shares', { folder, share }).then(({ data }) => data.data || []);
 
 export type BulkAction = 'delete' | 'public' | 'private' | 'move';
 
