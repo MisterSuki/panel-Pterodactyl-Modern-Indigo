@@ -44,6 +44,7 @@ import { bytesToString } from '@/lib/formatters';
 import { httpErrorToHuman } from '@/api/http';
 import useFlash from '@/plugins/useFlash';
 import FolderShareDialog from '@/components/files/FolderShareDialog';
+import MoreMenu from '@/components/files/MoreMenu';
 import { ConversionsPanel, ConvertDialog } from '@/components/files/FileConversions';
 
 type Filter = 'all' | 'image' | 'video' | 'audio' | 'other';
@@ -942,7 +943,7 @@ export default () => {
                                     <div
                                         key={file.uuid}
                                         className={'pd-neon'}
-                                        css={tw`relative flex flex-col overflow-hidden rounded-xl bg-neutral-800`}
+                                        css={tw`relative flex flex-col rounded-xl bg-neutral-800`}
                                         style={
                                             isSelected
                                                 ? { boxShadow: '0 0 0 2px rgb(var(--pd-accent-500))' }
@@ -952,7 +953,7 @@ export default () => {
                                         <button
                                             type={'button'}
                                             onClick={() => (selecting ? toggle(file.uuid) : setViewing(file))}
-                                            css={tw`relative block w-full bg-neutral-900 overflow-hidden`}
+                                            css={tw`relative block w-full bg-neutral-900 overflow-hidden rounded-t-xl`}
                                             style={{ aspectRatio: '16 / 10' }}
                                             aria-label={file.name}
                                         >
@@ -988,53 +989,70 @@ export default () => {
                                                 {` · ${file.views} `}
                                                 <span>views</span>
                                             </p>
-                                            <div css={tw`mt-1.5 flex items-center gap-0.5 -ml-1`}>
-                                                <IconButton
-                                                    title={'Copy the link'}
-                                                    icon={faCopy}
+                                            {/* The two things people do most, with their words; the rest in "More". */}
+                                            <div css={tw`mt-2.5 flex items-center gap-1.5`}>
+                                                <button
+                                                    type={'button'}
                                                     onClick={() => copy(file)}
-                                                />
-                                                <IconButton
-                                                    title={'Open'}
-                                                    icon={faExternalLinkAlt}
-                                                    onClick={() => window.open(file.url, '_blank', 'noopener')}
-                                                />
-                                                <IconButton
-                                                    title={'Download'}
-                                                    icon={faDownload}
+                                                    title={file.url}
+                                                    css={tw`flex-1 min-w-0 flex items-center justify-center gap-1.5 h-8 rounded-md px-2 text-xs font-semibold text-white hover:brightness-110 transition duration-150`}
+                                                    style={{ background: 'rgb(var(--pd-accent-600))' }}
+                                                >
+                                                    <FontAwesomeIcon icon={faCopy} css={tw`flex-shrink-0`} />
+                                                    <span css={tw`truncate`}>Copy the link</span>
+                                                </button>
+                                                <button
+                                                    type={'button'}
                                                     onClick={() =>
                                                         window.open(`${file.url}?dl=1`, '_blank', 'noopener')
                                                     }
-                                                />
-                                                {(meta?.publicAllowed || file.public) && (
-                                                    <IconButton
-                                                        title={file.public ? 'Make it private' : 'Make it public'}
-                                                        icon={file.public ? faGlobe : faLock}
-                                                        onClick={() => togglePublic(file)}
+                                                    css={tw`flex-1 min-w-0 flex items-center justify-center gap-1.5 h-8 rounded-md border border-neutral-600 px-2 text-xs font-semibold text-neutral-100 hover:bg-neutral-700 transition-colors duration-150`}
+                                                >
+                                                    <FontAwesomeIcon icon={faDownload} css={tw`flex-shrink-0`} />
+                                                    <span css={tw`truncate`}>Download</span>
+                                                </button>
+                                                <div css={tw`flex-shrink-0 w-8 h-8`}>
+                                                    <MoreMenu
+                                                        items={[
+                                                            {
+                                                                label: 'Open in a new tab',
+                                                                icon: faExternalLinkAlt,
+                                                                onClick: () =>
+                                                                    window.open(file.url, '_blank', 'noopener'),
+                                                            },
+                                                            (meta?.publicAllowed || file.public) && {
+                                                                label: file.public
+                                                                    ? 'Make it private'
+                                                                    : 'Make it public',
+                                                                icon: file.public ? faLock : faGlobe,
+                                                                onClick: () => togglePublic(file),
+                                                            },
+                                                            !!meta?.converter &&
+                                                                convertTargets(file).length > 0 && {
+                                                                    label: 'Convert',
+                                                                    detail: convertTargets(file)
+                                                                        .map((f) => f.toUpperCase())
+                                                                        .join(', '),
+                                                                    icon: faExchangeAlt,
+                                                                    onClick: () => setConverting(file),
+                                                                },
+                                                            {
+                                                                label: 'Rename',
+                                                                icon: faPen,
+                                                                onClick: () => {
+                                                                    setNewName(file.name);
+                                                                    setRenaming(file);
+                                                                },
+                                                            },
+                                                            {
+                                                                label: 'Delete',
+                                                                icon: faTrashAlt,
+                                                                danger: true,
+                                                                onClick: () => setRemoving([file]),
+                                                            },
+                                                        ]}
                                                     />
-                                                )}
-                                                {meta?.converter && convertTargets(file).length > 0 && (
-                                                    <IconButton
-                                                        title={'Convert'}
-                                                        icon={faExchangeAlt}
-                                                        onClick={() => setConverting(file)}
-                                                    />
-                                                )}
-                                                <IconButton
-                                                    title={'Rename'}
-                                                    icon={faPen}
-                                                    onClick={() => {
-                                                        setNewName(file.name);
-                                                        setRenaming(file);
-                                                    }}
-                                                />
-                                                <span css={tw`flex-1`} />
-                                                <IconButton
-                                                    title={'Delete'}
-                                                    icon={faTrashAlt}
-                                                    danger
-                                                    onClick={() => setRemoving([file])}
-                                                />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

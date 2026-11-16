@@ -2828,5 +2828,6 @@
  "There is not enough space left for the converted file.": "Il ne reste pas assez d'espace pour le fichier converti.",
  "The conversion stopped.": "La conversion s'est arrêtée.",
  "The conversion took too long (more than 2 hours).": "La conversion a pris trop de temps (plus de 2 heures).",
- "The converted file is empty.": "Le fichier converti est vide."
+ "The converted file is empty.": "Le fichier converti est vide.",
+ "Open in a new tab": "Ouvrir dans un nouvel onglet"
 }
