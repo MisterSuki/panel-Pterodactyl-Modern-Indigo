@@ -24,6 +24,18 @@ import classNames from 'classnames';
 import serverGame from '@/components/dashboard/serverGame';
 
 type StatusFilter = 'all' | 'online' | 'offline';
+type SortKey = 'default' | 'name' | 'status' | 'owner' | 'node';
+
+// The orders of the cards; "Date created" is the order of the panel.
+const SORTS: [SortKey, string][] = [
+    ['default', 'Date created'],
+    ['name', 'Name'],
+    ['status', 'Status'],
+    ['owner', 'Owner'],
+    ['node', 'Node'],
+];
+
+const selectStyle = tw`h-9 rounded-md border border-neutral-600 bg-neutral-900 pl-2 pr-7 text-sm text-neutral-100 outline-none focus:border-neutral-500 max-w-[12rem]`;
 
 // How many readings the trend lines keep: at one every 3 seconds, the last two minutes.
 const HISTORY = 40;
@@ -73,6 +85,10 @@ export default ({ websites = false }: { websites?: boolean }) => {
     const [showOnlyAdmin, setShowOnlyAdmin] = usePersistedState(`${uuid}:show_all_servers`, false);
     const [query, setQuery] = useState('');
     const [filter, setFilter] = useState<StatusFilter>('all');
+    // Only the servers of one owner or one node ("" for all of them), and the order of the cards (kept in this browser).
+    const [owner, setOwner] = useState('');
+    const [node, setNode] = useState('');
+    const [sort, setSort] = usePersistedState<SortKey>(`${uuid}:dashboard_sort`, 'default');
     const searchInput = useRef<HTMLInputElement>(null);
 
     // "/" puts the cursor in the search, like on GitHub; Escape empties it.
@@ -103,6 +119,14 @@ export default ({ websites = false }: { websites?: boolean }) => {
     const liveUuids = servers?.items
         .filter((server) => server.status !== 'suspended' && !server.isNodeUnderMaintenance)
         .map((server) => server.uuid);
+    // The owners and the nodes of the servers of the page, for the filters (shown when there is more than one).
+    const owners = Array.from(new Set((servers?.items || []).map((s) => s.ownerName).filter(Boolean))).sort((a, b) =>
+        a.localeCompare(b)
+    );
+    const nodes = Array.from(new Set((servers?.items || []).map((s) => s.node).filter(Boolean))).sort((a, b) =>
+        a.localeCompare(b)
+    );
+
     const { data: usage, error: usageError } = useSWR<Record<string, ServerStats>>(
         liveUuids && liveUuids.length > 0 ? ['dashboard-usage', ...liveUuids] : null,
         () => getServersResourceUsage(liveUuids!),
@@ -224,7 +248,7 @@ export default ({ websites = false }: { websites?: boolean }) => {
                     history={history}
                 />
             )}
-            {servers && servers.items.length > 3 && (
+            {servers && servers.items.length > 1 && (
                 <div css={tw`flex flex-wrap items-center gap-2 mb-4`}>
                     <div css={tw`relative flex-1 min-w-[12rem]`}>
                         <FontAwesomeIcon
@@ -266,6 +290,51 @@ export default ({ websites = false }: { websites?: boolean }) => {
                             </button>
                         ))}
                     </div>
+                    {owners.length > 1 && (
+                        <select
+                            value={owner}
+                            onChange={(e) => setOwner(e.target.value)}
+                            aria-label={'Owner'}
+                            css={selectStyle}
+                        >
+                            <option value={''}>All owners</option>
+                            {owners.map((name) => (
+                                <option key={name} value={name}>
+                                    {name}
+                                </option>
+                            ))}
+                        </select>
+                    )}
+                    {nodes.length > 1 && (
+                        <select
+                            value={node}
+                            onChange={(e) => setNode(e.target.value)}
+                            aria-label={'Node'}
+                            css={selectStyle}
+                        >
+                            <option value={''}>All nodes</option>
+                            {nodes.map((name) => (
+                                <option key={name} value={name}>
+                                    {name}
+                                </option>
+                            ))}
+                        </select>
+                    )}
+                    <select
+                        value={sort}
+                        onChange={(e) => setSort(e.target.value as SortKey)}
+                        aria-label={'Sort by'}
+                        title={'Sort by'}
+                        css={selectStyle}
+                    >
+                        {SORTS.filter(([key]) =>
+                            key === 'owner' ? owners.length > 1 : key === 'node' ? nodes.length > 1 : true
+                        ).map(([key, label]) => (
+                            <option key={key} value={key}>
+                                {label}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             )}
             {!servers ? (
@@ -316,9 +385,25 @@ export default ({ websites = false }: { websites?: boolean }) => {
 
                             return (
                                 (filter === 'all' || (filter === 'online' ? running : offline)) &&
-                                (needle === '' || text.includes(needle))
+                                (needle === '' || text.includes(needle)) &&
+                                (owner === '' || server.ownerName === owner) &&
+                                (node === '' || server.node === node)
                             );
                         });
+                        // Running first, then starting / stopping, then stopped, then unknown.
+                        const ranks: Record<string, number> = { running: 0, starting: 1, stopping: 1, offline: 2 };
+                        const rank = (server: Server) => ranks[usage?.[server.uuid]?.status || ''] ?? 3;
+                        const byName = (a: Server, b: Server) =>
+                            a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+                        if (sort !== 'default') {
+                            items.sort((a, b) => {
+                                if (sort === 'status') return rank(a) - rank(b) || byName(a, b);
+                                if (sort === 'owner') return a.ownerName.localeCompare(b.ownerName) || byName(a, b);
+                                if (sort === 'node') return a.node.localeCompare(b.node) || byName(a, b);
+
+                                return byName(a, b);
+                            });
+                        }
 
                         return all.length > 0 && items.length === 0 ? (
                             <p css={tw`text-center text-sm text-neutral-400`}>

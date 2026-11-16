@@ -2792,5 +2792,8 @@
  "Shared folder": "Dossier partagé",
  "Shared by": "Partagé par",
  "file": "fichier",
- "This folder is empty.": "Ce dossier est vide."
+ "This folder is empty.": "Ce dossier est vide.",
+ "Date created": "Date de création",
+ "All owners": "Tous les propriétaires",
+ "Sort by": "Trier par"
 }
