@@ -12,6 +12,7 @@ import ServerDetailsBlock from '@/components/server/console/ServerDetailsBlock';
 import { Alert } from '@/components/elements/alert';
 import StatusPill from '@/components/server/console/StatusPill';
 import TxAdminLink from '@/components/server/console/TxAdminLink';
+import SiteLink from '@/components/server/console/SiteLink';
 
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
@@ -41,6 +42,7 @@ const ServerConsoleContainer = () => {
                         <h1 className={'font-header font-semibold text-2xl text-gray-50 truncate'}>{name}</h1>
                         <StatusPill status={status} className={'flex-shrink-0'} />
                         <TxAdminLink className={'flex-shrink-0'} />
+                        <SiteLink className={'flex-shrink-0'} />
                     </div>
                     {description && <p className={'mt-1 text-sm text-gray-400 line-clamp-2'}>{description}</p>}
                 </div>
