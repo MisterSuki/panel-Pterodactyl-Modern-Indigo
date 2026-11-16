@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarAlt, faClock, faLock, faSlidersH, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarAlt, faClock, faLock, faSlidersH, faUser, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { getPlayersLive } from '@/api/server/insights';
 import serverGame from '@/components/dashboard/serverGame';
 import UpgradeServerDialog from '@/components/dashboard/UpgradeServerDialog';
@@ -244,7 +244,15 @@ const ServerRow = ({
                 </div>
                 <div css={tw`min-w-0 flex-1`}>
                     <p css={tw`text-sm font-semibold text-neutral-50 truncate`}>{server.name}</p>
-                    <p css={tw`text-xs text-neutral-500 truncate`}>{game.name || 'Server'}</p>
+                    <p css={tw`flex items-center gap-1.5 text-xs text-neutral-500 min-w-0`}>
+                        <span css={tw`truncate`}>{game.name || 'Server'}</span>
+                        {server.ownerName && (
+                            <span css={tw`flex items-center gap-1 min-w-0 text-neutral-400`} title={server.ownerName}>
+                                <FontAwesomeIcon icon={faUser} css={tw`text-2xs text-neutral-500`} />
+                                <span css={tw`truncate`}>{server.ownerName}</span>
+                            </span>
+                        )}
+                    </p>
                 </div>
                 {isSuspended ? (
                     <span className={'state'} style={{ background: 'rgba(229, 72, 77, 0.12)', color: '#ff9592' }}>

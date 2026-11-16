@@ -39,6 +39,8 @@ class ServerTransformer extends BaseClientTransformer
 
         return [
             'server_owner' => $user->id === $server->owner_id,
+            // The name of the account the server belongs to, shown on its card.
+            'owner_name' => $server->user->username,
             'identifier' => config('pterodactyl.features.new_server_identifiers')
                 ? $server->identifier
                 : $server->uuidShort,

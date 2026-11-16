@@ -3,7 +3,7 @@ import tw from 'twin.macro';
 import useSWR from 'swr';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronRight, faDesktop } from '@fortawesome/free-solid-svg-icons';
+import { faChevronRight, faDesktop, faUser } from '@fortawesome/free-solid-svg-icons';
 import PageContentBlock from '@/components/elements/PageContentBlock';
 import GreyRowBox from '@/components/elements/GreyRowBox';
 import { getVpsList, Vps } from '@/api/vps';
@@ -38,6 +38,12 @@ const Card = ({ vps }: { vps: Vps }) => {
                 </div>
                 <div css={tw`min-w-0 flex-1`}>
                     <p css={tw`text-sm font-semibold text-neutral-50 truncate`}>{vps.name}</p>
+                    {vps.ownerName && (
+                        <p css={tw`flex items-center gap-1 text-xs text-neutral-400 min-w-0`} title={vps.ownerName}>
+                            <FontAwesomeIcon icon={faUser} css={tw`text-2xs text-neutral-500`} />
+                            <span css={tw`truncate`}>{vps.ownerName}</span>
+                        </p>
+                    )}
                     <p css={tw`text-xs text-neutral-500 truncate`}>
                         {[
                             vps.cores ? `${vps.cores} vCPU` : null,

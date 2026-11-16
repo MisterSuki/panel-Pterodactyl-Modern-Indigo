@@ -34,14 +34,14 @@ class VpsController extends ClientApiController
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $vms = ProxmoxVm::query()->with('host')->accessibleBy($user)->orderBy('name')->limit(100)->get();
+        $vms = ProxmoxVm::query()->with(['host', 'user'])->accessibleBy($user)->orderBy('name')->limit(100)->get();
         $live = $vms->isEmpty() ? [] : $this->proxmox->live($vms);
 
         return new JsonResponse([
             'object' => 'list',
             'data' => $vms->map(fn (ProxmoxVm $vm) => array_merge(
                 $this->proxmox->present($vm, $live[$vm->id] ?? null),
-                ['owner' => $vm->user_id === $user->id],
+                ['owner' => $vm->user_id === $user->id, 'owner_name' => $vm->user->username],
             ))->all(),
         ]);
     }

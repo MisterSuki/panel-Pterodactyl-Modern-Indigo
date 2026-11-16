@@ -25,6 +25,8 @@ export interface Vps {
     uptime: number | null;
     // False when the person is a sub-user of the VPS.
     owner: boolean;
+    // The username of the account the VPS belongs to.
+    ownerName: string;
 }
 
 // What a sub-user may do: start, stop and restart it; open its console; see the root password.
@@ -83,6 +85,7 @@ const map = (data: any): Vps => ({
     netOut: data.net_out ?? null,
     uptime: data.uptime ?? null,
     owner: data.owner !== false,
+    ownerName: data.owner_name || '',
 });
 /* eslint-enable camelcase */
 

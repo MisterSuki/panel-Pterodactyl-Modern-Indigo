@@ -53,6 +53,8 @@ export interface Server {
     };
     eggFeatures: string[];
     eggName: string;
+    // The username of the account the server belongs to.
+    ownerName: string;
     featureLimits: {
         databases: number;
         allocations: number;
@@ -90,6 +92,7 @@ export const rawDataToServerObject = ({ attributes: data }: FractalResponseData)
     limits: { ...data.limits },
     eggFeatures: data.egg_features || [],
     eggName: data.egg_name || '',
+    ownerName: data.owner_name || '',
     featureLimits: { ...data.feature_limits },
     isTransferring: data.is_transferring,
     suspension: data.suspension
