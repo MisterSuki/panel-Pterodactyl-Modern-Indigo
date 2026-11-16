@@ -8,6 +8,7 @@ import {
     faCloudUploadAlt,
     faCode,
     faDesktop,
+    faGlobe,
     faHistory,
     faKey,
     faPalette,
@@ -246,6 +247,7 @@ export default () => {
     const adminAccess = useStoreState((state: ApplicationStore) => state.user.data!.adminAccess);
     const shopOpen = useStoreState((state: ApplicationStore) => !!state.settings.data?.shop?.enabled);
     const vpsCount = useStoreState((state: ApplicationStore) => state.user.data?.vpsCount || 0);
+    const websiteCount = useStoreState((state: ApplicationStore) => state.user.data?.websiteCount || 0);
     const statusOpen = useStoreState((state: ApplicationStore) => !!state.settings.data?.status?.enabled);
     const filesOpen = useStoreState((state: ApplicationStore) => !!state.settings.data?.files?.enabled);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -284,6 +286,12 @@ export default () => {
                 <FontAwesomeIcon icon={faServer} />
                 <span>Servers</span>
             </NavLink>
+            {websiteCount > 0 && (
+                <NavLink to={'/sites'}>
+                    <FontAwesomeIcon icon={faGlobe} />
+                    <span>Websites</span>
+                </NavLink>
+            )}
             {vpsCount > 0 && (
                 <NavLink to={'/vps'}>
                     <FontAwesomeIcon icon={faDesktop} />

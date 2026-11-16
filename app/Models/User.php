@@ -236,6 +236,23 @@ class User extends Model implements
         }
     }
 
+    /**
+     * How many websites (servers of the web hosting nest) the person owns or was invited to, for the "Websites" link
+     * in the top bar: they are listed there, apart from the game servers.
+     */
+    public function websiteCount(): int
+    {
+        try {
+            return Server::query()
+                ->whereHas('nest', fn (Builder $q) => $q->where('name', \Pterodactyl\Services\WebHosting\WebHostingSetup::NEST))
+                ->where(fn (Builder $q) => $q->where('owner_id', $this->id)
+                    ->orWhereHas('subusers', fn (Builder $s) => $s->where('user_id', $this->id)))
+                ->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
     public function toVueObject(): array
     {
         return Collection::make($this->toArray())->except(['id', 'external_id'])
@@ -247,6 +264,7 @@ class User extends Model implements
                 'avatar_url' => $this->avatarUrl(),
                 'appearance' => app(\Pterodactyl\Services\Helpers\Appearance::class)->forUser($this),
                 'vps_count' => $this->vpsCount(),
+                'website_count' => $this->websiteCount(),
             ])
             ->toArray();
     }

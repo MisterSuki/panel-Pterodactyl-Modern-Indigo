@@ -15,6 +15,7 @@ export interface UserData {
     avatar: string;
     // How many VPS (virtual machines of Proxmox) the person was given: the top bar shows a link to them when there are.
     vpsCount?: number;
+    websiteCount?: number;
     createdAt: Date;
     updatedAt: Date;
 }

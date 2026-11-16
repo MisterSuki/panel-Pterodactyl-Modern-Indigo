@@ -27,6 +27,9 @@ export default () => {
                     <Route path={'/'} exact>
                         <DashboardContainer />
                     </Route>
+                    <Route path={'/sites'} exact>
+                        <DashboardContainer websites />
+                    </Route>
                     <Route path={'/shop'} exact>
                         <ShopContainer />
                     </Route>

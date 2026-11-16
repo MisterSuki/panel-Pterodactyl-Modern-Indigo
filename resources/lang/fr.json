@@ -2770,5 +2770,12 @@
  "folder (Files tab or SFTP), then add it as a library in Emby.": "(onglet Fichiers ou SFTP), puis ajoutez-le comme bibliothèque dans Emby.",
  "Its settings and its library are kept in the data folder. Reinstalling the site from Settings updates Emby and keeps them.": "Ses réglages et sa bibliothèque sont gardés dans le dossier data. Réinstaller le site depuis Paramètres met Emby à jour et les garde.",
  "In / Out": "Entrant / Sortant",
- "Add a domain": "Ajouter un domaine"
+ "Add a domain": "Ajouter un domaine",
+ "Websites": "Sites web",
+ "All websites": "Tous les sites web",
+ "Open a website to manage its domains, files and console.": "Ouvrez un site pour gérer ses domaines, ses fichiers et sa console.",
+ "Search a website...": "Rechercher un site...",
+ "No website matches your search.": "Aucun site ne correspond à votre recherche.",
+ "There are no other websites to display.": "Aucun autre site web à afficher.",
+ "There are no websites associated with your account.": "Aucun site web n'est associé à votre compte."
 }

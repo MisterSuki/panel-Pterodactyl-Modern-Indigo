@@ -58,7 +58,9 @@ const today = () => {
     }
 };
 
-export default () => {
+// The list of the game servers (the home page), or with `websites` the list of the websites (the "Websites" page):
+// the websites are the servers whose egg has the "web" feature, kept apart from the game servers.
+export default ({ websites = false }: { websites?: boolean }) => {
     const { search } = useLocation();
     const defaultPage = Number(new URLSearchParams(search).get('page') || '1');
 
@@ -86,10 +88,15 @@ export default () => {
         return () => document.removeEventListener('keydown', onKey);
     }, []);
 
-    const { data: servers, error } = useSWR<PaginatedResult<Server>>(
+    const { data: everything, error } = useSWR<PaginatedResult<Server>>(
         ['/api/client/servers', showOnlyAdmin && rootAdmin, page],
         () => getServers({ page, type: showOnlyAdmin && rootAdmin ? 'admin' : undefined })
     );
+    // Only the servers of this page's kind (game servers, or websites).
+    const servers = everything && {
+        ...everything,
+        items: everything.items.filter((server) => server.eggFeatures.includes('web') === websites),
+    };
 
     // The usage of every server of the page, in one request every 3 seconds (paused while the tab is hidden).
     // Suspended servers and servers on a node under maintenance have nothing to show.
@@ -141,7 +148,7 @@ export default () => {
 
     useEffect(() => {
         if (!servers) return;
-        if (servers.pagination.currentPage > 1 && !servers.items.length) {
+        if (servers.pagination.currentPage > 1 && !everything?.items.length) {
             setPage(1);
         }
     }, [servers?.pagination.currentPage]);
@@ -150,7 +157,11 @@ export default () => {
         // Don't use react-router to handle changing this part of the URL, otherwise it
         // triggers a needless re-render. We just want to track this in the URL incase the
         // user refreshes the page.
-        window.history.replaceState(null, document.title, `/${page <= 1 ? '' : `?page=${page}`}`);
+        window.history.replaceState(
+            null,
+            document.title,
+            `${websites ? '/sites' : '/'}${page <= 1 ? '' : `?page=${page}`}`
+        );
     }, [page]);
 
     useEffect(() => {
@@ -159,13 +170,17 @@ export default () => {
     }, [error]);
 
     return (
-        <PageContentBlock title={'Dashboard'} showFlashKey={'dashboard'}>
+        <PageContentBlock title={websites ? 'Websites' : 'Dashboard'} showFlashKey={'dashboard'}>
             <div css={tw`mb-8 flex flex-wrap items-end justify-between gap-4`}>
                 <div css={tw`min-w-0`}>
                     <p css={tw`text-xs font-medium uppercase tracking-wider text-neutral-500`}>{today()}</p>
                     <h1 css={tw`mt-1.5 text-3xl font-semibold text-neutral-50 tracking-tight truncate`}>
                         {showOnlyAdmin ? (
-                            'All servers'
+                            websites ? (
+                                'All websites'
+                            ) : (
+                                'All servers'
+                            )
                         ) : (
                             <>
                                 <span>{greeting()}</span>, <span className={'pd-gradient-text'}>{username}</span>
@@ -173,7 +188,9 @@ export default () => {
                         )}
                     </h1>
                     <p css={tw`text-sm text-neutral-400 mt-1.5`}>
-                        Open a server to manage its console, files and settings.
+                        {websites
+                            ? 'Open a website to manage its domains, files and console.'
+                            : 'Open a server to manage its console, files and settings.'}
                     </p>
                 </div>
                 <div css={tw`flex items-center gap-4`}>
@@ -201,7 +218,7 @@ export default () => {
             </div>
             {servers && (
                 <DashboardSummary
-                    total={servers.pagination.total}
+                    total={servers.pagination.totalPages > 1 ? servers.pagination.total : servers.items.length}
                     servers={servers.items}
                     usage={usage}
                     history={history}
@@ -220,8 +237,8 @@ export default () => {
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Escape' && setQuery('')}
-                            placeholder={'Search a server...'}
-                            aria-label={'Search a server...'}
+                            placeholder={websites ? 'Search a website...' : 'Search a server...'}
+                            aria-label={websites ? 'Search a website...' : 'Search a server...'}
                             css={tw`w-full h-9 rounded-md border border-neutral-600 bg-neutral-900 pl-9 pr-10 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:border-neutral-500 focus:ring-0`}
                         />
                         {!query && (
@@ -304,7 +321,9 @@ export default () => {
                         });
 
                         return all.length > 0 && items.length === 0 ? (
-                            <p css={tw`text-center text-sm text-neutral-400`}>No server matches your search.</p>
+                            <p css={tw`text-center text-sm text-neutral-400`}>
+                                {websites ? 'No website matches your search.' : 'No server matches your search.'}
+                            </p>
                         ) : items.length > 0 ? (
                             <div css={tw`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4`}>
                                 {items.map((server, index) => (
@@ -322,7 +341,11 @@ export default () => {
                             </div>
                         ) : (
                             <p css={tw`text-center text-sm text-neutral-400`}>
-                                {showOnlyAdmin
+                                {websites
+                                    ? showOnlyAdmin
+                                        ? 'There are no other websites to display.'
+                                        : 'There are no websites associated with your account.'
+                                    : showOnlyAdmin
                                     ? 'There are no other servers to display.'
                                     : 'There are no servers associated with your account.'}
                             </p>
