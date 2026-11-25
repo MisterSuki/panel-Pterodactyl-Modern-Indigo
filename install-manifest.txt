@@ -236,6 +236,12 @@ app/Services/Assistant/SecretMask.php
 app/Services/Assistant/ChangedSinceException.php
 app/Models/AssistantFileChange.php
 database/migrations/2026_11_25_000001_create_assistant_file_changes.php
+database/migrations/2026_11_25_000002_create_claude_connections.php
+app/Models/ClaudeConnection.php
+app/Repositories/Wings/DaemonConsoleRepository.php
+app/Services/Claude/PanelMcp.php
+app/Http/Controllers/Base/McpController.php
+app/Http/Controllers/Api/Client/ClaudeConnectionController.php
 app/Http/Controllers/Admin/SearchController.php
 app/Http/Controllers/Admin/Servers/ServerLiveController.php
 resources/views/admin/appearance.blade.php

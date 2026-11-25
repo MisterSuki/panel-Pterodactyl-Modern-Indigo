@@ -122,6 +122,11 @@ Route::prefix('/account')->middleware(AccountSubject::class)->group(function () 
     Route::post('/api-keys', [Client\ApiKeyController::class, 'store']);
     Route::delete('/api-keys/{identifier}', [Client\ApiKeyController::class, 'delete']);
 
+    // The links that connect the Claude app to the panel.
+    Route::get('/claude', [Client\ClaudeConnectionController::class, 'index']);
+    Route::post('/claude', [Client\ClaudeConnectionController::class, 'store'])->middleware('throttle:10,1,claude-links');
+    Route::delete('/claude/{id}', [Client\ClaudeConnectionController::class, 'delete'])->whereNumber('id');
+
     Route::prefix('/passkeys')->group(function () {
         Route::get('/', [Client\PasskeyController::class, 'index']);
         Route::post('/options', [Client\PasskeyController::class, 'options'])->middleware('throttle:20,1');

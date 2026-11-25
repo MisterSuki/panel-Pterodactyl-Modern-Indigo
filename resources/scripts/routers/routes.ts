@@ -11,6 +11,7 @@ import SettingsContainer from '@/components/server/settings/SettingsContainer';
 import AppearanceContainer from '@/components/dashboard/AppearanceContainer';
 import AccountOverviewContainer from '@/components/dashboard/AccountOverviewContainer';
 import AccountApiContainer from '@/components/dashboard/AccountApiContainer';
+import AccountClaudeContainer from '@/components/dashboard/AccountClaudeContainer';
 import AccountSSHContainer from '@/components/dashboard/ssh/AccountSSHContainer';
 import ActivityLogContainer from '@/components/dashboard/activity/ActivityLogContainer';
 import ServerActivityLogContainer from '@/components/server/ServerActivityLogContainer';
@@ -73,6 +74,11 @@ export default {
             path: '/api',
             name: 'API Credentials',
             component: AccountApiContainer,
+        },
+        {
+            path: '/claude',
+            name: 'Claude',
+            component: AccountClaudeContainer,
         },
         {
             path: '/ssh',

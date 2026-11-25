@@ -38,6 +38,11 @@ class RouteServiceProvider extends ServiceProvider
         Route::model('database', Database::class);
 
         $this->routes(function () {
+            // The connector of the Claude app (MCP): no session and no CSRF, the secret of the link is the
+            // authentication (it acts as its owner, see McpController).
+            Route::post('/mcp/{token}', [\Pterodactyl\Http\Controllers\Base\McpController::class, 'handle'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:180,1,claude-mcp');
+            Route::match(['get', 'delete'], '/mcp/{token}', [\Pterodactyl\Http\Controllers\Base\McpController::class, 'stream'])->where('token', '[A-Za-z0-9]{48}');
+
             Route::middleware('web')->group(function () {
                 // The home page, which anybody can open (the administration can see it even when signed in).
                 Route::get('/welcome', [LandingController::class, 'show'])->name('landing');
