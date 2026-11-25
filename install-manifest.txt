@@ -231,6 +231,11 @@ app/Http/Controllers/Admin/AssistantController.php
 resources/views/admin/assistant.blade.php
 app/Services/Assistant/AssistantSettings.php
 app/Services/Assistant/ServerAssistant.php
+app/Services/Assistant/AssistantFiles.php
+app/Services/Assistant/SecretMask.php
+app/Services/Assistant/ChangedSinceException.php
+app/Models/AssistantFileChange.php
+database/migrations/2026_11_25_000001_create_assistant_file_changes.php
 app/Http/Controllers/Admin/SearchController.php
 app/Http/Controllers/Admin/Servers/ServerLiveController.php
 resources/views/admin/appearance.blade.php

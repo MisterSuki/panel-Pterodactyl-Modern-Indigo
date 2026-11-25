@@ -22,6 +22,9 @@ class ServerAssistant
 {
     private const ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
 
+    // Rounds of tools (reading files, preparing changes) before the AI has to answer.
+    private const TOOL_ROUNDS = 8;
+
     // What is sent at most: lines of console, characters of console, messages of the conversation, characters of one.
     private const CONSOLE_LINES = 200;
     private const CONSOLE_CHARS = 14000;
@@ -35,6 +38,7 @@ class ServerAssistant
         private AssistantSettings $settings,
         private StartupCommandService $startup,
         private DaemonFileRepository $files,
+        private AssistantFiles $assistantFiles,
     ) {
     }
 
@@ -49,13 +53,16 @@ class ServerAssistant
     }
 
     /**
-     * Answers the last question of the conversation.
+     * Answers the last question of the conversation. The AI may read files of the server and prepare changes of
+     * them on the way: the changes are given back with the answer, none is applied.
      *
      * @param array<int, array{role: string, content: string}> $messages
      *
+     * @return array{answer: string, changes: array<int, \Pterodactyl\Models\AssistantFileChange>}
+     *
      * @throws DisplayException
      */
-    public function ask(Server $server, User $user, array $messages, string $console, ?string $status): string
+    public function ask(Server $server, User $user, array $messages, string $console, ?string $status): array
     {
         if (!$this->settings->allows($user)) {
             throw new DisplayException('The AI assistant is not available.');
@@ -76,13 +83,36 @@ class ServerAssistant
             ];
         }
 
-        $answer = $this->call($conversation, 4096);
+        $proposed = [];
+        $answer = '';
+        for ($round = 0; $round < self::TOOL_ROUNDS; $round++) {
+            // The last round has no tools: the AI has to answer with what it found.
+            $last = $round === self::TOOL_ROUNDS - 1;
+            $message = $this->request($conversation, 4096, $last ? null : AssistantFiles::tools());
+            $calls = array_values(array_filter((array) ($message['tool_calls'] ?? []), 'is_array'));
+            if (!$calls) {
+                $answer = trim((string) ($message['content'] ?? ''));
+                break;
+            }
+            $conversation[] = ['role' => 'assistant', 'content' => ($message['content'] ?? '') !== '' ? $message['content'] : null, 'tool_calls' => $calls];
+            foreach ($calls as $call) {
+                $arguments = json_decode((string) ($call['function']['arguments'] ?? '{}'), true);
+                $result = $this->assistantFiles->run($server, $user, (string) ($call['function']['name'] ?? ''), is_array($arguments) ? $arguments : [], $proposed);
+                $conversation[] = ['role' => 'tool', 'tool_call_id' => (string) ($call['id'] ?? ''), 'content' => $result];
+            }
+        }
+        if ($answer === '') {
+            if (!$proposed) {
+                throw new DisplayException('The AI gave an empty answer. Ask again, a bit differently.');
+            }
+            $answer = '…';
+        }
 
         $key = $this->counterKey($user);
         Cache::add($key, 0, now()->endOfDay());
         Cache::increment($key);
 
-        return $answer;
+        return ['answer' => $answer, 'changes' => $proposed];
     }
 
     /**
@@ -92,7 +122,12 @@ class ServerAssistant
      */
     public function test(): string
     {
-        return $this->call([['role' => 'user', 'content' => 'Answer with the single word OK.']], 300);
+        $answer = trim((string) ($this->request([['role' => 'user', 'content' => 'Answer with the single word OK.']], 300, null)['content'] ?? ''));
+        if ($answer === '') {
+            throw new DisplayException('The AI gave an empty answer. Ask again, a bit differently.');
+        }
+
+        return $answer;
     }
 
     /**
@@ -114,6 +149,14 @@ class ServerAssistant
             '- Never ask for passwords, tokens or license keys, and never repeat one. Values shown as (hidden) are secret.',
             '- The user is often a beginner: be clear and short, avoid jargon, explain the commands. Use Markdown: short paragraphs, numbered lists, `code` for files, commands and values, code blocks for config.',
             '- Stay on the subject of this server, its game and the panel.',
+            '',
+            'Files of the server:',
+            '- You can look at the files with list_directory and read_file (the console and the list of the root are already given: read only what you need).',
+            '- When the user asks you to fix, correct, change or set something up in a file, do it yourself: read the file, then call propose_change (or create_file for a new file) with exact search/replace pieces copied from the file. Several files: one call per file.',
+            '- Nothing is written by you: under your answer the user sees each change (lines removed and added) with an Apply button, and can put the file back as it was at any time. So never say a change is done or applied: say what you prepared, why, and what to do after applying it (for example restart the server).',
+            '- If the fix is clearly a change of a file, prepare it even if the user only asked why it fails, and say they can apply it.',
+            '- If a tool answers with an error, fix your call (read the file again, copy the text exactly) and try again.',
+            '- Never change a (hidden) value, and never write (hidden). You cannot run commands, restart the server or change the Startup settings: tell the user how to do that.',
             '',
             "Always answer in $language.",
         ]);
@@ -197,18 +240,17 @@ class ServerAssistant
      */
     public function hideSecrets(string $text): string
     {
-        $text = (string) preg_replace('/\b(cfxk_[A-Za-z0-9_]{10,}|gsk_[A-Za-z0-9]{20,}|ptl[ac]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{20,}|xox[abprs]-[A-Za-z0-9-]{10,})/', '(hidden)', $text);
-        $text = (string) preg_replace('#(https://(?:discord(?:app)?\.com)/api/webhooks/)[^\s"\']+#i', '$1(hidden)', $text);
-
-        return (string) preg_replace('/((?:password|passwd|pwd|token|secret|api[_-]?key|license[_-]?key|rcon[_-]?password)\s*[=:]\s*)("?)[^\s"\']+\2/i', '$1(hidden)', $text);
+        return SecretMask::hide($text);
     }
 
     /**
-     * @param array<int, array{role: string, content: string}> $messages
+     * Asks Groq; gives back the message of the AI (its text, or the tools it wants to call).
+     *
+     * @param array<int, array<string, mixed>> $messages
      *
      * @throws DisplayException
      */
-    private function call(array $messages, int $maxTokens): string
+    private function request(array $messages, int $maxTokens, ?array $tools): array
     {
         $key = $this->settings->key();
         if ($key === null) {
@@ -218,12 +260,14 @@ class ServerAssistant
 
         try {
             $response = Http::withToken($key)->acceptJson()->timeout(90)->connectTimeout(10)
-                ->post(self::ENDPOINT, [
+                ->post(self::ENDPOINT, array_filter([
                     'model' => $model,
                     'messages' => $messages,
                     'temperature' => 0.3,
                     'max_completion_tokens' => $maxTokens,
-                ]);
+                    'tools' => $tools,
+                    'tool_choice' => $tools ? 'auto' : null,
+                ], fn ($value) => $value !== null));
         } catch (\Throwable) {
             throw new DisplayException('The AI could not be reached. Try again in a moment.');
         }
@@ -237,16 +281,14 @@ class ServerAssistant
         if ($response->status() === 404 || str_contains((string) $response->json('error.code'), 'model_not_found')) {
             throw new DisplayException("The AI model \"$model\" is not available on Groq: choose another one in Admin > AI assistant.");
         }
+        if ($response->status() === 400 && str_contains((string) $response->json('error.code'), 'tool_use_failed')) {
+            throw new DisplayException('The AI made a mistake while preparing its answer. Ask again.');
+        }
         if (!$response->successful()) {
             throw new DisplayException('The AI did not answer (' . $response->status() . '). Try again in a moment.');
         }
 
-        $answer = trim((string) $response->json('choices.0.message.content'));
-        if ($answer === '') {
-            throw new DisplayException('The AI gave an empty answer. Ask again, a bit differently.');
-        }
-
-        return $answer;
+        return (array) $response->json('choices.0.message', []);
     }
 
     /**

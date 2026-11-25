@@ -166,6 +166,11 @@ Route::group([
     // The AI assistant (Groq): what it can do here, and a question (a few a minute).
     Route::get('/assistant', [Client\Servers\AssistantController::class, 'show']);
     Route::post('/assistant', [Client\Servers\AssistantController::class, 'ask'])->middleware('throttle:8,1,assistant');
+    // The changes of files it prepared: apply one, put the file back, or refuse one.
+    Route::get('/assistant/changes', [Client\Servers\AssistantController::class, 'changes']);
+    Route::post('/assistant/changes/{change}/apply', [Client\Servers\AssistantController::class, 'apply'])->whereNumber('change')->middleware('throttle:30,1,assistant-files');
+    Route::post('/assistant/changes/{change}/revert', [Client\Servers\AssistantController::class, 'revert'])->whereNumber('change')->middleware('throttle:30,1,assistant-files');
+    Route::post('/assistant/changes/{change}/dismiss', [Client\Servers\AssistantController::class, 'dismiss'])->whereNumber('change')->middleware('throttle:30,1,assistant-files');
     Route::get('/alerts', [Client\Servers\ServerInsightsController::class, 'alerts']);
     Route::put('/alerts', [Client\Servers\ServerInsightsController::class, 'saveAlerts']);
     Route::post('/alerts/test', [Client\Servers\ServerInsightsController::class, 'testAlert'])->middleware('throttle:subdomains');

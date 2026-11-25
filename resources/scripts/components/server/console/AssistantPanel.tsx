@@ -2,13 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import useSWR from 'swr';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagic, faPaperPlane, faRedo, faSpinner, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faHistory, faMagic, faPaperPlane, faRedo, faSpinner, faTimes } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames';
 import { ServerContext } from '@/state/server';
-import { askAssistant, AssistantMessage, getAssistant } from '@/api/server/assistant';
+import { askAssistant, AssistantMessage, FileChange, getAssistant, getFileChanges } from '@/api/server/assistant';
 import { httpErrorToHuman } from '@/api/http';
 import { readConsole } from '@/components/server/console/consoleText';
 import AssistantText from '@/components/server/console/AssistantText';
+import AssistantChange from '@/components/server/console/AssistantChange';
 
 // What is sent of the console: its last lines (the panel keeps the last 200 of them).
 const CONSOLE_LINES = 300;
@@ -24,15 +25,24 @@ const SUGGESTIONS = [
 const WIDTH = 460;
 const SIDE_BY_SIDE = 1200;
 
+// A message of the conversation, with the changes of files the assistant prepared in it.
+type ChatMessage = AssistantMessage & { changes?: number[] };
+
 const storageKey = (uuid: string) => `pd-assistant:${uuid}`;
 
-const load = (uuid: string): AssistantMessage[] => {
+const load = (uuid: string): { messages: ChatMessage[]; changes: Record<number, FileChange> } => {
     try {
-        const saved = JSON.parse(window.sessionStorage.getItem(storageKey(uuid)) || '[]');
+        const saved = JSON.parse(window.sessionStorage.getItem(storageKey(uuid)) || '{}');
+        const messages = Array.isArray(saved) ? saved : saved.messages;
 
-        return Array.isArray(saved) ? saved.filter((m) => m && typeof m.content === 'string').slice(-30) : [];
+        return {
+            messages: Array.isArray(messages)
+                ? messages.filter((m: any) => m && typeof m.content === 'string').slice(-30)
+                : [],
+            changes: saved && !Array.isArray(saved) && saved.changes ? saved.changes : {},
+        };
     } catch {
-        return [];
+        return { messages: [], changes: {} };
     }
 };
 
@@ -46,7 +56,11 @@ export default ({ className }: { className?: string }) => {
         shouldRetryOnError: false,
     });
     const [open, setOpen] = useState(false);
-    const [messages, setMessages] = useState<AssistantMessage[]>(() => load(uuid));
+    const [messages, setMessages] = useState<ChatMessage[]>(() => load(uuid).messages);
+    // The changes of files, by id (kept up to date when one is applied or put back).
+    const [changes, setChanges] = useState<Record<number, FileChange>>(() => load(uuid).changes);
+    // The list of every change of the last 30 days, instead of the conversation.
+    const [history, setHistory] = useState<FileChange[] | null>(null);
     const [draft, setDraft] = useState('');
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
@@ -55,11 +69,11 @@ export default ({ className }: { className?: string }) => {
 
     useEffect(() => {
         try {
-            window.sessionStorage.setItem(storageKey(uuid), JSON.stringify(messages.slice(-30)));
+            window.sessionStorage.setItem(storageKey(uuid), JSON.stringify({ messages: messages.slice(-30), changes }));
         } catch {
             // Not kept: the conversation stays for this page only.
         }
-    }, [messages]);
+    }, [messages, changes]);
 
     useEffect(() => {
         bottom.current?.scrollIntoView({ block: 'end' });
@@ -93,18 +107,48 @@ export default ({ className }: { className?: string }) => {
         return null;
     }
 
+    const updateChange = (change: FileChange) => {
+        setChanges((map) => ({ ...map, [change.id]: change }));
+        setHistory((list) => (list ? list.map((c) => (c.id === change.id ? change : c)) : list));
+    };
+
+    const showHistory = () => {
+        if (history) {
+            setHistory(null);
+
+            return;
+        }
+        setError('');
+        getFileChanges(uuid)
+            .then((list) => {
+                setHistory(list);
+                setChanges((map) => ({ ...map, ...Object.fromEntries(list.map((c) => [c.id, c])) }));
+            })
+            .catch((e) => setError(httpErrorToHuman(e)));
+    };
+
     const send = (text: string) => {
         const question = text.trim();
         if (!question || busy) return;
-        const next: AssistantMessage[] = [...messages, { role: 'user', content: question }];
+        const next: ChatMessage[] = [...messages, { role: 'user', content: question }];
         setMessages(next);
+        setHistory(null);
         setDraft('');
         setError('');
         setBusy(true);
         const console = readConsole().split('\n').slice(-CONSOLE_LINES).join('\n');
-        askAssistant(uuid, next, console, status)
-            .then(({ answer, remaining }) => {
-                setMessages((list) => [...list, { role: 'assistant', content: answer }]);
+        askAssistant(
+            uuid,
+            next.map((m) => ({ role: m.role, content: m.content })),
+            console,
+            status
+        )
+            .then(({ answer, changes: prepared, remaining }) => {
+                setChanges((map) => ({ ...map, ...Object.fromEntries(prepared.map((c) => [c.id, c])) }));
+                setMessages((list) => [
+                    ...list,
+                    { role: 'assistant', content: answer, changes: prepared.map((c) => c.id) },
+                ]);
                 mutate({ enabled: true, remaining }, false);
             })
             .catch((e) => setError(httpErrorToHuman(e)))
@@ -156,10 +200,23 @@ export default ({ className }: { className?: string }) => {
                                     It reads the console and the settings of this server.
                                 </p>
                             </div>
+                            <button
+                                type={'button'}
+                                onClick={showHistory}
+                                title={'Changes of files'}
+                                aria-label={'Changes of files'}
+                                className={classNames(
+                                    'flex items-center justify-center w-8 h-8 rounded-md hover:text-gray-100 hover:bg-gray-700',
+                                    history ? 'text-gray-100 bg-gray-700' : 'text-gray-400'
+                                )}
+                            >
+                                <FontAwesomeIcon icon={faHistory} className={'w-3.5 h-3.5'} />
+                            </button>
                             {messages.length > 0 && (
                                 <button
                                     type={'button'}
                                     onClick={() => {
+                                        setHistory(null);
                                         setMessages([]);
                                         setError('');
                                     }}
@@ -186,7 +243,28 @@ export default ({ className }: { className?: string }) => {
                         </header>
 
                         <div className={'flex-1 overflow-y-auto px-4 py-4 space-y-4'}>
-                            {messages.length === 0 && (
+                            {history && (
+                                <div className={'space-y-3'}>
+                                    <p className={'text-sm font-semibold text-gray-100'}>Changes of files</p>
+                                    <p className={'text-xs text-gray-400'}>
+                                        Every change prepared by the assistant on this server in the last 30 days. An
+                                        applied change can be put back as before at any time.
+                                    </p>
+                                    {history.length === 0 ? (
+                                        <p className={'text-sm text-gray-400'}>No change yet.</p>
+                                    ) : (
+                                        history.map((change) => (
+                                            <AssistantChange
+                                                key={change.id}
+                                                uuid={uuid}
+                                                change={changes[change.id] || change}
+                                                onChange={updateChange}
+                                            />
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                            {!history && messages.length === 0 && (
                                 <div>
                                     <p className={'text-sm text-gray-300'}>
                                         Ask about a crash, an error of the console, a mod, a setting... The assistant
@@ -208,31 +286,43 @@ export default ({ className }: { className?: string }) => {
                                     </div>
                                 </div>
                             )}
-                            {messages.map((message, index) =>
-                                message.role === 'user' ? (
-                                    <div key={index} className={'flex justify-end'} data-no-translate>
-                                        <p
-                                            className={
-                                                'max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-sm px-3 py-2 text-sm text-white'
-                                            }
-                                            style={{ background: 'rgb(var(--pd-accent-600))' }}
-                                        >
-                                            {message.content}
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div
-                                        key={index}
-                                        className={
-                                            'rounded-2xl rounded-bl-sm border border-gray-700 bg-gray-800 px-3 py-2'
-                                        }
-                                        data-no-translate
-                                    >
-                                        <AssistantText text={message.content} />
-                                    </div>
-                                )
-                            )}
-                            {busy && (
+                            {!history &&
+                                messages.map((message, index) =>
+                                    message.role === 'user' ? (
+                                        <div key={index} className={'flex justify-end'} data-no-translate>
+                                            <p
+                                                className={
+                                                    'max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-sm px-3 py-2 text-sm text-white'
+                                                }
+                                                style={{ background: 'rgb(var(--pd-accent-600))' }}
+                                            >
+                                                {message.content}
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div key={index} className={'space-y-2'}>
+                                            <div
+                                                className={
+                                                    'rounded-2xl rounded-bl-sm border border-gray-700 bg-gray-800 px-3 py-2'
+                                                }
+                                                data-no-translate
+                                            >
+                                                <AssistantText text={message.content} />
+                                            </div>
+                                            {(message.changes || [])
+                                                .filter((id) => changes[id])
+                                                .map((id) => (
+                                                    <AssistantChange
+                                                        key={id}
+                                                        uuid={uuid}
+                                                        change={changes[id]}
+                                                        onChange={updateChange}
+                                                    />
+                                                ))}
+                                        </div>
+                                    )
+                                )}
+                            {busy && !history && (
                                 <p className={'flex items-center gap-2 text-sm text-gray-400'}>
                                     <FontAwesomeIcon icon={faSpinner} spin />
                                     <span>The assistant reads the console and thinks...</span>
