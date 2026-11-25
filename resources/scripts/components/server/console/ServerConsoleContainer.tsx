@@ -13,6 +13,7 @@ import { Alert } from '@/components/elements/alert';
 import StatusPill from '@/components/server/console/StatusPill';
 import TxAdminLink from '@/components/server/console/TxAdminLink';
 import SiteLink from '@/components/server/console/SiteLink';
+import AssistantPanel from '@/components/server/console/AssistantPanel';
 
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
@@ -43,6 +44,7 @@ const ServerConsoleContainer = () => {
                         <StatusPill status={status} className={'flex-shrink-0'} />
                         <TxAdminLink className={'flex-shrink-0'} />
                         <SiteLink className={'flex-shrink-0'} />
+                        <AssistantPanel className={'flex-shrink-0'} />
                     </div>
                     {description && <p className={'mt-1 text-sm text-gray-400 line-clamp-2'}>{description}</p>}
                 </div>

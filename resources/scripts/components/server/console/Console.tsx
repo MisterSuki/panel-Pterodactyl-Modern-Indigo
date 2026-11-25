@@ -30,6 +30,7 @@ import StatusPill from '@/components/server/console/StatusPill';
 
 import 'xterm/css/xterm.css';
 import styles from './style.module.css';
+import { setConsoleReader } from '@/components/server/console/consoleText';
 
 const theme = {
     // Transparent, so the glass of the console box shows through. Colours are the iOS system palette.
@@ -251,8 +252,8 @@ export default () => {
         terminal.write('\u001b[2J\u001b[3J\u001b[H');
     };
 
-    // Puts everything that is on the console, and above it, in the clipboard as plain text.
-    const copyConsole = () => {
+    // Everything that is on the console, and above it, as plain text (a wrapped line is one line again).
+    const consoleText = (): string => {
         const buffer = terminal.buffer.active;
         const lines: string[] = [];
         for (let i = 0; i < buffer.length; i++) {
@@ -269,12 +270,24 @@ export default () => {
             }
         }
 
+        return lines.join('\n').replace(/\s+$/, '');
+    };
+
+    // The AI assistant reads the console from here while it is on the page.
+    useEffect(() => {
+        setConsoleReader(consoleText);
+
+        return () => setConsoleReader(null);
+    }, [terminal]);
+
+    // Puts everything that is on the console, and above it, in the clipboard as plain text.
+    const copyConsole = () => {
         const done = () => {
             setCopied(true);
             window.setTimeout(() => setCopied(false), 1500);
         };
         if (navigator.clipboard) {
-            navigator.clipboard.writeText(lines.join('\n').replace(/\s+$/, '')).then(done, () => undefined);
+            navigator.clipboard.writeText(consoleText()).then(done, () => undefined);
         }
     };
 

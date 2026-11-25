@@ -163,6 +163,9 @@ Route::group([
     Route::get('/players-history', [Client\Servers\ServerInsightsController::class, 'players']);
     Route::get('/players-live', [Client\Servers\ServerInsightsController::class, 'playersLive']);
     Route::get('/resources-history', [Client\Servers\ServerInsightsController::class, 'resources']);
+    // The AI assistant (Groq): what it can do here, and a question (a few a minute).
+    Route::get('/assistant', [Client\Servers\AssistantController::class, 'show']);
+    Route::post('/assistant', [Client\Servers\AssistantController::class, 'ask'])->middleware('throttle:8,1,assistant');
     Route::get('/alerts', [Client\Servers\ServerInsightsController::class, 'alerts']);
     Route::put('/alerts', [Client\Servers\ServerInsightsController::class, 'saveAlerts']);
     Route::post('/alerts/test', [Client\Servers\ServerInsightsController::class, 'testAlert'])->middleware('throttle:subdomains');

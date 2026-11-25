@@ -54,6 +54,13 @@ Route::group(['prefix' => 'mail', 'middleware' => 'admin.can:settings,manage'], 
 });
 
 // The Discord bot: the keys of its application and its commands (settings rights needed).
+// The AI assistant of the servers (Groq): its key, its model, who may use it.
+Route::group(['prefix' => 'assistant', 'middleware' => 'admin.can:settings,manage'], function () {
+    Route::get('/', [Admin\AssistantController::class, 'index'])->name('admin.assistant');
+    Route::post('/', [Admin\AssistantController::class, 'save']);
+    Route::post('/test', [Admin\AssistantController::class, 'test'])->name('admin.assistant.test');
+});
+
 Route::group(['prefix' => 'discord-bot', 'middleware' => 'admin.can:settings,manage'], function () {
     Route::get('/', [Admin\DiscordBotController::class, 'index'])->name('admin.discord-bot');
     Route::post('/', [Admin\DiscordBotController::class, 'save']);

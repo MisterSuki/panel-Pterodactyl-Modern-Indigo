@@ -227,6 +227,10 @@ app/Services/Discord/
 app/Http/Controllers/Base/DiscordInteractionController.php
 app/Http/Controllers/Admin/DiscordBotController.php
 resources/views/admin/discord-bot.blade.php
+app/Http/Controllers/Admin/AssistantController.php
+resources/views/admin/assistant.blade.php
+app/Services/Assistant/AssistantSettings.php
+app/Services/Assistant/ServerAssistant.php
 app/Http/Controllers/Admin/SearchController.php
 app/Http/Controllers/Admin/Servers/ServerLiveController.php
 resources/views/admin/appearance.blade.php
@@ -284,6 +288,7 @@ app/Repositories/Wings/DaemonServerListRepository.php
 app/Console/Commands/Server/WatchServersCommand.php
 app/Http/Controllers/Api/Client/NotificationController.php
 app/Http/Controllers/Api/Client/Servers/ServerInsightsController.php
+app/Http/Controllers/Api/Client/Servers/AssistantController.php
 app/Http/Controllers/Api/Client/Servers/PowerController.php
 app/Http/Controllers/Admin/AnnouncementController.php
 app/Http/Controllers/Base/StatusPageController.php

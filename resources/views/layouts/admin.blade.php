@@ -99,6 +99,7 @@
                                 ['Appearance', 'admin.appearance', 'fa-paint-brush', 'admin.appearance', $can('settings'), null],
                                 ['Announcements', 'admin.announcements', 'fa-bullhorn', 'admin.announcements', $can('settings'), null],
                                 ['Discord Bot', 'admin.discord-bot', 'fa-comments', 'admin.discord-bot', $can('settings'), null],
+                                ['AI assistant', 'admin.assistant', 'fa-magic', 'admin.assistant', $can('settings'), null],
                                 ['Application API', 'admin.api.index', 'fa-gamepad', 'admin.api', $isRoot, null],
                             ],
                             'MANAGEMENT' => [

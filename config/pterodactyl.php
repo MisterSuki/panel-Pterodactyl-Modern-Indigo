@@ -35,6 +35,11 @@ return [
     | Should login success and failure events trigger an email to the user?
     */
 
+    // The AI assistant of the servers: the Groq key can be set here (GROQ_API_KEY in .env) or in Admin > AI assistant.
+    'assistant' => [
+        'groq_key' => env('GROQ_API_KEY'),
+    ],
+
     'auth' => [
         '2fa_required' => env('APP_2FA_REQUIRED', 0),
         'registration' => env('APP_REGISTRATION', false),
@@ -145,7 +150,7 @@ return [
         'branch' => env('THEME_BRANCH', 'main'),
         'cache_time' => env('THEME_CACHE_TIME', 5),
         // Fallback version, used only when the VERSION file at the panel root is missing. Bump the VERSION file to release.
-        'version' => env('THEME_VERSION', '1.49.2'),
+        'version' => env('THEME_VERSION', '1.50.0'),
     ],
 
     /*
