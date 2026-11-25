@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import useSWR from 'swr';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMagic, faPaperPlane, faRedo, faSpinner, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -18,6 +19,10 @@ const SUGGESTIONS = [
     'How can I make my server faster?',
     'How do I install a mod or a plugin on this server?',
 ];
+
+// The width of the panel, and the width of the window from which the page moves aside to stay visible next to it.
+const WIDTH = 460;
+const SIDE_BY_SIDE = 1200;
 
 const storageKey = (uuid: string) => `pd-assistant:${uuid}`;
 
@@ -59,6 +64,21 @@ export default ({ className }: { className?: string }) => {
     useEffect(() => {
         bottom.current?.scrollIntoView({ block: 'end' });
     }, [messages, busy, open]);
+
+    // On a wide screen the page moves to the left, so the console stays visible next to the conversation.
+    useEffect(() => {
+        if (!open) return;
+        const place = () => {
+            document.body.style.paddingRight = window.innerWidth >= SIDE_BY_SIDE ? `${WIDTH}px` : '';
+        };
+        place();
+        window.addEventListener('resize', place);
+
+        return () => {
+            window.removeEventListener('resize', place);
+            document.body.style.paddingRight = '';
+        };
+    }, [open]);
 
     useEffect(() => {
         if (!open) return;
@@ -111,13 +131,15 @@ export default ({ className }: { className?: string }) => {
                 <span>AI assistant</span>
             </button>
 
-            {open && (
-                <div className={'fixed inset-0 z-50 flex justify-end'}>
-                    <div className={'absolute inset-0 bg-black/50'} onClick={() => setOpen(false)} />
+            {/* In the body of the page: a parent with an animation would hold a "fixed" panel inside it. Docked on
+                the right edge of the window, over the whole height, without darkening the page. */}
+            {open &&
+                createPortal(
                     <aside
                         className={
-                            'relative flex flex-col w-full sm:w-[460px] h-full bg-gray-900 border-l border-gray-700 shadow-2xl'
+                            'fixed top-0 right-0 bottom-0 z-50 flex flex-col w-full bg-gray-900 border-l border-gray-700 shadow-2xl'
                         }
+                        style={{ maxWidth: window.innerWidth >= 640 ? WIDTH : undefined }}
                         role={'dialog'}
                         aria-label={'AI assistant'}
                     >
@@ -270,9 +292,9 @@ export default ({ className }: { className?: string }) => {
                                 )}
                             </p>
                         </form>
-                    </aside>
-                </div>
-            )}
+                    </aside>,
+                    document.body
+                )}
         </>
     );
 };
