@@ -26,8 +26,12 @@ class ServerAssistant
     private const TOOL_ROUNDS = 8;
 
     // What is sent at most: lines of console, characters of console, messages of the conversation, characters of one.
-    private const CONSOLE_LINES = 200;
-    private const CONSOLE_CHARS = 14000;
+    // Kept small: the free plan of Groq counts the tokens of a minute (about 8000 for some models), and every round
+    // of tools sends everything again.
+    private const CONSOLE_LINES = 150;
+    private const CONSOLE_CHARS = 6000;
+    // The longest answer asked (counted by Groq in the limit of the minute too).
+    private const ANSWER_TOKENS = 2048;
     private const HISTORY = 12;
     private const MESSAGE_CHARS = 4000;
 
@@ -83,12 +87,14 @@ class ServerAssistant
             ];
         }
 
+        // Several rounds, and maybe a short wait asked by Groq: more than the usual 30 seconds of PHP.
+        @set_time_limit(170);
         $proposed = [];
         $answer = '';
         for ($round = 0; $round < self::TOOL_ROUNDS; $round++) {
             // The last round has no tools: the AI has to answer with what it found.
             $last = $round === self::TOOL_ROUNDS - 1;
-            $message = $this->request($conversation, 4096, $last ? null : AssistantFiles::tools());
+            $message = $this->request($conversation, self::ANSWER_TOKENS, $last ? null : AssistantFiles::tools());
             $calls = array_values(array_filter((array) ($message['tool_calls'] ?? []), 'is_array'));
             if (!$calls) {
                 $answer = trim((string) ($message['content'] ?? ''));
@@ -226,13 +232,39 @@ class ServerAssistant
     {
         $text = (string) preg_replace('/\x1b\[[0-9;?]*[A-Za-z]/', '', $console);
         $text = str_replace("\r", '', $text);
-        $lines = array_slice(explode("\n", rtrim($text)), -self::CONSOLE_LINES);
+        $lines = array_slice($this->collapse(explode("\n", rtrim($text))), -self::CONSOLE_LINES);
         $text = $this->hideSecrets(implode("\n", $lines));
         if (mb_strlen($text) > self::CONSOLE_CHARS) {
             $text = '[...]' . mb_substr($text, -self::CONSOLE_CHARS);
         }
 
         return trim($text, "\n");
+    }
+
+    /**
+     * The same line many times in a row (an error repeated every tick, with or without its time) becomes one line
+     * with how many times it came: 200 lines of the same error say no more than one, and cost 200 times the tokens.
+     *
+     * @param array<int, string> $lines
+     *
+     * @return array<int, string>
+     */
+    public function collapse(array $lines): array
+    {
+        // Groups of the same line in a row: [first line, key, how many].
+        $groups = [];
+        foreach ($lines as $line) {
+            // Without the time at the start, two lines of the same error are the same.
+            $key = trim((string) preg_replace('/^\s*\[?\d{1,4}[-\/:.]\d{1,2}([-\/:.T ]\d{1,2}){0,4}([.,]\d+)?\]?\s*/', '', $line));
+            $last = count($groups) - 1;
+            if ($last >= 0 && $groups[$last][1] === $key) {
+                $groups[$last][2]++;
+            } else {
+                $groups[] = [$line, $key, 1];
+            }
+        }
+
+        return array_map(fn (array $group) => $group[2] > 1 ? $group[0] . '   [x' . $group[2] . ']' : $group[0], $groups);
     }
 
     /**
@@ -250,7 +282,7 @@ class ServerAssistant
      *
      * @throws DisplayException
      */
-    private function request(array $messages, int $maxTokens, ?array $tools): array
+    private function request(array $messages, int $maxTokens, ?array $tools, bool $retried = false): array
     {
         $key = $this->settings->key();
         if ($key === null) {
@@ -267,6 +299,8 @@ class ServerAssistant
                     'max_completion_tokens' => $maxTokens,
                     'tools' => $tools,
                     'tool_choice' => $tools ? 'auto' : null,
+                    // The models that reason: a short reasoning is enough to read logs, and costs less of the limit.
+                    'reasoning_effort' => str_starts_with($model, 'openai/gpt-oss') ? 'low' : null,
                 ], fn ($value) => $value !== null));
         } catch (\Throwable) {
             throw new DisplayException('The AI could not be reached. Try again in a moment.');
@@ -275,8 +309,23 @@ class ServerAssistant
         if ($response->status() === 401) {
             throw new DisplayException('The Groq key of the AI assistant is wrong (Admin > AI assistant).');
         }
-        if ($response->status() === 429) {
-            throw new DisplayException('The AI is busy right now (limit of Groq). Try again in a minute.');
+        if ($response->status() === 429 || $response->status() === 413) {
+            $error = (string) $response->json('error.message', '');
+            // A short wait asked by Groq: wait and ask again, once.
+            $wait = $this->retryAfter($error, (string) $response->header('retry-after'));
+            if (!$retried && $response->status() === 429 && $wait !== null && $wait <= 20) {
+                usleep((int) (($wait + 0.5) * 1000000));
+
+                return $this->request($messages, $maxTokens, $tools, true);
+            }
+            $numbers = preg_match('/Limit\s+\d+[^.]*/i', $error, $m) ? ' (Groq: ' . trim($m[0]) . ')' : '';
+            if (preg_match('/per day|TPD|RPD/i', $error)) {
+                throw new DisplayException('The AI model reached its limit of the day on Groq. Try again tomorrow, or choose another model in Admin > AI assistant.' . $numbers);
+            }
+            if ($response->status() === 413 || preg_match('/per minute|TPM/i', $error)) {
+                throw new DisplayException('The question is too big for the limit per minute of Groq. Try again in a minute; if it keeps happening, choose a model with a higher limit in Admin > AI assistant.' . $numbers);
+            }
+            throw new DisplayException('The AI is busy right now (limit of Groq). Try again in a minute.' . $numbers);
         }
         if ($response->status() === 404 || str_contains((string) $response->json('error.code'), 'model_not_found')) {
             throw new DisplayException("The AI model \"$model\" is not available on Groq: choose another one in Admin > AI assistant.");
@@ -289,6 +338,18 @@ class ServerAssistant
         }
 
         return (array) $response->json('choices.0.message', []);
+    }
+
+    /**
+     * How long Groq asks to wait, in seconds ("try again in 7.42s", "1m2.5s", or the Retry-After header).
+     */
+    private function retryAfter(string $error, string $header): ?float
+    {
+        if (preg_match('/try again in\s+(?:(\d+)m)?([\d.]+)s/i', $error, $m)) {
+            return (int) ($m[1] ?: 0) * 60 + (float) $m[2];
+        }
+
+        return is_numeric($header) ? (float) $header : null;
     }
 
     /**

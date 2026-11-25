@@ -19,7 +19,7 @@ class AssistantFiles
 {
     // The biggest file the AI reads, and how much of it it is given.
     private const READ_BYTES = 1048576;
-    private const READ_CHARS = 24000;
+    private const READ_CHARS = 10000;
     // The biggest file a change may write.
     private const WRITE_BYTES = 1048576;
 

@@ -2886,5 +2886,7 @@
  "This file does not exist any more.": "Ce fichier n'existe plus.",
  "The file was changed since the assistant read it: ask it again.": "Le fichier a été modifié depuis que l'assistant l'a lu : redemandez-lui.",
  "This change is not applied.": "Cette modification n'est pas appliquée.",
- "The AI made a mistake while preparing its answer. Ask again.": "L'IA s'est trompée en préparant sa réponse. Redemandez."
+ "The AI made a mistake while preparing its answer. Ask again.": "L'IA s'est trompée en préparant sa réponse. Redemandez.",
+ "The AI model reached its limit of the day on Groq. Try again tomorrow, or choose another model in Admin > AI assistant.": "Le modèle d'IA a atteint sa limite du jour chez Groq. Réessayez demain, ou choisissez un autre modèle dans Admin > Assistant IA.",
+ "The question is too big for the limit per minute of Groq. Try again in a minute; if it keeps happening, choose a model with a higher limit in Admin > AI assistant.": "La question est trop grosse pour la limite par minute de Groq. Réessayez dans une minute ; si ça continue, choisissez un modèle avec une limite plus haute dans Admin > Assistant IA."
 }
