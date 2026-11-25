@@ -1,13 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import tw from 'twin.macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faCopy, faEye, faLink, faTrashAlt, faUserShield } from '@fortawesome/free-solid-svg-icons';
+import {
+    faCheck,
+    faCopy,
+    faDesktop,
+    faEye,
+    faGlobe,
+    faLink,
+    faTrashAlt,
+    faUserShield,
+} from '@fortawesome/free-solid-svg-icons';
+import { useStoreState } from 'easy-peasy';
+import { ApplicationStore } from '@/state';
 import PageContentBlock from '@/components/elements/PageContentBlock';
 import ContentBox from '@/components/elements/ContentBox';
 import { Button } from '@/components/elements/button/index';
 import { Dialog } from '@/components/elements/dialog';
 import { createClaudeLink, deleteClaudeLink, getClaudeLinks, ClaudeLink } from '@/api/account/claude';
 import { httpErrorToHuman } from '@/api/http';
+import { claudeExtension } from '@/components/dashboard/claudeExtension';
 
 const copyText = (text: string) => {
     if (navigator.clipboard && window.isSecureContext) {
@@ -26,6 +38,8 @@ const copyText = (text: string) => {
 // Account > Claude: the links that connect the Claude app (claude.ai, Claude Desktop) to the panel as a connector, so
 // Claude can look at the servers, read their console, start or stop them and fix their files.
 export default () => {
+    const panelName = useStoreState((state: ApplicationStore) => state.settings.data?.name || 'Pterodactyl');
+    const [installed, setInstalled] = useState<'desktop' | 'web' | null>(null);
     const [links, setLinks] = useState<ClaudeLink[] | null>(null);
     const [name, setName] = useState('Claude');
     const [readOnly, setReadOnly] = useState(false);
@@ -49,6 +63,7 @@ export default () => {
                 setLinks((list) => [link, ...(list || [])]);
                 setCreated(url);
                 setCopied(false);
+                setInstalled(null);
             })
             .catch((e) => setError(httpErrorToHuman(e)))
             .then(() => setBusy(false));
@@ -178,10 +193,68 @@ export default () => {
 
             <Dialog open={created !== null} onClose={() => setCreated(null)} title={'Your link for Claude'}>
                 <p css={tw`mt-2 text-sm text-neutral-300`}>
-                    Copy it now: it will not be shown again. Paste it in Claude, Settings, Connectors, Add a custom
-                    connector.
+                    Add it to Claude in one click (the address is shown only now):
                 </p>
-                <div css={tw`mt-3 flex items-center gap-2`}>
+                <div css={tw`mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2`}>
+                    <button
+                        type={'button'}
+                        onClick={() => {
+                            if (!created) return;
+                            // A Claude Desktop extension: opening the file installs the connector.
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(claudeExtension(created, panelName));
+                            link.download = `${panelName.replace(/[^\w.-]+/g, '-')}-claude.mcpb`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            window.setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+                            setInstalled('desktop');
+                        }}
+                        css={tw`flex items-start gap-3 rounded-lg border border-neutral-600 bg-neutral-800 p-3 text-left hover:border-neutral-400 hover:bg-neutral-700 transition-colors duration-150`}
+                    >
+                        <FontAwesomeIcon icon={faDesktop} css={tw`mt-0.5 text-neutral-300`} />
+                        <span>
+                            <span css={tw`block text-sm font-semibold text-neutral-100`}>
+                                Install in Claude Desktop
+                            </span>
+                            <span css={tw`block text-xs text-neutral-400`}>
+                                Downloads a file: open it, Claude Desktop installs the connector.
+                            </span>
+                        </span>
+                    </button>
+                    <button
+                        type={'button'}
+                        onClick={() => {
+                            if (!created) return;
+                            copyText(created).then(() => setCopied(true));
+                            window.open('https://claude.ai/settings/connectors', '_blank', 'noopener');
+                            setInstalled('web');
+                        }}
+                        css={tw`flex items-start gap-3 rounded-lg border border-neutral-600 bg-neutral-800 p-3 text-left hover:border-neutral-400 hover:bg-neutral-700 transition-colors duration-150`}
+                    >
+                        <FontAwesomeIcon icon={faGlobe} css={tw`mt-0.5 text-neutral-300`} />
+                        <span>
+                            <span css={tw`block text-sm font-semibold text-neutral-100`}>Add on claude.ai</span>
+                            <span css={tw`block text-xs text-neutral-400`}>
+                                Copies the address and opens the connectors of Claude.
+                            </span>
+                        </span>
+                    </button>
+                </div>
+                {installed === 'desktop' && (
+                    <p css={tw`mt-3 text-sm text-green-300`}>
+                        Open the downloaded .mcpb file (double-click): Claude Desktop asks to install it. Then turn it
+                        on in a conversation.
+                    </p>
+                )}
+                {installed === 'web' && (
+                    <p css={tw`mt-3 text-sm text-green-300`}>
+                        The address is copied. On the page that opened: Add a custom connector, give it a name, paste
+                        the address (Ctrl+V) and add it.
+                    </p>
+                )}
+                <p css={tw`mt-4 text-xs text-neutral-400`}>Or copy the address yourself:</p>
+                <div css={tw`mt-1 flex items-center gap-2`}>
                     <input
                         readOnly
                         value={created || ''}

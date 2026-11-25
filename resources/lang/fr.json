@@ -2908,5 +2908,13 @@
  "Your link for Claude": "Votre lien pour Claude",
  "Copy it now: it will not be shown again. Paste it in Claude, Settings, Connectors, Add a custom connector.": "Copiez-le maintenant : il ne sera plus affiché. Collez-le dans Claude, Paramètres, Connecteurs, Ajouter un connecteur personnalisé.",
  "Delete this link?": "Supprimer ce lien ?",
- "Claude loses the access to the panel through this link at once.": "Claude perd tout de suite l'accès au panel par ce lien."
+ "Claude loses the access to the panel through this link at once.": "Claude perd tout de suite l'accès au panel par ce lien.",
+ "Add it to Claude in one click (the address is shown only now):": "Ajoutez-le à Claude en un clic (l'adresse n'est affichée que maintenant) :",
+ "Install in Claude Desktop": "Installer dans Claude Desktop",
+ "Downloads a file: open it, Claude Desktop installs the connector.": "Télécharge un fichier : ouvrez-le, Claude Desktop installe le connecteur.",
+ "Add on claude.ai": "Ajouter sur claude.ai",
+ "Copies the address and opens the connectors of Claude.": "Copie l'adresse et ouvre les connecteurs de Claude.",
+ "Open the downloaded .mcpb file (double-click): Claude Desktop asks to install it. Then turn it on in a conversation.": "Ouvrez le fichier .mcpb téléchargé (double-clic) : Claude Desktop propose de l'installer. Activez-le ensuite dans une conversation.",
+ "The address is copied. On the page that opened: Add a custom connector, give it a name, paste the address (Ctrl+V) and add it.": "L'adresse est copiée. Sur la page qui s'est ouverte : Ajouter un connecteur personnalisé, donnez-lui un nom, collez l'adresse (Ctrl+V) et ajoutez-le.",
+ "Or copy the address yourself:": "Ou copiez l'adresse vous-même :"
 }
