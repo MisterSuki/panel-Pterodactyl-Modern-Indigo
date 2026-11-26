@@ -266,6 +266,16 @@ app/Services/WebHosting/
 app/Console/Commands/Server/WebSetupCommand.php
 app/Http/Controllers/Admin/WebHostingController.php
 app/Http/Controllers/Api/Client/Servers/WebHostingController.php
+database/migrations/2026_11_26_000001_create_push_subscriptions.php
+database/migrations/2026_11_26_000002_create_website_monitors.php
+app/Models/PushSubscription.php
+app/Models/WebsiteMonitor.php
+app/Services/Notifications/WebPush.php
+app/Services/WebHosting/WebsiteMonitorService.php
+app/Http/Controllers/Api/Client/PushController.php
+app/Http/Controllers/Base/WebManifestController.php
+app/Console/Commands/Server/MonitorWebsitesCommand.php
+public/sw.js
 app/Http/Controllers/Api/Remote/WebSitesController.php
 resources/views/admin/web-hosting.blade.php
 app/Http/Controllers/Admin/SubdomainController.php

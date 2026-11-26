@@ -19,9 +19,14 @@
             <link rel="mask-icon" href="/favicons/safari-pinned-tab.svg" color="#bc6e3c">
             <link rel="shortcut icon" href="/favicons/favicon.ico">
             @endif
-            <link rel="manifest" href="/favicons/manifest.json">
+            {{-- The panel as an app on phones and computers (PWA): installable, with the notifications of the panel. --}}
+            <link rel="manifest" href="/manifest.webmanifest">
             <meta name="msapplication-config" content="/favicons/browserconfig.xml">
-            <meta name="theme-color" content="#0e4688">
+            <meta name="theme-color" content="#0a0a0a">
+            <meta name="mobile-web-app-capable" content="yes">
+            <meta name="apple-mobile-web-app-capable" content="yes">
+            <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+            <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Pterodactyl') }}">
         @show
 
         @section('user-data')

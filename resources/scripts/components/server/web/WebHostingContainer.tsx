@@ -23,6 +23,7 @@ import Can from '@/components/elements/Can';
 import { ServerContext } from '@/state/server';
 import { useFlashKey } from '@/plugins/useFlash';
 import SiteKind from '@/components/server/web/SiteKind';
+import SiteMonitor from '@/components/server/web/SiteMonitor';
 import EmbyCard, { EmbyHelp, useKinds } from '@/components/server/web/EmbyCard';
 import {
     addWebDomain,
@@ -530,6 +531,8 @@ export default () => {
                     </div>
 
                     <Preview url={page.url} temporary={page.preview} />
+
+                    <SiteMonitor />
 
                     <SiteKind />
 

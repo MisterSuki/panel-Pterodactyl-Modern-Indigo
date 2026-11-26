@@ -9,7 +9,7 @@ import { httpErrorToHuman } from '@/api/http';
 const PREVIEW_LINES = 14;
 
 const STATES: Record<FileChange['state'], { label: string; className: string }> = {
-    proposed: { label: 'Not applied', className: 'bg-amber-500/15 text-amber-300 border-amber-500/30' },
+    proposed: { label: 'Not applied', className: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30' },
     applied: { label: 'Applied', className: 'bg-green-500/15 text-green-300 border-green-500/30' },
     reverted: { label: 'Put back as before', className: 'bg-gray-500/15 text-gray-300 border-gray-500/30' },
     dismissed: { label: 'Refused', className: 'bg-gray-500/15 text-gray-400 border-gray-500/30' },
@@ -164,7 +164,7 @@ export default ({
                     )}
                     {change.state === 'applied' && askForce && (
                         <div className={'w-full'}>
-                            <p className={'text-xs text-amber-300'}>
+                            <p className={'text-xs text-yellow-300'}>
                                 The file was changed again after this change. Putting it back will also undo those
                                 changes.
                             </p>
@@ -174,7 +174,7 @@ export default ({
                                     disabled={busy}
                                     onClick={() => run(() => revertFileChange(uuid, change.id, true))}
                                     className={
-                                        'inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50'
+                                        'inline-flex items-center gap-1.5 rounded-md bg-yellow-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50'
                                     }
                                 >
                                     <FontAwesomeIcon icon={busy ? faSpinner : faUndo} spin={busy} />

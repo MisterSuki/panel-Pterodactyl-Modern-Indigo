@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from '@/components/App';
+// The panel as an app: its service worker (notifications) and the offer to install it.
+import '@/lib/pwa';
 import { setConfig } from 'react-hot-loader';
 
 // Enable language support.

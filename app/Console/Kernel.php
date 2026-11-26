@@ -11,6 +11,7 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Pterodactyl\Services\Telemetry\TelemetryCollectionService;
 use Pterodactyl\Console\Commands\Server\RunAutoBackupsCommand;
 use Pterodactyl\Console\Commands\Server\WatchServersCommand;
+use Pterodactyl\Console\Commands\Server\MonitorWebsitesCommand;
 use Pterodactyl\Console\Commands\Server\UnsuspendExpiredCommand;
 use Pterodactyl\Console\Commands\Shop\ExpireShopOrdersCommand;
 use Pterodactyl\Console\Commands\Shop\BillResourcesCommand;
@@ -53,6 +54,9 @@ class Kernel extends ConsoleKernel
 
         // Alerts of the servers, player statistics and the status of the nodes (one request per node a minute).
         $schedule->command(WatchServersCommand::class)->everyMinute()->withoutOverlapping(5)->runInBackground();
+
+        // Checks that the websites answer (alerts: down, back, certificate close to its end).
+        $schedule->command(MonitorWebsitesCommand::class)->everyMinute()->withoutOverlapping(5)->runInBackground();
 
         // A new version of the theme on GitHub: the full administrators are told once (bell and Discord).
         $schedule->command(\Pterodactyl\Console\Commands\Maintenance\CheckThemeUpdateCommand::class)->hourlyAt(17)->withoutOverlapping()->runInBackground();

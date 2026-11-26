@@ -29,6 +29,16 @@ class Notifier
             'url' => $url,
             'created_at' => now(),
         ]);
+
+        // On the phones and computers where the person turned the notifications on: after the answer of a page (a slow
+        // push service never slows the panel), at once in the commands (the watch of the servers). Never blocks the bell.
+        $push = function () use ($userId, $title, $body, $url, $kind) {
+            try {
+                app(WebPush::class)->toUser($userId, $title, $body, $url, $kind);
+            } catch (\Throwable) {
+            }
+        };
+        app()->runningInConsole() ? $push() : app()->terminating($push);
     }
 
     /**

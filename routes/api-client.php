@@ -127,6 +127,12 @@ Route::prefix('/account')->middleware(AccountSubject::class)->group(function () 
     Route::post('/claude', [Client\ClaudeConnectionController::class, 'store'])->middleware('throttle:10,1,claude-links');
     Route::delete('/claude/{id}', [Client\ClaudeConnectionController::class, 'delete'])->whereNumber('id');
 
+    // The notifications of the panel on this phone or computer (Web Push).
+    Route::get('/push', [Client\PushController::class, 'show']);
+    Route::post('/push', [Client\PushController::class, 'subscribe'])->middleware('throttle:20,1,push');
+    Route::post('/push/remove', [Client\PushController::class, 'unsubscribe'])->middleware('throttle:20,1,push');
+    Route::post('/push/test', [Client\PushController::class, 'test'])->middleware('throttle:5,1,push-test');
+
     Route::prefix('/passkeys')->group(function () {
         Route::get('/', [Client\PasskeyController::class, 'index']);
         Route::post('/options', [Client\PasskeyController::class, 'options'])->middleware('throttle:20,1');
@@ -235,6 +241,7 @@ Route::group([
     Route::group(['prefix' => '/web'], function () {
         Route::get('/', [Client\Servers\WebHostingController::class, 'index']);
         Route::get('/status', [Client\Servers\WebHostingController::class, 'status']);
+        Route::get('/monitor', [Client\Servers\WebHostingController::class, 'monitor']);
         Route::get('/kind', [Client\Servers\WebHostingController::class, 'kind']);
         Route::post('/kind', [Client\Servers\WebHostingController::class, 'switchKind'])->middleware('throttle:10,1,web-kind');
         Route::post('/domains', [Client\Servers\WebHostingController::class, 'addDomain'])->middleware('throttle:subdomains');

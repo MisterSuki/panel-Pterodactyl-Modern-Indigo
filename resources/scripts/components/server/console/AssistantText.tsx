@@ -9,7 +9,7 @@ const inline = (text: string, key: string): React.ReactNode[] =>
             return (
                 <code
                     key={`${key}-${index}`}
-                    className={'rounded bg-black/40 px-1 py-0.5 text-[0.85em] text-amber-200'}
+                    className={'rounded bg-black/40 px-1 py-0.5 text-[0.85em] text-yellow-200'}
                 >
                     {part.slice(1, -1)}
                 </code>

@@ -65,6 +65,18 @@ class AlertTexts
             'en' => ['{name} is almost out of disk space', '{used} of {limit} used.'],
             'fr' => ['{name} n’a bientôt plus d’espace disque', '{used} utilisés sur {limit}.'],
         ],
+        'site_down' => [
+            'en' => ['The website {name} is down', '{url} does not answer ({reason}). It is checked again every minute.'],
+            'fr' => ['Le site {name} est hors ligne', '{url} ne répond pas ({reason}). Il est vérifié à nouveau chaque minute.'],
+        ],
+        'site_up' => [
+            'en' => ['The website {name} is back', '{url} answers again, after {duration} down.'],
+            'fr' => ['Le site {name} est de retour', '{url} répond à nouveau, après {duration} hors ligne.'],
+        ],
+        'ssl_expiring' => [
+            'en' => ['The certificate of {name} expires soon', 'The HTTPS certificate of {url} ends on {date} ({days} days left). It is usually renewed alone: check the domain in the Website tab.'],
+            'fr' => ['Le certificat de {name} expire bientôt', 'Le certificat HTTPS de {url} se termine le {date} (plus que {days} jours). Il est normalement renouvelé tout seul : vérifiez le domaine dans l’onglet Site web.'],
+        ],
         'test' => [
             'en' => ['Test of the alerts of {name}', 'The alerts of this server reach this channel.'],
             'fr' => ['Test des alertes de {name}', 'Les alertes de ce serveur arrivent bien dans ce salon.'],

@@ -14,6 +14,11 @@ const EVENTS: { key: keyof AlertSettings['events']; label: string; help: string 
     { key: 'disk', label: 'Disk almost full', help: '90 % of the disk space is used.' },
     { key: 'start', label: 'Server started', help: 'The server has started.' },
     { key: 'stop', label: 'Server stopped', help: 'The server was stopped from the panel.' },
+    {
+        key: 'site',
+        label: 'Website down',
+        help: 'The site does not answer (checked every minute), it answers again, or its HTTPS certificate expires soon.',
+    },
 ];
 
 const Toggle = ({ on, onChange }: { on: boolean; onChange: () => void }) => (
@@ -37,6 +42,7 @@ const Toggle = ({ on, onChange }: { on: boolean; onChange: () => void }) => (
  */
 export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
+    const isWebsite = ServerContext.useStoreState((state) => state.server.data!.eggFeatures.includes('web'));
     const { addFlash, clearFlashes, clearAndAddHttpError } = useFlash();
     const [settings, setSettings] = useState<AlertSettings | null>(null);
     const [webhook, setWebhook] = useState('');
@@ -92,13 +98,13 @@ export default () => {
     return (
         <TitledGreyBox title={'Alerts'} css={tw`mb-6 md:mb-10`}>
             <div css={tw`space-y-3`}>
-                {EVENTS.map((event) => (
+                {EVENTS.filter((event) => event.key !== 'site' || isWebsite).map((event) => (
                     <div key={event.key} css={tw`flex items-center gap-3`}>
                         <div css={tw`flex-1 min-w-0`}>
                             <p css={tw`text-sm text-neutral-100 font-medium`}>{event.label}</p>
                             <p css={tw`text-xs text-neutral-400`}>{event.help}</p>
                         </div>
-                        <Toggle on={settings.events[event.key]} onChange={() => flip(event.key)} />
+                        <Toggle on={!!settings.events[event.key]} onChange={() => flip(event.key)} />
                     </div>
                 ))}
                 <div css={tw`flex items-center gap-3 pt-3 border-t border-white/10`}>

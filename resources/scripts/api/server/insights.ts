@@ -7,6 +7,8 @@ export interface AlertSettings {
         stop: boolean;
         memory: boolean;
         disk: boolean;
+        // Websites: down, back, certificate.
+        site?: boolean;
         bell: boolean;
         dm: boolean;
     };

@@ -32,6 +32,16 @@ class WebHostingController extends ClientApiController
         parent::__construct();
     }
 
+    /**
+     * The monitor of the site: up or down, how fast, its availability, its certificate.
+     */
+    public function monitor(Request $request, Server $server): JsonResponse
+    {
+        $this->authorizeFor($request, $server, Permission::ACTION_ALLOCATION_READ);
+
+        return new JsonResponse(app(\Pterodactyl\Services\WebHosting\WebsiteMonitorService::class)->present($server));
+    }
+
     public function index(Request $request, Server $server): JsonResponse
     {
         $this->authorizeFor($request, $server, Permission::ACTION_ALLOCATION_READ);

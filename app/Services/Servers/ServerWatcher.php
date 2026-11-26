@@ -217,12 +217,23 @@ class ServerWatcher
     }
 
     /**
+     * An alert of the monitor of the websites (the site is down, up again, its certificate expires soon), sent like
+     * the other alerts of the server: bell, phones, Discord, as the server wants.
+     */
+    public function alertWebsite(Server $server, string $event, array $vars = []): void
+    {
+        $alert = ServerAlert::query()->where('server_id', $server->id)->first();
+        $this->fire($server, $event, ($alert ?? new ServerAlert())->settings(), $alert, $vars);
+    }
+
+    /**
      * Sends one alert where the server wants it (the bell of its people, its Discord webhook).
      */
     private function fire(Server $server, string $event, array $settings, ?ServerAlert $alert, array $vars = []): void
     {
         $setting = match (true) {
             $event === 'crash_restart' => 'crash',
+            in_array($event, ['site_down', 'site_up', 'ssl_expiring'], true) => 'site',
             str_starts_with($event, 'power_start'), str_starts_with($event, 'power_restart') => 'start',
             str_starts_with($event, 'power_') => 'stop',
             default => $event,
@@ -232,7 +243,9 @@ class ServerWatcher
         }
         $vars['name'] = $server->name;
         $kind = match ($event) {
-            'crash', 'crash_restart' => 'danger',
+            'crash', 'crash_restart', 'site_down' => 'danger',
+            'site_up' => 'success',
+            'ssl_expiring' => 'warning',
             'memory', 'disk', 'power_kill', 'power_kill_auto' => 'warning',
             'start', 'power_start', 'power_start_auto', 'power_restart', 'power_restart_auto' => 'success',
             default => 'info',
