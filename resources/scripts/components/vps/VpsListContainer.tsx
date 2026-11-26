@@ -11,6 +11,9 @@ import { bytesToString } from '@/lib/formatters';
 import useFlash from '@/plugins/useFlash';
 import VpsStatusPill from '@/components/vps/VpsStatusPill';
 import VpsMeter from '@/components/vps/VpsMeter';
+import MiniVpsSection from '@/components/vps/MiniVpsSection';
+import { useStoreState } from 'easy-peasy';
+import { ApplicationStore } from '@/state';
 
 // How long the machine has been running: "3 j 4 h", "2 h 12 min" or "5 min".
 const uptime = (seconds: number): string => {
@@ -98,6 +101,9 @@ const Card = ({ vps }: { vps: Vps }) => {
 export default () => {
     const { clearFlashes, clearAndAddHttpError } = useFlash();
     const { data, error } = useSWR<Vps[]>('vps-list', getVpsList, { refreshInterval: 3000, revalidateOnFocus: false });
+    // The mini VPS are counted with the VPS: with only mini VPS, the page shows them alone.
+    const total = useStoreState((state: ApplicationStore) => state.user.data?.vpsCount || 0);
+    const onlyMini = !!data && data.length === 0 && total > 0;
 
     useEffect(() => {
         if (error) clearAndAddHttpError({ key: 'vps', error });
@@ -118,7 +124,7 @@ export default () => {
                         <div key={i} className={'pd-skeleton'} css={tw`h-40 rounded-2xl`} />
                     ))}
                 </div>
-            ) : data.length === 0 ? (
+            ) : onlyMini ? null : data.length === 0 ? (
                 <div css={tw`rounded-2xl border border-neutral-700 bg-neutral-800 p-10 text-center`}>
                     <FontAwesomeIcon icon={faDesktop} css={tw`text-2xl text-neutral-500`} />
                     <p css={tw`mt-3 text-sm text-neutral-300`}>You do not have a VPS yet.</p>
@@ -130,6 +136,7 @@ export default () => {
                     ))}
                 </div>
             )}
+            <MiniVpsSection standalone={onlyMini} />
         </PageContentBlock>
     );
 };

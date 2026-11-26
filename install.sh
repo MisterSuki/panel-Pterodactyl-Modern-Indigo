@@ -822,6 +822,7 @@ run_update() {
         fi
         ok "Database up to date"
         artisan p:web:setup >/dev/null 2>&1 || warn "The eggs of the websites could not be created: use the Web Hosting page of the admin area."
+        artisan p:minivps:setup >/dev/null 2>&1 || warn "The egg of the mini VPS could not be created (run: php artisan p:minivps:setup)."
     fi
     install_ffmpeg
     INSTALLING=false

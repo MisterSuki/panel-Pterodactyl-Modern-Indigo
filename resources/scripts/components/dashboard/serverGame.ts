@@ -7,6 +7,7 @@ import {
     faGlobe,
     faRobot,
     faServer,
+    faTerminal,
     faTractor,
     faTruck,
 } from '@fortawesome/free-solid-svg-icons';
@@ -46,6 +47,9 @@ const GAMES: Array<ServerGame & { test: RegExp }> = [
 ];
 
 export default (server: Server): ServerGame => {
+    if (server.eggFeatures.includes('mini_vps')) {
+        return { name: 'Mini VPS', icon: faTerminal, from: '#64748b', to: '#0f172a' };
+    }
     if (server.eggFeatures.includes('web')) {
         return { name: 'Website', icon: faGlobe, from: '#38bdf8', to: '#6366f1' };
     }

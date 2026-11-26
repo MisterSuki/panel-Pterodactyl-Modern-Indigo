@@ -2916,5 +2916,11 @@
  "Copies the address and opens the connectors of Claude.": "Copie l'adresse et ouvre les connecteurs de Claude.",
  "Open the downloaded .mcpb file (double-click): Claude Desktop asks to install it. Then turn it on in a conversation.": "Ouvrez le fichier .mcpb téléchargé (double-clic) : Claude Desktop propose de l'installer. Activez-le ensuite dans une conversation.",
  "The address is copied. On the page that opened: Add a custom connector, give it a name, paste the address (Ctrl+V) and add it.": "L'adresse est copiée. Sur la page qui s'est ouverte : Ajouter un connecteur personnalisé, donnez-lui un nom, collez l'adresse (Ctrl+V) et ajoutez-le.",
- "Or copy the address yourself:": "Ou copiez l'adresse vous-même :"
+ "Or copy the address yourself:": "Ou copiez l'adresse vous-même :",
+ "Mini VPS": "Mini VPS",
+ "A small isolated Linux in a server: open it, and type its commands in the Console (you are root in it).": "Un petit Linux isolé dans un serveur : ouvrez-le et tapez ses commandes dans la Console (vous y êtes root).",
+ "Linux system": "Système Linux",
+ "The system of the mini VPS. Changing it only applies after a reinstall with \"Start again from a new system\" set to 1 (the files of the old system are then deleted).": "Le système du mini VPS. Le changer ne s'applique qu'après une réinstallation avec « Repartir d'un nouveau système » à 1 (les fichiers de l'ancien système sont alors supprimés).",
+ "Start again from a new system": "Repartir d'un nouveau système",
+ "1: the next reinstall deletes the Linux system (programs and files of rootfs/) and installs a new one. 0: a reinstall keeps it.": "1 : la prochaine réinstallation supprime le système Linux (programmes et fichiers de rootfs/) et en installe un nouveau. 0 : une réinstallation le garde."
 }

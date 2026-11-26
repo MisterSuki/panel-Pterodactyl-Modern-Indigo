@@ -1,0 +1,54 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-11-26T12:00:00+00:00",
+    "name": "Mini VPS (Linux)",
+    "author": "mistersuki@proton.me",
+    "description": "A small isolated Linux (Debian, Ubuntu, Alpine or Arch) inside a server: you are root in it and type its commands in the Console (apt install...). It runs with PRoot, without any right on the machine.",
+    "features": [
+        "mini_vps"
+    ],
+    "docker_images": {
+        "Debian": "ghcr.io/ptero-eggs/yolks:debian"
+    },
+    "file_denylist": [],
+    "startup": "if [ -f ./vps-start.sh ]; then bash ./vps-start.sh; else echo \"The mini VPS is not installed: reinstall the server from the Settings tab.\"; exit 1; fi",
+    "config": {
+        "files": "{}",
+        "startup": "{\n    \"done\": \"Mini VPS ready\"\n}",
+        "logs": "{}",
+        "stop": "exit"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\n# Installs the mini VPS: PRoot, and the Linux system chosen (images of linuxcontainers.org) in rootfs/. A system\n# already there is kept (its programs and files) unless \"Start again from a new system\" is 1.\nset -e\ncd /mnt/server\napt-get update -qq >/dev/null 2>&1 || true\napt-get install -y -qq curl ca-certificates xz-utils tar >/dev/null 2>&1 || true\n\ncase \"$(uname -m)\" in\n    x86_64 | amd64) ARCH=amd64 ;;\n    aarch64 | arm64) ARCH=arm64 ;;\n    *) echo \"The mini VPS is only offered on x86_64 and arm64 machines.\"; exit 1 ;;\nesac\nDISTRO=\"${VPS_DISTRO:-debian/bookworm}\"\nNAME=\"${DISTRO%%/*}\"\nRELEASE=\"${DISTRO##*/}\"\n\n# Everything is downloaded in the folder of the server: /tmp of the install is small (100 MB on Wings).\nWORK=/mnt/server/.vps-install\nrm -rf \"$WORK\"\nmkdir -p \"$WORK\"\nexport TMPDIR=\"$WORK\"\n\necho \"Installing PRoot...\"\nif [ \"$ARCH\" = \"amd64\" ]; then\n    curl -fsSL --retry 3 -o proot https://github.com/proot-me/proot/releases/download/v5.5.0/proot \\\n        || curl -fsSL --retry 3 -o proot https://proot.gitlab.io/proot/bin/proot\nelse\n    apt-get install -y -qq proot >/dev/null 2>&1\n    cp \"$(command -v proot)\" proot\n    mkdir -p lib\n    for library in $(ldd \"$(command -v proot)\" | grep -o '/[^ ]*libtalloc[^ ]*'); do cp -L \"$library\" lib/; done\nfi\nchmod +x proot\n\nif [ -d rootfs/usr ] && [ \"${VPS_RESET:-0}\" != \"1\" ]; then\n    echo \"The Linux system already installed is kept, with its programs and files.\"\nelse\n    LINE=$(curl -fsSL --retry 3 https://images.linuxcontainers.org/meta/1.0/index-system | grep \"^${NAME};${RELEASE};${ARCH};default;\" | tail -n 1 || true)\n    DIR=$(echo \"$LINE\" | cut -d';' -f6)\n    if [ -z \"$DIR\" ]; then\n        rm -rf \"$WORK\"\n        echo \"This system is not offered for this machine: ${DISTRO} (${ARCH}).\"\n        exit 1\n    fi\n    echo \"Downloading ${NAME} ${RELEASE} (${ARCH})...\"\n    curl -fsSL --retry 3 -o \"$WORK/rootfs.tar.xz\" \"https://images.linuxcontainers.org${DIR}rootfs.tar.xz\"\n    echo \"Unpacking the system...\"\n    rm -rf rootfs\n    mkdir -p rootfs\n    tar -xJf \"$WORK/rootfs.tar.xz\" -C rootfs --exclude='./dev/*' --exclude='dev/*'\n    mkdir -p rootfs/dev rootfs/proc rootfs/sys rootfs/root rootfs/tmp\n    chmod 1777 rootfs/tmp\n    echo \"nameserver 1.1.1.1\" > rootfs/etc/resolv.conf\n    echo \"mini-vps\" > rootfs/etc/hostname\nfi\nrm -rf \"$WORK\"\n\ncat > vps-start.sh <<'START'\n#!/bin/bash\n# Starts the mini VPS: the Linux system in rootfs/, entered with PRoot (you are \"root\" in it, without any right on\n# the machine). Type your commands in the Console of the panel.\ncd /home/container || exit 1\nROOT=/home/container/rootfs\nif [ ! -x ./proot ] || [ ! -d \"$ROOT/usr\" ]; then\n    echo \"The Linux system is not installed: reinstall the server from the Settings tab.\"\n    exit 1\nfi\n# The DNS of the machine, so that apt / apk / pacman can download.\nif [ -s /etc/resolv.conf ]; then\n    cat /etc/resolv.conf > \"$ROOT/etc/resolv.conf\" 2>/dev/null || true\nfi\ngrep -q nameserver \"$ROOT/etc/resolv.conf\" 2>/dev/null || echo \"nameserver 1.1.1.1\" > \"$ROOT/etc/resolv.conf\"\nSYSTEM=$(. \"$ROOT/etc/os-release\" 2>/dev/null; echo \"${PRETTY_NAME:-Linux}\")\nSHELL_BIN=/bin/bash\n[ -x \"$ROOT/bin/bash\" ] || [ -x \"$ROOT/usr/bin/bash\" ] || SHELL_BIN=/bin/sh\necho \"Mini VPS ready: ${SYSTEM}\"\necho \"Type Linux commands here: you are root in this system (apt, apk or pacman to install programs).\"\necho \"Its files: Files tab or SFTP, folder rootfs/. Port of the server: ${SERVER_PORT:-?} (more ports in the Network tab).\"\necho \"Type exit, or use Stop, to stop it.\"\nexport PROOT_NO_SECCOMP=1\nexport PROOT_TMP_DIR=/home/container/.proot-tmp\nmkdir -p \"$PROOT_TMP_DIR\"\n[ -d /home/container/lib ] && export LD_LIBRARY_PATH=/home/container/lib\nexec ./proot -0 -r \"$ROOT\" -b /dev -b /proc -b /sys -w /root \\\n    /usr/bin/env -i HOME=/root USER=root LOGNAME=root TERM=xterm LANG=C.UTF-8 \\\n    PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \\\n    SERVER_PORT=\"${SERVER_PORT}\" SERVER_IP=\"${SERVER_IP}\" \\\n    \"$SHELL_BIN\" -i\nSTART\nchmod +x vps-start.sh\nchown -R 988:988 /mnt/server 2>/dev/null || true\necho \"Done: the mini VPS is installed. Start it, then type your commands in the Console.\"\n",
+            "container": "ghcr.io/pterodactyl/installers:debian",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Linux system",
+            "description": "The system of the mini VPS. Changing it only applies after a reinstall with \"Start again from a new system\" set to 1 (the files of the old system are then deleted).",
+            "env_variable": "VPS_DISTRO",
+            "default_value": "debian/bookworm",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:debian/bookworm,debian/trixie,ubuntu/noble,ubuntu/jammy,alpine/3.22,archlinux/current",
+            "field_type": "text"
+        },
+        {
+            "name": "Start again from a new system",
+            "description": "1: the next reinstall deletes the Linux system (programs and files of rootfs/) and installs a new one. 0: a reinstall keeps it.",
+            "env_variable": "VPS_RESET",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:0,1",
+            "field_type": "text"
+        }
+    ]
+}

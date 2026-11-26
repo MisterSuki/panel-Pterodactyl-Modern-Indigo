@@ -108,10 +108,14 @@ export default ({ websites = false }: { websites?: boolean }) => {
         ['/api/client/servers', showOnlyAdmin && rootAdmin, page],
         () => getServers({ page, type: showOnlyAdmin && rootAdmin ? 'admin' : undefined })
     );
-    // Only the servers of this page's kind (game servers, or websites).
+    // Only the servers of this page's kind: game servers (without the mini VPS, on the VPS page), or websites.
     const servers = everything && {
         ...everything,
-        items: everything.items.filter((server) => server.eggFeatures.includes('web') === websites),
+        items: everything.items.filter((server) =>
+            websites
+                ? server.eggFeatures.includes('web')
+                : !server.eggFeatures.includes('web') && !server.eggFeatures.includes('mini_vps')
+        ),
     };
 
     // The usage of every server of the page, in one request every 3 seconds (paused while the tab is hidden).

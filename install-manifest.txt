@@ -258,6 +258,9 @@ app/Services/Subdomains/
 # Web hosting: websites with their domain and HTTPS (the agent and the image are installed from install-assets/web).
 database/migrations/2026_11_06_000000_create_server_web_domains_table.php
 database/Seeders/eggs/web-hosting/
+database/Seeders/eggs/mini-vps/
+app/Services/MiniVps/MiniVpsSetup.php
+app/Console/Commands/Server/MiniVpsSetupCommand.php
 app/Models/ServerWebDomain.php
 app/Services/WebHosting/
 app/Console/Commands/Server/WebSetupCommand.php

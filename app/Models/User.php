@@ -224,13 +224,32 @@ class User extends Model implements
     }
 
     /**
-     * How many VPS (virtual machines of Proxmox) the person was given, for the link in the top bar. Zero when the tables
-     * are not there yet (before the migrations of an update ran).
+     * How many VPS the person has, for the link in the top bar: the virtual machines of Proxmox given to them, and their
+     * mini VPS (servers of the mini VPS nest, listed on the same page). Zero for the machines when the tables are not
+     * there yet (before the migrations of an update ran).
      */
     public function vpsCount(): int
     {
         try {
-            return ProxmoxVm::query()->accessibleBy($this)->count();
+            $machines = ProxmoxVm::query()->accessibleBy($this)->count();
+        } catch (\Throwable) {
+            $machines = 0;
+        }
+
+        return $machines + $this->miniVpsCount();
+    }
+
+    /**
+     * How many mini VPS (a small isolated Linux in a server) the person owns or was invited to.
+     */
+    public function miniVpsCount(): int
+    {
+        try {
+            return Server::query()
+                ->whereHas('nest', fn (Builder $q) => $q->where('name', \Pterodactyl\Services\MiniVps\MiniVpsSetup::NEST))
+                ->where(fn (Builder $q) => $q->where('owner_id', $this->id)
+                    ->orWhereHas('subusers', fn (Builder $s) => $s->where('user_id', $this->id)))
+                ->count();
         } catch (\Throwable) {
             return 0;
         }
