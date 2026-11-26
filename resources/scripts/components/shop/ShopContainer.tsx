@@ -4,7 +4,18 @@ import useSWR from 'swr';
 import tw from 'twin.macro';
 import classNames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCoins, faHdd, faMemory, faMicrochip, faServer, faStore } from '@fortawesome/free-solid-svg-icons';
+import {
+    faArchive,
+    faCoins,
+    faDatabase,
+    faFire,
+    faHdd,
+    faMapMarkerAlt,
+    faMemory,
+    faMicrochip,
+    faStore,
+} from '@fortawesome/free-solid-svg-icons';
+import offerLook from '@/components/shop/offerLook';
 import { useStoreState } from '@/state/hooks';
 import PageContentBlock from '@/components/elements/PageContentBlock';
 import Spinner from '@/components/elements/Spinner';
@@ -54,7 +65,10 @@ const quietButtonStyle =
     'rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm font-semibold text-neutral-200 transition-colors duration-150 disabled:opacity-50';
 
 const statusLabels: Record<OrderStatus, { label: string; className: string }> = {
-    provisioning: { label: 'Being made', className: 'bg-blue-500 bg-opacity-10 border-blue-500 border-opacity-30 text-blue-300' },
+    provisioning: {
+        label: 'Being made',
+        className: 'bg-blue-500 bg-opacity-10 border-blue-500 border-opacity-30 text-blue-300',
+    },
     active: { label: 'Paid', className: 'bg-green-500/10 border-green-500/30 text-green-300' },
     expired: { label: 'Ran out', className: 'bg-red-500/10 border-red-500/30 text-red-300' },
     failed: { label: 'Not delivered', className: 'bg-gray-500/10 border-gray-500/30 text-gray-300' },
@@ -134,72 +148,120 @@ const OfferCard = ({
             });
     };
 
+    const look = offerLook(offer.game);
+    const monthly = offer.durationDays >= 28 && offer.durationDays <= 31;
+
     return (
-        <div css={tw`flex flex-col rounded-2xl border border-white/5 bg-neutral-800 p-5 shadow-card`}>
-            <h3 css={tw`text-lg font-semibold text-neutral-50`}>{offer.name}</h3>
-            <p css={tw`mt-1`}>
-                <span css={tw`text-2xl font-bold text-primary-300`}>{money(offer.priceCents)}</span>
-                <span css={tw`ml-1 text-sm text-neutral-400`}>/ {offer.durationDays} days</span>
-            </p>
-            {offer.description && (
-                <p css={tw`mt-2 text-sm text-neutral-400 whitespace-pre-wrap`}>{offer.description}</p>
+        <div
+            css={tw`relative flex flex-col rounded-2xl border bg-neutral-800 shadow-card overflow-hidden transition-transform duration-150 hover:-translate-y-0.5`}
+            style={{
+                borderColor: offer.featured ? look.from : 'rgba(255, 255, 255, 0.05)',
+                boxShadow: offer.featured ? `0 0 0 1px ${look.from}, 0 18px 40px -20px ${look.to}` : undefined,
+            }}
+        >
+            {/* A band in the colours of the game. */}
+            <div css={tw`h-1.5 w-full`} style={{ background: `linear-gradient(90deg, ${look.from}, ${look.to})` }} />
+            {offer.featured && (
+                <span
+                    css={tw`absolute top-4 right-4 flex items-center gap-1 rounded-full px-2.5 py-0.5 text-2xs font-bold uppercase tracking-wider text-white`}
+                    style={{ background: `linear-gradient(135deg, ${look.from}, ${look.to})` }}
+                >
+                    <FontAwesomeIcon icon={faFire} />
+                    <span>Popular</span>
+                </span>
             )}
-            <ul css={tw`mt-4 flex flex-col gap-1.5`}>
-                <Spec icon={faMemory}>
-                    {bytesToString(mbToBytes(offer.memory))} <span>of memory</span>
-                </Spec>
-                <Spec icon={faHdd}>
-                    {bytesToString(mbToBytes(offer.disk))} <span>of disk</span>
-                </Spec>
-                <Spec icon={faMicrochip}>
-                    {offer.cpu > 0 ? (
-                        <>
-                            {offer.cpu}% <span>of CPU</span>
-                        </>
-                    ) : (
-                        'CPU not limited'
-                    )}
-                </Spec>
-                {offer.location && <Spec icon={faServer}>{offer.location}</Spec>}
-            </ul>
-            <div css={tw`mt-auto pt-5`}>
-                {!offer.available ? (
-                    <p css={tw`text-sm text-red-300`}>Sold out</p>
-                ) : confirming ? (
-                    <div css={tw`flex flex-col gap-3`}>
-                        <p css={tw`text-sm text-neutral-300`}>
-                            <strong>{money(offer.priceCents)}</strong> <span>will be taken from your credit.</span>
-                        </p>
-                        <div css={tw`flex gap-2`}>
-                            <button type={'button'} onClick={buy} disabled={busy} className={buttonStyle}>
-                                Confirm
-                            </button>
-                            <button
-                                type={'button'}
-                                onClick={() => setConfirming(false)}
-                                disabled={busy}
-                                className={quietButtonStyle}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                ) : enough ? (
-                    <button
-                        type={'button'}
-                        onClick={() => setConfirming(true)}
-                        className={classNames(buttonStyle, 'w-full')}
+            <div css={tw`flex flex-col flex-1 p-5`}>
+                <div css={tw`flex items-center gap-3 pr-20`}>
+                    <span
+                        css={tw`flex items-center justify-center w-10 h-10 rounded-xl text-white flex-shrink-0`}
+                        style={{ background: `linear-gradient(135deg, ${look.from}, ${look.to})` }}
                     >
-                        Buy
-                    </button>
-                ) : (
-                    <div css={tw`flex flex-col gap-2`}>
-                        <p css={tw`text-xs text-neutral-400`}>
-                            <span>Missing</span> <strong>{money(missing)}</strong>
-                        </p>
-                        <Providers providers={shop.providers} onPick={pay} busy={busy} />
-                    </div>
+                        <FontAwesomeIcon icon={look.icon} />
+                    </span>
+                    <h3 css={tw`text-lg font-semibold text-neutral-50 leading-tight`}>{offer.name}</h3>
+                </div>
+                <p css={tw`mt-4 flex items-baseline gap-1`}>
+                    <span css={tw`text-3xl font-bold text-neutral-50 tabular-nums`}>{money(offer.priceCents)}</span>
+                    <span css={tw`text-sm text-neutral-400`}>
+                        {monthly ? (
+                            <span>/ month</span>
+                        ) : (
+                            <>
+                                / {offer.durationDays} <span>days</span>
+                            </>
+                        )}
+                    </span>
+                </p>
+                {offer.description && (
+                    <p css={tw`mt-2 text-sm text-neutral-400 whitespace-pre-wrap`}>{offer.description}</p>
                 )}
+                <ul css={tw`mt-4 pt-4 border-t border-white/5 flex flex-col gap-2`}>
+                    <Spec icon={faMemory}>
+                        {bytesToString(mbToBytes(offer.memory))} <span>of memory</span>
+                    </Spec>
+                    <Spec icon={faHdd}>
+                        {bytesToString(mbToBytes(offer.disk))} <span>of disk</span>
+                    </Spec>
+                    <Spec icon={faMicrochip}>
+                        {offer.cpu > 0 ? (
+                            <>
+                                {offer.cpu}% <span>of CPU</span>
+                            </>
+                        ) : (
+                            'CPU not limited'
+                        )}
+                    </Spec>
+                    {offer.databases > 0 && (
+                        <Spec icon={faDatabase}>
+                            {offer.databases} <span>{offer.databases > 1 ? 'databases' : 'database'}</span>
+                        </Spec>
+                    )}
+                    {offer.backups > 0 && (
+                        <Spec icon={faArchive}>
+                            {offer.backups} <span>{offer.backups > 1 ? 'backups' : 'backup'}</span>
+                        </Spec>
+                    )}
+                    {offer.location && <Spec icon={faMapMarkerAlt}>{offer.location}</Spec>}
+                </ul>
+                <div css={tw`mt-auto pt-5`}>
+                    {!offer.available ? (
+                        <p css={tw`text-sm text-red-300`}>Sold out</p>
+                    ) : confirming ? (
+                        <div css={tw`flex flex-col gap-3`}>
+                            <p css={tw`text-sm text-neutral-300`}>
+                                <strong>{money(offer.priceCents)}</strong> <span>will be taken from your credit.</span>
+                            </p>
+                            <div css={tw`flex gap-2`}>
+                                <button type={'button'} onClick={buy} disabled={busy} className={buttonStyle}>
+                                    Confirm
+                                </button>
+                                <button
+                                    type={'button'}
+                                    onClick={() => setConfirming(false)}
+                                    disabled={busy}
+                                    className={quietButtonStyle}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    ) : enough ? (
+                        <button
+                            type={'button'}
+                            onClick={() => setConfirming(true)}
+                            className={classNames(buttonStyle, 'w-full')}
+                        >
+                            Buy
+                        </button>
+                    ) : (
+                        <div css={tw`flex flex-col gap-2`}>
+                            <p css={tw`text-xs text-neutral-400`}>
+                                <span>Missing</span> <strong>{money(missing)}</strong>
+                            </p>
+                            <Providers providers={shop.providers} onPick={pay} busy={busy} />
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

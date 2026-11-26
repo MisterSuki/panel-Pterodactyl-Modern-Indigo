@@ -61,6 +61,7 @@
                         </div>
                     </div>
                     <label class="pd-switch"><input type="checkbox" name="enabled" value="1" @checked($field('enabled', $offer->enabled))><i class="pd-switch-track"></i><span>On sale</span></label>
+                    <label class="pd-switch" style="margin-left:18px"><input type="checkbox" name="featured" value="1" @checked($field('featured', $offer->featured))><i class="pd-switch-track"></i><span>Popular (put forward)</span></label>
                 </div>
             </div>
         </div>

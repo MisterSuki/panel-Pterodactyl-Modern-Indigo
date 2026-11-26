@@ -318,6 +318,8 @@ app/Http/Controllers/Admin/AnnouncementController.php
 app/Http/Controllers/Base/StatusPageController.php
 app/Jobs/Schedule/RunTaskJob.php
 app/Services/Shop/ShopService.php
+app/Services/Shop/OfferGame.php
+database/migrations/2026_11_26_000003_add_featured_to_shop_offers.php
 resources/views/admin/announcements.blade.php
 resources/views/status.blade.php
 resources/views/status/row.blade.php

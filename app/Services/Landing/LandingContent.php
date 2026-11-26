@@ -19,18 +19,22 @@ class LandingContent
 
     public const MAX_FEATURES = 6;
 
+    // Questions of the FAQ of the page.
+    public const MAX_FAQ = 8;
+
     /**
      * The longest each text can be.
      */
     private const LIMITS = [
         'title' => 120, 'subtitle' => 300,
         'features_title' => 80, 'about_title' => 80, 'about_text' => 2000, 'offers_title' => 80, 'footer_text' => 200,
+        'games_title' => 80, 'faq_title' => 80,
     ];
 
     /**
      * The fields that are texts, in the order of the page.
      */
-    public const TEXTS = ['title', 'subtitle', 'features_title', 'about_title', 'about_text', 'offers_title', 'footer_text'];
+    public const TEXTS = ['title', 'subtitle', 'features_title', 'games_title', 'about_title', 'about_text', 'offers_title', 'faq_title', 'footer_text'];
 
     public function __construct(private SettingsRepositoryInterface $settings)
     {
@@ -73,6 +77,7 @@ class LandingContent
             $content[$key] = $defaults[$key];
         }
         $content['features'] = array_key_exists('features', $saved) ? $saved['features'] : $defaults['features'];
+        $content['faq'] = array_key_exists('faq', $saved) ? $saved['faq'] : $defaults['faq'];
         $content['show_offers'] = (bool) ($saved['show_offers'] ?? true);
         $content['show_stats'] = (bool) ($saved['show_stats'] ?? true);
 
@@ -106,6 +111,16 @@ class LandingContent
             ];
         }
         $saved['features'] = $features;
+
+        $faq = [];
+        foreach (array_slice(array_values((array) ($input['faq'] ?? [])), 0, self::MAX_FAQ) as $item) {
+            $question = mb_substr(trim((string) ($item['q'] ?? '')), 0, 160);
+            $answer = mb_substr(trim(str_replace("\r\n", "\n", (string) ($item['a'] ?? ''))), 0, 600);
+            if ($question !== '' && $answer !== '') {
+                $faq[] = ['q' => $question, 'a' => $answer];
+            }
+        }
+        $saved['faq'] = $faq;
         $saved['show_offers'] = (bool) ($input['show_offers'] ?? false);
         $saved['show_stats'] = (bool) ($input['show_stats'] ?? false);
 
@@ -149,7 +164,13 @@ class LandingContent
             'about_title' => '',
             'about_text' => '',
             'offers_title' => $t('offers_title'),
+            'games_title' => $t('games_title'),
+            'faq_title' => $t('faq_title'),
             'footer_text' => '',
+            'faq' => array_map(fn (string $key) => [
+                'q' => (string) trans('landing.faq.' . $key . '.q', [], $locale),
+                'a' => (string) trans('landing.faq.' . $key . '.a', [], $locale),
+            ], ['delivery', 'payment', 'upgrade', 'backups']),
             'features' => array_map(fn (array $feature) => [
                 'icon' => $feature['icon'],
                 'title' => (string) trans('landing.features.' . $feature['key'] . '.title', [], $locale),

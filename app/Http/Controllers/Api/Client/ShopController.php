@@ -47,7 +47,7 @@ class ShopController extends ClientApiController
             // Only the categories that have something on sale are shown.
             'categories' => ShopCategory::query()->whereIn('id', ShopOffer::query()->where('enabled', true)->whereNotNull('category_id')->select('category_id'))
                 ->orderBy('position')->orderBy('name')->get(['id', 'name'])->map(fn (ShopCategory $category) => ['id' => $category->id, 'name' => $category->name])->all(),
-            'offers' => ShopOffer::query()->with('location:id,short')->where('enabled', true)->orderBy('position')->orderBy('price_cents')->get()
+            'offers' => ShopOffer::query()->with(['location:id,short', 'egg.nest'])->where('enabled', true)->orderBy('position')->orderBy('price_cents')->get()
                 ->map(fn (ShopOffer $offer) => [
                     'id' => $offer->id,
                     'category_id' => $offer->category_id,
@@ -63,6 +63,9 @@ class ShopController extends ClientApiController
                     'location' => $offer->location?->short,
                     'available' => $offer->isAvailable(),
                     'stock' => $offer->stock,
+                    // Its look in the shop: the kind of game, and "Popular".
+                    'game' => \Pterodactyl\Services\Shop\OfferGame::of($offer->egg),
+                    'featured' => (bool) $offer->featured,
                 ])->all(),
             'orders' => ShopOrder::query()->with('server:id,uuidShort,name')->where('user_id', $user->id)->where('status', '!=', ShopOrder::FAILED)->orderByDesc('id')->limit(50)->get()
                 ->map(fn (ShopOrder $order) => [

@@ -28,6 +28,22 @@
         @case('cloud')
             <path d="M18 10h-1.3A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
             @break
+        {{-- The kinds of game of the shop (OfferGame). --}}
+        @case('cube')
+            <path d="M21 16V8l-9-5-9 5v8l9 5z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>
+            @break
+        @case('car')
+            <path d="M5 17h14M5 17a2 2 0 1 1-4 0v-4l2-5a2 2 0 0 1 1.9-1.4h12.2A2 2 0 0 1 19 8l2 5v4a2 2 0 1 1-4 0"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+            @break
+        @case('robot')
+            <rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9 17h6"/>
+            @break
+        @case('terminal')
+            <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m6 9 3 3-3 3M12 15h6"/>
+            @break
+        @case('tree')
+            <path d="M12 2 5 11h4l-4 6h14l-4-6h4z"/><path d="M12 17v5"/>
+            @break
         @default
             <path d="m12 2 3 6.5 7 .8-5.2 4.8 1.5 7-6.3-3.6L5.7 21l1.5-7L2 9.3l7-.8z"/>
     @endswitch

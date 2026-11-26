@@ -20,6 +20,7 @@ use Pterodactyl\Models\ShopOrder;
 use Pterodactyl\Models\ShopPayment;
 use Pterodactyl\Models\ShopTransaction;
 use Pterodactyl\Models\User;
+use Pterodactyl\Services\Shop\OfferGame;
 use Pterodactyl\Services\Shop\ShopService;
 use Pterodactyl\Services\Shop\ShopSettings;
 
@@ -147,6 +148,7 @@ class ShopController extends Controller
             'position' => (int) ($data['position'] ?? 0),
             'environment' => $environment ?: null,
             'enabled' => $request->boolean('enabled'),
+            'featured' => $request->boolean('featured'),
         ];
 
         $offer = $id ? ShopOffer::query()->findOrFail($id) : new ShopOffer();
@@ -163,6 +165,149 @@ class ShopController extends Controller
         $this->alert->success('The offer was deleted. What was bought stays as it is.')->flash();
 
         return redirect()->route('admin.shop.offers');
+    }
+
+    // ---- offer generator ------------------------------------------------------------------------------------------
+
+    /**
+     * The generator of offers: the games to sell, where, and the price per GB of memory.
+     */
+    public function generator(): View
+    {
+        return view('admin.shop.generator', $this->generatorData() + ['preview' => null, 'input' => [
+            'eggs' => [], 'location_id' => null, 'tiers' => 3, 'price_per_gb' => '1.50', 'minimum' => '2.99', 'duration_days' => 30, 'categories' => true, 'enable' => true,
+        ]]);
+    }
+
+    /**
+     * Shows the offers that would be made (confirm = 0), or makes them (confirm = 1): 3 or 4 formulas for each game,
+     * with the memory, disk and CPU that suit it, a price from the memory, and their category. An offer that exists
+     * already (same egg, place and memory) is not made twice.
+     */
+    public function generate(Request $request): View|RedirectResponse
+    {
+        $data = $request->validate([
+            'eggs' => ['required', 'array', 'min:1', 'max:50'],
+            'eggs.*' => ['integer', 'exists:eggs,id'],
+            'location_id' => ['required', 'integer', 'exists:locations,id'],
+            'tiers' => ['required', 'in:3,4'],
+            'price_per_gb' => ['required', 'string', 'max:10'],
+            'minimum' => ['required', 'string', 'max:10'],
+            'duration_days' => ['required', 'integer', 'between:1,365'],
+        ]);
+        $perGb = $this->cents($data['price_per_gb']);
+        $minimum = $this->cents($data['minimum']);
+        if ($perGb === null || $perGb < 1) {
+            throw ValidationException::withMessages(['price_per_gb' => 'Give the price of one GB of memory, like 1.50.']);
+        }
+        if ($minimum === null || $minimum < ShopService::MIN_PAYMENT) {
+            throw ValidationException::withMessages(['minimum' => 'The lowest price must be at least ' . $this->plain(ShopService::MIN_PAYMENT) . '.']);
+        }
+
+        $required = $this->requiredVariables();
+        $eggs = Egg::query()->with('nest')->whereIn('id', $data['eggs'])->orderBy('name')->get()
+            ->reject(fn (Egg $egg) => isset($required[$egg->id]));
+        $plan = [];
+        foreach ($eggs as $egg) {
+            $kind = OfferGame::of($egg);
+            $label = $this->gameLabel($egg, $kind);
+            foreach (OfferGame::tiers($kind, (int) $data['tiers']) as $tier) {
+                $exists = ShopOffer::query()->where('egg_id', $egg->id)->where('location_id', $data['location_id'])->where('memory', $tier['memory'])->exists();
+                $plan[] = $tier + [
+                    'egg_id' => $egg->id,
+                    'kind' => $kind,
+                    'category' => $kind === 'minecraft' ? 'Minecraft' : $label,
+                    'offer' => $label . ' ' . $tier['name'],
+                    'price_cents' => OfferGame::price($tier['memory'], $perGb, $minimum),
+                    'featured' => $tier['name'] === 'Standard',
+                    'exists' => $exists,
+                ];
+            }
+        }
+
+        if (!$request->boolean('confirm')) {
+            return view('admin.shop.generator', $this->generatorData() + [
+                'preview' => $plan,
+                'input' => $data + ['categories' => $request->boolean('categories'), 'enable' => $request->boolean('enable')],
+            ]);
+        }
+
+        $made = 0;
+        DB::transaction(function () use ($plan, $data, $request, &$made) {
+            $position = (int) ShopOffer::query()->max('position');
+            $categories = [];
+            foreach ($plan as $row) {
+                if ($row['exists']) {
+                    continue;
+                }
+                $categoryId = null;
+                if ($request->boolean('categories')) {
+                    $categories[$row['category']] ??= ShopCategory::query()->firstOrCreate(
+                        ['name' => $row['category']],
+                        ['position' => (int) ShopCategory::query()->max('position') + 1]
+                    )->id;
+                    $categoryId = $categories[$row['category']];
+                }
+                ShopOffer::query()->create([
+                    'name' => mb_substr($row['offer'], 0, 80),
+                    'description' => null,
+                    'price_cents' => $row['price_cents'],
+                    'duration_days' => (int) $data['duration_days'],
+                    'egg_id' => $row['egg_id'],
+                    'location_id' => (int) $data['location_id'],
+                    'category_id' => $categoryId,
+                    'memory' => $row['memory'],
+                    'disk' => $row['disk'],
+                    'cpu' => $row['cpu'],
+                    'database_limit' => $row['databases'],
+                    'allocation_limit' => $row['ports'],
+                    'backup_limit' => $row['backups'],
+                    'stock' => null,
+                    'position' => ++$position,
+                    'environment' => null,
+                    'enabled' => $request->boolean('enable'),
+                    'featured' => $row['featured'],
+                ]);
+                $made++;
+            }
+        });
+        $skipped = count($plan) - $made;
+        $this->alert->success("$made offers were made" . ($skipped ? " ($skipped already existed)" : '') . '. Check their prices, then open them if they are not on sale yet.')->flash();
+
+        return redirect()->route('admin.shop.offers');
+    }
+
+    /**
+     * What the page of the generator needs: the eggs by nest (with their kind, how many offers they have, and the
+     * ones that cannot be made alone), the places and the currency.
+     */
+    private function generatorData(): array
+    {
+        $required = $this->requiredVariables();
+        $eggs = Egg::query()->with('nest')->orderBy('name')->get();
+        $counts = ShopOffer::query()->selectRaw('egg_id, COUNT(*) as total')->groupBy('egg_id')->pluck('total', 'egg_id');
+
+        return [
+            'groups' => $eggs->groupBy(fn (Egg $egg) => (string) ($egg->nest->name ?? '-'))->sortKeys()->map(fn ($list) => $list->map(fn (Egg $egg) => [
+                'id' => $egg->id,
+                'name' => $egg->name,
+                'kind' => OfferGame::of($egg),
+                'offers' => (int) ($counts[$egg->id] ?? 0),
+                'missing' => $required[$egg->id] ?? [],
+            ])->values()),
+            'locations' => Location::query()->orderBy('short')->get(['id', 'short', 'long']),
+            'currency' => $this->settings->currency(),
+        ];
+    }
+
+    /**
+     * The name of a game in the shop: the name of the egg ("Minecraft Paper" for a Minecraft egg named "Paper").
+     */
+    private function gameLabel(Egg $egg, string $kind): string
+    {
+        $name = trim($egg->name);
+
+        return $kind === 'minecraft' && stripos($name, 'minecraft') === false ? 'Minecraft ' . $name : $name;
     }
 
     // ---- orders, credit and payments ------------------------------------------------------------------------------

@@ -27,23 +27,52 @@ class LandingController extends Controller
         $content = $this->content->get(app()->getLocale());
 
         $offers = [];
+        $games = [];
         if ($content['show_offers'] && $this->shop->enabled()) {
-            $offers = ShopOffer::query()->with('location:id,short')->where('enabled', true)->orderBy('position')->orderBy('price_cents')->limit(6)->get()
+            $all = ShopOffer::query()->with(['location:id,short', 'category:id,name', 'egg.nest'])->where('enabled', true)
+                ->orderBy('position')->orderBy('price_cents')->get();
+            $price = fn (int $cents) => number_format($cents / 100, 2, '.', '') . ' ' . $this->shop->currency();
+            $monthly = fn (ShopOffer $offer) => $offer->duration_days >= 28 && $offer->duration_days <= 31;
+
+            // One card per category of the shop (or per game): its price "from".
+            $games = $all->groupBy(fn (ShopOffer $offer) => (string) ($offer->category->name ?? $offer->egg->name ?? '-'))
+                ->map(function ($list, $name) use ($price, $monthly) {
+                    /** @var ShopOffer $cheapest */
+                    $cheapest = $list->sortBy('price_cents')->first();
+
+                    return [
+                        'name' => (string) $name,
+                        'game' => \Pterodactyl\Services\Shop\OfferGame::of($cheapest->egg),
+                        'from' => $price($cheapest->price_cents),
+                        'monthly' => $monthly($cheapest),
+                        'days' => $cheapest->duration_days,
+                        'count' => $list->count(),
+                        'memory_min' => (int) $list->min('memory'),
+                        'memory_max' => (int) $list->max('memory'),
+                    ];
+                })->values()->take(8)->all();
+
+            // The offers put forward first ("Popular"), then the others.
+            $offers = $all->sortBy(fn (ShopOffer $offer) => $offer->featured ? 0 : 1)->take(6)
                 ->map(fn (ShopOffer $offer) => [
                     'name' => $offer->name,
                     'description' => $offer->description,
-                    'price' => number_format($offer->price_cents / 100, 2, '.', '') . ' ' . $this->shop->currency(),
+                    'price' => $price($offer->price_cents),
                     'days' => $offer->duration_days,
+                    'monthly' => $monthly($offer),
                     'memory' => $offer->memory,
                     'disk' => $offer->disk,
                     'cpu' => $offer->cpu,
+                    'featured' => (bool) $offer->featured,
+                    'game' => \Pterodactyl\Services\Shop\OfferGame::of($offer->egg),
                     'available' => $offer->isAvailable(),
-                ])->all();
+                ])->values()->all();
         }
 
         return view('landing', [
             'content' => $content,
             'offers' => $offers,
+            'games' => $games,
             'stats' => $content['show_stats'] ? $this->stats() : null,
             'registration' => AuthFeatures::registrationEnabled(),
             'signedIn' => $request->user() !== null,

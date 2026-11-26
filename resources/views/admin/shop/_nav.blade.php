@@ -1,6 +1,7 @@
 @php
     $tabs = [
         ['admin.shop.offers', 'Offers', 'admin.shop.offers*', true],
+        ['admin.shop.generator', 'Offer generator', 'admin.shop.generator*', true],
         ['admin.shop.categories', 'Categories', 'admin.shop.categories*', true],
         ['admin.shop.orders', 'Orders', 'admin.shop.orders*', true],
         ['admin.shop.credit', 'Credit and payments', 'admin.shop.credit*', true],

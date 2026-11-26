@@ -20,6 +20,10 @@ export interface ShopOffer {
     location: string | null;
     available: boolean;
     stock: number | null;
+    // The kind of game (minecraft, fivem, bot, website...), for its look.
+    game: string;
+    // Put forward: "Popular".
+    featured: boolean;
 }
 
 export type OrderStatus = 'provisioning' | 'active' | 'expired' | 'failed' | 'cancelled';
@@ -148,6 +152,8 @@ export const getShop = async (): Promise<ShopData> => {
             location: o.location,
             available: o.available,
             stock: o.stock,
+            game: o.game || 'game',
+            featured: !!o.featured,
         })),
         orders: data.orders.map((o: any) => ({
             id: o.id,

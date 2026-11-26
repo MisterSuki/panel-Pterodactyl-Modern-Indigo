@@ -26,6 +26,7 @@ class LandingController extends Controller
             'content' => $this->landing->get(app()->getLocale()),
             'icons' => LandingContent::ICONS,
             'slots' => LandingContent::MAX_FEATURES,
+            'faqSlots' => LandingContent::MAX_FAQ,
         ]);
     }
 

@@ -99,6 +99,44 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="box box-primary">
+                <div class="box-header with-border"><h3 class="box-title">Games</h3></div>
+                <div class="box-body">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label for="games_title">Title of the games</label>
+                        <input type="text" id="games_title" name="games_title" class="form-control" maxlength="80" value="{{ $v('games_title') }}">
+                        <p class="text-muted small" style="margin:6px 0 0"><span>One card per category of the shop (or per game), with its price "from". Shown with the offers.</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="box box-primary">
+                <div class="box-header with-border"><h3 class="box-title">Questions (FAQ)</h3></div>
+                <div class="box-body">
+                    <div class="form-group">
+                        <label for="faq_title">Title of the questions</label>
+                        <input type="text" id="faq_title" name="faq_title" class="form-control" maxlength="80" value="{{ $v('faq_title') }}">
+                    </div>
+                    @php $faq = old('faq', $content['faq']); @endphp
+                    @for ($i = 0; $i < $faqSlots; $i++)
+                        @php $item = $faq[$i] ?? ['q' => '', 'a' => '']; @endphp
+                        <div class="pd-slot">
+                            <div class="form-group">
+                                <input type="text" name="faq[{{ $i }}][q]" class="form-control" maxlength="160" value="{{ $item['q'] ?? '' }}" placeholder="Question" aria-label="Question">
+                            </div>
+                            <div class="form-group">
+                                <textarea name="faq[{{ $i }}][a]" class="form-control" rows="2" maxlength="600" placeholder="Answer" aria-label="Answer">{{ $item['a'] ?? '' }}</textarea>
+                            </div>
+                        </div>
+                    @endfor
+                    <p class="text-muted small" style="margin-bottom:0"><span>A question without its answer is not shown. No question: the section is hidden.</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="box box-primary">
         <div class="box-footer">
             {!! csrf_field() !!}

@@ -5,6 +5,16 @@
     $hasOffers = count($offers) > 0;
     $hasAbout = $content['about_text'] !== '';
     $hasFeatures = count($content['features']) > 0;
+    $hasGames = count($games ?? []) > 0;
+    $hasFaq = count($content['faq'] ?? []) > 0;
+    // The look of each kind of game (OfferGame): its icon and its two colours.
+    $looks = [
+        'minecraft' => ['cube', '#4ade80', '#15803d'], 'fivem' => ['car', '#f97316', '#c2410c'], 'survival' => ['tree', '#a3e635', '#4d7c0f'],
+        'bot' => ['robot', '#60a5fa', '#1d4ed8'], 'website' => ['globe', '#38bdf8', '#6366f1'], 'linux' => ['terminal', '#94a3b8', '#334155'],
+        'game' => ['gamepad', '#a78bfa', '#6d28d9'],
+    ];
+    $look = fn (?string $game) => $looks[$game ?? 'game'] ?? $looks['game'];
+    $gb = fn (int $mb) => rtrim(rtrim(number_format($mb / 1024, 1, '.', ''), '0'), '.') . ' GB';
     $showRegister = $registration && !$signedIn;
 @endphp
 <!DOCTYPE html>
@@ -144,6 +154,28 @@
         .ld-specs li { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
         .ld-specs li::before { content: ''; width: 14px; height: 14px; flex-shrink: 0; border-radius: 50%; background: rgb(var(--pd-accent-500) / 0.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12 4 4 8-8'/%3E%3C/svg%3E") center / 9px no-repeat; }
         .ld-offer .ld-btn { margin-top: auto; width: 100%; }
+        /* Games: one card per category, with its price "from". */
+        .ld-games { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 40px; }
+        .ld-game { display: flex; align-items: center; gap: 14px; padding: 18px; text-decoration: none; }
+        .ld-game-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 48px; height: 48px; border-radius: 14px; color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
+        .ld-game-icon svg { width: 24px; height: 24px; }
+        .ld-game strong { display: block; color: #fff; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
+        .ld-game em { display: block; font-style: normal; color: var(--muted); font-size: 13px; margin-top: 2px; }
+        .ld-game b { color: #fff; font-weight: 600; }
+        /* An offer put forward. */
+        .ld-offer.featured { box-shadow: 0 0 0 1px var(--glow), 0 24px 48px -24px var(--glow); }
+        .ld-badge { position: absolute; top: 18px; right: 18px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #fff; }
+        .ld-offer-head { display: flex; align-items: center; gap: 12px; padding-right: 74px; }
+        .ld-offer-head .ld-game-icon { width: 38px; height: 38px; border-radius: 11px; }
+        .ld-offer-head .ld-game-icon svg { width: 19px; height: 19px; }
+        /* FAQ. */
+        .ld-faq { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+        .ld-faq details { border-radius: 14px; background: var(--surface); border: 1px solid var(--line); padding: 0 20px; }
+        .ld-faq summary { cursor: pointer; list-style: none; padding: 18px 0; font-weight: 600; color: #fff; display: flex; justify-content: space-between; gap: 16px; }
+        .ld-faq summary::-webkit-details-marker { display: none; }
+        .ld-faq summary::after { content: '+'; color: var(--muted); font-weight: 400; font-size: 20px; line-height: 1; transition: transform .2s ease; }
+        .ld-faq details[open] summary::after { transform: rotate(45deg); }
+        .ld-faq p { margin: 0 0 18px; color: var(--muted); font-size: 14.5px; white-space: pre-line; }
         .ld-soldout { margin-top: auto; text-align: center; color: #ff9592; font-weight: 500; font-size: 14px; }
 
         .ld-about { max-width: 720px; margin: 0 auto; text-align: center; color: var(--muted); font-size: 17px; white-space: pre-line; }
@@ -182,7 +214,9 @@
         </a>
         <div class="ld-links">
             @if ($hasFeatures)<a href="#features"><span>Features</span></a>@endif
+            @if ($hasGames)<a href="#games"><span>Games</span></a>@endif
             @if ($hasOffers)<a href="#offers"><span>Offers</span></a>@endif
+            @if ($hasFaq)<a href="#faq"><span>FAQ</span></a>@endif
             @if ($hasAbout)<a href="#about"><span>About</span></a>@endif
         </div>
         <div class="ld-actions">
@@ -258,15 +292,40 @@
         </section>
     @endif
 
+    @if ($hasGames && count($games) > 1)
+        <section class="ld-section" id="games">
+            <span class="ld-eyebrow"><span>Games</span></span>
+            @if (($content['games_title'] ?? '') !== '')<h2>{{ $content['games_title'] }}</h2>@endif
+            <div class="ld-games">
+                @foreach ($games as $game)
+                    @php [$icon, $from, $to] = $look($game['game']); @endphp
+                    <a class="ld-card ld-game" href="{{ $signedIn ? '/shop' : ($registration ? '/auth/register' : '/auth/login') }}">
+                        <span class="ld-game-icon" style="background: linear-gradient(135deg, {{ $from }}, {{ $to }})">@include('landing.icon', ['name' => $icon])</span>
+                        <span>
+                            <strong>{{ $game['name'] }}</strong>
+                            <em><span>From</span> <b>{{ $game['from'] }}</b> @if ($game['monthly'])<span>/ month</span>@else / {{ $game['days'] }} <span>days</span>@endif</em>
+                            <em>{{ $game['memory_min'] === $game['memory_max'] ? $gb($game['memory_min']) : $gb($game['memory_min']) . ' – ' . $gb($game['memory_max']) }} · {{ $game['count'] }} <span>{{ $game['count'] > 1 ? 'offers' : 'offer' }}</span></em>
+                        </span>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     @if ($hasOffers)
         <section class="ld-section" id="offers">
             <span class="ld-eyebrow"><span>Offers</span></span>
             @if ($content['offers_title'] !== '')<h2>{{ $content['offers_title'] }}</h2>@endif
             <div class="ld-grid">
                 @foreach ($offers as $offer)
-                    <div class="ld-card ld-offer">
-                        <h3>{{ $offer['name'] }}</h3>
-                        <div class="ld-price">{{ $offer['price'] }} <small>/ {{ $offer['days'] }} <span>days</span></small></div>
+                    @php [$icon, $from, $to] = $look($offer['game'] ?? null); @endphp
+                    <div class="ld-card ld-offer {{ !empty($offer['featured']) ? 'featured' : '' }}" style="--glow: {{ $from }}">
+                        @if (!empty($offer['featured']))<span class="ld-badge" style="background: linear-gradient(135deg, {{ $from }}, {{ $to }})"><span>Popular</span></span>@endif
+                        <div class="ld-offer-head">
+                            <span class="ld-game-icon" style="background: linear-gradient(135deg, {{ $from }}, {{ $to }})">@include('landing.icon', ['name' => $icon])</span>
+                            <h3>{{ $offer['name'] }}</h3>
+                        </div>
+                        <div class="ld-price">{{ $offer['price'] }} <small>@if (!empty($offer['monthly']))<span>/ month</span>@else / {{ $offer['days'] }} <span>days</span>@endif</small></div>
                         @if ($offer['description'])<p>{{ $offer['description'] }}</p>@endif
                         <ul class="ld-specs">
                             <li>{{ number_format($offer['memory'] / 1024, 1) }} GB <span>of memory</span></li>
@@ -289,6 +348,21 @@
             <span class="ld-eyebrow"><span>About</span></span>
             @if ($content['about_title'] !== '')<h2>{{ $content['about_title'] }}</h2>@endif
             <div class="ld-about">{{ $content['about_text'] }}</div>
+        </section>
+    @endif
+
+    @if ($hasFaq)
+        <section class="ld-section" id="faq">
+            <span class="ld-eyebrow"><span>FAQ</span></span>
+            @if (($content['faq_title'] ?? '') !== '')<h2>{{ $content['faq_title'] }}</h2>@endif
+            <div class="ld-faq">
+                @foreach ($content['faq'] as $item)
+                    <details>
+                        <summary>{{ $item['q'] }}</summary>
+                        <p>{{ $item['a'] }}</p>
+                    </details>
+                @endforeach
+            </div>
         </section>
     @endif
 

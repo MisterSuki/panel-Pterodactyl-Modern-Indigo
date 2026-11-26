@@ -125,6 +125,8 @@ Route::group(['prefix' => 'shop', 'middleware' => 'admin.can:shop'], function ()
     Route::get('/offers/{id}', [Admin\ShopController::class, 'offerForm'])->whereNumber('id')->name('admin.shop.offers.edit');
     Route::post('/offers/{id}', [Admin\ShopController::class, 'saveOffer'])->whereNumber('id');
     Route::delete('/offers/{id}', [Admin\ShopController::class, 'deleteOffer'])->whereNumber('id')->name('admin.shop.offers.delete');
+    Route::get('/generator', [Admin\ShopController::class, 'generator'])->name('admin.shop.generator');
+    Route::post('/generator', [Admin\ShopController::class, 'generate']);
     Route::get('/categories', [Admin\ShopController::class, 'categories'])->name('admin.shop.categories');
     Route::post('/categories', [Admin\ShopController::class, 'saveCategory']);
     Route::post('/categories/{id}', [Admin\ShopController::class, 'saveCategory'])->whereNumber('id')->name('admin.shop.categories.save');
