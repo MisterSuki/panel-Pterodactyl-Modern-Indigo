@@ -2992,5 +2992,11 @@
  "Title of the questions": "Titre des questions",
  "Question": "Question",
  "Answer": "Réponse",
- "A question without its answer is not shown. No question: the section is hidden.": "Une question sans réponse n'est pas affichée. Aucune question : la section est masquée."
+ "A question without its answer is not shown. No question: the section is hidden.": "Une question sans réponse n'est pas affichée. Aucune question : la section est masquée.",
+ "Put on sale": "Mettre en vente",
+ "Hide": "Masquer",
+ "Not popular": "Plus populaire",
+ "Also delete the categories left empty": "Supprimer aussi les catégories devenues vides",
+ "Delete the selected offers? What was already bought stays as it is.": "Supprimer les offres sélectionnées ? Ce qui a déjà été acheté reste tel quel.",
+ "No offer yet. Create the first one to start selling, or use the offer generator.": "Aucune offre pour l'instant. Créez la première pour commencer à vendre, ou utilisez le générateur d'offres."
 }

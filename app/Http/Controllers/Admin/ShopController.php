@@ -75,7 +75,7 @@ class ShopController extends Controller
     public function offers(): View
     {
         return view('admin.shop.offers', [
-            'offers' => ShopOffer::query()->with(['egg:id,name', 'location:id,short'])->orderBy('position')->orderBy('id')->get(),
+            'offers' => ShopOffer::query()->with(['egg:id,name', 'location:id,short', 'category:id,name'])->orderBy('position')->orderBy('id')->get(),
             'currency' => $this->settings->currency(),
         ]);
     }
@@ -154,6 +154,44 @@ class ShopController extends Controller
         $offer = $id ? ShopOffer::query()->findOrFail($id) : new ShopOffer();
         $offer->fill($values)->save();
         $this->alert->success('The offer was saved.')->flash();
+
+        return redirect()->route('admin.shop.offers');
+    }
+
+    /**
+     * The same change on several offers: delete them (with the categories left empty, if asked), put them on sale or
+     * not, put them forward or not. What people already bought is not touched.
+     */
+    public function bulkOffers(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'offers' => ['required', 'array', 'min:1', 'max:1000'],
+            'offers.*' => ['integer'],
+            'action' => ['required', 'in:delete,enable,disable,feature,unfeature'],
+        ]);
+        $query = ShopOffer::query()->whereIn('id', $data['offers']);
+        $count = (clone $query)->count();
+
+        switch ($data['action']) {
+            case 'delete':
+                $categories = (clone $query)->whereNotNull('category_id')->pluck('category_id')->unique();
+                $query->delete();
+                $removed = 0;
+                if ($request->boolean('clean_categories')) {
+                    $removed = ShopCategory::query()->whereIn('id', $categories)
+                        ->whereNotIn('id', ShopOffer::query()->whereNotNull('category_id')->select('category_id'))->delete();
+                }
+                $this->alert->success("$count offers were deleted" . ($removed ? " and $removed empty categories" : '') . '. What was bought stays as it is.')->flash();
+                break;
+            case 'enable':
+            case 'disable':
+                $query->update(['enabled' => $data['action'] === 'enable']);
+                $this->alert->success($data['action'] === 'enable' ? "$count offers are on sale." : "$count offers are hidden.")->flash();
+                break;
+            default:
+                $query->update(['featured' => $data['action'] === 'feature']);
+                $this->alert->success($data['action'] === 'feature' ? "$count offers are put forward." : "$count offers are no longer put forward.")->flash();
+        }
 
         return redirect()->route('admin.shop.offers');
     }
